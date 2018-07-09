@@ -8,3 +8,4 @@ problem.db
 __pycache__
 *.pyc
 *.db
+build

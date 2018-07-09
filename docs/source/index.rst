@@ -10,7 +10,10 @@ Welcome to Artap's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+.. automodule:: function
+   :members:
 
+.. todolist::
 
 Indices and tables
 ==================

@@ -159,7 +159,7 @@ class Problem:
 
 if __name__ == "__main__":
        
-    from function import Function
+    from .function import Function
     problem = Problem(1, 100, 1)
     function = Function(1, 1)
     problem.set_function(function)

@@ -1,4 +1,11 @@
+import sys, paramiko
+
 class Function:
+    """
+    Function is a class representing objective or cost function for 
+    optimization problems.
+    """
+
     def __init__(self, inputs = 1, outputs = 1):
         self.number_inputs  = inputs
         self.number_outputs = outputs
@@ -42,3 +49,66 @@ class ComsolFunction(Function):
             lines = data.split("\n")
             y = float(lines[5])
         return y
+
+    
+    #TODO: Add tool for automatic generating of .java files
+    
+
+class RemoteFunction(Function):   
+        """
+        Allowes distributing of calculation of obejctive functions. 
+        """
+
+        def __init__(self, hostname = "edison.fel.zcu.cz", 
+            port = 22, username = "panek50", password = "tkditf_16_2"): #TODO: Make it safe
+            self.hostname = hostname
+            self.port = port
+            self.username = username
+            self.password = password
+
+        def transfer_files_to_remote(self, files_list = []):
+           dest = "parameters.txt"
+           source = "parameters.txt" 
+
+           try:
+               t = paramiko.Transport((self.hostname, self.port))
+               t.connect(username=self.username, password=self.password)
+               sftp = paramiko.SFTPClient.from_transport(t)
+               sftp.put(source, dest)
+
+           finally:
+                t.close()            
+
+        def transfer_files_from_remote(self, files_list = []):
+           dest = "parameters.txt"
+           source = "parameters.txt" 
+
+           try:
+               t = paramiko.Transport((self.hostname, self.port))
+               t.connect(username=self.username, password=self.password)
+               sftp = paramiko.SFTPClient.from_transport(t)
+               sftp.get(source, dest)
+
+           finally:
+                t.close()            
+
+        def run_command_on_remote(self, command = "ls"):
+            # Run ssh command
+            try:
+                client = paramiko.SSHClient()
+                client.load_system_host_keys()
+                client.set_missing_host_key_policy(paramiko.WarningPolicy())
+                client.connect(self.hostname, port = self.port, username = self.username, password = self.password,)
+
+                stdin, stdout, stderr = client.exec_command(command)
+                # print(stdout.read(),)
+
+            finally:
+                client.close()
+
+        def run_condor_job(self): # own class inherited from RemoteFunction
+            pass #TODO: implement 
+
+if __name__ == "__main__":
+    function = RemoteFunction()
+    function.run_command_on_remote()
