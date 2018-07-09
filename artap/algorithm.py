@@ -46,13 +46,13 @@ class Individual:
         
 
     def set_eval(self, eval):
-        self.eval = eval
+        self.function = eval
 
     def evaluate(self, vector):        
         self.vector = vector
         
         self.length = len(vector)        
-        self.cost = self.eval(vector)
+        self.cost = self.function(vector)
         self.number = Individual.number
         Individual.number += 1        
         self.toDatabase()
@@ -92,12 +92,12 @@ class Problem:
     def set_algorithm(self, algorithm):
         self.algorithm = algorithm
     
-    def set_eval(self, eval):
-        self.eval = eval
+    def set_function(self, function):
+        self.function = function.eval
     
     def evaluate(self, x):
         individ = Individual()
-        individ.set_eval(self.eval) # ToDo: Move to settings? 
+        individ.set_eval(self.function) # ToDo: Move to settings? 
         individ.evaluate(x)
         return individ.cost
  
@@ -156,21 +156,18 @@ class Problem:
         
         pl.show()
 
-def function(x):
-    result = 0
-    for i in x:
-        result += i*i
-    return result
 
+if __name__ == "__main__":
+       
+    from function import Function
+    problem = Problem(1, 100, 1)
+    function = Function(1, 1)
+    problem.set_function(function)
+    problem.create_database()
 
-#x = Individual([1.0, 1.0, 1.0])
-#print(x.toString())
+    from scipy.optimize import minimize
+    es = minimize(problem.evaluate, [10], method='nelder-mead', options={'xtol': 1e-8, 'disp': True})
+    problem.read_from_database()
+    problem.plot_data() 
 
-problem = Problem(1, 100, 1)
-problem.set_eval(function)
-problem.create_database()
-
-from scipy.optimize import minimize
-es = minimize(problem.evaluate, [10], method='nelder-mead', options={'xtol': 1e-8, 'disp': True})
-problem.read_from_database()
-problem.plot_data()
+    

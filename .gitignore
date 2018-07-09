@@ -1,0 +1,9 @@
+max.txt
+parameters.txt
+problem.db
+*.class
+*.recovery
+*.status
+*.mph
+__pycache__
+*.pyc
