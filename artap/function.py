@@ -1,3 +1,4 @@
+from fabric import Connection
 import sys, paramiko
 
 class Function:
@@ -38,9 +39,9 @@ class ComsolFunction(Function):
     def eval(self, x):      
         # Generate the input file for the external code
         with open(self.input_filename, 'w') as input_file:
-            input_file.write('%f %f' % (x[0], x[1]))    # ToDo: generalize
+            input_file.write('%f %f' % (x[0], x[1]))    # TODO: generalize
  
-                # Parse the output file from the external code and set the value of f_xy
+        # Parse the output file from the external code and set the value of y
         self.run_comsol()
 
         y = 0        
@@ -66,9 +67,9 @@ class RemoteFunction(Function):
             self.username = username
             self.password = password
 
-        def transfer_files_to_remote(self, files_list = []):
-           dest = "parameters.txt"
-           source = "parameters.txt" 
+        def transfer_files_to_remote(self, file):
+           dest = file
+           source = file
 
            try:
                t = paramiko.Transport((self.hostname, self.port))
@@ -79,9 +80,9 @@ class RemoteFunction(Function):
            finally:
                 t.close()            
 
-        def transfer_files_from_remote(self, files_list = []):
-           dest = "parameters.txt"
-           source = "parameters.txt" 
+        def transfer_files_from_remote(self, file):
+           dest = file
+           source = file
 
            try:
                t = paramiko.Transport((self.hostname, self.port))
@@ -106,8 +107,29 @@ class RemoteFunction(Function):
             finally:
                 client.close()
 
-        def run_condor_job(self): # own class inherited from RemoteFunction
+        def run_condor_job(self): #TODO: own class inherited from RemoteFunction?
             pass #TODO: implement 
+
+
+        def eval(self, x):
+            y = 0
+            self.transfer_files_to_remote('./tests/eval.py')
+                
+            with open("./tests/parameters.txt", 'w') as input_file:
+                input_file.write(str(x[0]) + " " + str(x[1]))
+            
+            self.transfer_files_to_remote('./tests/parameters.txt')          
+            connection = Connection('edison.fel.zcu.cz', user = 'panek50', port = 22, connect_kwargs={'password': 'tkditf_16_2'})
+            connection.run("python ./tests/eval.py")                        
+            connection.close()
+            self.transfer_files_from_remote('./tests/output.txt')            
+            with open("./tests/output.txt") as file:
+                y = float(file.read())
+            
+            return y
+
+
+
 
 if __name__ == "__main__":
     function = RemoteFunction()
