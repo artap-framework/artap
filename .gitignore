@@ -7,3 +7,4 @@ problem.db
 *.mph
 __pycache__
 *.pyc
+*.db
