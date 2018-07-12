@@ -67,9 +67,9 @@ class RemoteFunction(Function):
             self.username = username
             self.password = password
 
-        def transfer_files_to_remote(self, file):
-           dest = file
-           source = file
+        def transfer_files_to_remote(self, source_file, destination_file):           
+           source = source_file
+           dest   = destination_file
 
            try:
                t = paramiko.Transport((self.hostname, self.port))
@@ -80,9 +80,9 @@ class RemoteFunction(Function):
            finally:
                 t.close()            
 
-        def transfer_files_from_remote(self, file):
-           dest = file
-           source = file
+        def transfer_files_from_remote(self, source_file, destination_file):
+           dest = destination_file
+           source = source_file
 
            try:
                t = paramiko.Transport((self.hostname, self.port))
@@ -110,16 +110,16 @@ class RemoteFunction(Function):
 
         def eval(self, x):
             y = 0
-            self.transfer_files_to_remote('./tests/eval.py')
+            self.transfer_files_to_remote('./tests/eval.py', "eval.py")
                 
             with open("./tests/parameters.txt", 'w') as input_file:
                 input_file.write(str(x[0]) + " " + str(x[1]))
             
-            self.transfer_files_to_remote('./tests/parameters.txt')          
+            self.transfer_files_to_remote('./tests/parameters.txt', 'parameters.txt')          
             connection = Connection('edison.fel.zcu.cz', user = 'panek50', port = 22, connect_kwargs={'password': 'tkditf_16_2'})
             connection.run("python ./tests/eval.py")                        
             connection.close()
-            self.transfer_files_from_remote('./tests/output.txt')            
+            self.transfer_files_from_remote('output.txt', './tests/output.txt')            
             with open("./tests/output.txt") as file:
                 y = float(file.read())
             
@@ -133,28 +133,25 @@ class CondorJobFunction(RemoteFunction):
     
     def eval(self, x):
             y = 0
-            self.transfer_files_to_remote('./tests/eval.py')
-            self.transfer_files_to_remote('./tests/condor.job')
+            self.transfer_files_to_remote('./tests/eval.py', './tests/eval.py')
+            self.transfer_files_to_remote('./tests/condor.job', './tests/condor.job')
                 
             with open("./tests/parameters.txt", 'w') as input_file:
                 input_file.write(str(x[0]) + " " + str(x[1]))
             
-            self.transfer_files_to_remote('./tests/parameters.txt')          
+            self.transfer_files_to_remote('./tests/parameters.txt', './tests/parameters.txt')          
             
             connection = Connection('edison.fel.zcu.cz', user = 'panek50', port = 22, connect_kwargs={'password': 'tkditf_16_2'})            
-            connection.run("condor_submit ./tests/condor.job")   
-            #connection.run("condor_submit condor.job")                        
+            connection.run("condor_submit ./tests/condor.job")               
             connection.close()
             
-            self.transfer_files_from_remote('./tests/output.txt')            
+            self.transfer_files_from_remote('./tests/output.txt', './tests/output.txt')            
             with open("./tests/output.txt") as file:
                 y = file.read()
             
             return y
 
-    
-
 
 if __name__ == "__main__":
     function = CondorJobFunction()
-    print(function.eval([3, 1]))
+    print(function.eval([1, 1]))

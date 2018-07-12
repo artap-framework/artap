@@ -1,0 +1,18 @@
+universe = vanilla
+initialdir = ./tests/
+executable = /usr/bin/python3
+arguments = eval.py  
+requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+input = eval.py
+output = output.log
+transfer_input_files = parameters.txt
+log = $(cluster).condor_log
+error = $(cluster)_$(process).condor_err
+
+log_xml = true
+should_transfer_files = yes
+when_to_transfer_output = ON_EXIT
+transfer_executable = true
+transfer_output_files = output.txt
+queue

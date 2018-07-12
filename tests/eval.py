@@ -8,7 +8,7 @@ def eval():
             x.append(float(number))
             y += float(number) * float(number)
  
-    with open("./output.txt", 'w') as file:
+    with open("output.txt", 'w') as file:
         file.write(str(y))
                 
     
