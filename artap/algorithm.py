@@ -2,13 +2,14 @@ import sqlite3
 
 class Individual:   
     number = 0    
+    
     def __init__(self,  vector = []):
         self.length = len(vector)
         self.vector = vector
         self.cost = 0        
         self.population_number = 0
         self.number = 0
-        
+        self.project_id = 0
 
     def toString(self):
         string = "["
@@ -77,17 +78,13 @@ class Population:
         print(self.toString())
 
 class Problem:
-    number = 0
-    max_population_number = 0
-    max_population_size = 0
-    vector_length = 0
-    boundaries = []
-    database_name = "problem.db"
-
-    def __init__(self, population_number = 0, population_size = 0, vector_length = 0):
-        self.max_population_number = population_number
-        self.max_population_size = population_size
-        self.vector_length = vector_length
+    """ Is a main class wich collects information about optimizaion task """    
+        
+    number = 0          # Number of instances
+    database_name = "problem.db" # TODO: Make member variable
+ 
+    def __init__(self, name):
+        pass        
 
     def set_algorithm(self, algorithm):
         self.algorithm = algorithm
@@ -157,10 +154,22 @@ class Problem:
         pl.show()
 
 
+class MyProblem(Problem):
+
+    def __init__(self, name):
+        self.name = name
+        self.id =  Problem.number
+        Problem.number += 1
+        
+        self.max_population_number = 1
+        self.max_population_size = 1
+        self.vector_length = 1
+
+
 if __name__ == "__main__":
        
-    from .function import Function
-    problem = Problem(1, 100, 1)
+    from function import Function
+    problem = MyProblem("Kavadratic function")
     function = Function(1, 1)
     problem.set_function(function)
     problem.create_database()

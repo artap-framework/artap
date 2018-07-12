@@ -93,7 +93,7 @@ class RemoteFunction(Function):
            finally:
                 t.close()            
 
-        def run_command_on_remote(self, command = "ls"):
+        def run_command_on_remote(self, command):
             # Run ssh command
             try:
                 client = paramiko.SSHClient()
@@ -106,9 +106,6 @@ class RemoteFunction(Function):
 
             finally:
                 client.close()
-
-        def run_condor_job(self): #TODO: own class inherited from RemoteFunction?
-            pass #TODO: implement 
 
 
         def eval(self, x):
@@ -128,9 +125,36 @@ class RemoteFunction(Function):
             
             return y
 
+class CondorJobFunction(RemoteFunction):
+    """ Allwes submit goal function calculation as a HT Condor job """
+    def __init__(self, ):
+        super().__init__()
 
+    
+    def eval(self, x):
+            y = 0
+            self.transfer_files_to_remote('./tests/eval.py')
+            self.transfer_files_to_remote('./tests/condor.job')
+                
+            with open("./tests/parameters.txt", 'w') as input_file:
+                input_file.write(str(x[0]) + " " + str(x[1]))
+            
+            self.transfer_files_to_remote('./tests/parameters.txt')          
+            
+            connection = Connection('edison.fel.zcu.cz', user = 'panek50', port = 22, connect_kwargs={'password': 'tkditf_16_2'})            
+            connection.run("condor_submit ./tests/condor.job")   
+            #connection.run("condor_submit condor.job")                        
+            connection.close()
+            
+            self.transfer_files_from_remote('./tests/output.txt')            
+            with open("./tests/output.txt") as file:
+                y = file.read()
+            
+            return y
+
+    
 
 
 if __name__ == "__main__":
-    function = RemoteFunction()
-    function.run_command_on_remote()
+    function = CondorJobFunction()
+    print(function.eval([3, 1]))
