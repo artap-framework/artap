@@ -1,71 +1,9 @@
-from .function import Function
 import sqlite3
+from string import Template
 
 """
  Module is dedicated to describe optimization problem. 
 """
-
-class Individual:
-    """
-       Collects information about one point in design space.
-    """   
-    number = 0    
-    
-    def __init__(self,  vector = []):
-        self.length = len(vector)
-        self.vector = vector
-        self.cost = 0        
-        self.population_number = 0
-        self.number = 0
-        self.project_id = 0
-
-    def toString(self):
-        string = "["
-        for number in self.vector:
-            string += str(number) + ", "
-        string = string[:len(string)-1]
-        string += "]\n"
-        return string
-
-    
-    def toDatabase(self):
-        connection = sqlite3.connect("problem.db") # ToDo: Generalize, time stamp?
-        cursor = connection.cursor()       
-        id = self.number
-        name = "problem_1"   # ToDo: Generalize
-        
-        cmd_exec = "INSERT INTO structures (id,name,"
-        
-        for i in range(len(self.vector)):
-            cmd_exec += "x" + str(i) + ","
-        cmd_exec += "cost) VALUES (?, ?,"
-        for i in range(len(self.vector)):
-            cmd_exec += "?, "
-        cmd_exec += "?);"           
-        
-        params = [id , name]
-        for i in range(len(self.vector)):
-            params.append(self.vector[i])
-        params.append(self.cost)
-
-        cursor.execute(cmd_exec, params)
-        connection.commit()
-        cursor.close()
-        connection.close()
-        
-
-    def set_eval(self, eval):
-        self.function = eval
-
-    def evaluate(self, vector):        
-        self.vector = vector
-        
-        self.length = len(vector)        
-        self.cost = self.function(vector)
-        self.number = Individual.number
-        Individual.number += 1        
-        self.toDatabase()
-
 
 class Population:
     number = 0
@@ -86,14 +24,18 @@ class Population:
         print(self.toString())
 
 class Problem:
-    """ Is a main class wich collects information about optimizaion task """    
+    """ Is a main class wich collects information about optimization task """    
+           
+    def __init__(self, name):                        
+        self.name = name    
+        self.parameters = dict()
+        self.costs = []
+        self.datastore = DataStore()
+        self.id = self.datastore.add_problem(name)
+
         
-    number = 0          # Number of instances
-    database_name = "problem.db" # TODO: Make member variable
- 
-    def __init__(self, name):        
-        self.name = name
-        self.vector_length = 1        
+    def create_table_individual(self):
+        self.datastore.create_table_individual(self.name + "_" + str(self.id), self.parameters, self.costs)    
 
     def set_algorithm(self, algorithm):
         self.algorithm = algorithm
@@ -103,32 +45,13 @@ class Problem:
     
     def evaluate(self, x):
         individ = Individual()
-        individ.set_eval(self.function) # ToDo: Move to settings? 
+        individ.set_eval(self.function) # TODO: Move to settings? 
         individ.evaluate(x)
         return individ.cost
  
-    def create_database(self):        
-        connection = sqlite3.connect(self.database_name) # ToDo: Generalize, time stamp?
-        cursor = connection.cursor()
-        cursor.execute(""" DROP TABLE IF EXISTS structures;""")
-        exec_cmd = """
-            CREATE TABLE structures (
-            id INTEGER PRIMARY KEY,
-            name TEXT,                        
-            """
-        for i in range(self.vector_length):
-            exec_cmd += "x"+ str(i) + " NUMBER, \n"
-        
-        exec_cmd += "cost NUMBER" 
-        exec_cmd += ");"
-        
-        cursor.execute(exec_cmd)
-        connection.commit()
-        cursor.close()
-        connection.close()
 
-    def read_from_database(self):
-        connection = sqlite3.connect(self.database_name) # ToDo: Generalize, time stamp?
+    def read_from_database(self):        
+        connection = sqlite3.connect(self.database_name) # TODO: Generalize, time stamp?
         cursor = connection.cursor()
         exec_cmd = """ SELECT * FROM structures """            
         cursor.execute(exec_cmd)
@@ -142,14 +65,15 @@ class Problem:
     def  plot_data(self):
         vector = []
         cost = []
-        
+        vector_length = len(self.parameters)
+
         for i in range(len(self.data)):
-            vector.append(self.data[i][2:2 + self.vector_length])
-            cost.append(self.data[i][2 + self.vector_length])
+            vector.append(self.data[i][2:2 + vector_length])
+            cost.append(self.data[i][2 + vector_length])
 
         import pylab as pl
         
-        for j in range(self.vector_length):
+        for j in range(vector_length):
             y = []
             for i in range(len(vector)):
                 y.append(vector[i][j])
@@ -163,14 +87,80 @@ class Problem:
         pl.show()
 
 
-# Simple example for testing purposes
-class MyProblem(Problem):
+class Individual:
+    """
+       Collects information about one point in design space.
+    """   
+    number = 0    
+    
+    def __init__(self, problem: Problem):        
+        self.problem = problem
+        self.length = len(problem.parameters)        
+        self.cost = 0                
+        self.number = 0
+        self.function = problem.function        
 
-    def __init__(self, name):
-        self.name = name
-        self.id =  Problem.number
-        Problem.number += 1
+    def toString(self):
+        string = "["
+        for number in self.vector:
+            string += str(number) + ", "
+        string = string[:len(string)-1]
+        string += "]\n"
+        return string
+
+    
+    def toDatabase(self): 
+        connection = sqlite3.connect("problem.db") # ToDo: Move to datastore
+        cursor = connection.cursor()       
+        id = self.number
+        name = self.problem.name
         
-        self.max_population_number = 1
-        self.max_population_size = 1
-        self.vector_length = 1
+        cmd_exec = "INSERT INTO structures (id,name,"
+        
+        for i in range(len(self.vector)):
+            cmd_exec += "x" + str(i) + ","
+        cmd_exec += "cost) VALUES (?, ?,"
+        for i in range(len(self.vector)):
+            cmd_exec += "?, "
+        cmd_exec += "?);"           
+        
+        params = [id , name]
+        for i in range(len(self.vector)):
+            params.append(self.vector[i])
+        params.append(self.cost)
+
+        cursor.execute(cmd_exec, params)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+    def evaluate(self, vector):        
+        self.vector = vector        
+        self.length = len(vector)        
+        self.cost = self.function(vector)
+        self.number = Individual.number
+        Individual.number += 1        
+        self.toDatabase()
+
+
+class MyProblem(Problem):
+        # Simple example for testing purposes
+        def __init__(self, name):
+            
+            super().__init__(name)
+            print(self.id)    
+            self.max_population_number = 1
+            self.max_population_size = 1
+            self.parameters = {'x_1': 10,'x_2': 10}
+            self.costs = ['F1']
+            self.create_table_individual()
+
+
+if __name__ == "__main__":    
+    from function import Function
+    from datastore import DataStore
+    problem = MyProblem("Problem")
+    
+else:
+    from .function import Function
+    from .datastore import DataStore
