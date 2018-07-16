@@ -181,7 +181,10 @@ class MyProblem(Problem):
 if __name__ == "__main__":    
     from function import Function
     from datastore import DataStore
+    datastore = DataStore()
+    datastore.create_database()
     problem = MyProblem("Problem")   
+
     x = list(problem.parameters.values())
     problem.evaluate(x)
     

@@ -20,5 +20,7 @@
         "**/*.css",
         "**/*.scss",
         "**/*.py"
-      ]
+    ],
+    "python.linting.pylintEnabled": false,
+    "python.pythonPath": "/usr/bin/python3"
 }
