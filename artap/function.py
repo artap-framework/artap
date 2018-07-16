@@ -15,6 +15,7 @@ class Function:
         result = 0
         for i in x:
             result += i*i
+        print("Eval:")
         return result
 
 class ComsolFunction(Function):

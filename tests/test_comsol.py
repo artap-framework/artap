@@ -8,14 +8,12 @@ class TestProblem(Problem):
 
     """ Describe simple one obejctive optimization problem. """
     def __init__(self, name):
-        self.name = name
-        self.id =  Problem.number
-        Problem.number += 1
         
         self.max_population_number = 1
         self.max_population_size = 1
-        self.vector_length = 2
-
+        self.parameters = {'x_1':10, 'x_2':10}
+        self.costs = ['F_1']
+        super().__init__(name, self.parameters, self.costs)
 
 class TestSimpleComsolOptimization(TestCase):
 
@@ -27,8 +25,7 @@ class TestSimpleComsolOptimization(TestCase):
         model_file =  curr_dir + "/tests/elstat.java"
         problem = TestProblem("Comsol Problem")
         function = ComsolFunction(2, 1, input_file, output_file, model_file)
-        problem.set_function(function)
-        problem.create_database() # ToDo: NotNecessary move into consructor
+        problem.set_function(function)        
         problem.evaluate([10, 10])
         problem.read_from_database()                
         optimum = problem.data[-1][-1]        

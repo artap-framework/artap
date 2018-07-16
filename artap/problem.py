@@ -26,16 +26,18 @@ class Population:
 class Problem:
     """ Is a main class wich collects information about optimization task """    
            
-    def __init__(self, name):                        
+    def __init__(self, name, parameters, costs):                        
         self.name = name    
-        self.parameters = dict()
-        self.costs = []
+        self.parameters = parameters
+        self.costs = {cost:0 for cost in costs}
         self.datastore = DataStore()
         self.id = self.datastore.add_problem(name)
+        self.table_name = self.name + "_" + str(self.id)
+        self.create_table_individual()
 
         
     def create_table_individual(self):
-        self.datastore.create_table_individual(self.name + "_" + str(self.id), self.parameters, self.costs)    
+        self.datastore.create_table_individual(self.table_name, self.parameters, self.costs)    
 
     def set_algorithm(self, algorithm):
         self.algorithm = algorithm
@@ -44,21 +46,16 @@ class Problem:
         self.function = function.eval
     
     def evaluate(self, x):
-        individ = Individual()
-        individ.set_eval(self.function) # TODO: Move to settings? 
-        individ.evaluate(x)
-        return individ.cost
- 
+        individ = Individual(self)        
+        individ.evaluate(x)        
+        if len(individ.costs) == 1:
+            return individ.costs[0]
+        else:
+            return individ.costs
 
     def read_from_database(self):        
-        connection = sqlite3.connect(self.database_name) # TODO: Generalize, time stamp?
-        cursor = connection.cursor()
-        exec_cmd = """ SELECT * FROM structures """            
-        cursor.execute(exec_cmd)
-        self.data = cursor.fetchall()                
-        connection.commit()
-        cursor.close()
-        connection.close()
+        self.data = self.datastore.read_all()
+        
         
         
 
@@ -96,9 +93,10 @@ class Individual:
     def __init__(self, problem: Problem):        
         self.problem = problem
         self.length = len(problem.parameters)        
-        self.cost = 0                
+        self.costs = []                
         self.number = 0
-        self.function = problem.function        
+        self.function = problem.function
+        self.population_id = 0        
 
     def toString(self):
         string = "["
@@ -110,56 +108,82 @@ class Individual:
 
     
     def toDatabase(self): 
-        connection = sqlite3.connect("problem.db") # ToDo: Move to datastore
-        cursor = connection.cursor()       
-        id = self.number
-        name = self.problem.name
+        id = self.number        
+        cmd_exec_tmp = Template("INSERT INTO $table (id, problem_id, population_id, ")  # TODO: rewrite using string templates
+        cmd_exec = cmd_exec_tmp.substitute(table = self.problem.table_name)        
+
         
-        cmd_exec = "INSERT INTO structures (id,name,"
+        if type(self.costs != list):
+            costs = [self.costs]
+        else:
+            costs = self.costs
         
-        for i in range(len(self.vector)):
-            cmd_exec += "x" + str(i) + ","
-        cmd_exec += "cost) VALUES (?, ?,"
-        for i in range(len(self.vector)):
-            cmd_exec += "?, "
-        cmd_exec += "?);"           
+        for parameter_name in self.problem.parameters.keys():
+            cmd_exec += parameter_name + ","
         
-        params = [id , name]
+        for cost_name in self.problem.costs.keys():
+            cmd_exec += cost_name + ","
+
+        cmd_exec = cmd_exec[:-1]  # delete last comma
+        cmd_exec += ") VALUES (?, ?, ?, "
+
+        for i in range(len(self.vector) + len(costs) - 1):
+            cmd_exec += " ?,"
+        cmd_exec += " ?);"           
+               
+        params = [id , self.problem.id, self.population_id]
+        
         for i in range(len(self.vector)):
             params.append(self.vector[i])
-        params.append(self.cost)
+        
+        for cost in self.costs:
+            params.append(cost)
 
-        cursor.execute(cmd_exec, params)
-        connection.commit()
-        cursor.close()
-        connection.close()
+        self.problem.datastore.write_individual(cmd_exec, params)    
+        
         
     def evaluate(self, vector):        
         self.vector = vector        
         self.length = len(vector)        
-        self.cost = self.function(vector)
+        costs = self.function(vector)            
+
+        if type(costs) != list:
+            self.costs = [costs]
+        else:
+            self.costs = costs
+        print(self.costs)
         self.number = Individual.number
         Individual.number += 1        
-        self.toDatabase()
+        self.toDatabase()        
+        return costs
 
+def func(vector):
+    y = 0    
+    for x in vector:
+        y += x*x
+    return y
 
 class MyProblem(Problem):
         # Simple example for testing purposes
         def __init__(self, name):
+                        
+            self.parameters = {'x_0': 10,'x_1': 10}
+            self.costs = ['F1']                    
+            super().__init__(name, self.parameters, self.costs)
             
-            super().__init__(name)
-            print(self.id)    
             self.max_population_number = 1
             self.max_population_size = 1
-            self.parameters = {'x_1': 10,'x_2': 10}
-            self.costs = ['F1']
+            self.function = func
             self.create_table_individual()
+            
 
 
 if __name__ == "__main__":    
     from function import Function
     from datastore import DataStore
-    problem = MyProblem("Problem")
+    problem = MyProblem("Problem")   
+    x = list(problem.parameters.values())
+    problem.evaluate(x)
     
 else:
     from .function import Function

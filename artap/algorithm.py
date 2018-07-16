@@ -1,4 +1,5 @@
 from scipy.optimize import minimize
+import numpy as np
 
 class Algorithm:
     """ Base class for optimizaion algorithms. """
@@ -19,8 +20,11 @@ class ScipyNelderMead(Algorithm):
         self.number_of_objectives = 1
         self.rel_tol = 1e-8
 
-    def run(self, cost_function, initial_vector):
-        es = minimize(cost_function, initial_vector, method=self.method, options={'xatol': self.rel_tol, 'disp': True})
+    def run(self, cost_function, initial_vector):        
+        x0 = np.array(initial_vector)
+        print(x0)
+        es = minimize(cost_function, x0, method="nelder-mead")
+
         
     
     

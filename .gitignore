@@ -1,5 +1,6 @@
 max.txt
 parameters.txt
+output.txt
 problem.db
 *.class
 *.recovery
