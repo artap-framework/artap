@@ -54,7 +54,6 @@ class ComsolFunction(Function):
     
     #TODO: Add tool for automatic generating of .java files
     
-
 class RemoteFunction(Function):   
         """
         Allowes distributing of calculation of obejctive functions. 
@@ -151,7 +150,6 @@ class CondorJobFunction(RemoteFunction):
                 y = file.read()
             
             return y
-
 
 if __name__ == "__main__":
     function = CondorJobFunction()
