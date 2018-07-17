@@ -1,38 +1,52 @@
 import sqlite3
 import os.path
+import os
 from string import Template
+from datetime import datetime
+
 
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
     
-    database_name =  "data.db"
+    def __init__(self, name):                      # TODO: Exception if failed?         
+        print(os.getcwd())
+        # self.id = uuid.int_(uuid.uuid4())   # Another way for generating unique ID                
+        problem_name = name + "_"  + str(datetime.now())
+        self.database_name = problem_name + ".db"        
+        os.makedirs(problem_name)
+        os.chdir("./" + problem_name)
+        self.create_table_problem()
+        self.add_problem('Problem')
+        
+        # if not os.path.isfile(self.database_name):        
+        #    self.create_database()
+        
 
-    def __init__(self):
-        #if not os.path.isfile(DataStore.database_name):
-        # self.create_database()
-        pass
-
-    def create_database(self):        
-        connection = sqlite3.connect(DataStore.database_name)
+    # Prepared for the case of one big database file
+    def create_table_problem(self):        
+        connection = sqlite3.connect(self.database_name)
         cursor = connection.cursor()        
         exec_cmd = """
-            CREATE TABLE IF NOT EXISTS problems (
+            CREATE TABLE IF NOT EXISTS problem_details (
             id INTEGER PRIMARY KEY,
-            name TEXT)                       
+            name TEXT,
+            description TEXT)                       
             """
         cursor.execute(exec_cmd)
         connection.commit()
         cursor.close()
         connection.close()
 
+    # Prepared for the case of one big database file
     def add_problem(self, name):
-        connection = sqlite3.connect(DataStore.database_name)
+        connection = sqlite3.connect(self.database_name)
         cursor = connection.cursor()
-        exec_cmd_tmp = Template("INSERT INTO problems(name) VALUES ('$x')")        
+        exec_cmd_tmp = Template("INSERT INTO problem_details(name) VALUES ('$x')")        
         cursor.execute(exec_cmd_tmp.substitute(x = name))
-        exec_cmd = "SELECT last_insert_rowid()"
-        cursor.execute(exec_cmd)
-        id = cursor.fetchone()[0]        
+        
+        #exec_cmd = "SELECT last_insert_rowid()"
+        #cursor.execute(exec_cmd)
+        #id = cursor.fetchone()[0]        
         connection.commit()
         cursor.close()
         connection.close()
@@ -40,15 +54,15 @@ class DataStore:
     
     def create_table_individual(self, problem_name, parameters, costs):    
                 
-        connection = sqlite3.connect(DataStore.database_name)
+        connection = sqlite3.connect(self.database_name)
         cursor = connection.cursor()
 
         exec_cmd_tmp = Template("""
             CREATE TABLE IF NOT EXISTS $name (
             id INTEGER PRIMARY KEY,
-            problem_id INTEGER, population_id INTEGER,                        
+            population_id INTEGER,                        
             """)
-        exec_cmd = exec_cmd_tmp.substitute(name = problem_name)    
+        exec_cmd = exec_cmd_tmp.substitute(name = "data")    
 
         for parameter in parameters.keys():
             exec_cmd += parameter + " NUMBER, \n"
@@ -63,7 +77,7 @@ class DataStore:
         connection.close()
 
     def write_individual(self, cmd_exec, params):
-        connection = sqlite3.connect("data.db") # TODO: Move to datastore
+        connection = sqlite3.connect(self.database_name)
         cursor = connection.cursor()       
         cursor.execute(cmd_exec, params)
         connection.commit()
@@ -85,6 +99,5 @@ class DataStore:
         
 
 if __name__ == "__main__":    
-    datastore = DataStore()
-    datastore.create_database()
-    datastore.add_problem('Problem')
+    datastore = DataStore('nova_database')
+    

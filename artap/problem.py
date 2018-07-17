@@ -26,13 +26,15 @@ class Population:
 class Problem:
     """ Is a main class wich collects information about optimization task """    
            
-    def __init__(self, name, parameters, costs):                        
-        self.name = name    
+    def __init__(self, name, parameters, costs):                                        
+        self.name = name
+        self.path_to_source_files = ""
+        self.source_files = []
+        self.path_to_results = ""                    
         self.parameters = parameters
         self.costs = {cost:0 for cost in costs}
-        self.datastore = DataStore()
-        self.id = self.datastore.add_problem(name)
-        self.table_name = self.name + "_" + str(self.id)
+        self.table_name = self.name
+        self.datastore = DataStore(self.name)                
         self.create_table_individual()
 
         
@@ -55,14 +57,13 @@ class Problem:
 
     def read_from_database(self):        
         self.data = self.datastore.read_all(self.table_name)
-        
-        
-        
+                       
 
     def  plot_data(self):
         vector = []
         cost = []
         vector_length = len(self.parameters)
+        self.read_from_database()
 
         for i in range(len(self.data)):
             vector.append(self.data[i][2:2 + vector_length])
@@ -83,8 +84,7 @@ class Problem:
         
         pl.show()
 
-
-class Individual:
+class Individual:           # TODO: Add: precisions, bounds
     """
        Collects information about one point in design space.
     """   
@@ -109,7 +109,7 @@ class Individual:
     
     def toDatabase(self): 
         id = self.number        
-        cmd_exec_tmp = Template("INSERT INTO $table (id, problem_id, population_id, ")  # TODO: rewrite using string templates
+        cmd_exec_tmp = Template("INSERT INTO $table (id, population_id, ")  # TODO: rewrite using string templates
         cmd_exec = cmd_exec_tmp.substitute(table = self.problem.table_name)        
 
         
@@ -125,13 +125,13 @@ class Individual:
             cmd_exec += cost_name + ","
 
         cmd_exec = cmd_exec[:-1]  # delete last comma
-        cmd_exec += ") VALUES (?, ?, ?, "
+        cmd_exec += ") VALUES (?, ?, "
 
         for i in range(len(self.vector) + len(costs) - 1):
             cmd_exec += " ?,"
         cmd_exec += " ?);"           
                
-        params = [id , self.problem.id, self.population_id]
+        params = [id, self.population_id]
         
         for i in range(len(self.vector)):
             params.append(self.vector[i])
@@ -167,7 +167,7 @@ class MyProblem(Problem):
         # Simple example for testing purposes
         def __init__(self, name):
                         
-            self.parameters = {'x_0': 10,'x_1': 10}
+            self.parameters = {'x_0': 10}
             self.costs = ['F1']                    
             super().__init__(name, self.parameters, self.costs)
             
@@ -181,12 +181,14 @@ class MyProblem(Problem):
 if __name__ == "__main__":    
     from function import Function
     from datastore import DataStore
-    datastore = DataStore()
-    datastore.create_database()
-    problem = MyProblem("Problem")   
-
-    x = list(problem.parameters.values())
-    problem.evaluate(x)
+    from algorithm import ScipyNelderMead
+    
+    problem = MyProblem("Kavadratic_function")
+    function = Function(1, 1)
+    problem.set_function(function)        
+    algorithm = ScipyNelderMead()
+    algorithm.run(problem.evaluate, [10])  
+    problem.plot_data()
     
 else:
     from .function import Function
