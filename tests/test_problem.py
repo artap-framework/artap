@@ -26,10 +26,10 @@ class TestSimpleOptimization(TestCase):
         function = Function(1, 1)
         problem.set_function(function)        
         algorithm = ScipyNelderMead()
-        algorithm.run(problem.evaluate, [10.0])        
-        #problem.read_from_database()
-        #optimum = problem.data[-1][-1] # Takes last individual
-        #self.assertAlmostEqual(optimum, 0)
+        algorithm.run(problem.evaluate())        
+        problem.read_from_database()
+        optimum = problem.data[-1][-1] # Takes last individual
+        self.assertAlmostEqual(optimum, 0)
 
 if __name__ == '__main__':
     main()

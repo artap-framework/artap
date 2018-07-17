@@ -10,7 +10,7 @@ class TestProblem(Problem):
     def __init__(self, name):        
         self.max_population_number = 1
         self.max_population_size = 1
-        self.parameters = {'x_1':10}
+        self.parameters = {'x_1':10, 'x_2':10,}
         self.costs = ['F1']
         super().__init__(name, self.parameters, self.costs)
 
@@ -22,7 +22,7 @@ class TestRemoteOptimization(TestCase):
     """
     def test_remote_run(self):        
         """ Tests one calculation of goal function."""
-        problem = TestProblem("Run Problem")        
+        problem = TestProblem("Run_Problem")        
         function = RemoteFunction()       
         problem.set_function(function)        
         problem.evaluate([1, 1])
@@ -32,7 +32,7 @@ class TestRemoteOptimization(TestCase):
 
     def test_remote_optimization(self):        
         """ Tests simple optimization problem. """ 
-        problem = TestProblem("Optimization problem")
+        problem = TestProblem("Optimization_problem")
         function = RemoteFunction()       
         problem.set_function(function)        
         algorithm = ScipyNelderMead()

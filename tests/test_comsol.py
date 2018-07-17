@@ -23,7 +23,7 @@ class TestSimpleComsolOptimization(TestCase):
         input_file =curr_dir + "/tests/parameters.txt"
         output_file =curr_dir + "/tests/max.txt"
         model_file =  curr_dir + "/tests/elstat.java"
-        problem = TestProblem("Comsol Problem")
+        problem = TestProblem("Comsol_Problem")
         function = ComsolFunction(2, 1, input_file, output_file, model_file)
         problem.set_function(function)        
         problem.evaluate([10, 10])

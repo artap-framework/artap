@@ -14,8 +14,7 @@ class Function:
     def eval(self, x):
         result = 0
         for i in x:
-            result += i*i
-        print("Eval:")
+            result += i*i        
         return result
 
 class ComsolFunction(Function):
@@ -102,7 +101,8 @@ class RemoteFunction(Function):
                 client.set_missing_host_key_policy(paramiko.WarningPolicy())
                 client.connect(self.hostname, port = self.port, username = self.username, password = self.password,)
 
-                stdin, stdout, stderr = client.exec_command(command)
+                client.exec_command(command)
+                # stdin, stdout, stderr = client.exec_command(command)
                 # print(stdout.read(),)
 
             finally:

@@ -75,7 +75,7 @@ class DataStore:
         connection = sqlite3.connect(self.database_name) 
         cursor = connection.cursor()
         exec_cmd_tmp = Template("SELECT * FROM $table_name")
-        exec_cmd = exec_cmd_tmp.substitute(table_name = table)            
+        exec_cmd = exec_cmd_tmp.substitute(table_name = table)
         cursor.execute(exec_cmd)
         data = cursor.fetchall()
         connection.commit()
@@ -84,6 +84,7 @@ class DataStore:
         return data
         
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     datastore = DataStore()
+    datastore.create_database()
     datastore.add_problem('Problem')

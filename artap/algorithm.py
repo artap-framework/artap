@@ -21,9 +21,8 @@ class ScipyNelderMead(Algorithm):
         self.rel_tol = 1e-8
 
     def run(self, cost_function, initial_vector):        
-        x0 = np.array(initial_vector)
-        print(x0)
-        es = minimize(cost_function, x0, method="nelder-mead")
+        x0 = np.array(initial_vector)        
+        minimize(cost_function, x0, method="nelder-mead")
 
         
     

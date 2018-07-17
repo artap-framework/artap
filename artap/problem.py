@@ -54,7 +54,7 @@ class Problem:
             return individ.costs
 
     def read_from_database(self):        
-        self.data = self.datastore.read_all()
+        self.data = self.datastore.read_all(self.table_name)
         
         
         
@@ -151,7 +151,7 @@ class Individual:
             self.costs = [costs]
         else:
             self.costs = costs
-        print(self.costs)
+                    
         self.number = Individual.number
         Individual.number += 1        
         self.toDatabase()        
