@@ -56,7 +56,7 @@ class Problem:
             return individ.costs
 
     def read_from_database(self):        
-        self.data = self.datastore.read_all(self.table_name)
+        self.data = self.datastore.read_all("data")
                        
 
     def  plot_data(self):
@@ -107,10 +107,10 @@ class Individual:           # TODO: Add: precisions, bounds
         return string
 
     
-    def toDatabase(self): 
+    def toDatabase(self):  
         id = self.number        
         cmd_exec_tmp = Template("INSERT INTO $table (id, population_id, ")  # TODO: rewrite using string templates
-        cmd_exec = cmd_exec_tmp.substitute(table = self.problem.table_name)        
+        cmd_exec = cmd_exec_tmp.substitute(table = "data")        
 
         
         if type(self.costs != list):

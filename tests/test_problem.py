@@ -1,4 +1,3 @@
-
 from unittest import TestCase, main
 from context import Function
 from context import Problem
