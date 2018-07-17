@@ -8,11 +8,14 @@ from datetime import datetime
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
     
-    def __init__(self, name):                      # TODO: Exception if failed?         
+    def __init__(self, name, exact_name = False):                      # TODO: Exception if failed?         
         print(os.getcwd())
         # self.id = uuid.int_(uuid.uuid4())   # Another way for generating unique ID                
-        problem_name = name + "_"  + str(datetime.now())
-        self.database_name = problem_name + ".db"        
+        if (exact_name):
+            problem_name = name
+        else:
+            problem_name = name + "_"  + str(datetime.now())
+        self.database_name = "database.db"        
         os.makedirs(problem_name)
         os.chdir("./" + problem_name)
         self.create_table_problem()

@@ -1,7 +1,9 @@
-from fabric import Connection
 import sys, paramiko
+import tempfile
+import traceback
+import os
 
-class Function:
+class Executor:
     """
     Function is a class representing objective or cost function for 
     optimization problems.
@@ -11,13 +13,10 @@ class Function:
         self.number_inputs  = inputs
         self.number_outputs = outputs
     
-    def eval(self, x):
-        result = 0
-        for i in x:
-            result += i*i        
-        return result
+    def exec(self, x):
+        pass
 
-class ComsolFunction(Function):
+class ComsolExecutor(Executor):
     def __init__(self, inputs, outputs, input_filename, output_filename, model_name):
         
         self.input_filename = input_filename
@@ -54,78 +53,114 @@ class ComsolFunction(Function):
     
     #TODO: Add tool for automatic generating of .java files
     
-class RemoteFunction(Function):   
+class RemoteExecutor(Executor):   
         """
         Allowes distributing of calculation of obejctive functions. 
         """
 
         def __init__(self, hostname = "edison.fel.zcu.cz", 
-            port = 22, username = "panek50", password = "tkditf_16_2"): #TODO: Make it safe
+            username = "panek50", password = None, port = 22): #TODO: Make it safe
             self.hostname = hostname
             self.port = port
             self.username = username
             self.password = password
 
+            self.script = ""
+
+            try:              
+                self.client = paramiko.SSHClient()
+                self.client.load_system_host_keys()
+                self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())            
+                self.client.connect(hostname=self.hostname, username=self.username, password=self.password)
+        
+                self.status = "None"
+                self.host = ""
+
+            except Exception as e:
+                print('*** Caught exception: %s: %s' % (e.__class__, e))
+                traceback.print_exc()
+                try:
+                    self.client.close()
+                except:
+                    pass
+                sys.exit(1)
+
         def transfer_files_to_remote(self, source_file, destination_file):           
            source = source_file
-           dest   = destination_file
+           dest = destination_file
 
            try:
-               t = paramiko.Transport((self.hostname, self.port))
-               t.connect(username=self.username, password=self.password)
-               sftp = paramiko.SFTPClient.from_transport(t)
-               sftp.put(source, dest)
+                sftp = paramiko.SFTPClient.from_transport(self.client.get_transport())
+                sftp.put(source, dest)
 
-           finally:
-                t.close()            
+           except Exception as e:
+                print('*** Caught exception: %s: %s' % (e.__class__, e))
+                traceback.print_exc()
+                try:
+                    self.client.close()
+                except:
+                    pass
+                sys.exit(1)
 
         def transfer_files_from_remote(self, source_file, destination_file):
-           dest = destination_file
-           source = source_file
+            dest = destination_file
+            source = source_file
 
-           try:
-               t = paramiko.Transport((self.hostname, self.port))
-               t.connect(username=self.username, password=self.password)
-               sftp = paramiko.SFTPClient.from_transport(t)
-               sftp.get(source, dest)
+            try:
+                sftp = paramiko.SFTPClient.from_transport(self.client.get_transport())
+                sftp.get(source, dest)
 
-           finally:
-                t.close()            
+            except Exception as e:
+                print('*** Caught exception: %s: %s' % (e.__class__, e))
+                traceback.print_exc()
+                try:
+                    self.client.close()
+                except:
+                    pass
+                sys.exit(1)                         
 
         def run_command_on_remote(self, command):
             # Run ssh command
             try:
-                client = paramiko.SSHClient()
-                client.load_system_host_keys()
-                client.set_missing_host_key_policy(paramiko.WarningPolicy())
-                client.connect(self.hostname, port = self.port, username = self.username, password = self.password,)
+                stdin, stdout, stderr = self.client.exec_command(command)
+                for line in stdout:
+                    print(line.strip('\n'))
+                for line in stderr:
+                    print(line.strip('\n'))
 
-                client.exec_command(command)
-                # stdin, stdout, stderr = client.exec_command(command)
-                # print(stdout.read(),)
-
-            finally:
-                client.close()
-
+            except Exception as e:
+                print('*** Caught exception: %s: %s' % (e.__class__, e))
+                traceback.print_exc()
+                try:
+                    self.client.close()
+                except:
+                    pass
+                sys.exit(1)
 
         def eval(self, x):
             y = 0
-            self.transfer_files_to_remote('./tests/eval.py', "eval.py")
+            self.transfer_files_to_remote(self.script, "eval.py")
                 
-            with open("./tests/parameters.txt", 'w') as input_file:
-                input_file.write(str(x[0]) + " " + str(x[1]))
+            parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
+            parameters_file.write(str(x[0]) + " " + str(x[1]))
+            parameters_file.close()
             
-            self.transfer_files_to_remote('./tests/parameters.txt', 'parameters.txt')          
-            connection = Connection('edison.fel.zcu.cz', user = 'panek50', port = 22, connect_kwargs={'password': 'tkditf_16_2'})
-            connection.run("python ./tests/eval.py")                        
-            connection.close()
-            self.transfer_files_from_remote('output.txt', './tests/output.txt')            
-            with open("./tests/output.txt") as file:
+            output_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
+            output_file.close()
+
+            self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')          
+            self.run_command_on_remote("python eval.py")
+            
+            self.transfer_files_from_remote('output.txt', output_file.name)            
+            with open(output_file.name) as file:
                 y = float(file.read())
             
+            os.remove(parameters_file.name)
+            os.remove(output_file.name)
+
             return y
 
-class CondorJobFunction(RemoteFunction):
+class CondorJobExecutor(RemoteExecutor):
     """ Allwes submit goal function calculation as a HT Condor job """
     def __init__(self, ):
         super().__init__()
@@ -152,5 +187,5 @@ class CondorJobFunction(RemoteFunction):
             return y
 
 if __name__ == "__main__":
-    function = CondorJobFunction()
+    function = CondorJobExecutor()
     print(function.eval([1, 1]))

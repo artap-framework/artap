@@ -1,5 +1,8 @@
 import sqlite3
 from string import Template
+from abc import ABC, abstractmethod
+
+from .datastore import DataStore
 
 """
  Module is dedicated to describe optimization problem. 
@@ -23,7 +26,7 @@ class Population:
     def print(self):
         print(self.toString())
 
-class Problem:
+class Problem(ABC):
     """ Is a main class wich collects information about optimization task """    
            
     def __init__(self, name, parameters, costs):                                        
@@ -36,18 +39,11 @@ class Problem:
         self.table_name = self.name
         self.datastore = DataStore(self.name)                
         self.create_table_individual()
-
         
     def create_table_individual(self):
         self.datastore.create_table_individual(self.table_name, self.parameters, self.costs)    
-
-    def set_algorithm(self, algorithm):
-        self.algorithm = algorithm
     
-    def set_function(self, function):
-        self.function = function.eval
-    
-    def evaluate(self, x):
+    def evaluate_individual(self, x):
         individ = Individual(self)        
         individ.evaluate(x)        
         if len(individ.costs) == 1:
@@ -58,8 +54,14 @@ class Problem:
     def read_from_database(self):        
         self.data = self.datastore.read_all("data")
                        
+    def set_algorithm(self, algorithm):
+        self.algorithm = algorithm
+    
+    @abstractmethod
+    def eval(self):
+        pass
 
-    def  plot_data(self):
+    def plot_data(self):
         vector = []
         cost = []
         vector_length = len(self.parameters)
@@ -95,7 +97,6 @@ class Individual:           # TODO: Add: precisions, bounds
         self.length = len(problem.parameters)        
         self.costs = []                
         self.number = 0
-        self.function = problem.function
         self.population_id = 0        
 
     def toString(self):
@@ -111,7 +112,6 @@ class Individual:           # TODO: Add: precisions, bounds
         id = self.number        
         cmd_exec_tmp = Template("INSERT INTO $table (id, population_id, ")  # TODO: rewrite using string templates
         cmd_exec = cmd_exec_tmp.substitute(table = "data")        
-
         
         if type(self.costs != list):
             costs = [self.costs]
@@ -140,12 +140,13 @@ class Individual:           # TODO: Add: precisions, bounds
             params.append(cost)
 
         self.problem.datastore.write_individual(cmd_exec, params)    
-        
-        
+                
     def evaluate(self, vector):        
         self.vector = vector        
-        self.length = len(vector)        
-        costs = self.function(vector)            
+        self.length = len(vector)   
+
+        # problem cost function evaluate     
+        costs = self.problem.eval(vector)            
 
         if type(costs) != list:
             self.costs = [costs]
@@ -178,18 +179,17 @@ class MyProblem(Problem):
             
 
 
-if __name__ == "__main__":    
-    from function import Function
-    from datastore import DataStore
-    from algorithm import ScipyNelderMead
+# if __name__ == "__main__":    
+#     from datastore import DataStore
+#     from algorithm import ScipyNelderMead
     
-    problem = MyProblem("Kavadratic_function")
-    function = Function(1, 1)
-    problem.set_function(function)        
-    algorithm = ScipyNelderMead()
-    algorithm.run(problem.evaluate, [10])  
-    problem.plot_data()
+#     problem = MyProblem("Kavadratic_function")
+#     function = Function(1, 1)
+#     problem.set_function(function)        
+#     algorithm = ScipyNelderMead()
+#     algorithm.run(problem.evaluate, [10])  
+#     problem.plot_data()
     
-else:
-    from .function import Function
-    from .datastore import DataStore
+# else:
+#     from .function import Function
+#     from .datastore import DataStore
