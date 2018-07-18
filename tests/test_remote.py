@@ -12,7 +12,7 @@ class TestProblem(Problem):
         self.max_population_size = 1
         self.parameters = {'x_1': 10, 'x_2': 10}
         self.costs = ['F1']
-        self.executor = RemoteExecutor(username="karban")
+        self.executor = RemoteExecutor(username="panek50")
 
         cwd = os.getcwd()
         self.executor.script = cwd + "/tests/eval.py"

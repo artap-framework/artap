@@ -71,8 +71,10 @@ class DataStore:
             exec_cmd += parameter + " NUMBER, \n"
 
         for cost in costs:
-            exec_cmd += cost + " NUMBER" 
-            exec_cmd += ");"
+            exec_cmd += cost + " NUMBER," 
+        
+        exec_cmd = exec_cmd[:-1]
+        exec_cmd += ");"
                 
         cursor.execute(exec_cmd)
         connection.commit()

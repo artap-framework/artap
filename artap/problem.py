@@ -9,19 +9,30 @@ from .datastore import DataStore
 """
 
 class Population:
+    
+    size = 0
     number = 0
-    def __init__(self, individuals = []):
-        self.length = len(individuals)
+
+    def __init__(self, problem, individuals = []):
+        self.length = len(individuals)   
+        self.problem = problem     
         self.number = Population.number
         Population.number += 1
-        self.individuals = individuals
+        
+        self.individuals = []
 
-        for i in range(len(self.individuals)):
-            self.individuals[i].population_number = self.number 
+        for vector in individuals:
+            individual = Individual(vector, self.problem, self.number)                        
+            self.individuals.append(individual)
 
     def toString(self):
-        string = "population number: " + str(self.number)
+        string = "population number: " + str(self.number) + " \n"
+      
+        for individual in self.individuals:
+            string += individual.toString() + ", "        
+        
         return string
+
 
     def print(self):
         print(self.toString())
@@ -40,12 +51,29 @@ class Problem(ABC):
         self.datastore = DataStore(self.name)                
         self.create_table_individual()
         
+        self.populations = []
+        poppulation = Population(self)
+        self.populations.append(poppulation)
+        
+    def add_population(self, individuals):
+        population = Population(self, individuals)
+        self.populations.append(population)
+    
+    def evaluate_population(self, population_number):
+        for individual in self.populations[population_number].individuals:
+            if individual.is_evaluated == False:
+                individual.evaluate()
+
+    
     def create_table_individual(self):
         self.datastore.create_table_individual(self.table_name, self.parameters, self.costs)    
     
-    def evaluate_individual(self, x):
-        individ = Individual(self)        
-        individ.evaluate(x)        
+    
+    def evaluate_individual(self, x, population = 0):
+        individ = Individual(x, self, population)        
+        individ.evaluate()        
+        self.populations[population].individuals.append(individ)
+        
         if len(individ.costs) == 1:
             return individ.costs[0]
         else:
@@ -92,12 +120,17 @@ class Individual:           # TODO: Add: precisions, bounds
     """   
     number = 0    
     
-    def __init__(self, problem: Problem):        
+    def __init__(self, x, problem: Problem, population_id = 0):        
+        self.vector = x
         self.problem = problem
-        self.length = len(problem.parameters)        
+        self.length = len(self.vector)
         self.costs = []                
-        self.number = 0
-        self.population_id = 0        
+        
+        self.number = Individual.number
+        Individual.number += 1    
+        
+        self.population_id = population_id
+        self.is_evaluated = False
 
     def toString(self):
         string = "["
@@ -113,7 +146,7 @@ class Individual:           # TODO: Add: precisions, bounds
         cmd_exec_tmp = Template("INSERT INTO $table (id, population_id, ")  # TODO: rewrite using string templates
         cmd_exec = cmd_exec_tmp.substitute(table = "data")        
         
-        if type(self.costs != list):
+        if type(self.costs) != list:
             costs = [self.costs]
         else:
             costs = self.costs
@@ -141,20 +174,17 @@ class Individual:           # TODO: Add: precisions, bounds
 
         self.problem.datastore.write_individual(cmd_exec, params)    
                 
-    def evaluate(self, vector):        
-        self.vector = vector        
-        self.length = len(vector)   
-
+    def evaluate(self):        
         # problem cost function evaluate     
-        costs = self.problem.eval(vector)            
+        costs = self.problem.eval(self.vector)            
 
         if type(costs) != list:
             self.costs = [costs]
         else:
             self.costs = costs
-                    
-        self.number = Individual.number
-        Individual.number += 1        
+        
+        self.is_evaluated = True
+
         self.toDatabase()        
         return costs
 
