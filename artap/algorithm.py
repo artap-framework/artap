@@ -67,7 +67,7 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
         self.current_population = 0                       
 
     def gen_initial_population(self):        
-        population = gen_population(self.population_size, self.vector_length)
+        population = gen_population(self.population_size, self.vector_length, self.problem.parameters)
         self.problem.add_population(population)        
         self.problem.evaluate_population(self.current_population)
         self.current_population += 1 
@@ -77,7 +77,7 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
         population.print()
 
     def form_new_population(self):
-        population = gen_population(self.population_size, self.vector_length)
+        population = gen_population(self.population_size, self.vector_length, self.problem.parameters)
         self.problem.add_population(population)
         self.problem.evaluate_population(self.current_population)
         self.current_population += 1 

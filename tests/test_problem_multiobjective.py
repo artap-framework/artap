@@ -9,7 +9,10 @@ class MyProblem(Problem):
     def __init__(self, name):
         self.max_population_number = 3
         self.max_population_size = 3
-        self.parameters = {'x_1': 10, 'x_2': 10, 'x_3': 10}
+        self.parameters = {'x_1': { 'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01},
+                           'x_2': { 'initial_value': 10, 'bounds': [-10, -5], 'precision': 1e-6}, 
+                           'x_3': { 'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01}}
+        
         self.costs = ['F_1', 'F_2']
 
         super().__init__(name, self.parameters, self.costs)
