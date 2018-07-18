@@ -29,7 +29,7 @@ class ScipyNelderMead(Algorithm):
         self.rel_tol = 1e-8
 
     def run(self):    
-        initial_vector = list(self.problem.parameters.values())
+        initial_vector = self.problem.parameters_values
 
         x0 = np.array(initial_vector)        
         minimize(self.problem.evaluate_individual, x0, method="nelder-mead")

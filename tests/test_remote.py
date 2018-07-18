@@ -10,7 +10,8 @@ class TestProblem(Problem):
     def __init__(self, name):        
         self.max_population_number = 1
         self.max_population_size = 1
-        self.parameters = {'x_1': 10, 'x_2': 10}
+        self.parameters = {'x_1': {'initial_value':10}, 
+                           'x_2': {'initial_value':10}}
         self.costs = ['F1']
         self.executor = RemoteExecutor(username="panek50")
 

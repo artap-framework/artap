@@ -46,6 +46,13 @@ class Problem(ABC):
         self.source_files = []
         self.path_to_results = ""                    
         self.parameters = parameters
+        self.parameters_values = []
+        for parameter in parameters.items():
+            if 'initial_value' in parameter[1]:
+                self.parameters_values.append(parameter[1]['initial_value'])    
+            else:
+                self.parameters_values.append(0)
+        
         self.costs = {cost:0 for cost in costs}
         self.table_name = self.name
         self.datastore = DataStore(self.name)                
