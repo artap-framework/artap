@@ -19,12 +19,15 @@ class TestProblem(Problem):
         self.executor = RemoteExecutor(username=user)
 
         cwd = os.getcwd()
-        self.executor.script = cwd + "/tests/eval.py"
+        self.executor.script = cwd + "/tests/test_remote_eval.py"
         
         super().__init__(name, self.parameters, self.costs)
 
     def eval(self, x):
-        return self.executor.eval(x)
+        result = self.executor.eval(x)
+
+        print(result)
+        return result
         
 class TestRemoteOptimization(TestCase):
     """ Tests simple optimization problem where calculation of 
@@ -38,16 +41,15 @@ class TestRemoteOptimization(TestCase):
         # optimum = problem.data[-1][-1]
         # self.assertAlmostEqual(optimum, 0)
     
-    # def test_remote_optimization(self):        
-    #     """ Tests simple optimization problem. """ 
-    #     problem = TestProblem("Optimization_problem")
-    #     function = RemoteFunction()       
-    #     problem.set_function(function)        
-    #     algorithm = ScipyNelderMead()
-    #     algorithm.run(problem.evaluate, [10, 10])        
-    #     problem.read_from_database()
-    #     optimum = problem.data[-1][-1]                
-    #     self.assertAlmostEqual(optimum, 0)
+    def test_remote_optimization(self):        
+        """ Tests simple optimization problem. """ 
+        problem = TestProblem("RemotePythonProblem")
+        algorithm = ScipyNelderMead(problem)
+        algorithm.run()  
+        problem.read_from_database()
+        optimum = problem.data[-1][-1] # Takes last individual
+
+        self.assertAlmostEqual(optimum, 0)
 
 if __name__ == '__main__':
     main()

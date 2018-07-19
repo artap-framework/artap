@@ -16,7 +16,9 @@ class MyProblem(Problem):
     def eval(self, x):
         result = 0
         for i in x:
-            result += i*i        
+            result += i*i   
+
+        print(result)
         return result
 
 class TestSimpleOptimization(TestCase):
