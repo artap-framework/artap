@@ -4,6 +4,7 @@ from context import Problem
 from context import ScipyNelderMead
 from scipy.optimize import minimize
 import os
+import getpass
 
 class TestProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
@@ -13,7 +14,9 @@ class TestProblem(Problem):
         self.parameters = {'x_1': {'initial_value':10}, 
                            'x_2': {'initial_value':10}}
         self.costs = ['F1']
-        self.executor = RemoteExecutor(username="panek50")
+        # current username
+        user = getpass.getuser()
+        self.executor = RemoteExecutor(username=user)
 
         cwd = os.getcwd()
         self.executor.script = cwd + "/tests/eval.py"
