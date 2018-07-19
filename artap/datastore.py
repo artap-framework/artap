@@ -1,29 +1,34 @@
 import sqlite3
 import os.path
 import os
+import tempfile
 from string import Template
 from datetime import datetime
-
 
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
     
-    def __init__(self, name, exact_name = False):                      # TODO: Exception if failed?         
+    def __init__(self, name, filepath = None): # TODO: Exception if failed?         
         print(os.getcwd())
         # self.id = uuid.int_(uuid.uuid4())   # Another way for generating unique ID                
-        if (exact_name):
-            problem_name = name
+        if (filepath):
+            self.database_name = filepath
         else:
-            problem_name = name + "_"  + str(datetime.now())
-        self.database_name = "database.db"        
-        os.makedirs(problem_name)
-        os.chdir("./" + problem_name)
+            parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False, suffix=".db")
+            parameters_file.close()
+
+            self.database_name = parameters_file.name
+
         self.create_table_problem()
         self.add_problem('Problem')
         
         # if not os.path.isfile(self.database_name):        
         #    self.create_database()
         
+
+    def __del__(self):
+        # remove database
+        os.remove(self.database_name)
 
     # Prepared for the case of one big database file
     def create_table_problem(self):        
