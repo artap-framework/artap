@@ -7,8 +7,8 @@ from scipy.optimize import minimize
 class MyProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
     def __init__(self, name):
-        self.max_population_number = 3
-        self.max_population_size = 3
+        self.max_population_number = 10
+        self.max_population_size = 10
         self.parameters = {'x_1': { 'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01},
                            'x_2': { 'initial_value': 10, 'bounds': [-10, -5], 'precision': 1e-6}, 
                            'x_3': { 'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01}}
