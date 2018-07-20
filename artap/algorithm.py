@@ -74,7 +74,35 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
     
     def select(self):
         population = self.problem.populations[-1]
-        population.print()
+        pareto_front = []
+        parameter = []
+        pareto_parameters = []
+        i = 0
+        j = 0
+        
+        for selected_individual in population:        
+            is_pareto = True
+
+            for individual in population:
+                if (selected_individual.costs[0] > individual.costs[0]) and \
+                    (selected_individual.costs[1] < individual.costs[1]):
+
+                    is_pareto = False
+
+                if (selected_individual.costs[0] > individual.costs[0]) \
+                    and (selected_individual.costs[1] < individual.costs[1]):
+
+                    is_pareto = False
+
+            if is_pareto:
+                pareto_front.append(selected_individual.costs)
+                pareto_parameters.append(selected_individual.parameters])
+                print(selected_individual.parameters])
+                j = j + 1
+
+            i = i + 1
+
+
 
     def form_new_population(self):
         population = gen_population(self.population_size, self.vector_length, self.problem.parameters)
