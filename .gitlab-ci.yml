@@ -1,0 +1,7 @@
+build:
+  tags:
+    - linux
+  script: 
+    # tests
+    - cd tests
+    - python3 -m unittest -v 
