@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+import unittest
 from context import Problem
 from context import GeneticAlgorithm
 from scipy.optimize import minimize
@@ -25,18 +25,18 @@ class MyProblem(Problem):
             F1 += i*i        
         
         F2 = -(abs(x[0] - x[1]) + abs(x[1] - x[2])  + abs(x[2] - x[1]))
+        
         return [F1, F2]
 
-class TestSimpleOptimization(TestCase):
+class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
-    def test_upper(self):   
+    def test_local_problem_genetic(self):   
         problem = MyProblem("LocalPythonProblem")        
         algorithm = GeneticAlgorithm(problem)
         algorithm.run()        
 
-
 if __name__ == '__main__':
-    main()
+    unittest.main()
     
 

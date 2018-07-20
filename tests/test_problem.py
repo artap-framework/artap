@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+import unittest 
 from context import Problem
 from context import ScipyNelderMead   
 from scipy.optimize import minimize
@@ -21,10 +21,10 @@ class MyProblem(Problem):
         print(result)
         return result
 
-class TestSimpleOptimization(TestCase):
+class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
-    def test_upper(self):   
+    def test_local_problem(self):   
         problem = MyProblem("LocalPythonProblem")
         algorithm = ScipyNelderMead(problem)
         algorithm.run()        
@@ -34,6 +34,6 @@ class TestSimpleOptimization(TestCase):
         self.assertAlmostEqual(optimum, 0)
 
 if __name__ == '__main__':
-    main()
+    unittest.main()
     
 

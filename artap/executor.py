@@ -1,4 +1,5 @@
-import sys, paramiko
+import paramiko
+import sys
 import tempfile
 import traceback
 import os
@@ -58,8 +59,8 @@ class RemoteExecutor(Executor):
         Allowes distributing of calculation of obejctive functions. 
         """
 
-        def __init__(self, hostname = "edison.fel.zcu.cz", 
-            username = "panek50", password = None, port = 22): #TODO: Make it safe
+        def __init__(self, hostname = None, 
+            username = None, password = None, port = 22): 
             self.hostname = hostname
             self.port = port
             self.username = username
@@ -84,6 +85,10 @@ class RemoteExecutor(Executor):
                 except:
                     pass
                 sys.exit(1)
+
+        def __del__(self):
+            # close connection
+            self.client.close()
 
         def transfer_files_to_remote(self, source_file, destination_file):           
            source = source_file

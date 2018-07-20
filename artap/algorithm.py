@@ -30,7 +30,8 @@ class ScipyNelderMead(Algorithm):
 
     def run(self):    
         initial_vector = self.problem.parameters_values
-
+        # TODO: parameters (tol=1e-3)
+        
         x0 = np.array(initial_vector)        
         minimize(self.problem.evaluate_individual, x0, method="nelder-mead")
 
@@ -74,7 +75,7 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
     
     def select(self):
         population = self.problem.populations[-1]
-        population.print()
+        # population.print()
 
     def form_new_population(self):
         population = gen_population(self.population_size, self.vector_length, self.problem.parameters)
