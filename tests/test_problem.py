@@ -18,7 +18,7 @@ class MyProblem(Problem):
         for i in x:
             result += i*i   
 
-        print(result)
+        # print(result)
         return result
 
 class TestSimpleOptimization(unittest.TestCase):
