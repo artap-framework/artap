@@ -7,3 +7,5 @@ from artap.algorithm import *
 from artap.executor import *
 from artap.problem import *
 from artap.algorithm import *
+from artap.algorithm_scipy import *
+from artap.algorithm_nsga2 import *

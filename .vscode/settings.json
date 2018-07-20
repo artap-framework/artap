@@ -22,5 +22,6 @@
         "**/*.py"
     ],
     "python.linting.pylintEnabled": false,
-    "python.pythonPath": "/usr/bin/python3"
+    "python.pythonPath": "/usr/bin/python3",
+    "python.jediEnabled": false
 }
