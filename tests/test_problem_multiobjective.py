@@ -1,8 +1,6 @@
 import unittest
 from context import Problem
 from context import GeneticAlgorithm
-from scipy.optimize import minimize
-
 
 class MyProblem(Problem):
     """ Describe simple one obejctive optimization problem. """

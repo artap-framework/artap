@@ -9,3 +9,4 @@ from artap.problem import *
 from artap.algorithm import *
 from artap.algorithm_scipy import *
 from artap.algorithm_nsga2 import *
+from artap.benchmark_functions import *

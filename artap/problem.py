@@ -4,6 +4,10 @@ from abc import ABC, abstractmethod
 
 from .datastore import DataStore
 
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib import rc
+
 """
  Module is dedicated to describe optimization problem. 
 """
@@ -37,6 +41,34 @@ class Population:
     def print(self):
         print(self.toString())
 
+    def plot(self):
+        #TODO: Move settings outside
+        rc('text', usetex=True)                
+        rc('font', family='serif')
+
+        figure_name = "pareto_" + str(self.number) + ".pdf"
+        if len(self.individuals) > 1:
+            figure = Figure()
+            FigureCanvas(figure)
+            figure.add_subplot(111)        
+            ax = figure.axes[0]
+            colors = ['red', 'green', 'blue', 'yellow', 'purple', 'black']
+            for individual in self.individuals:            
+                    #TODO: Make for more objective values
+                    ax.plot(individual.costs[0], individual.costs[1], 'o')
+                    if hasattr(individual, 'front_number'):
+                        scale = 100 / (individual.front_number / 4.)
+                        ax.scatter(individual.costs[0], individual.costs[1], 
+                        scale, c = colors[(individual.front_number - 1) % 6])
+            
+            ax.set_xlabel('$x$')
+            ax.set_ylabel('$y$')
+            ax.grid()            
+            figure.savefig(figure_name)
+        
+
+
+
 class Problem(ABC):
     """ Is a main class wich collects information about optimization task """    
            
@@ -45,7 +77,7 @@ class Problem(ABC):
         self.path_to_source_files = ""
         self.source_files = []
         self.path_to_results = ""                    
-        self.parameters = parameters
+        self.parameters = parameters        
         self.parameters_values = []
         for parameter in parameters.items():
             if 'initial_value' in parameter[1]:
@@ -59,8 +91,6 @@ class Problem(ABC):
         self.create_table_individual()
         
         self.populations = []
-        poppulation = Population(self)
-        self.populations.append(poppulation)
         
     def add_population(self, individuals):
         population = Population(self, individuals)
@@ -144,6 +174,10 @@ class Individual:           # TODO: Add: precisions, bounds
         for number in self.vector:
             string += str(number) + ", "
         string = string[:len(string)-1]
+        string += "]"
+        string += "; costs:["
+        for number in self.costs:
+            string += str(number) + ", "        
         string += "]\n"
         return string
 

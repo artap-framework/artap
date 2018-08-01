@@ -2,7 +2,9 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .utils import *
 import random
+import pylab as plt
 
+#
 def Rosenbrock(x_list):
     # -30 <= xi <= 30
     # global minimal is at [1,1,..] where value = 0
@@ -63,6 +65,7 @@ class NSGA2(Algorithm):
         self.parameter_upper_bound = [ 5, 3 ]
 
         self.iteration = 10
+        
         self.prob_cross = 0.6
         self.prob_mutation = 0.05
 
@@ -86,18 +89,18 @@ class NSGA2(Algorithm):
                             break
                 front = front + 1
 
-            # draw the scatter diagram of population
-            # X,Y,C = [],[],[] 
-            # for p in parents:
-            #     if True: #p.front_rank == 1 :
-            #         X.append(p.target[0])
-            #         Y.append(p.target[1])
-            #         C.append(p.front_rank)
-            # plt.figure(figsize=[20, 16])
-            # plt.scatter(X,Y, s=10, c=C)
-            # plt.xlim(0,200), plt.xticks([])
-            # plt.ylim(0,80), plt.yticks([])
-            # plt.savefig('scatter_'+str(it)+'.png',dpi=48)
+            #draw the scatter diagram of population
+            X,Y,C = [],[],[] 
+            for p in parents:
+                if True: #p.front_rank == 1 :
+                    X.append(p.target[0])
+                    Y.append(p.target[1])
+                    C.append(p.front_rank)
+            plt.figure(figsize=[20, 16])
+            plt.scatter(X,Y, s=10, c=C)
+            plt.xlim(0,200), plt.xticks([])
+            plt.ylim(0,80), plt.yticks([])
+            plt.savefig('scatter_'+str(it)+'.png',dpi=48)
 
             # calculate the indicator of population
             best = [float('inf') for i in range(0, self.target_num)]

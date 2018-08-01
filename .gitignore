@@ -9,5 +9,10 @@ problem.db
 __pycache__
 *.pyc
 *.db
+*.pdf
+*.png
 build
 .vscode/.ropeproject/
+test_problem_multiobjective.profile
+tests/test_problem_multiobjective.timings
+
