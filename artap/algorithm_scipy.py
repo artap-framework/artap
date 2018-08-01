@@ -1,4 +1,4 @@
-from .problem import Problem
+from .problem import Problem, Population
 from .utils import *
 from .algorithm import Algorithm
 
@@ -15,7 +15,10 @@ class ScipyNelderMead(Algorithm):
         self.number_of_objectives = len(self.problem.costs)
         self.rel_tol = 1e-8
 
-    def run(self):    
+    def run(self):            
+        population = Population(self)
+        self.problem.populations.append(population)
+        
         initial_vector = self.problem.parameters_values
         # TODO: parameters (tol=1e-3)
         
