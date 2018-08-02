@@ -1,6 +1,7 @@
+# TODO: delete file
 from .problem import Problem
+from .population import Population
 from .algorithm import Algorithm
-from .utils import *
 import random
 import pylab as plt
 
@@ -259,8 +260,8 @@ class NSGA2(Algorithm):
                             (1-alpha)*p2.parameter[j] )
             parameter2.append((1-alpha)*p1.parameter[j] +
                             alpha*p2.parameter[j] )
-        c1 = NSGA2Individual(parameter1)
-        c2 = NSGA2Individual(parameter2)
+        c1 = Individual(parameter1)
+        c2 = Individual(parameter2)
         return c1,c2
 
 

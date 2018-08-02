@@ -1,5 +1,5 @@
-from .problem import Problem, Population
-from .utils import *
+from .problem import Problem
+from .population import Population
 from .algorithm import Algorithm
 
 from scipy.optimize import minimize

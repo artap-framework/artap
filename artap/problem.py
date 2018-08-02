@@ -3,71 +3,16 @@ from string import Template
 from abc import ABC, abstractmethod
 
 from .datastore import DataStore
+from .population import Population
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
+from random import random
 
 """
  Module is dedicated to describe optimization problem. 
 """
-
-class Population:
-    
-    size = 0
-    number = 0
-
-    def __init__(self, problem, individuals = []):
-        self.length = len(individuals)   
-        self.problem = problem     
-        self.number = Population.number
-        Population.number += 1
-        
-        self.individuals = []
-
-        for vector in individuals:
-            individual = Individual(vector, self.problem, self.number)                        
-            self.individuals.append(individual)
-
-    def toString(self):
-        string = "population number: " + str(self.number) + " \n"
-      
-        for individual in self.individuals:
-            string += individual.toString() + ", "        
-        
-        return string
-
-
-    def print(self):
-        print(self.toString())
-
-    def plot(self):
-        #TODO: Move settings outside
-        rc('text', usetex=True)                
-        rc('font', family='serif')
-
-        figure_name = "pareto_" + str(self.number) + ".pdf"
-        if len(self.individuals) > 1:
-            figure = Figure()
-            FigureCanvas(figure)
-            figure.add_subplot(111)        
-            ax = figure.axes[0]
-            colors = ['red', 'green', 'blue', 'yellow', 'purple', 'black']
-            for individual in self.individuals:            
-                    #TODO: Make for more objective values
-                    ax.plot(individual.costs[0], individual.costs[1], 'o')
-                    if hasattr(individual, 'front_number'):
-                        scale = 100 / (individual.front_number / 4.)
-                        ax.scatter(individual.costs[0], individual.costs[1], 
-                        scale, c = colors[(individual.front_number - 1) % 6])
-            
-            ax.set_xlabel('$x$')
-            ax.set_ylabel('$y$')
-            ax.grid()            
-            figure.savefig(figure_name)
-        
-
-
 
 class Problem(ABC):
     """ Is a main class wich collects information about optimization task """    
@@ -92,20 +37,12 @@ class Problem(ABC):
         
         self.populations = []
         
-    def add_population(self, individuals):
-        population = Population(self, individuals)
+    def add_population(self, population):                
         self.populations.append(population)
-    
-    def evaluate_population(self, population_number):
-        for individual in self.populations[population_number].individuals:
-            if individual.is_evaluated == False:
-                individual.evaluate()
-
-    
+                
     def create_table_individual(self):
         self.datastore.create_table_individual(self.table_name, self.parameters, self.costs)    
-    
-    
+        
     def evaluate_individual(self, x, population = 0):
         individ = Individual(x, self, population)        
         individ.evaluate()        
@@ -150,117 +87,3 @@ class Problem(ABC):
         pl.plot(cost)
         
         pl.show()
-
-class Individual:           # TODO: Add: precisions, bounds
-    """
-       Collects information about one point in design space.
-    """   
-    number = 0    
-    
-    def __init__(self, x, problem: Problem, population_id = 0):        
-        self.vector = x
-        self.problem = problem
-        self.length = len(self.vector)
-        self.costs = []                
-        
-        self.number = Individual.number
-        Individual.number += 1    
-        
-        self.population_id = population_id
-        self.is_evaluated = False
-
-    def toString(self):
-        string = "["
-        for number in self.vector:
-            string += str(number) + ", "
-        string = string[:len(string)-1]
-        string += "]"
-        string += "; costs:["
-        for number in self.costs:
-            string += str(number) + ", "        
-        string += "]\n"
-        return string
-
-    
-    def toDatabase(self):  
-        id = self.number        
-        cmd_exec_tmp = Template("INSERT INTO $table (id, population_id, ")  # TODO: rewrite using string templates
-        cmd_exec = cmd_exec_tmp.substitute(table = "data")        
-        
-        if type(self.costs) != list:
-            costs = [self.costs]
-        else:
-            costs = self.costs
-        
-        for parameter_name in self.problem.parameters.keys():
-            cmd_exec += parameter_name + ","
-        
-        for cost_name in self.problem.costs.keys():
-            cmd_exec += cost_name + ","
-
-        cmd_exec = cmd_exec[:-1]  # delete last comma
-        cmd_exec += ") VALUES (?, ?, "
-
-        for i in range(len(self.vector) + len(costs) - 1):
-            cmd_exec += " ?,"
-        cmd_exec += " ?);"           
-               
-        params = [id, self.population_id]
-        
-        for i in range(len(self.vector)):
-            params.append(self.vector[i])
-        
-        for cost in self.costs:
-            params.append(cost)
-
-        self.problem.datastore.write_individual(cmd_exec, params)    
-                
-    def evaluate(self):        
-        # problem cost function evaluate     
-        costs = self.problem.eval(self.vector)            
-
-        if type(costs) != list:
-            self.costs = [costs]
-        else:
-            self.costs = costs
-        
-        self.is_evaluated = True
-
-        self.toDatabase()        
-        return costs
-
-def func(vector):
-    y = 0    
-    for x in vector:
-        y += x*x
-    return y
-
-class MyProblem(Problem):
-        # Simple example for testing purposes
-        def __init__(self, name):
-                        
-            self.parameters = {'x_0': 10}
-            self.costs = ['F1']                    
-            super().__init__(name, self.parameters, self.costs)
-            
-            self.max_population_number = 1
-            self.max_population_size = 1
-            self.function = func
-            self.create_table_individual()
-            
-
-
-# if __name__ == "__main__":    
-#     from datastore import DataStore
-#     from algorithm import ScipyNelderMead
-    
-#     problem = MyProblem("Kavadratic_function")
-#     function = Function(1, 1)
-#     problem.set_function(function)        
-#     algorithm = ScipyNelderMead()
-#     algorithm.run(problem.evaluate, [10])  
-#     problem.plot_data()
-    
-# else:
-#     from .function import Function
-#     from .datastore import DataStore

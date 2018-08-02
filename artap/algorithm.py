@@ -1,5 +1,6 @@
-from .problem import Problem
-from .utils import *
+from .problem import Problem 
+from .population import Population 
+from .individual import Individual
 
 import numpy as np
 from abc import ABCMeta,abstractmethod
@@ -47,41 +48,19 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
         self.current_population = 0                       
 
     def gen_initial_population(self):        
-        population = gen_population(self.population_size, self.vector_length, self.problem.parameters)
+        population = Population(self.problem)
+        population.gen_random_population(self.population_size, self.vector_length, self.problem.parameters)
+        population.evaluate()
+        population.save()
+        
+        population.print()
         self.problem.add_population(population)        
-        self.problem.evaluate_population(self.current_population)                
+        
         self.current_population += 1 
+        return population
     
     def select(self):
         population = self.problem.populations[-1]        
-        # pareto_front = []
-        # parameter = []
-        # pareto_parameters = []
-        # i = 0
-        # j = 0
-        
-        # for selected_individual in population:        
-        #     is_pareto = True
-
-        #     for individual in population:
-        #         if (selected_individual.costs[0] > individual.costs[0]) and \
-        #             (selected_individual.costs[1] < individual.costs[1]):
-
-        #             is_pareto = False
-
-        #         if (selected_individual.costs[0] > individual.costs[0]) \
-        #             and (selected_individual.costs[1] < individual.costs[1]):
-
-        #             is_pareto = False
-
-        #     if is_pareto:
-        #         pareto_front.append(selected_individual.costs)
-        #         pareto_parameters.append(selected_individual.parameters])
-        #         print(selected_individual.parameters])
-        #         j = j + 1
-
-        #     i = i + 1
-
 
 
     def form_new_population(self):
@@ -91,10 +70,7 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
         self.current_population += 1 
 
     def run(self):
-        self.gen_initial_population()
-        for i in range(self.populations_number):
-            self.select()
-            self.form_new_population()
+        pass
 
 
 class NSGA_II(GeneticAlgorithm):
@@ -105,13 +81,14 @@ class NSGA_II(GeneticAlgorithm):
         self.prob_mutation = 0.05
 
     def gen_initial_population(self):        
-        super().gen_initial_population()        
+        population = super().gen_initial_population()        
         for individual in self.problem.populations[0].individuals:
             individual.dominate = set()
             individual.domination_counter = 0
             individual.front_number = 0
             individual.crowding_distance = 0
-   
+        return population
+
     def is_dominate(self, p, q):
         dominate = False        
         for i in range(0, len(self.problem.costs)):
@@ -136,12 +113,12 @@ class NSGA_II(GeneticAlgorithm):
     def mutate(self):
         pass
 
-    def fast_non_dominated_sort(self):
+    def fast_non_dominated_sort(self, population):
         pareto_front = []
         front_number = 1
-        population = self.problem.populations[-1]        
-        for p in population.individuals:
-            for q in population.individuals:
+        #population = self.problem.populations[-1]        
+        for p in population:
+            for q in population:
                 if p is q :
                     continue
                 if self.is_dominate(p, q):
@@ -166,8 +143,8 @@ class NSGA_II(GeneticAlgorithm):
         
     # TODO: faster algorithm
     def sort_by_coordinate(self, population, dim): 
-        individuals = population.individuals.copy()
-
+        #individuals = population.individuals.copy()
+        individuals = population
 
         for i in range(0,len(individuals)-1):
             for j in range(i+1,len(individuals)):
@@ -194,7 +171,7 @@ class NSGA_II(GeneticAlgorithm):
                 else :
                     new_list[i].crowding_distance += distance/max_distance
                 
-        for p in population.individuals :
+        for p in population:
             p.crowding_distance = p.crowding_distance / len(self.problem.parameters)
             
     
@@ -206,10 +183,10 @@ class NSGA_II(GeneticAlgorithm):
         best_crowding_distance = participants[0].crowding_distance
         
         for p in participants[1:] :
-            if p.front_rank < best_rank or \
-            (p.front_rank == best_rank and p.crowding_distance > best_crowding_distance):
+            if p.front_number < best_rank or \
+            (p.front_number == best_rank and p.crowding_distance > best_crowding_distance):
                 best = p
-                best_rank = p.front_rank
+                best_rank = p.front_number
                 best_crowding_distance = p.crowding_distance
                 
         return best
@@ -217,8 +194,8 @@ class NSGA_II(GeneticAlgorithm):
     def generate(self, parents):
         # generate two children from two parents
         
-        children = set()
-        while len(children) < self.p_size:
+        children = []
+        while len(children) < self.population_size:
             parent1 = self.tournment_select(parents)
             parent2 = self.tournment_select(parents)
             while parent1 == parent2 :
@@ -228,8 +205,8 @@ class NSGA_II(GeneticAlgorithm):
             child1 = self.mutation(child1)
             child2 = self.mutation(child2)
 
-            children.add(child1)
-            children.add(child2)
+            children.append(child1)
+            children.append(child2)
         return children
 
 
@@ -240,47 +217,82 @@ class NSGA_II(GeneticAlgorithm):
         parameter1,parameter2 = [],[]
         linear_range = 2
         alpha = random.uniform(0,linear_range)
-        for j in range(0,len(p1.parameter)):
-            parameter1.append(alpha*p1.parameter[j] +
-                            (1-alpha)*p2.parameter[j] )
-            parameter2.append((1-alpha)*p1.parameter[j] +
-                            alpha*p2.parameter[j] )
-        c1 = NSGA2Individual(parameter1)
-        c2 = NSGA2Individual(parameter2)
+        for j in range(0,len(p1.vector)):
+            parameter1.append(alpha*p1.vector[j] +
+                            (1-alpha)*p2.vector[j] )
+            parameter2.append((1-alpha)*p1.vector[j] +
+                            alpha*p2.vector[j] )
+        c1 = Individual(parameter1, self.problem )
+        c2 = Individual(parameter2, self.problem)
         return c1,c2
 
 
     def mutation(self, p): # uniform random mutation
         mutation_space = 0.1
-        parameter = []
-        for i in range(0,len(p.parameter)):
+        vector = []
+        i = 0
+        for  parameter in self.problem.parameters.items():            
             if random.uniform(0,1) < self.prob_mutation:
-                para_range = mutation_space*(self.parameter_upper_bound[i]-self.parameter_lower_bound[i])
+                para_range = mutation_space*(parameter[1]['bounds'][0] - parameter[1]['bounds'][1])
                 mutation = random.uniform(-para_range,para_range)
-                parameter.append(p.parameter[i]+mutation)
+                vector.append(p.vector[i]+mutation)
             else :
-                parameter.append(p.parameter[i])
+                vector.append(p.vector[i])
+            i += 1
 
-        p_new = NSGA2Individual(parameter)            
+        p_new = Individual(vector, self.problem)            
         return p_new
 
 
     def select(self):        
-        self.fast_non_dominated_sort()
-        self.calculate_crowd_dis(self.problem.populations[-1])
-        self.problem.populations[-1].plot()
-        
+        pass        
 
    
     def form_new_population(self):
-        population = gen_population(self.population_size, self.vector_length, self.problem.parameters)
-        self.problem.add_population(population)
-        for individual in self.problem.populations[-1].individuals:
-            individual.dominate = set()
-            individual.domination_counter = 0
-            individual.front_number = 0
-            individual.crowding_distance = 0
+        pass        
 
-        self.problem.evaluate_population(self.current_population)
-        self.current_population += 1 
+
+    def run(self):
+        self.gen_initial_population()
+
+        parent_individuals = self.problem.populations[0].individuals
+        individuals = parent_individuals
+        costs_number = len(self.problem.costs)
+        child_individuals = []
+
+        for it in range(self.problem.max_population_number):   
+                        
+            individuals = parent_individuals + child_individuals
+            for individual in individuals:
+                individual.evaluate()
         
+            self.fast_non_dominated_sort(individuals)            
+            self.calculate_crowd_dis(individuals)
+            
+            parents = []
+            front = 1
+
+            while len(parents) < self.population_size:
+                for individual in individuals:
+                    if individual.front_number == front:
+                        parents.append(individual)
+                        if len(parents) == self.population_size:
+                            break
+                front = front + 1
+
+            
+            population = Population(self.problem, individuals)
+            population.save()
+            self.problem.add_population(population)
+            self.current_population += 1
+
+            child_individuals = self.generate(parent_individuals)
+            
+            # TODO:  Improve
+            for individual in child_individuals:
+                individual.dominate = set()
+                individual.domination_counter = 0
+                individual.front_number = 0
+                individual.crowding_distance = 0
+
+            self.problem.populations[self.current_population-1].plot()            
