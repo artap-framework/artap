@@ -53,7 +53,6 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
         population.evaluate()
         population.save()
         
-        population.print()
         self.problem.add_population(population)        
         
         self.current_population += 1 
@@ -254,7 +253,7 @@ class NSGA_II(GeneticAlgorithm):
 
     def run(self):
         self.gen_initial_population()
-
+        self.problem.populations[self.current_population-1].plot()           
         parent_individuals = self.problem.populations[0].individuals
         individuals = parent_individuals
         costs_number = len(self.problem.costs)
@@ -284,6 +283,7 @@ class NSGA_II(GeneticAlgorithm):
             population = Population(self.problem, individuals)
             population.save()
             self.problem.add_population(population)
+            self.problem.populations[-1].plot()            
             self.current_population += 1
 
             child_individuals = self.generate(parent_individuals)
@@ -293,6 +293,4 @@ class NSGA_II(GeneticAlgorithm):
                 individual.dominate = set()
                 individual.domination_counter = 0
                 individual.front_number = 0
-                individual.crowding_distance = 0
-
-            self.problem.populations[self.current_population-1].plot()            
+                individual.crowding_distance = 0            

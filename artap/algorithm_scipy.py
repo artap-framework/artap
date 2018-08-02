@@ -14,6 +14,7 @@ class ScipyNelderMead(Algorithm):
         self.method = "nelder-mead"
         self.number_of_objectives = len(self.problem.costs)
         self.rel_tol = 1e-8
+        self.save_all = True
 
     def run(self):            
         population = Population(self)

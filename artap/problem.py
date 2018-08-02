@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 from .datastore import DataStore
 from .population import Population
+from .individual import Individual
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -45,7 +46,8 @@ class Problem(ABC):
         
     def evaluate_individual(self, x, population = 0):
         individ = Individual(x, self, population)        
-        individ.evaluate()        
+        individ.evaluate()
+        individ.toDatabase()
         self.populations[population].individuals.append(individ)
         
         if len(individ.costs) == 1:

@@ -1,13 +1,9 @@
 import sqlite3
 from string import Template
-from abc import ABC, abstractmethod
 from .datastore import DataStore
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib import rc
-from random import random
 
-class Individual:           # TODO: Add: precisions, bounds
+
+class Individual:
     """
        Collects information about one point in design space.
     """   
