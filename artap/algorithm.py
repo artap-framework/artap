@@ -1,6 +1,6 @@
 from .problem import Problem 
 from .population import Population, Population_NSGA_II 
-from .individual import Individual
+from .individual import Individual_NSGA_II
 
 import numpy as np
 from abc import ABCMeta,abstractmethod
@@ -220,8 +220,8 @@ class NSGA_II(GeneticAlgorithm):
                             (1-alpha)*p2.vector[j] )
             parameter2.append((1-alpha)*p1.vector[j] +
                             alpha*p2.vector[j] )
-        c1 = Individual(parameter1, self.problem )
-        c2 = Individual(parameter2, self.problem)
+        c1 = Individual_NSGA_II(parameter1, self.problem )
+        c2 = Individual_NSGA_II(parameter2, self.problem)
         return c1,c2
 
 
@@ -238,7 +238,7 @@ class NSGA_II(GeneticAlgorithm):
                 vector.append(p.vector[i])
             i += 1
 
-        p_new = Individual(vector, self.problem)            
+        p_new = Individual_NSGA_II(vector, self.problem)            
         return p_new
 
 
