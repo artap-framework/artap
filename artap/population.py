@@ -1,11 +1,11 @@
 from string import Template
 from abc import ABC, abstractmethod
-from .individual import Individual
+from .individual import Individual, Individual_NSGA_II
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
-from random import random
+
 
 class Population:
     
@@ -67,60 +67,19 @@ class Population:
             figure.savefig(figure_name)
         
     def gen_random_population(self, population_size, vector_length, parameters):
-        self.individuals = []
-        
-        for i in range(population_size):    
-            self.individuals.append(Individual(self.gen_vector(vector_length, parameters), self.problem))
-        
-        
+        self.individuals = Individual.gen_individuals(population_size, self.problem, self.number)
+        return self.individuals
+                       
     def evaluate(self):    
         for individual in self.individuals:
             if individual.is_evaluated == False:
-                individual.evaluate()
+                individual.evaluate()    
 
     
-    def gen_vector(self, vector_length, parameters: dict):    
-            
-        vector = []
-        for parameter in parameters.items():
-                    
-            if not('bounds' in parameter[1]):
-                bounds = None
-            else:
-                bounds = parameter[1]['bounds']
+class Population_NSGA_II(Population):
 
-            if not('precision' in parameter[1]):
-                precision = None
-            else:
-                precision = parameter[1]['precision']
-            
-            if (precision == None) and (bounds == None):
-                vector.append(self.gen_number())
-                continue
-            
-            if (precision == None):
-                vector.append(self.gen_number(bounds=bounds))
-                continue
+    def __init__(self, problem, individuals = []):
+            return super().__init__(problem, individuals)
 
-            if (bounds == None):
-                vector.append(self.gen_number(precision=precision))
-                continue
-
-            vector.append(self.gen_number(bounds, precision))
-
-        return vector
-
-    def gen_number(self, bounds = [], precision = 0):
-
-        if bounds == []:
-            bounds = [0, 1]
-        
-        if precision == 0:
-            precision = 1e-12
-            
-        number = random() * (bounds[1] - bounds[0]) + bounds[0] 
-        number = round(number / precision) * precision 
-
-        return number
-
-    
+    def gen_random_population(self, population_size, vector_length, parameters):
+        self.individuals = Individual_NSGA_II.gen_individuals(population_size, self.problem, self.number)

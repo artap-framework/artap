@@ -1,9 +1,10 @@
 import sqlite3
 from string import Template
 from .datastore import DataStore
+from random import random
+from abc import *
 
-
-class Individual:
+class Individual(metaclass=ABCMeta):
     """
        Collects information about one point in design space.
     """   
@@ -83,3 +84,83 @@ class Individual:
     def set_id(self):
         self.number = Individual.number
         Individual.number += 1
+    
+    @classmethod
+    def gen_individuals(cls, number, problem, population_id):
+        individuals = []            
+        for i in range(number):
+            individuals.append(cls.gen_individual(problem, population_id))
+        return individuals
+
+    @classmethod
+    def gen_individual(cls, problem, population_id = 0):
+        vector = cls.gen_vector(cls, len(problem.parameters), problem.parameters)
+        return cls(vector, problem)
+
+    @staticmethod
+    def gen_vector(cls, vector_length, parameters: dict):    
+            
+        vector = []
+        for parameter in parameters.items():
+                    
+            if not('bounds' in parameter[1]):
+                bounds = None
+            else:
+                bounds = parameter[1]['bounds']
+
+            if not('precision' in parameter[1]):
+                precision = None
+            else:
+                precision = parameter[1]['precision']
+            
+            if (precision == None) and (bounds == None):
+                vector.append(cls.gen_number())
+                continue
+            
+            if (precision == None):
+                vector.append(cls.gen_number(bounds=bounds))
+                continue
+
+            if (bounds == None):
+                vector.append(cls.gen_number(precision=precision))
+                continue
+
+            vector.append(cls.gen_number(bounds, precision))
+
+        return vector
+
+    @classmethod
+    def gen_number(cls, bounds = [], precision = 0):
+
+        if bounds == []:
+            bounds = [0, 1]
+        
+        if precision == 0:
+            precision = 1e-12
+            
+        number = random() * (bounds[1] - bounds[0]) + bounds[0] 
+        number = round(number / precision) * precision 
+
+        return number
+
+class Individual_NSGA_II(Individual):
+    
+    def __init__(self, x, problem, population_id = 0):
+        super().__init__(x, problem, population_id)
+        self.dominate = set()
+        self.domination_counter = 0
+        self.front_number = 0
+        self.crowding_distance = 0
+
+
+
+
+if __name__ == '__main__':
+    parameters = {'x_1': {'initial_value':10}, 
+                  'x_2': {'initial_value':10}}
+
+    vector = Individual.gen_vector(2, parameters)
+    print(vector)
+    
+
+    

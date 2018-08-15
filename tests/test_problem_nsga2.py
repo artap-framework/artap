@@ -1,8 +1,6 @@
 import unittest
 from context import Problem
 from context import Binh_and_Korn
-# from context import GeneticAlgorithm
-#from artap.algorithm_nsga2 import *
 from context import NSGA_II
 from scipy.optimize import minimize
 
@@ -10,7 +8,7 @@ class MyProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
     def __init__(self, name):
         self.max_population_number = 3
-        self.max_population_size = 5
+        self.max_population_size = 50
         self.parameters = {'x_1': { 'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
                            'x_2': { 'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}} 
                            

@@ -1,10 +1,11 @@
 from .problem import Problem 
-from .population import Population 
+from .population import Population, Population_NSGA_II 
 from .individual import Individual
 
 import numpy as np
 from abc import ABCMeta,abstractmethod
 import random
+from numpy import mean, std
 
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimizaion algorithms. """
@@ -78,16 +79,14 @@ class NSGA_II(GeneticAlgorithm):
         super().__init__(problem, name)
         self.prob_cross = 0.6
         self.prob_mutation = 0.05
-
+    
     def gen_initial_population(self):        
-        population = super().gen_initial_population()        
-        for individual in self.problem.populations[0].individuals:
-            individual.dominate = set()
-            individual.domination_counter = 0
-            individual.front_number = 0
-            individual.crowding_distance = 0
-        return population
-
+        population = Population_NSGA_II(self.problem)
+        population.gen_random_population(self.population_size, self.vector_length, self.problem.parameters)
+        population.evaluate()
+        population.save()
+        self.problem.populations.append(population)
+    
     def is_dominate(self, p, q):
         dominate = False        
         for i in range(0, len(self.problem.costs)):
@@ -155,7 +154,7 @@ class NSGA_II(GeneticAlgorithm):
         return individuals
     
     def calculate_crowd_dis(self, population):
-        infinite = 100000.0 # TODO: Is it OK? Number instead of float("inf")
+        infinite = float("inf")
             
         for dim in range(0, len(self.problem.parameters)):
             new_list = self.sort_by_coordinate(population,dim)
@@ -280,17 +279,61 @@ class NSGA_II(GeneticAlgorithm):
                 front = front + 1
 
             
-            population = Population(self.problem, individuals)
+            population = Population_NSGA_II(self.problem, individuals)
             population.save()
             self.problem.add_population(population)
             self.problem.populations[-1].plot()            
             self.current_population += 1
 
-            child_individuals = self.generate(parent_individuals)
+            child_individuals = self.generate(parent_individuals)         
+
+class Sensitivity(Algorithm):
+    def __init__(self, problem, parameters, name = 'Sensitivity analysis'):
+            self.parameters = parameters
+            super().__init__(problem, name)
+
+    def run(self):        
+        vector = []
+        for parameter in self.problem.parameters.items():
+            vector.append(float(parameter[1]['initial_value']))        
+        
+        population = None
+        for parameter_name in self.parameters:
+            parameter_values = []
+            population = Population(self.problem)
             
-            # TODO:  Improve
-            for individual in child_individuals:
-                individual.dominate = set()
-                individual.domination_counter = 0
-                individual.front_number = 0
-                individual.crowding_distance = 0            
+            index = 0
+            selected_parametr = None
+            for parameter in self.problem.parameters.items():
+                if parameter[0] == parameter_name:
+                    selected_parametr = parameter
+                    break                
+                index +=1
+            
+            individuals = []    
+            for i in range(self.problem.max_population_size):               
+                value = Individual.gen_number(selected_parametr[1]['bounds'], selected_parametr[1]['precision'])
+                vector[index] = value
+                parameter_values.append(value)
+                individual = Individual(vector.copy(), self.problem)
+                individuals.append(individual)
+                        
+            population.individuals = individuals
+            population.evaluate()     
+            costs = []
+            # TODO: Make also for multiobjective
+            for individual in population.individuals:
+                costs.append(individual.costs[0])
+            
+            print(parameter_values)
+            print(costs)
+            
+            print(mean(costs))
+            print(std(costs))
+            print(mean(parameter_values))
+            print(std(parameter_values))
+
+            self.problem.populations.append(population)
+
+               
+               
