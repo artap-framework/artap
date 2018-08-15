@@ -1,6 +1,6 @@
 from .problem import Problem 
 from .population import Population, Population_NSGA_II 
-from .individual import Individual_NSGA_II
+from .individual import Individual_NSGA_II, Individual
 
 import numpy as np
 from abc import ABCMeta,abstractmethod

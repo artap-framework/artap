@@ -32,9 +32,6 @@ class TestSensitivity(unittest.TestCase):
         algorithm = Sensitivity(problem, ['x_2', 'x_3'])
         algorithm.run()        
         problem.read_from_database()
-#        optimum = problem.data[-1][-1] # Takes last individual
-
-#        self.assertAlmostEqual(optimum, 0)
 
 if __name__ == '__main__':
     unittest.main()
