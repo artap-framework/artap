@@ -15,10 +15,8 @@ class TestProblem(Problem):
         self.costs = ['F1']
 
         # current username
-        #user = getpass.getuser()
-        #user =  "panek50"
-        # host
-        #host = "edison.fel.zcu.cz"
+        user = getpass.getuser()        
+        # host        
         host = "localhost"
         self.executor = CondorJobExecutor(username=user, hostname=host)
     
