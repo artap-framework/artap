@@ -16,10 +16,10 @@ class TestProblem(Problem):
 
         # current username
         #user = getpass.getuser()
-        user =  "panek50"
+        #user =  "panek50"
         # host
-        host = "edison.fel.zcu.cz"
-        # host = "localhost"
+        #host = "edison.fel.zcu.cz"
+        host = "localhost"
         self.executor = CondorJobExecutor(username=user, hostname=host)
     
     def eval(self, x):
