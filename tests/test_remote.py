@@ -23,13 +23,11 @@ class TestProblem(Problem):
 
         self.executor = RemoteExecutor(username=user, hostname=host)
 
-        cwd = os.getcwd()
-        print("========================================================")        
+        cwd = os.getcwd()        
         if (os.path.exists(cwd + "/tests/remote_eval.py")):
             self.executor.script = cwd + "/tests/remote_eval.py"
         elif (os.path.exists(cwd + "/remote_eval.py")):
-            self.executor.script = cwd + "/remote_eval.py"
-            print("Path:", self.executor.script)
+            self.executor.script = cwd + "/remote_eval.py"            
         else:
             sys.exit(1)
 
@@ -38,9 +36,7 @@ class TestProblem(Problem):
         super().__init__(name, self.parameters, self.costs)
 
     def eval(self, x):
-        result = self.executor.eval(x)
-
-        print(result)
+        result = self.executor.eval(x)        
         return result
         
 class TestRemoteOptimization(unittest.TestCase):
