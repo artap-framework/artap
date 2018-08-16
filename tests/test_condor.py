@@ -3,6 +3,7 @@ from context import CondorJobExecutor
 from context import Problem   
 from scipy.optimize import minimize
 import os
+import getpass
 
 class TestProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
