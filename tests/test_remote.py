@@ -24,6 +24,7 @@ class TestProblem(Problem):
         self.executor = RemoteExecutor(username=user, hostname=host)
 
         cwd = os.getcwd()
+        print(cwd)
         if (os.path.exists(cwd + "/tests/remote_eval.py")):
             self.executor.script = cwd + "/tests/remote_eval.py"
         elif (os.path.exists(cwd + "/remote_eval.py")):
@@ -31,7 +32,7 @@ class TestProblem(Problem):
         else:
             sys.exit(1)
 
-        print(cwd)
+        
         
         super().__init__(name, self.parameters, self.costs)
 
