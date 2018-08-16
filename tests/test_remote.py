@@ -25,7 +25,7 @@ class TestProblem(Problem):
 
         cwd = os.getcwd()
         print("========================================================")
-        print(cwd)
+        print("path:", cwd)
         if (os.path.exists(cwd + "/tests/remote_eval.py")):
             self.executor.script = cwd + "/tests/remote_eval.py"
         elif (os.path.exists(cwd + "/remote_eval.py")):
