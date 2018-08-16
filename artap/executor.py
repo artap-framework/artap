@@ -150,7 +150,7 @@ class RemoteExecutor(Executor):
 
         def eval(self, x):
             y = 0
-            self.transfer_files_to_remote(self.script, "./tests/remote_eval.py")
+            self.transfer_files_to_remote(self.script, "./remote_eval.py")
                 
             parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
             parameters_file.write(str(x[0]) + " " + str(x[1]))
