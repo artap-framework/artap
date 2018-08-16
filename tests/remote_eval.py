@@ -10,7 +10,6 @@ def eval():
  
     with open("output.txt", 'w') as file:
         file.write(str(y))
-                
-    
+       
 if __name__ == "__main__":
     eval()

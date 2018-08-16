@@ -1,10 +1,10 @@
 universe = vanilla
-initialdir = ./tests/
-executable = /usr/bin/python3
-arguments = eval.py  
+initialdir = tests/
+executable = /usr/bin/python
+arguments = remote_eval.py  
 requirements = (OpSys == "LINUX" && Arch == "X86_64")
 
-input = eval.py
+input = remote_eval.py
 output = output.log
 transfer_input_files = parameters.txt
 log = $(cluster).condor_log

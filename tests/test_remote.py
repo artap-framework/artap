@@ -15,10 +15,11 @@ class TestProblem(Problem):
                            'x_2': {'initial_value':10}}
         self.costs = ['F1']
         # current username
-        user = getpass.getuser()
+        #user = getpass.getuser()
+        user =  "panek50"
         # host
-        # host = "edison.fel.zcu.cz"
-        host = "localhost"
+        host = "edison.fel.zcu.cz"
+        # host = "localhost"
         self.executor = RemoteExecutor(username=user, hostname=host)
 
         cwd = os.getcwd()
@@ -48,7 +49,7 @@ class TestRemoteOptimization(unittest.TestCase):
  
         self.assertAlmostEqual(result, 2.0)
     
-    def xtest_remote_optimization(self):        
+    def test_remote_optimization(self):        
         """ Tests simple optimization problem. """ 
         problem = TestProblem("RemotePythonProblem")
         algorithm = ScipyNelderMead(problem)

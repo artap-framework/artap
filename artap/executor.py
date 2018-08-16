@@ -1,3 +1,5 @@
+import time
+import re
 import paramiko
 import sys
 import tempfile
@@ -126,12 +128,14 @@ class RemoteExecutor(Executor):
 
         def run_command_on_remote(self, command):
             # Run ssh command
+            output = ""
             try:
-                stdin, stdout, stderr = self.client.exec_command(command)
+                stdin, stdout, stderr = self.client.exec_command(command)                
                 for line in stdout:
                     print(line.strip('\n'))
+                    output += line.strip('\n')
                 for line in stderr:
-                    print(line.strip('\n'))
+                    print(line.strip('\n'))            
 
             except Exception as e:
                 print('*** Caught exception: %s: %s' % (e.__class__, e))
@@ -141,10 +145,12 @@ class RemoteExecutor(Executor):
                 except:
                     pass
                 sys.exit(1)
+            
+            return output
 
         def eval(self, x):
             y = 0
-            self.transfer_files_to_remote(self.script, "eval.py")
+            self.transfer_files_to_remote(self.script, "remote_eval.py")
                 
             parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
             parameters_file.write(str(x[0]) + " " + str(x[1]))
@@ -154,7 +160,7 @@ class RemoteExecutor(Executor):
             output_file.close()
 
             self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')          
-            self.run_command_on_remote("python3 eval.py")
+            self.run_command_on_remote("python3 remote_eval.py")
             
             self.transfer_files_from_remote('output.txt', output_file.name)            
             with open(output_file.name) as file:
@@ -167,28 +173,34 @@ class RemoteExecutor(Executor):
 
 class CondorJobExecutor(RemoteExecutor):
     """ Allwes submit goal function calculation as a HT Condor job """
-    def __init__(self, ):
-        super().__init__()
+    def __init__(self, hostname = None, 
+            username = None, password = None, port = 22):
+
+            super().__init__(hostname, username, password, port)
 
     
     def eval(self, x):
             y = 0
-            self.transfer_files_to_remote('./tests/eval.py', './tests/eval.py')
+            self.transfer_files_to_remote('./tests/remote_eval.py', './tests/remote_eval.py')
             self.transfer_files_to_remote('./tests/condor.job', './tests/condor.job')
                 
             with open("./tests/parameters.txt", 'w') as input_file:
                 input_file.write(str(x[0]) + " " + str(x[1]))
             
-            self.transfer_files_to_remote('./tests/parameters.txt', './tests/parameters.txt')          
-            
-            connection = Connection('edison.fel.zcu.cz', user = 'panek50', port = 22, connect_kwargs={'password': 'tkditf_16_2'})            
-            connection.run("condor_submit ./tests/condor.job")               
-            connection.close()
+            self.transfer_files_to_remote('./tests/parameters.txt', './tests/parameters.txt')                              
+            output = self.run_command_on_remote("condor_submit ./tests/condor.job")                                   
+            id = re.search('cluster \d+', output).group().split(" ")[1]                        
+            output = "run"
+            start =  time.time()
+            while (output != ""):      # If the job is complete it disappears from que
+                output = self.run_command_on_remote("condor_q -l " + str(id))                
+                if (time.time() - start) > 1:   # Time out is 5 seconds 
+                    print(time.time() - start)
+                    # break
             
             self.transfer_files_from_remote('./tests/output.txt', './tests/output.txt')            
             with open("./tests/output.txt") as file:
-                y = file.read()
-            
+                y = file.read()            
             return y
 
 if __name__ == "__main__":

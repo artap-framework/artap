@@ -2,6 +2,7 @@ import sqlite3
 from string import Template
 from .datastore import DataStore
 from random import random
+from numpy.random import normal
 from abc import *
 
 class Individual(metaclass=ABCMeta):
@@ -130,7 +131,7 @@ class Individual(metaclass=ABCMeta):
         return vector
 
     @classmethod
-    def gen_number(cls, bounds = [], precision = 0):
+    def gen_number(cls, bounds = [], precision = 0, distribution = "uniform"):
 
         if bounds == []:
             bounds = [0, 1]
@@ -138,8 +139,14 @@ class Individual(metaclass=ABCMeta):
         if precision == 0:
             precision = 1e-12
             
-        number = random() * (bounds[1] - bounds[0]) + bounds[0] 
-        number = round(number / precision) * precision 
+        if distribution == "uniform":                
+            number = random() * (bounds[1] - bounds[0]) + bounds[0] 
+            number = round(number / precision) * precision 
+
+        if distribution == "normal":
+            mean = (bounds[0] + bounds[1]) / 2
+            std = (bounds[1] - bounds[0]) / 6
+            number = normal(mean, std)
 
         return number
 

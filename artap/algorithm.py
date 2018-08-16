@@ -312,7 +312,7 @@ class Sensitivity(Algorithm):
             
             individuals = []    
             for i in range(self.problem.max_population_size):               
-                value = Individual.gen_number(selected_parametr[1]['bounds'], selected_parametr[1]['precision'])
+                value = Individual.gen_number(selected_parametr[1]['bounds'], selected_parametr[1]['precision'], 'normal')
                 vector[index] = value
                 parameter_values.append(value)
                 individual = Individual(vector.copy(), self.problem)
