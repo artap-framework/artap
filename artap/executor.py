@@ -187,7 +187,7 @@ class CondorJobExecutor(RemoteExecutor):
             with open("./parameters.txt", 'w') as input_file:
                 input_file.write(str(x[0]) + " " + str(x[1]))
             
-            self.transfer_files_to_remote('./tests/parameters.txt', './tests/parameters.txt')                              
+            self.transfer_files_to_remote('./parameters.txt', './tests/parameters.txt')                              
             output = self.run_command_on_remote("condor_submit ./tests/condor.job")                                   
             id = re.search('cluster \d+', output).group().split(" ")[1]                        
             output = "run"
