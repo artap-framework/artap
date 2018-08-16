@@ -30,7 +30,7 @@ class TestProblem(Problem):
             self.executor.script = cwd + "/remote_eval.py"
         else:
             sys.exit(1)
-        
+        self.executor.script = cwd + "/remote_eval.py"
         super().__init__(name, self.parameters, self.costs)
 
     def eval(self, x):
