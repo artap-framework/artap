@@ -159,8 +159,8 @@ class RemoteExecutor(Executor):
             output_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
             output_file.close()
 
-            self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')          
-            self.run_command_on_remote("python3 ./tests/remote_eval.py")
+            self.transfer_files_to_remote(parameters_file.name, './tests/parameters.txt')          
+            self.run_command_on_remote("cd tests;  python3 remote_eval.py")
             
             self.transfer_files_from_remote('./tests/output.txt', output_file.name)            
             with open(output_file.name) as file:

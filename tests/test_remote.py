@@ -16,8 +16,11 @@ class TestProblem(Problem):
         self.costs = ['F1']
         # current username
         user = getpass.getuser()        
+        user = "panek50"
         # host        
         host = "localhost"
+        host = "edison.fel.zcu.cz"
+
         self.executor = RemoteExecutor(username=user, hostname=host)
 
         cwd = os.getcwd()
@@ -33,7 +36,7 @@ class TestProblem(Problem):
     def eval(self, x):
         result = self.executor.eval(x)
 
-        # print(result)
+        print(result)
         return result
         
 class TestRemoteOptimization(unittest.TestCase):
@@ -43,19 +46,19 @@ class TestRemoteOptimization(unittest.TestCase):
     def test_remote_run(self):        
         """ Tests one calculation of goal function."""
         problem = TestProblem("RemotePythonProblem")        
-        result = problem.eval([1, 1])
+        result = problem.eval([1, 2])
  
-        self.assertAlmostEqual(result, 2.0)
+        self.assertAlmostEqual(result, 5.0)
     
-    def test_remote_optimization(self):        
-        """ Tests simple optimization problem. """ 
-        problem = TestProblem("RemotePythonProblem")
-        algorithm = ScipyNelderMead(problem)
-        algorithm.run()  
-        problem.read_from_database()
-        optimum = problem.data[-1][-1] # Takes last individual
+    # def test_remote_optimization(self):        
+    #     """ Tests simple optimization problem. """ 
+    #     problem = TestProblem("RemotePythonProblem")
+    #     algorithm = ScipyNelderMead(problem)
+    #     algorithm.run()  
+    #     problem.read_from_database()
+    #     optimum = problem.data[-1][-1] # Takes last individual
 
-        self.assertAlmostEqual(optimum, 0)
+    #     self.assertAlmostEqual(optimum, 0)
 
 if __name__ == '__main__':
     unittest.main()

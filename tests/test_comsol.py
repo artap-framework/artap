@@ -3,7 +3,6 @@ import os
 from context import ComsolExecutor
 from context import Problem   
 from scipy.optimize import minimize
-import getpass
 
 class TestProblem(Problem):
 
