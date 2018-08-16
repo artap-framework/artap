@@ -181,7 +181,7 @@ class CondorJobExecutor(RemoteExecutor):
     
     def eval(self, x):
             y = 0
-            self.transfer_files_to_remote('./tests/remote_eval.py', './tests/remote_eval.py')
+            self.transfer_files_to_remote('/remote_eval.py', './tests/remote_eval.py')
             self.transfer_files_to_remote('./tests/condor.job', './tests/condor.job')
                 
             with open("./tests/parameters.txt", 'w') as input_file:
