@@ -150,7 +150,7 @@ class RemoteExecutor(Executor):
 
         def eval(self, x):
             y = 0
-            self.transfer_files_to_remote(self.script, "remote_eval.py")
+            self.transfer_files_to_remote(self.script, "./tests/remote_eval.py")
                 
             parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
             parameters_file.write(str(x[0]) + " " + str(x[1]))
@@ -160,9 +160,9 @@ class RemoteExecutor(Executor):
             output_file.close()
 
             self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')          
-            self.run_command_on_remote("python3 remote_eval.py")
+            self.run_command_on_remote("python3 ./tests/remote_eval.py")
             
-            self.transfer_files_from_remote('output.txt', output_file.name)            
+            self.transfer_files_from_remote('./tests/output.txt', output_file.name)            
             with open(output_file.name) as file:
                 y = float(file.read())
             
