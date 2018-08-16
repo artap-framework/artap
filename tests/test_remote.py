@@ -16,10 +16,10 @@ class TestProblem(Problem):
         self.costs = ['F1']
         # current username
         user = getpass.getuser()        
-        user = "panek50"
+        # user = "panek50"
         # host        
         host = "localhost"
-        host = "edison.fel.zcu.cz"
+        # host = "edison.fel.zcu.cz"
 
         self.executor = RemoteExecutor(username=user, hostname=host)
 
