@@ -325,13 +325,13 @@ class Sensitivity(Algorithm):
             for individual in population.individuals:
                 costs.append(individual.costs[0])
             
-            print(parameter_values)
-            print(costs)
+            # print(parameter_values)
+            # print(costs)
             
-            print(mean(costs))
-            print(std(costs))
-            print(mean(parameter_values))
-            print(std(parameter_values))
+            # print(mean(costs))
+            # print(std(costs))
+            # print(mean(parameter_values))
+            # print(std(parameter_values))
 
             self.problem.populations.append(population)
 
