@@ -16,9 +16,9 @@ class TestProblem(Problem):
         self.costs = ['F1']
         
         curr_dir = os.path.abspath(os.curdir)
-        input_file =curr_dir + "/tests/parameters.txt"
-        output_file =curr_dir + "/tests/max.txt"
-        model_file =  curr_dir + "/tests/elstat.java"
+        input_file =curr_dir + "/parameters.txt"
+        output_file =curr_dir + "/max.txt"
+        model_file =  curr_dir + "/elstat.java"
         
         self.executor = ComsolExecutor(2, 1, input_file, output_file, model_file)
         super().__init__(name, self.parameters, self.costs)
