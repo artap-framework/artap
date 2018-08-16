@@ -24,6 +24,7 @@ class TestProblem(Problem):
         self.executor = RemoteExecutor(username=user, hostname=host)
 
         cwd = os.getcwd()
+        print("========================================================")
         print(cwd)
         if (os.path.exists(cwd + "/tests/remote_eval.py")):
             self.executor.script = cwd + "/tests/remote_eval.py"
