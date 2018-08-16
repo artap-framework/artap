@@ -24,12 +24,12 @@ class TestProblem(Problem):
         self.executor = RemoteExecutor(username=user, hostname=host)
 
         cwd = os.getcwd()
-        print("========================================================")
-        print("path:", cwd)
+        print("========================================================")        
         if (os.path.exists(cwd + "/tests/remote_eval.py")):
             self.executor.script = cwd + "/tests/remote_eval.py"
         elif (os.path.exists(cwd + "/remote_eval.py")):
             self.executor.script = cwd + "/remote_eval.py"
+            print("Path:", self.executor.script)
         else:
             sys.exit(1)
 
