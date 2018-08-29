@@ -34,10 +34,8 @@ class GeneralEvolutionalAlgorithm(Algorithm):
     def form_new_population(self):
         pass
 
-
     def run(self):
         pass
-        
     
 class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
 

@@ -1,5 +1,5 @@
 import unittest 
-from context import Problem
+from context import Problem, ProblemDataStore
 from context import ScipyNelderMead   
 from scipy.optimize import minimize
 
@@ -24,12 +24,11 @@ class MyProblem(Problem):
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
-    def test_local_problem(self):   
+    def test_local_problem(self):           
         problem = MyProblem("LocalPythonProblem")
         algorithm = ScipyNelderMead(problem)
-        algorithm.run()        
-        problem.read_from_database()
-        optimum = problem.data[-1][-1] # Takes last individual
+        algorithm.run()                
+        optimum = problem.populations[-1].individuals[-1].costs[0] # Takes last cost function
 
         self.assertAlmostEqual(optimum, 0)
 

@@ -5,75 +5,89 @@ import tempfile
 from string import Template
 from datetime import datetime
 
+from abc import ABCMeta,abstractmethod
+from .individual import Individual
+
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
     
-    def __init__(self, name, filepath = None): # TODO: Exception if failed?         
-        print(os.getcwd())
+    def __init__(self): # TODO: Exception if failed?         
+        pass        
+
+    def __del__(self):
+        pass
+
+    @abstractmethod
+    def create_structure(self):        
+        pass
+    
+    @abstractmethod
+    def create_structure_individual(self, parameters, costs):    
+        pass                
+
+    @abstractmethod
+    def write_individual(self, cmd_exec, params):
+        pass
+
+    @abstractmethod
+    def read_problem(self, problem):       
+        pass
+        
+class SqliteDataStore(DataStore):
+    def __init__(self, problem, working_dir = None, structure = True, filename = "db.sqlite"): 
+        super().__init__()
+        
         # self.id = uuid.int_(uuid.uuid4())   # Another way for generating unique ID                
-        if (filepath):
-            self.database_name = filepath
+        if (working_dir != None):
+            self.database_name = working_dir + "/" + filename
         else:
-            parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False, suffix=".db")
+            parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False, suffix=".sqlite")
             parameters_file.close()
 
             self.database_name = parameters_file.name
 
-        self.create_table_problem()
-        self.add_problem('Problem')
+        #if os.path.isfile(self.database_name):
+        #    os.remove(self.database_name)
+
+        self.connection = sqlite3.connect(self.database_name)
         
-        # if not os.path.isfile(self.database_name):        
-        #    self.create_database()
+        if (structure):
+            self.create_structure(problem)
         
+        # print(self.database_name)      
 
     def __del__(self):
-        # remove database
-        os.remove(self.database_name)
+        self.connection.close()
 
-    # Prepared for the case of one big database file
-    def create_table_problem(self):        
-        connection = sqlite3.connect(self.database_name)
-        cursor = connection.cursor()        
+        # remove database
+        # os.remove(self.database_name)
+
+        super().__del__()
+
+    def create_structure(self, problem):                
+        cursor = self.connection.cursor()        
         exec_cmd = """
-            CREATE TABLE IF NOT EXISTS problem_details (
-            id INTEGER PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS problem (            
             name TEXT,
-            description TEXT)                       
+            description TEXT,
+            num_parameters NUMBER,
+            num_costs NUMBER)      
             """
         cursor.execute(exec_cmd)
-        connection.commit()
-        cursor.close()
-        connection.close()
 
-    # Prepared for the case of one big database file
-    def add_problem(self, name):
-        connection = sqlite3.connect(self.database_name)
-        cursor = connection.cursor()
-        exec_cmd_tmp = Template("INSERT INTO problem_details(name) VALUES ('$x')")        
-        cursor.execute(exec_cmd_tmp.substitute(x = name))
-        
-        #exec_cmd = "SELECT last_insert_rowid()"
-        #cursor.execute(exec_cmd)
-        #id = cursor.fetchone()[0]        
-        connection.commit()
-        cursor.close()
-        connection.close()
-        return id
-    
-    def create_table_individual(self, problem_name, parameters, costs):    
+        exec_cmd_insert = "INSERT INTO problem(name, num_parameters, num_costs) VALUES ('%s', %i, %i)" % (problem.name, len(problem.parameters), len(problem.costs))
+        cursor.execute(exec_cmd_insert)
                 
-        connection = sqlite3.connect(self.database_name)
-        cursor = connection.cursor()
+        self.connection.commit()
+        cursor.close()
 
-        exec_cmd_tmp = Template("""
-            CREATE TABLE IF NOT EXISTS $name (
-            id INTEGER PRIMARY KEY,
-            population_id INTEGER,                        
-            """)
-        exec_cmd = exec_cmd_tmp.substitute(name = "data")    
+    def create_structure_individual(self, parameters, costs):            
+        cursor = self.connection.cursor()
+
+        exec_cmd = "CREATE TABLE IF NOT EXISTS data (id INTEGER PRIMARY KEY, population_id INTEGER, "
 
         for parameter in parameters.keys():
-            exec_cmd += parameter + " NUMBER, \n"
+            exec_cmd += parameter + " NUMBER, "
 
         for cost in costs:
             exec_cmd += cost + " NUMBER," 
@@ -82,32 +96,52 @@ class DataStore:
         exec_cmd += ");"
                 
         cursor.execute(exec_cmd)
-        connection.commit()
+        self.connection.commit()
         cursor.close()
-        connection.close()
 
-    def write_individual(self, cmd_exec, params):
-        connection = sqlite3.connect(self.database_name)
-        cursor = connection.cursor()       
+    def write_individual(self, params):
+        cursor = self.connection.cursor()       
+
+        cmd_exec = "INSERT INTO data VALUES ("
+
+        for i in range(len(params) - 1):
+            cmd_exec += " ?,"
+        cmd_exec += " ?);"          
+
         cursor.execute(cmd_exec, params)
-        connection.commit()
+        self.connection.commit()
         cursor.close()
-        connection.close()
 
+    def read_problem(self, problem):       
+        cursor = self.connection.cursor()
 
-    def read_all(self, table):       
-        connection = sqlite3.connect(self.database_name) 
-        cursor = connection.cursor()
-        exec_cmd_tmp = Template("SELECT * FROM $table_name")
-        exec_cmd = exec_cmd_tmp.substitute(table_name = table)
-        cursor.execute(exec_cmd)
-        data = cursor.fetchall()
-        connection.commit()
-        cursor.close()
-        connection.close()
-        return data
+        # problem
+        exec_cmd_problem = "SELECT * FROM problem"
+        cursor.execute(exec_cmd_problem)
+        data_problem = cursor.fetchall()
         
+        problem.name = data_problem[0][0]
+        num_parameters = data_problem[0][2]
+        num_costs = data_problem[0][3]
 
-if __name__ == "__main__":    
-    datastore = DataStore('nova_database')
-    
+        # parameters
+        exec_cmd_struct = "pragma table_info('data')"
+        columns = []
+        for row in cursor.execute(exec_cmd_struct):
+            columns.append(row[1])
+
+        problem.parameters = {}        
+        for parameter in columns[2:2 + num_parameters]:
+            problem.parameters[parameter] =  { 'initial_value': 0.0, 'bounds': [0, 1], 'precision': 1e-1 }
+
+        problem.costs = []
+        for cost in columns[2 + num_parameters:2 + num_parameters + num_costs]:
+            problem.costs.append(cost)
+
+        exec_cmd_data = "SELECT * FROM data"
+        for row in cursor.execute(exec_cmd_data):
+            individ = Individual(row[2:2 + num_parameters], problem, row[1])
+            individ.costs = row[2 + num_parameters: 2 + num_parameters + num_costs]
+
+        cursor.close()
+        

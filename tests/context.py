@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from artap.algorithm import *
 from artap.executor import *
+from artap.datastore import *
 from artap.problem import *
 from artap.population import *
 from artap.algorithm import *

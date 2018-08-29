@@ -1,6 +1,5 @@
 import sqlite3
 from string import Template
-from .datastore import DataStore
 from random import random
 from numpy.random import normal
 from abc import *
@@ -11,10 +10,10 @@ class Individual(metaclass=ABCMeta):
     """   
     number = 0    
     
-    def __init__(self, x, problem, population_id = 0):        
-        self.vector = x
+    def __init__(self, parameters, problem, population_id = 0):        
+        self.parameters = parameters
         self.problem = problem
-        self.length = len(self.vector)
+        self.length = len(self.parameters)
         self.costs = []                
         
         self.number = Individual.number
@@ -25,7 +24,7 @@ class Individual(metaclass=ABCMeta):
 
     def toString(self):
         string = "["
-        for number in self.vector:
+        for number in self.parameters:
             string += str(number) + ", "
         string = string[:len(string)-1]
         string += "]"
@@ -35,43 +34,20 @@ class Individual(metaclass=ABCMeta):
         string += "]\n"
         return string
 
-    
-    def toDatabase(self):  
-        id = self.number        
-        cmd_exec_tmp = Template("INSERT INTO $table (id, population_id, ")  # TODO: rewrite using string templates
-        cmd_exec = cmd_exec_tmp.substitute(table = "data")        
+    def to_list(self):
+        params = [self.number, self.population_id]
         
-        if type(self.costs) != list:
-            costs = [self.costs]
-        else:
-            costs = self.costs
-        
-        for parameter_name in self.problem.parameters.keys():
-            cmd_exec += parameter_name + ","
-        
-        for cost_name in self.problem.costs.keys():
-            cmd_exec += cost_name + ","
-
-        cmd_exec = cmd_exec[:-1]  # delete last comma
-        cmd_exec += ") VALUES (?, ?, "
-
-        for i in range(len(self.vector) + len(costs) - 1):
-            cmd_exec += " ?,"
-        cmd_exec += " ?);"           
-               
-        params = [id, self.population_id]
-        
-        for i in range(len(self.vector)):
-            params.append(self.vector[i])
+        for i in range(len(self.parameters)):
+            params.append(self.parameters[i])
         
         for cost in self.costs:
             params.append(cost)
 
-        self.problem.datastore.write_individual(cmd_exec, params)    
+        return params
                 
     def evaluate(self):        
         # problem cost function evaluate     
-        costs = self.problem.eval(self.vector)            
+        costs = self.problem.eval(self.parameters)            
 
         if type(costs) != list:
             self.costs = [costs]
