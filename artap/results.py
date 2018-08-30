@@ -1,4 +1,7 @@
 from artap.problem import Problem
+
+import matplotlib
+matplotlib.use('Agg')
 import pylab as pl
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
