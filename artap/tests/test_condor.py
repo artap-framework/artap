@@ -1,9 +1,12 @@
 from unittest import TestCase, main
-from context import CondorJobExecutor
-from context import Problem   
-from scipy.optimize import minimize
 import os
 import getpass
+
+from scipy.optimize import minimize
+
+from artap.executor import CondorJobExecutor
+from artap.problem import Problem   
+from artap.enviroment import Enviroment
 
 class TestProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
@@ -16,9 +19,14 @@ class TestProblem(Problem):
         self.costs = ['F1']
 
         # current username
-        user = getpass.getuser()        
+        if Enviroment.condor_host_login == "":
+            user = getpass.getuser()        
+        else:
+            user = Enviroment.condor_host_login
         # host        
-        host = "localhost"
+        
+        host = Enviroment.condor_host_ip
+
         self.executor = CondorJobExecutor(username=user, hostname=host)
     
     def eval(self, x):
@@ -33,7 +41,7 @@ class TestCondor(TestCase):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Problem")                     
         result = problem.eval([3, 2])                        
-        print(result)
+        
 
 if __name__ == '__main__':
     main()

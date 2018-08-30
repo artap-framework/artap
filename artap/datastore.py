@@ -7,6 +7,7 @@ from datetime import datetime
 
 from abc import ABCMeta,abstractmethod
 from .individual import Individual
+from .population import Population
 
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
@@ -34,7 +35,7 @@ class DataStore:
         pass
         
 class SqliteDataStore(DataStore):
-    def __init__(self, problem, working_dir = None, structure = True, filename = "db.sqlite"): 
+    def __init__(self, problem = None, working_dir = None, structure = True, filename = "db.sqlite"): 
         super().__init__()
         
         # self.id = uuid.int_(uuid.uuid4())   # Another way for generating unique ID                
@@ -139,9 +140,18 @@ class SqliteDataStore(DataStore):
             problem.costs.append(cost)
 
         exec_cmd_data = "SELECT * FROM data"
+        problem.populations = []
+        population = Population(problem)
+        current_population = 0
         for row in cursor.execute(exec_cmd_data):
             individ = Individual(row[2:2 + num_parameters], problem, row[1])
             individ.costs = row[2 + num_parameters: 2 + num_parameters + num_costs]
-
+            population.individuals.append(individ)
+            if (row[1] != current_population):
+                problem.populations.append(population.copy())
+                population = []
+                current_population = row[1]                
+        
+        problem.populations.append(population)
         cursor.close()
         

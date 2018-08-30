@@ -42,13 +42,13 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
     def __init__(self, problem :Problem, name = "General Evolutionary Algorithm"):
         super().__init__(problem, name)
         self.population_size = self.problem.max_population_size
-        self.vector_length = len(self.problem.parameters)
+        self.parameters_length = len(self.problem.parameters)
         self.populations_number = self.problem.max_population_number 
         self.current_population = 0                       
 
     def gen_initial_population(self):        
         population = Population(self.problem)
-        population.gen_random_population(self.population_size, self.vector_length, self.problem.parameters)
+        population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
         population.evaluate()
         population.save()
         
@@ -62,7 +62,7 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
 
 
     def form_new_population(self):
-        population = gen_population(self.population_size, self.vector_length, self.problem.parameters)
+        population = gen_population(self.population_size, self.parameters_length, self.problem.parameters)
         self.problem.add_population(population)
         self.problem.evaluate_population(self.current_population)        
         self.current_population += 1 
@@ -80,7 +80,7 @@ class NSGA_II(GeneticAlgorithm):
     
     def gen_initial_population(self):        
         population = Population_NSGA_II(self.problem)
-        population.gen_random_population(self.population_size, self.vector_length, self.problem.parameters)
+        population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
         population.evaluate()
         population.save()
         self.problem.populations.append(population)
@@ -144,7 +144,7 @@ class NSGA_II(GeneticAlgorithm):
 
         for i in range(0,len(individuals)-1):
             for j in range(i+1,len(individuals)):
-                if individuals[i].vector[dim] < individuals[j].vector[dim]:
+                if individuals[i].parameters[dim] < individuals[j].parameters[dim]:
                     temp = individuals[i]
                     individuals[i] = individuals[j]
                     individuals[j] = temp
@@ -159,9 +159,9 @@ class NSGA_II(GeneticAlgorithm):
             
             new_list[0].crowding_distance += infinite
             new_list[-1].crowding_distance += infinite
-            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
+            max_distance = new_list[0].parameters[dim] - new_list[-1].parameters[dim]
             for i in range(1,len(new_list)-1):
-                distance = new_list[i-1].vector[dim] - new_list[i+1].vector[dim]
+                distance = new_list[i-1].parameters[dim] - new_list[i+1].parameters[dim]
                 if max_distance == 0 :
                     new_list[i].crowding_distance = 0
                 else :
@@ -213,11 +213,11 @@ class NSGA_II(GeneticAlgorithm):
         parameter1,parameter2 = [],[]
         linear_range = 2
         alpha = random.uniform(0,linear_range)
-        for j in range(0,len(p1.vector)):
-            parameter1.append(alpha*p1.vector[j] +
-                            (1-alpha)*p2.vector[j] )
-            parameter2.append((1-alpha)*p1.vector[j] +
-                            alpha*p2.vector[j] )
+        for j in range(0,len(p1.parameters)):
+            parameter1.append(alpha*p1.parameters[j] +
+                            (1-alpha)*p2.parameters[j] )
+            parameter2.append((1-alpha)*p1.parameters[j] +
+                            alpha*p2.parameters[j] )
         c1 = Individual_NSGA_II(parameter1, self.problem )
         c2 = Individual_NSGA_II(parameter2, self.problem)
         return c1,c2
@@ -225,18 +225,18 @@ class NSGA_II(GeneticAlgorithm):
 
     def mutation(self, p): # uniform random mutation
         mutation_space = 0.1
-        vector = []
+        parameters = []
         i = 0
         for  parameter in self.problem.parameters.items():            
             if random.uniform(0,1) < self.prob_mutation:
                 para_range = mutation_space*(parameter[1]['bounds'][0] - parameter[1]['bounds'][1])
                 mutation = random.uniform(-para_range,para_range)
-                vector.append(p.vector[i]+mutation)
+                parameters.append(p.parameters[i]+mutation)
             else :
-                vector.append(p.vector[i])
+                parameters.append(p.parameters[i])
             i += 1
 
-        p_new = Individual_NSGA_II(vector, self.problem)            
+        p_new = Individual_NSGA_II(parameters, self.problem)            
         return p_new
 
 
@@ -291,9 +291,9 @@ class Sensitivity(Algorithm):
             super().__init__(problem, name)
 
     def run(self):        
-        vector = []
+        parameters = []
         for parameter in self.problem.parameters.items():
-            vector.append(float(parameter[1]['initial_value']))        
+            parameters.append(float(parameter[1]['initial_value']))        
         
         population = None
         for parameter_name in self.parameters:
@@ -311,9 +311,9 @@ class Sensitivity(Algorithm):
             individuals = []    
             for i in range(self.problem.max_population_size):               
                 value = Individual.gen_number(selected_parametr[1]['bounds'], selected_parametr[1]['precision'], 'normal')
-                vector[index] = value
+                parameters[index] = value
                 parameter_values.append(value)
-                individual = Individual(vector.copy(), self.problem)
+                individual = Individual(parameters.copy(), self.problem)
                 individuals.append(individual)
                         
             population.individuals = individuals

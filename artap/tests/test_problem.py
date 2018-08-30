@@ -1,6 +1,6 @@
 import unittest 
-from context import Problem, ProblemDataStore
-from context import ScipyNelderMead   
+from artap.problem import Problem, ProblemDataStore
+from artap.algorithm_scipy import ScipyNelderMead   
 from scipy.optimize import minimize
 
 class MyProblem(Problem):

@@ -25,7 +25,7 @@ class Population:
 
         Population.number += 1
 
-    def toString(self):
+    def to_string(self):
         string = "population number: " + str(self.number) + " \n"
       
         for individual in self.individuals:
@@ -35,7 +35,7 @@ class Population:
 
     def save(self):
         for individual in self.individuals:            
-            individual.toDatabase()
+            individual.problem.datastore.write_individual(individual.to_list())
 
     def print(self):
         print(self.toString())

@@ -1,6 +1,6 @@
 import unittest
-from context import Problem
-from context import GeneticAlgorithm
+from artap.problem import Problem
+from artap.algorithm import GeneticAlgorithm
 
 class MyProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
@@ -8,7 +8,7 @@ class MyProblem(Problem):
         self.max_population_number = 10
         self.max_population_size = 10
         self.parameters = {'x_1': { 'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01},
-                           'x_2': { 'initial_value': 10, 'bounds': [-10, -5], 'precision': 1e-6}, 
+'x_2': { 'initial_value': 10, 'bounds': [-10, -5], 'precision': 1e-6}, 
                            'x_3': { 'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01}}
         
         self.costs = ['F_1', 'F_2']

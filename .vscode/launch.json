@@ -6,10 +6,11 @@
     "configurations": [
 
         {
+            "cwd": "${workspaceFolder}/artap",
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "${file}"
+            "program": "${file}"            
         },
         {
             "name": "Python: test",

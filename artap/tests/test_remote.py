@@ -1,10 +1,14 @@
 import unittest
-from context import RemoteExecutor
-from context import Problem   
-from context import ScipyNelderMead
-from scipy.optimize import minimize
 import os
+import sys
 import getpass
+
+from scipy.optimize import minimize
+
+from artap.executor import RemoteExecutor
+from artap.problem import Problem   
+from artap.algorithm_scipy import ScipyNelderMead
+from artap.enviroment import Enviroment
 
 class TestProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
@@ -14,20 +18,21 @@ class TestProblem(Problem):
         self.parameters = {'x_1': {'initial_value':10}, 
                            'x_2': {'initial_value':10}}
         self.costs = ['F1']
-        # current username
-        user = getpass.getuser()        
-        # user = "panek50"
-        # host        
-        host = "localhost"
-        # host = "edison.fel.zcu.cz"
-
+        
+        if Enviroment.ssh_login == "":
+            user = getpass.getuser()        
+        else:
+            user = Enviroment.ssh_login
+        
+        host = Enviroment.available_ssh_servers[0]
+        
         self.executor = RemoteExecutor(username=user, hostname=host)
 
         cwd = os.getcwd()        
-        if (os.path.exists(cwd + "/tests/remote_eval.py")):
-            self.executor.script = cwd + "/tests/remote_eval.py"
-        elif (os.path.exists(cwd + "/remote_eval.py")):
-            self.executor.script = cwd + "/remote_eval.py"            
+        if (os.path.exists(cwd + "/tests/remote.py")):
+            self.executor.script = cwd + "/tests/remote.py"
+        elif (os.path.exists(cwd + "/remote.py")):
+            self.executor.script = cwd + "/remote.py"            
         else:
             sys.exit(1)
 

@@ -9,7 +9,8 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "${file}"
+            "program": "${file}",
+            "cwd": "${workspaceFolder}/artap"
         },
         {
             "name": "Python: Attach",

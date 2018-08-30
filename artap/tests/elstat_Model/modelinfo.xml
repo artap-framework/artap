@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelInfo comsolVersion="5.3.0.316" entityComments="Untitled&#xa;&#xa;" modelType="MODEL" isRunnable="false" pdfResources="" passwordProtection="off" startMode="edit" ignoreLicenseErrors="off" title="Untitled" description="" runtimeProtection="off" windowTitle="Untitled" expectedComputationTime="" lastComputationTime="2.169 s" mainPartSDim="None">
+  <historyInfo createdIn="COMSOL 5.3 (Build: 316)" author="" createdDate="1534404986257" lastModifiedBy="" lastModifiedDate="1535447015953"/>
+  <licenseInfo products=""/>
+  <physicsInfo physics="Electrostatics"/>
+  <geometryInfo>
+    <geom tag="geom1" dimension="2"/>
+  </geometryInfo>
+</modelInfo>
+

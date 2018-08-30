@@ -1,8 +1,11 @@
 import unittest 
-from context import Problem
-from context import ScipyNelderMead   
-from context import Sensitivity
+
 from scipy.optimize import minimize
+
+from artap.problem import Problem
+from artap.algorithm_scipy import ScipyNelderMead   
+from artap.algorithm import Sensitivity
+
 
 class MyProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
@@ -31,7 +34,7 @@ class TestSensitivity(unittest.TestCase):
         problem = MyProblem("LocalPythonProblem")
         algorithm = Sensitivity(problem, ['x_2', 'x_3'])
         algorithm.run()        
-        problem.read_from_database()
+        
 
 if __name__ == '__main__':
     unittest.main()

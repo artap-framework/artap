@@ -22,7 +22,7 @@ class Individual(metaclass=ABCMeta):
         self.population_id = population_id
         self.is_evaluated = False
 
-    def toString(self):
+    def to_string(self):
         string = "["
         for number in self.parameters:
             string += str(number) + ", "

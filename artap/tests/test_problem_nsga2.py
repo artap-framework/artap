@@ -1,8 +1,9 @@
 import unittest
-from context import Problem
-from context import Binh_and_Korn
-from context import NSGA_II
-from scipy.optimize import minimize
+
+from artap.problem import Problem
+from artap.benchmark_functions import Binh_and_Korn
+from artap.algorithm import NSGA_II
+
 
 class MyProblem(Problem):
     """ Describe simple one obejctive optimization problem. """

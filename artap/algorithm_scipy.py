@@ -1,6 +1,6 @@
-from .problem import Problem
-from .population import Population
-from .algorithm import Algorithm
+from artap.problem import Problem
+from artap.population import Population
+from artap.algorithm import Algorithm
 
 from scipy.optimize import minimize
 import numpy as np

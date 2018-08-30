@@ -53,7 +53,7 @@ class Problem(ABC):
     
     def get_initial_values(self):
         values = []
-        for parameter in parameters.items():
+        for parameter in self.parameters.items():
             if 'initial_value' in parameter[1]:
                 values.append(parameter[1]['initial_value'])    
             else:

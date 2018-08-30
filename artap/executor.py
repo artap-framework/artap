@@ -6,6 +6,8 @@ import tempfile
 import traceback
 import os
 
+from artap.enviroment import Enviroment
+
 class Executor:
     """
     Function is a class representing objective or cost function for 
@@ -31,7 +33,7 @@ class ComsolExecutor(Executor):
         """ Funtion compile model_name.java file and run Comsol in a batch mode."""
         import os        
         file_name = self.model_name[:-5]        
-        comsol_path = "/home/david/Apps/comsol53/multiphysics/bin/"
+        comsol_path = Enviroment.comsol_path
         compile_string =comsol_path +  "comsol compile " +  file_name + ".java"
         run_string = comsol_path + "comsol batch -inputfile " + file_name + ".class"
         
@@ -181,13 +183,13 @@ class CondorJobExecutor(RemoteExecutor):
     
     def eval(self, x):
             y = 0
-            self.transfer_files_to_remote('./remote_eval.py', './remote_eval.py')
-            self.transfer_files_to_remote('./condor.job', './condor.job')
+            self.transfer_files_to_remote(Enviroment.tests_root + '/remote.py', './remote_eval.py')
+            self.transfer_files_to_remote(Enviroment.tests_root + '/remote.job', './condor.job')
                 
             with open("./parameters.txt", 'w') as input_file:
                 input_file.write(str(x[0]) + " " + str(x[1]))
             
-            self.transfer_files_to_remote('./parameters.txt', './parameters.txt')                              
+            self.transfer_files_to_remote(Enviroment.tests_root+'/parameters.txt', './parameters.txt')                              
             output = self.run_command_on_remote("condor_submit ./condor.job")                                   
             print("output:", output)
             id = re.search('cluster \d+', output).group().split(" ")[1]                        
@@ -199,8 +201,8 @@ class CondorJobExecutor(RemoteExecutor):
                     print(time.time() - start)
                     # break
             
-            self.transfer_files_from_remote('./output.txt', './output.txt')            
-            with open("./output.txt") as file:
+            self.transfer_files_from_remote('./output.txt', Enviroment.tests_root + '/output.txt')            
+            with open(Enviroment.tests_root + "/output.txt") as file:
                 y = file.read()            
             return y
 

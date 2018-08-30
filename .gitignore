@@ -1,5 +1,4 @@
 max.txt
-parameters.txt
 output.txt
 problem.db
 *.class
@@ -15,4 +14,4 @@ build
 .vscode/.ropeproject/
 test_problem_multiobjective.profile
 tests/test_problem_multiobjective.timings
-
+enviroment_local.json
