@@ -2,11 +2,6 @@ from string import Template
 from abc import ABC, abstractmethod
 from .individual import Individual, Individual_NSGA_II
 
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib import rc
-
-
 class Population:
     
     size = 0
