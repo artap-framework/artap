@@ -10,8 +10,6 @@ if os.path.exists(dir_path + "/enviroment_local.json"):
 else:   
     file_name = dir_path + "/enviroment.json"
 
-print(file_name)
-
 with open(file_name, 'r') as f:
     enviroment = json.load(f)
 
