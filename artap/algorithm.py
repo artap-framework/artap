@@ -249,8 +249,7 @@ class NSGA_II(GeneticAlgorithm):
 
 
     def run(self):
-        self.gen_initial_population()
-        self.problem.populations[self.current_population-1].plot()           
+        self.gen_initial_population()        
         parent_individuals = self.problem.populations[0].individuals
         individuals = parent_individuals
         costs_number = len(self.problem.costs)
@@ -279,8 +278,7 @@ class NSGA_II(GeneticAlgorithm):
             
             population = Population_NSGA_II(self.problem, individuals)
             population.save()
-            self.problem.add_population(population)
-            self.problem.populations[-1].plot()            
+            self.problem.add_population(population)                     
             self.current_population += 1
 
             child_individuals = self.generate(parent_individuals)         

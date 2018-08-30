@@ -39,33 +39,7 @@ class Population:
 
     def print(self):
         print(self.toString())
-
-    def plot(self):
-        #TODO: Move settings outside
-        rc('text', usetex=True)                
-        rc('font', family='serif')
-
-        figure_name = "pareto_" + str(self.number) + ".pdf"
-        if len(self.individuals) > 1:
-            figure = Figure()
-            FigureCanvas(figure)
-            figure.add_subplot(111)        
-            ax = figure.axes[0]
-            colors = ['red', 'green', 'blue', 'yellow', 'purple', 'black']
-            for individual in self.individuals:            
-                    #TODO: Make for more objective values
-                    ax.plot(individual.costs[0], individual.costs[1], 'o')
-                    if hasattr(individual, 'front_number'):
-                        if individual.front_number != 0:
-                            scale = 100 / (individual.front_number / 4.)
-                            ax.scatter(individual.costs[0], individual.costs[1], 
-                            scale, c = colors[(individual.front_number - 1) % 6])
-            
-            ax.set_xlabel('$x$')
-            ax.set_ylabel('$y$')
-            ax.grid()            
-            figure.savefig(figure_name)
-        
+      
     def gen_random_population(self, population_size, vector_length, parameters):
         self.individuals = Individual.gen_individuals(population_size, self.problem, self.number)
         return self.individuals

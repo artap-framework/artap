@@ -25,17 +25,11 @@ class TestProblem(Problem):
             user = Enviroment.ssh_login
         
         host = Enviroment.available_ssh_servers[0]
-        
+        host_working_directory = ""
+        local_working_directory = ""
+
         self.executor = RemoteExecutor(username=user, hostname=host)
-
-        cwd = os.getcwd()        
-        if (os.path.exists(cwd + "/tests/remote.py")):
-            self.executor.script = cwd + "/tests/remote.py"
-        elif (os.path.exists(cwd + "/remote.py")):
-            self.executor.script = cwd + "/remote.py"            
-        else:
-            sys.exit(1)
-
+        self.executor.script = Enviroment.tests_root + "/remote.py"            
         
         
         super().__init__(name, self.parameters, self.costs)
