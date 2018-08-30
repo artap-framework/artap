@@ -2,10 +2,15 @@ import os
 import sys
 import json
 
-if os.path.exists("enviroment_local.json"):
-    file_name = "enviroment_local.json"
+path = os.path.abspath(__file__)
+dir_path = os.path.dirname(path)
+
+if os.path.exists(dir_path + "/enviroment_local.json"):
+    file_name = dir_path + "/enviroment_local.json"
 else:   
-    file_name = "enviroment.json"
+    file_name = dir_path + "/enviroment.json"
+
+print(file_name)
 
 with open(file_name, 'r') as f:
     enviroment = json.load(f)

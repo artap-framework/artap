@@ -3,5 +3,5 @@ build:
     - linux
   script: 
     # tests
-    - cd tests
+    - cd artap/tests
     - python3 -m unittest -v 
