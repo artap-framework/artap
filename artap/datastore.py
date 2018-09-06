@@ -46,7 +46,7 @@ class SqliteDataStore(DataStore):
 
         self.database_name = None
         self.id = problem_id
-        self.connection_problem = sqlite3.connect(Enviroment.artap_root + "/poblems.db")
+        self.connection_problem = sqlite3.connect(Enviroment.artap_root + "/problems.db")
         self.problem = problem
 
         time_stamp = str(datetime.datetime.now())
