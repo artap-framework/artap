@@ -181,10 +181,9 @@ class CondorJobExecutor(RemoteExecutor):
     def __init__(self, hostname = None, 
             username = None, password = None, port = 22, working_dir = None, suplementary_files = None):
 
-            self.suplementary_files = suplementary_files
-            self.working_dir = working_dir
 
-            super().__init__(hostname, username, password, port)
+            super().__init__(hostname, username, password, port, working_dir=working_dir,
+                             suplementary_files=suplementary_files )
 
     
     def eval(self, x):
