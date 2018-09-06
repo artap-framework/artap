@@ -1,12 +1,8 @@
-import sqlite3
-from string import Template
 from abc import ABC, abstractmethod
 
 from .datastore import SqliteDataStore
-from .population import Population
 from .individual import Individual
 
-from random import random
 
 """
  Module is dedicated to describe optimization problem. 
@@ -15,20 +11,20 @@ from random import random
 class Problem(ABC):
     """ Is a main class wich collects information about optimization task """    
            
-    def __init__(self, name, parameters, costs, datastore = None):                                        
+    def __init__(self, name, parameters, costs, datastore = None, working_dir = None):
         self.name = name
-        self.path_to_source_files = ""
-        self.source_files = []
-        self.path_to_results = ""                    
-        self.parameters = parameters               
+
+        self.working_dir = working_dir
+        self.parameters = parameters
         self.costs = {cost:0 for cost in costs}
 
         if datastore is None:
-            self.datastore = SqliteDataStore(self)                
+            self.datastore = SqliteDataStore(self, working_dir = working_dir)
             self.datastore.create_structure_individual(self.parameters, self.costs)
         else:
             self.datastore = datastore
         
+        self.id = self.datastore.get_id()
         self.populations = []
         
     def add_population(self, population):                
@@ -63,11 +59,9 @@ class Problem(ABC):
         pass
 
 class ProblemDataStore(Problem):
-    def __init__(self, datastore):                                        
+    def __init__(self, datastore):
         self.datastore = datastore
-        
         self.datastore.read_problem(self)
 
     def eval(self):
         assert 0
-

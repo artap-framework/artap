@@ -64,11 +64,13 @@ class RemoteExecutor(Executor):
         """
 
         def __init__(self, hostname = None, 
-            username = None, password = None, port = 22): 
+            username = None, password = None, port = 22, working_dir = None, suplementary_files = []):
             self.hostname = hostname
             self.port = port
             self.username = username
             self.password = password
+            self.working_dir = working_dir
+            self.suplementary_files = suplementary_files
 
             self.script = ""
 
@@ -151,13 +153,14 @@ class RemoteExecutor(Executor):
             return output
 
         def eval(self, x):
-            y = 0
-            self.transfer_files_to_remote(self.script, "remote_eval.py")
-                
+
+            for file in self.suplementary_files:
+                self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
+
             parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
             parameters_file.write(str(x[0]) + " " + str(x[1]))
             parameters_file.close()
-            
+
             output_file = tempfile.NamedTemporaryFile(mode = "w", delete=False)
             output_file.close()
 
@@ -176,21 +179,26 @@ class RemoteExecutor(Executor):
 class CondorJobExecutor(RemoteExecutor):
     """ Allwes submit goal function calculation as a HT Condor job """
     def __init__(self, hostname = None, 
-            username = None, password = None, port = 22):
+            username = None, password = None, port = 22, working_dir = None, suplementary_files = None):
+
+            self.suplementary_files = suplementary_files
+            self.working_dir = working_dir
 
             super().__init__(hostname, username, password, port)
 
     
     def eval(self, x):
-            y = 0
-            self.transfer_files_to_remote(Enviroment.tests_root + '/remote.py', './remote_eval.py')
-            self.transfer_files_to_remote(Enviroment.tests_root + '/remote.job', './condor.job')
-                
-            with open("./parameters.txt", 'w') as input_file:
+
+            with open(self.working_dir + "/parameters.txt", 'w') as input_file:
                 input_file.write(str(x[0]) + " " + str(x[1]))
+
+            self.suplementary_files.append("parameters.txt")
             
-            self.transfer_files_to_remote(Enviroment.tests_root+'/parameters.txt', './parameters.txt')                              
-            output = self.run_command_on_remote("condor_submit ./condor.job")                                   
+            for file in self.suplementary_files:
+                self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
+
+
+            output = self.run_command_on_remote("condor_submit ./condor.job")
             print("output:", output)
             id = re.search('cluster \d+', output).group().split(" ")[1]                        
             output = "run"
@@ -201,8 +209,8 @@ class CondorJobExecutor(RemoteExecutor):
                     print(time.time() - start)
                     # break
             
-            self.transfer_files_from_remote('./output.txt', Enviroment.tests_root + '/output.txt')            
-            with open(Enviroment.tests_root + "/output.txt") as file:
+            self.transfer_files_from_remote('./output.txt', self.working_dir + '/output.txt')
+            with open(self.working_dir + "/output.txt") as file:
                 y = file.read()            
             return y
 

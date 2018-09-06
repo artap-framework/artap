@@ -35,14 +35,9 @@ class Individual(metaclass=ABCMeta):
         return string
 
     def to_list(self):
-        params = [self.number, self.population_id]
-        
-        for i in range(len(self.parameters)):
-            params.append(self.parameters[i])
-        
-        for cost in self.costs:
-            params.append(cost)
-
+        params = [self.number, self.population_id]                
+        params.append(self.parameters)       
+        params.append(self.costs)
         return params
                 
     def evaluate(self):        

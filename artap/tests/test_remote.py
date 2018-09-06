@@ -25,10 +25,8 @@ class TestProblem(Problem):
             user = Enviroment.ssh_login
         
         host = Enviroment.available_ssh_servers[0]
-        host_working_directory = ""
-        local_working_directory = ""
-
-        self.executor = RemoteExecutor(username=user, hostname=host)
+        self.executor = RemoteExecutor(username=user, hostname=host, working_dir="./workspace/remote",
+                                       suplementary_files=["remote.py"])
         self.executor.script = Enviroment.tests_root + "/remote.py"            
         
         

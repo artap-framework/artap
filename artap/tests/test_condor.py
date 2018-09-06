@@ -18,6 +18,8 @@ class TestProblem(Problem):
                            'x_2': {'initial_value':10}}
         self.costs = ['F1']
 
+        suplementary_files = ["remote.job", "remote.py"]
+
         # current username
         if Enviroment.condor_host_login == "":
             user = getpass.getuser()        
@@ -27,7 +29,8 @@ class TestProblem(Problem):
         
         host = Enviroment.condor_host_ip
 
-        self.executor = CondorJobExecutor(username=user, hostname=host)
+        self.executor = CondorJobExecutor(username=user, hostname=host, working_dir="./workspace/condor",
+                                          suplementary_files = suplementary_files)
     
     def eval(self, x):
         result = self.executor.eval(x)

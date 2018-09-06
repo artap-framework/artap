@@ -1,6 +1,7 @@
 import unittest 
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyNelderMead   
+from artap.datastore import SqliteDataStore
 
 class MyProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
@@ -10,7 +11,9 @@ class MyProblem(Problem):
         self.parameters = {'x_1': { 'initial_value': 10}}
         self.costs = ['F_1']
 
-        super().__init__(name, self.parameters, self.costs)
+        working_dir = "./workspace"
+
+        super().__init__(name, self.parameters, self.costs, working_dir=working_dir)
 
     def eval(self, x):
         result = 0

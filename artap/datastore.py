@@ -1,13 +1,14 @@
 import sqlite3
-import os.path
-import os
 import tempfile
-from string import Template
-from datetime import datetime
+import os
+import datetime
 
-from abc import ABCMeta,abstractmethod
+from abc import abstractmethod
+
 from .individual import Individual
 from .population import Population
+from .utils import flatten
+from .enviroment import Enviroment
 
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
@@ -33,54 +34,95 @@ class DataStore:
     @abstractmethod
     def read_problem(self, problem):       
         pass
+    
+    @abstractmethod
+    def get_id(self):
+        pass
         
 class SqliteDataStore(DataStore):
-    def __init__(self, problem = None, working_dir = None, structure = True, filename = "db.sqlite"): 
+
+    def __init__(self, problem = None, problem_id = 1, new_database = True, working_dir = None):
         super().__init__()
-        
-        # self.id = uuid.int_(uuid.uuid4())   # Another way for generating unique ID                
-        if (working_dir != None):
-            self.database_name = working_dir + "/" + filename
+
+        self.database_name = None
+        self.id = problem_id
+        self.connection_problem = sqlite3.connect(Enviroment.artap_root + "/poblems.db")
+        self.problem = problem
+
+        time_stamp = str(datetime.datetime.now())
+
+        if (new_database):
+            self.create_structure(problem)
+            if (working_dir != None):
+                 self.database_name = working_dir + "/" + self.problem.name + time_stamp + ".sqlite"
+                 if problem != None:
+                    self.save_problem(problem)
+                    problem.datastore = self
+            else:
+                parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False, suffix=".sqlite")
+                parameters_file.close()
+
+                self.database_name = parameters_file.name
+
         else:
-            parameters_file = tempfile.NamedTemporaryFile(mode = "w", delete=False, suffix=".sqlite")
-            parameters_file.close()
+            cursor_problem = self.connection_problem.cursor()
 
-            self.database_name = parameters_file.name
+            # problem
+            exec_cmd_problem = "SELECT * FROM problem WHERE id = %s" % str(self.id)
+            cursor_problem.execute(exec_cmd_problem)
+            data_problem = cursor_problem.fetchall()
 
-        #if os.path.isfile(self.database_name):
-        #    os.remove(self.database_name)
+            self.problem_name = data_problem[0][0]
+            self.num_parameters = data_problem[0][3]
+            self.num_costs = data_problem[0][4]
+            self.database_name = data_problem[0][5]
+
+            cursor_problem.close()
+
+            if not (os.path.exists(self.database_name)):
+                raise IOError("Database file not found!")
+
+            #if (working_dir != None):
+            #    self.database_name = working_dir + "/" + filename
 
         self.connection = sqlite3.connect(self.database_name)
         
-        if (structure):
-            self.create_structure(problem)
-        
-        # print(self.database_name)      
+
+
 
     def __del__(self):
-        self.connection.close()
-
+        pass
         # remove database
         # os.remove(self.database_name)
-
+        self.connection_problem.close()
+        self.connection.close()
         super().__del__()
 
-    def create_structure(self, problem):                
-        cursor = self.connection.cursor()        
+    def save_problem(self, problem):
+        cursor = self.connection_problem.cursor()
+        exec_cmd_insert = "INSERT INTO problem(name, database_file, num_parameters, num_costs) VALUES ('%s', '%s', %i, %i)" % (problem.name, self.database_name, len(problem.parameters), len(problem.costs))
+        cursor.execute(exec_cmd_insert)
+        self.connection_problem.commit()
+        cursor.close()
+
+
+    def create_structure(self, problem):
+
+        cursor = self.connection_problem.cursor()
         exec_cmd = """
-            CREATE TABLE IF NOT EXISTS problem (            
+            CREATE TABLE IF NOT EXISTS problem (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,            
             name TEXT,
-            description TEXT,
+            description TEXT,            
+            database_file TEXT,            
             num_parameters NUMBER,
             num_costs NUMBER)      
             """
         cursor.execute(exec_cmd)
 
-        exec_cmd_insert = "INSERT INTO problem(name, num_parameters, num_costs) VALUES ('%s', %i, %i)" % (problem.name, len(problem.parameters), len(problem.costs))
-        cursor.execute(exec_cmd_insert)
-                
-        self.connection.commit()
+        self.connection_problem.commit()
         cursor.close()
+
 
     def create_structure_individual(self, parameters, costs):            
         cursor = self.connection.cursor()
@@ -101,30 +143,20 @@ class SqliteDataStore(DataStore):
         cursor.close()
 
     def write_individual(self, params):
-        cursor = self.connection.cursor()       
-
+        cursor = self.connection.cursor()
         cmd_exec = "INSERT INTO data VALUES ("
 
-        for i in range(len(params) - 1):
+        flat_params = flatten(params)
+        for i in range(len(flat_params) - 1):
             cmd_exec += " ?,"
         cmd_exec += " ?);"          
 
-        cursor.execute(cmd_exec, params)
+        cursor.execute(cmd_exec, flat_params)
         self.connection.commit()
         cursor.close()
 
-    def read_problem(self, problem):       
+    def read_problem(self, problem):
         cursor = self.connection.cursor()
-
-        # problem
-        exec_cmd_problem = "SELECT * FROM problem"
-        cursor.execute(exec_cmd_problem)
-        data_problem = cursor.fetchall()
-        
-        problem.name = data_problem[0][0]
-        num_parameters = data_problem[0][2]
-        num_costs = data_problem[0][3]
-
         # parameters
         exec_cmd_struct = "pragma table_info('data')"
         columns = []
@@ -132,11 +164,11 @@ class SqliteDataStore(DataStore):
             columns.append(row[1])
 
         problem.parameters = {}        
-        for parameter in columns[2:2 + num_parameters]:
+        for parameter in columns[2:2 + self.num_parameters]:
             problem.parameters[parameter] =  { 'initial_value': 0.0, 'bounds': [0, 1], 'precision': 1e-1 }
 
         problem.costs = []
-        for cost in columns[2 + num_parameters:2 + num_parameters + num_costs]:
+        for cost in columns[2 + self.num_parameters:2 + self.num_parameters + self.num_costs]:
             problem.costs.append(cost)
 
         exec_cmd_data = "SELECT * FROM data"
@@ -144,14 +176,16 @@ class SqliteDataStore(DataStore):
         population = Population(problem)
         current_population = 0
         for row in cursor.execute(exec_cmd_data):
-            individ = Individual(row[2:2 + num_parameters], problem, row[1])
-            individ.costs = row[2 + num_parameters: 2 + num_parameters + num_costs]
+            individ = Individual(row[2:2 + self.num_parameters], problem, row[1])
+            individ.costs = row[2 + self.num_parameters: 2 + self.num_parameters + self.num_costs]
             population.individuals.append(individ)
             if (row[1] != current_population):
-                problem.populations.append(population.copy())
-                population = []
+                problem.populations.append(next_population.copy())
+                next_population = []
                 current_population = row[1]                
         
         problem.populations.append(population)
         cursor.close()
-        
+
+        def get_id(self):
+            return 0

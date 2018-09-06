@@ -15,8 +15,8 @@ class MyProblem(Problem):
                            
         
         self.costs = ['F_1', 'F_2']
-
-        super().__init__(name, self.parameters, self.costs)
+        # working_dir = './workspace'
+        super().__init__(name, self.parameters, self.costs, working_dir=working_dir)
 
     def eval(self, x):
         return Binh_and_Korn(x)
@@ -25,10 +25,10 @@ class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
     def test_local_problem_nsga2(self):   
-        problem = MyProblem("LocalPythonProblem")        
+        problem = MyProblem("LocalPythonProblemNSGA_II")
         algorithm = NSGA_II(problem)
         algorithm.run() 
-        #results = GraphicalResults(problem)
+        # results = GraphicalResults(problem)
         #results.plot_populations()
 
 if __name__ == '__main__':

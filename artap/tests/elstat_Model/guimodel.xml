@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<GuiModel dimension="2" viewDimension="2" guiView="POST" currentPlotGroupFeature="pg1" currentStudyFeature="std1" currentNode="/result/feature/pg1" groupGlobalDefinitions="false">
-  <openWindows>
-    <string>MAINWINDOW</string>
-  </openWindows>
-</GuiModel>
-
