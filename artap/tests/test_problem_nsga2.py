@@ -16,7 +16,7 @@ class MyProblem(Problem):
         
         self.costs = ['F_1', 'F_2']
         # working_dir = './workspace'
-        super().__init__(name, self.parameters, self.costs, working_dir=working_dir)
+        super().__init__(name, self.parameters, self.costs)
 
     def eval(self, x):
         return Binh_and_Korn(x)
