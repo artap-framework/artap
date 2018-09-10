@@ -20,7 +20,7 @@ class ScipyNelderMead(Algorithm):
         population = Population(self)
         self.problem.populations.append(population)
         
-        initial_vector = self.problem.get_initial_values()
+        initial_vector = self.problem.get_initial_values
         # TODO: parameters (tol=1e-3)
         
         x0 = np.array(initial_vector)        

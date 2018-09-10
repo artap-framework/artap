@@ -2,25 +2,30 @@ from abc import ABC, abstractmethod
 
 from .datastore import SqliteDataStore
 from .individual import Individual
+from .utils import flatten
 
 
 """
  Module is dedicated to describe optimization problem. 
 """
 
+
 class Problem(ABC):
     """ Is a main class wich collects information about optimization task """    
            
-    def __init__(self, name, parameters, costs, datastore = None, working_dir = None):
+    def __init__(self, name, parameters, costs, datastore=None, working_dir=None):
         self.name = name
 
         self.working_dir = working_dir
         self.parameters = parameters
-        self.costs = {cost:0 for cost in costs}
+        self.costs = {cost: 0 for cost in costs}
 
         if datastore is None:
-            self.datastore = SqliteDataStore(self, working_dir = working_dir)
+            self.datastore = SqliteDataStore(self, working_dir=working_dir)
             self.datastore.create_structure_individual(self.parameters, self.costs)
+            self.datastore.create_structure_parameters(self.get_parameters_list())
+            self.datastore.create_structure_costs(self.costs)
+
         else:
             self.datastore = datastore
         
@@ -44,6 +49,7 @@ class Problem(ABC):
     def set_algorithm(self, algorithm):
         self.algorithm = algorithm
     
+    @property
     def get_initial_values(self):
         values = []
         for parameter in self.parameters.items():
@@ -51,12 +57,23 @@ class Problem(ABC):
                 values.append(parameter[1]['initial_value'])    
             else:
                 values.append(0)
-
         return values
 
     @abstractmethod
     def eval(self):
         pass
+
+    def get_parameters_list(self):
+        parameters_list =[]
+        names = list(self.parameters.keys())
+        i = 0
+        for sudb_dict in list(self.parameters.values()):
+            parameter = [names[i]]
+            parameter.extend(flatten(sudb_dict.values()))
+            parameters_list.append(parameter)
+            i += 1
+        return parameters_list
+
 
 class ProblemDataStore(Problem):
     def __init__(self, datastore):

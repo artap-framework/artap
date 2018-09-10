@@ -13,7 +13,7 @@ class MyProblem(Problem):
         self.parameters = {'x_1': { 'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
                            'x_2': { 'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}} 
                            
-        
+        self.get_parameters_list()
         self.costs = ['F_1', 'F_2']
         # working_dir = './workspace'
         super().__init__(name, self.parameters, self.costs)
