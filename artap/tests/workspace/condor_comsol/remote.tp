@@ -1,0 +1,19 @@
+universe = vanilla
+initialdir = ./
+executable = compile_and_run.sh
+arguments = $input_file
+requirements = (OpSys == "LINUX" && Arch == "X86_64" && Machine == "condor04" )
+
+input = $input_file
+output = $output_file
+log = $$(cluster).condor_log
+error = $$(cluster)_$$(process).condor_err
+
+request_cpus = 10
+request_memory = 10 GB
+log_xml = true
+should_transfer_files = yes
+when_to_transfer_output = ON_EXIT
+transfer_input_files = compile_and_run.sh, $input_file
+transfer_executable = true
+queue

@@ -4,7 +4,7 @@ executable = /usr/bin/python
 arguments = remote_eval.py  
 requirements = (OpSys == "LINUX" && Arch == "X86_64")
 
-input = remote_eval.py
+input = remote.py
 output = output.log
 transfer_input_files = parameters.txt
 log = $(cluster).condor_log

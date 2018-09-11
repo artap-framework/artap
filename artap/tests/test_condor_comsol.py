@@ -1,24 +1,23 @@
 from unittest import TestCase, main
-import os
 import getpass
 
-from scipy.optimize import minimize
 
 from artap.executor import CondorJobExecutor
 from artap.problem import Problem   
 from artap.enviroment import Enviroment
 
+
+
 class TestProblem(Problem):
     """ Describe simple one obejctive optimization problem. """
     def __init__(self, name):
-
         self.max_population_number = 1
         self.max_population_size = 1
-        self.parameters = {'x_1': {'initial_value':10}, 
-                           'x_2': {'initial_value':10}}
+        self.parameters = {'a': {'initial_value':10},
+                           'b': {'initial_value':10}}
         self.costs = ['F1']
 
-        suplementary_files = ["remote.job", "remote.py"]
+        suplementary_files = ["compile_and_run.sh"]
 
         # current username
         if Enviroment.condor_host_login == "":
@@ -29,11 +28,15 @@ class TestProblem(Problem):
         
         host = Enviroment.condor_host_ip
 
-        self.executor = CondorJobExecutor(username=user, hostname=host, working_dir="./workspace/condor",
+        self.executor = CondorJobExecutor(username=user, hostname=host, working_dir="./workspace/condor_comsol",
                                           suplementary_files = suplementary_files)
     
     def eval(self, x):
         result = self.executor.eval(x)
+        return result
+
+    def eval_batch(self, table):
+        result = self.executor.eval_batch(table)
         return result
 
 class TestCondor(TestCase):
@@ -42,9 +45,9 @@ class TestCondor(TestCase):
     """
     def test_condor_run(self):        
         """ Tests one calculation of goal function."""
-        problem = TestProblem("Condor Problem")                     
-        result = problem.eval([1, 1])
-        self.assertAlmostEqual(result, 11.294090668382257)
+        problem = TestProblem("Condor Comsol Problem")
+        result = problem.eval_batch([[5, 5], [2, 2], [3, 3]])
+        print(result)
 
 if __name__ == '__main__':
     main()

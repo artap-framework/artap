@@ -1,36 +1,30 @@
 /*
- * elstat.java
+ * $file_name.java
  */
 
 import com.comsol.model.*;
 import com.comsol.model.util.*;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.BufferedReader;
-
+import java.util.Arrays;
+import java.io.*;
 
 /** Model exported on Jan 24 2018, 15:04 by COMSOL 5.3.0.316. */
-public class elstat {
+public class $file_name {
 
 	public static Model run() throws IOException{		
 		String[] pole = new String[2];
-		FileReader input = new FileReader("./tests/parameters.txt");
-		BufferedReader bufRead = new BufferedReader(input);
-		String myLine = null;
-		int j = 0;		
-		myLine = bufRead.readLine(); // read values separated by gaps
-		String[] array2 = myLine.split(" ");			
-		input.close();		
+		// FileReader input = new FileReader("parameters.txt");
+		// BufferedReader bufRead = new BufferedReader(input);
+		// String myLine = null;
+		// int j = 0;
+		// myLine = bufRead.readLine(); // read values separated by gaps
+		// String[] array2 = myLine.split(" ");
+		// input.close();
 		Model model = ModelUtil.create("Model");
-		model.modelPath("./tests");
-
+		model.modelPath("./");
 		model.label("elstat.mph");
-
 		model.comments("Untitled\n\n");
 
-		model.param().set("a", array2[0]);
-		model.param().set("b", array2[1]);
-
+//---------------------
 
 		model.component().create("comp1", true);
 
@@ -149,13 +143,18 @@ public class elstat {
 		model.result("pg1").label("Electric Potential (es)");
 		model.result("pg1").set("frametype", "spatial");
 		model.result("pg1").feature("surf1").set("resolution", "normal");
-		model.result().export("tbl1").set("filename", "./tests/max.txt");
-		model.result().export("tbl1").run();	
+
+		// model.result().export("tbl1").set("filename", "/tmp/max.txt");
+		// model.result().export("tbl1").run();
 		return model;
 	}
 
 	public static void main(String[] args) throws IOException{
-		run();
+		Model model = run();
+        double[][] result;
+        result = model.result().numerical("max1").getReal();
+        System.out.format("=======================================================\n");
+        System.out.println(result[0][0]);
+        System.out.format("=======================================================\n");
 	}
-
 }
