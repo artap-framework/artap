@@ -196,7 +196,7 @@ class RemoteExecutor(Executor):
         output_file.close()
 
         self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')
-        self.run_command_on_remote("python3 remote_eval.py")
+        self.run_command_on_remote("python3 remote.py")
 
         self.transfer_files_from_remote('output.txt', output_file.name)
         with open(output_file.name) as file:
