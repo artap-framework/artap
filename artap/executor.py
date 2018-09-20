@@ -23,33 +23,42 @@ class Executor:
     def exec(self, x):
         pass
 
-
 class ComsolExecutor(Executor):
 
-    def __init__(self, inputs, outputs, input_filename, output_filename, model_name):
+    def __init__(self, inputs, outputs, parameters, model_name, output_filename):
         super().__init__(inputs, outputs)
-        self.input_filename = input_filename
+        self.parameters = parameters
         self.output_filename = output_filename
         self.model_name = model_name
 
-    def run_comsol(self):
+    def run_comsol(self, x):
         """ Funtion compile model_name.java file and run Comsol in a batch mode."""
         import os
-        file_name = self.model_name[:-5]
         comsol_path = Enviroment.comsol_path
-        compile_string = comsol_path + "comsol compile " + file_name + ".java"
-        run_string = comsol_path + "comsol batch -inputfile " + file_name + ".class"
+        run_string = comsol_path + "comsol batch -inputfile " + self.model_name + " -nosave -pname "
 
-        os.system(compile_string)  # it is necessary only when .java file is changed
+        # add parameters
+        for parameter in self.parameters:
+            run_string += parameter + ","
+        # remove last comma
+        if (len(self.parameters)) > 1:
+            run_string = run_string[:-1]
+
+        run_string += " -plist "
+
+        # add values
+        for val in x:
+            run_string += str(val) + ","
+        # remove last comma
+        if (len(x)) > 1:
+            run_string = run_string[:-1]
+
+        print(run_string)
         os.system(run_string)
 
     def eval(self, x):
-        # Generate the input file for the external code
-        with open(self.input_filename, 'w') as input_file:
-            input_file.write('%f %f' % (x[0], x[1]))  # TODO: generalize
-
         # Parse the output file from the external code and set the value of y
-        self.run_comsol()
+        self.run_comsol(x)
 
         y = 0
         with open(self.output_filename) as file:
@@ -57,9 +66,6 @@ class ComsolExecutor(Executor):
             lines = data.split("\n")
             y = float(lines[5])
         return y
-
-    # TODO: Add tool for automatic generating of .java files
-
 
 class RemoteExecutor(Executor):
     """

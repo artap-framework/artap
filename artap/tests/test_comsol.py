@@ -2,7 +2,6 @@ import unittest
 import os
 from artap import ComsolExecutor
 from artap import Problem
-from scipy.optimize import minimize
 
 class TestProblem(Problem):
 
@@ -11,16 +10,15 @@ class TestProblem(Problem):
         
          self.max_population_number = 1
          self.max_population_size = 1
-         self.parameters = {'x_1': {'initial_value':10},
-                            'x_2': {'initial_value':10}}
+         self.parameters = {'a': {'initial_value':10},
+                            'b': {'initial_value':10}}
          self.costs = ['F1']
         
          curr_dir = os.path.abspath(os.curdir)
-         input_file =curr_dir + "/workspace/comsol/parameters.txt"
-         output_file =curr_dir + "/workspace/comsol/max.txt"
-         model_file =  curr_dir + "/workspace/comsol/elstat.java"
+         output_file = curr_dir + "/workspace/comsol/max.txt"
+         model_file = curr_dir + "/workspace/comsol/elstat.mph"
         
-         self.executor = ComsolExecutor(2, 1, input_file, output_file, model_file)
+         self.executor = ComsolExecutor(2, 1, self.parameters, model_file, output_file)
          super().__init__(name, self.parameters, self.costs)
     
      def eval(self, x):
