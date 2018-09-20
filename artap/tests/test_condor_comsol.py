@@ -2,7 +2,7 @@ from unittest import TestCase, main
 import getpass
 import os
 
-from artap.executor import CondorJobExecutor
+from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem   
 from artap.enviroment import Enviroment
 
@@ -29,7 +29,7 @@ class TestProblem(Problem):
         
         host = Enviroment.condor_host_ip
 
-        self.executor = CondorJobExecutor(self.parameters, model_file, output_file,
+        self.executor = CondorComsolJobExecutor(self.parameters, model_file, output_file,
                                           username=user, hostname=host, working_dir="./workspace/condor_comsol")
     
     def eval(self, x):

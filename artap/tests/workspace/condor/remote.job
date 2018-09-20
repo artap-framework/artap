@@ -1,7 +1,7 @@
 universe = vanilla
 initialdir = ./
 executable = /usr/bin/python
-arguments = remote_eval.py  
+arguments = remote.py
 requirements = (OpSys == "LINUX" && Arch == "X86_64")
 
 input = remote.py

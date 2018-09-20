@@ -208,7 +208,7 @@ class RemoteExecutor(Executor):
         return y
 
 
-class CondorJobExecutor(RemoteExecutor):
+class CondorComsolJobExecutor(RemoteExecutor):
     """ Allwes submit goal function calculation as a HT Condor job """
 
     def __init__(self, parameters, model_name, output_filename, hostname=None,
@@ -351,6 +351,47 @@ class CondorJobExecutor(RemoteExecutor):
         return result
 
 
-if __name__ == "__main__":
-    function = CondorJobExecutor()
-    print(function.eval([1, 1]))
+class CondorPythonJobExecutor(RemoteExecutor):
+    """ Allwes submit goal function calculation as a HT Condor job """
+
+    def __init__(self, parameters, model_name, output_filename, hostname=None,
+                 username=None, password=None, port=22, working_dir=None, suplementary_files=None):
+
+        self.parameters = parameters
+        self.output_filename = output_filename
+        self.model_name = model_name
+
+
+        super().__init__(hostname, username, password, port, working_dir=working_dir,
+                         suplementary_files=suplementary_files)
+
+    def eval(self, x):
+
+        parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+        parameters_file.write(str(x[0]) + " " + str(x[1]))
+        parameters_file.close()
+
+        output_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+        output_file.close()
+
+        self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')
+
+        for file in self.suplementary_files:
+            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
+        output = self.run_command_on_remote("condor_submit ./remote.job")
+        print("output:", output)
+        id = re.search('cluster \d+', output).group().split(" ")[1]
+        output = "run"
+        start = time.time()
+        while (output != ""):  # If the job is complete it disappears from que
+            output = self.run_command_on_remote("condor_q -l " + str(id))
+            print(time.time() - start)
+            if (time.time() - start) > 140:  # Time out is 20 seconds
+                break
+
+        self.transfer_files_from_remote('./' + self.output_filename, self.working_dir + self.output_filename)
+        with open(self.working_dir +  self.output_filename) as file:
+            lines = file.readlines()
+            y = float(lines[0])
+
+        return y
