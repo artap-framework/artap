@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 import getpass
-
+import os
 
 from artap.executor import CondorJobExecutor
 from artap.problem import Problem   
@@ -17,7 +17,8 @@ class TestProblem(Problem):
                            'b': {'initial_value':10}}
         self.costs = ['F1']
 
-        suplementary_files = ["compile_and_run.sh"]
+        output_file = "max.txt"
+        model_file = "elstat.mph"
 
         # current username
         if Enviroment.condor_host_login == "":
@@ -28,8 +29,8 @@ class TestProblem(Problem):
         
         host = Enviroment.condor_host_ip
 
-        self.executor = CondorJobExecutor(username=user, hostname=host, working_dir="./workspace/condor_comsol",
-                                          suplementary_files = suplementary_files)
+        self.executor = CondorJobExecutor(self.parameters, model_file, output_file,
+                                          username=user, hostname=host, working_dir="./workspace/condor_comsol")
     
     def eval(self, x):
         result = self.executor.eval(x)
@@ -46,7 +47,7 @@ class TestCondor(TestCase):
     def test_condor_run(self):        
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
-        result = problem.eval_batch([[5, 5], [2, 2], [3, 3]])
+        result = problem.eval_batch([[5, 4], [2, 1], [3, 2]])
         print(result)
 
 if __name__ == '__main__':
