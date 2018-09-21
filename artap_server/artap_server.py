@@ -1,46 +1,43 @@
-import os, os.path
-import random
-import string
 import cherrypy
-from artap.datastore import SqliteDataStore
+
+from artap.enviroment import Enviroment
+from templates import WebPagesWriter
 
 class ArtapServer(object):
+
+    def __init__(self):
+        self.static_dir = Enviroment.artap_root + "../artap_server/static/"
+        self.writer = WebPagesWriter()
+
     @cherrypy.expose
     def index(self):
-        file = open('artap_server/static/index.html','r')
+        file = open(self.static_dir + 'index.html', 'r')
         page = file.readlines()
 
         return page
 
     @cherrypy.expose
     def problems(self):
-        file = open('artap_server/static/problem.html','r')
-        #page = string.Template(file.readlines())
-        #html_page = page.substitute(content = "Neco")
-        html_page = file.readlines()
+        html_page = self.writer.problems()
         return html_page
 
     @cherrypy.expose
-    def generate(self, length=8):
-        some_string = ''.join(random.sample(string.hexdigits, int(length)))
-        cherrypy.session['mystring'] = some_string
-        return some_string
-
-    @cherrypy.expose
-    def display(self):
-        return cherrypy.session['mystring']
+    def problem(self, id=None):
+        html_page = self.writer.problem_details(id)
+        return html_page
 
 
 if __name__ == '__main__':
-    print(os.getcwd())
+
+    static_dir = Enviroment.artap_root + "../artap_server/"
     conf = {
         '/': {
             'tools.sessions.on': True,
-            'tools.staticdir.root': os.path.abspath(os.getcwd())
+            'tools.staticdir.root': static_dir
         },
         '/static': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'artap_server/static'
+            'tools.staticdir.dir': static_dir + 'static/'
         }
     }
     cherrypy.config.update({'server.socket_host': '127.0.0.1',

@@ -77,7 +77,9 @@ class SqliteDataStore(DataStore):
             self.problem_name = data_problem[0][0]
             self.num_parameters = data_problem[0][3]
             self.num_costs = data_problem[0][4]
-            self.database_name = data_problem[0][5]
+
+            #TODO: Make general - save path to database properly
+            self.database_name = (Enviroment.artap_root + "tests/" + data_problem[0][5])
 
             cursor_problem.close()
 
@@ -93,8 +95,8 @@ class SqliteDataStore(DataStore):
         pass
         # remove database
         # os.remove(self.database_name)
-        self.connection_problem.close()
-        self.connection.close()
+        # self.connection_problem.close()
+        # self.connection.close()
         super().__del__()
 
     def save_problem(self, problem):
@@ -217,6 +219,3 @@ class SqliteDataStore(DataStore):
 
         problem.populations.append(population)
         cursor.close()
-
-        def get_id(self):
-            return 0

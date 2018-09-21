@@ -82,3 +82,21 @@ class ProblemDataStore(Problem):
 
     def eval(self):
         assert 0
+
+    def to_table(self):
+        table = []
+        line = ["Population ID"]
+        for parameter in self.get_parameters_list():
+            line.append(parameter[0])
+        for cost in self.costs:
+            line.append(cost    )
+        table.append(line)
+        for population in self.populations:
+            for individual in population.individuals:
+                line = [population.number]
+                for parameter in individual.parameters:
+                    line.append(parameter)
+                for cost in individual.costs:
+                    line.append(cost)
+                table.append(line)
+        return table

@@ -1,5 +1,4 @@
 import unittest 
-from artap.enviroment import Enviroment
 from artap.problem import ProblemDataStore
 from artap.datastore import SqliteDataStore
 
