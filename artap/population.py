@@ -1,6 +1,5 @@
-from string import Template
-from abc import ABC, abstractmethod
 from .individual import Individual, Individual_NSGA_II
+
 
 class Population:
     
@@ -11,7 +10,6 @@ class Population:
         self.length = len(individuals)   
         self.problem = problem     
         self.number = Population.number
-        
         
         self.individuals = individuals
         for individual in self.individuals:
@@ -30,7 +28,7 @@ class Population:
 
     def save(self):
         for individual in self.individuals:            
-            individual.problem.datastore.write_individual(individual.to_list())
+            individual.problem.data_store.write_individual(individual.to_list())
 
     def print(self):
         print(self.toString())
@@ -41,7 +39,7 @@ class Population:
                        
     def evaluate(self):    
         for individual in self.individuals:
-            if individual.is_evaluated == False:
+            if not individual.is_evaluated:
                 individual.evaluate()    
 
     

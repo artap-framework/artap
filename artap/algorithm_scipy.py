@@ -5,10 +5,11 @@ from artap.algorithm import Algorithm
 from scipy.optimize import minimize
 import numpy as np
 
+
 class ScipyNelderMead(Algorithm):
     """ Class is prepared for usage of Nelder-Mead method from package SciPy."""
 
-    def __init__(self, problem: Problem, name = "Nelder-Mead"):
+    def __init__(self, problem: Problem, name="Nelder-Mead"):
         super().__init__(problem, name)
         
         self.method = "nelder-mead"
@@ -20,7 +21,7 @@ class ScipyNelderMead(Algorithm):
         population = Population(self)
         self.problem.populations.append(population)
         
-        initial_vector = self.problem.get_initial_values
+        initial_vector = self.problem.get_initial_values()
         # TODO: parameters (tol=1e-3)
         
         x0 = np.array(initial_vector)        

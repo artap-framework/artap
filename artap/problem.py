@@ -10,61 +10,20 @@ from .utils import flatten
 """
 
 
-class Problem(ABC):
-    """ Is a main class wich collects information about optimization task """    
-           
-    def __init__(self, name, parameters, costs, datastore=None, working_dir=None):
-        self.name = name
+class ProblemBase(ABC):
 
-        self.working_dir = working_dir
-        self.parameters = parameters
-        self.costs = {cost: 0 for cost in costs}
-
-        if datastore is None:
-            self.datastore = SqliteDataStore(self, working_dir=working_dir)
-            self.datastore.create_structure_individual(self.parameters, self.costs)
-            self.datastore.create_structure_parameters(self.get_parameters_list())
-            self.datastore.create_structure_costs(self.costs)
-
-        else:
-            self.datastore = datastore
-        
-        self.id = self.datastore.get_id()
-        self.populations = []
-        
-    def add_population(self, population):                
-        self.populations.append(population)
-        
-    def evaluate_individual(self, x, population = 0):
-        individ = Individual(x, self, population)        
-        individ.evaluate()
-        self.datastore.write_individual(individ.to_list())
-        self.populations[population].individuals.append(individ)
-        
-        if len(individ.costs) == 1:
-            return individ.costs[0]
-        else:
-            return individ.costs
-                       
-    def set_algorithm(self, algorithm):
-        self.algorithm = algorithm
-    
-    @property
-    def get_initial_values(self):
-        values = []
-        for parameter in self.parameters.items():
-            if 'initial_value' in parameter[1]:
-                values.append(parameter[1]['initial_value'])    
-            else:
-                values.append(0)
-        return values
-
-    @abstractmethod
-    def eval(self):
-        pass
+    def __init__(self):
+        self.name: str = None
+        self.populations: list = None
+        self.parameters: dict = None
+        self.costs: list = None
+        self.data_store: SqliteDataStore = None
+        self._algorithm = None
+        self.max_population_size = 1
+        self.max_population_count = 10
 
     def get_parameters_list(self):
-        parameters_list =[]
+        parameters_list = []
         names = list(self.parameters.keys())
         i = 0
         for sudb_dict in list(self.parameters.values()):
@@ -75,13 +34,72 @@ class Problem(ABC):
         return parameters_list
 
 
-class ProblemDataStore(Problem):
-    def __init__(self, datastore):
-        self.datastore = datastore
-        self.datastore.read_problem(self)
+class Problem(ProblemBase):
+    """ Is a main class which collects information about optimization task """
+           
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
 
-    def eval(self):
-        assert 0
+        super().__init__()
+        self.name = name
+        self.working_dir = working_dir
+        self.parameters = parameters
+        self.costs = {cost: 0 for cost in costs}
+
+        if data_store is None:
+            self.data_store = SqliteDataStore(self, working_dir=working_dir)
+            self.data_store.create_structure_individual(self.parameters, self.costs)
+            self.data_store.create_structure_parameters(self.get_parameters_list())
+            self.data_store.create_structure_costs(self.costs)
+
+        else:
+            self.data_store = data_store
+        
+        self.id = self.data_store.get_id()
+        self.populations = []
+        
+    def add_population(self, population):                
+        self.populations.append(population)
+        
+    def evaluate_individual(self, x, population=0):
+        individ = Individual(x, self, population)        
+        individ.evaluate()
+        self.data_store.write_individual(individ.to_list())
+        self.populations[population].individuals.append(individ)
+        
+        if len(individ.costs) == 1:
+            return individ.costs[0]
+        else:
+            return individ.costs
+
+    @property
+    def algorithm(self):
+        return self._algorithm
+
+    @algorithm.setter
+    def algorithm(self, algorithm):
+        self._algorithm = algorithm
+
+    def get_initial_values(self):
+        values = []
+        for parameter in self.parameters.items():
+            if 'initial_value' in parameter[1]:
+                values.append(parameter[1]['initial_value'])    
+            else:
+                values.append(0)
+        return values
+
+    @abstractmethod
+    def eval(self, x: list):
+        pass
+
+
+class ProblemDataStore(ProblemBase):
+
+    def __init__(self, data_store):
+
+        super().__init__()
+        self.data_store = data_store
+        self.data_store.read_problem(self)
 
     def to_table(self):
         table = []
@@ -89,7 +107,7 @@ class ProblemDataStore(Problem):
         for parameter in self.get_parameters_list():
             line.append(parameter[0])
         for cost in self.costs:
-            line.append(cost    )
+            line.append(cost)
         table.append(line)
         for population in self.populations:
             for individual in population.individuals:
