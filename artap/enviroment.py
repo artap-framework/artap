@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 
 path = os.path.abspath(__file__)

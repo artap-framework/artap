@@ -5,7 +5,7 @@
 #
 # class TestProblem(Problem):
 #
-#      """ Describe simple one obejctive optimization problem. """
+#      """ Describe simple one objective optimization problem. """
 #      def __init__(self, name):
 #
 #          self.max_population_number = 1

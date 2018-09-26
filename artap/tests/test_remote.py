@@ -1,22 +1,18 @@
 import unittest
-import os
-import sys
 import getpass
-
-from scipy.optimize import minimize
 
 from artap.executor import RemoteExecutor
 from artap.problem import Problem   
-from artap.algorithm_scipy import ScipyNelderMead
 from artap.enviroment import Enviroment
 
+
 class TestProblem(Problem):
-    """ Describe simple one obejctive optimization problem. """
+    """ Describe simple one objective optimization problem. """
     def __init__(self, name):        
         self.max_population_number = 1
         self.max_population_size = 1
-        self.parameters = {'x_1': {'initial_value':10}, 
-                           'x_2': {'initial_value':10}}
+        self.parameters = {'x_1': {'initial_value': 10},
+                           'x_2': {'initial_value': 10}}
         self.costs = ['F1']
         
         if Enviroment.ssh_login == "":
@@ -28,14 +24,14 @@ class TestProblem(Problem):
         self.executor = RemoteExecutor(username=user, hostname=host, working_dir="./workspace/remote",
                                        suplementary_files=["remote.py"])
         self.executor.script = Enviroment.tests_root + "/remote.py"            
-        
-        
+
         super().__init__(name, self.parameters, self.costs)
 
     def eval(self, x):
         result = self.executor.eval(x)        
         return result
         
+
 class TestRemoteOptimization(unittest.TestCase):
     """ Tests simple optimization problem where calculation of 
         goal function is performed on remote machine.
@@ -56,6 +52,7 @@ class TestRemoteOptimization(unittest.TestCase):
     #     optimum = problem.data[-1][-1] # Takes last individual
 
     #     self.assertAlmostEqual(optimum, 0)
+
 
 if __name__ == '__main__':
     unittest.main()

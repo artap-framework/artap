@@ -26,9 +26,9 @@ class ProblemBase(ABC):
         parameters_list = []
         names = list(self.parameters.keys())
         i = 0
-        for sudb_dict in list(self.parameters.values()):
+        for sub_dict in list(self.parameters.values()):
             parameter = [names[i]]
-            parameter.extend(flatten(sudb_dict.values()))
+            parameter.extend(flatten(sub_dict.values()))
             parameters_list.append(parameter)
             i += 1
         return parameters_list
@@ -61,15 +61,22 @@ class Problem(ProblemBase):
         self.populations.append(population)
         
     def evaluate_individual(self, x, population=0):
-        individ = Individual(x, self, population)        
-        individ.evaluate()
-        self.data_store.write_individual(individ.to_list())
-        self.populations[population].individuals.append(individ)
+        individual = Individual(x, self, population)
+        individual.evaluate()
+        self.data_store.write_individual(individual.to_list())
+        self.populations[population].individuals.append(individual)
         
-        if len(individ.costs) == 1:
-            return individ.costs[0]
+        if len(individual.costs) == 1:
+            return individual.costs[0]
         else:
-            return individ.costs
+            return individual.costs
+
+    def eval_batch(self, table):
+        n = len(table)
+        results = [0] * n
+        for i in range(n):
+            results[i] = self.eval(table[i])
+        return results
 
     @property
     def algorithm(self):

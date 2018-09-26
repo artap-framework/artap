@@ -6,8 +6,12 @@ class Population:
     size = 0
     number = 0
 
-    def __init__(self, problem, individuals = []):
-        self.length = len(individuals)   
+    def __init__(self, problem, individuals=None):
+
+        if individuals is None:
+            individuals = []
+
+        self.length = len(individuals)
         self.problem = problem     
         self.number = Population.number
         
@@ -31,22 +35,53 @@ class Population:
             individual.problem.data_store.write_individual(individual.to_list())
 
     def print(self):
-        print(self.toString())
+        print(self.to_string())
       
     def gen_random_population(self, population_size, vector_length, parameters):
         self.individuals = Individual.gen_individuals(population_size, self.problem, self.number)
         return self.individuals
                        
     def evaluate(self):    
-        for individual in self.individuals:
-            if not individual.is_evaluated:
-                individual.evaluate()    
+        self.batch_evaluate()
 
-    
+    def batch_evaluate(self):
+        table = []
+        n = len(self.individuals)
+        for i in range(n):
+            individual = self.individuals[i]
+            table.append(individual.parameters)
+
+        results = self.problem.eval_batch(table)
+
+        for i in range(n):
+            individual = self.individuals[i]
+            individual.costs = results[i]
+            individual.is_evaluated = True
+
+        return results
+
+    @staticmethod
+    def batch_evaluate_individuals(individuals, problem):
+        table = []
+        n = len(individuals)
+        for i in range(n):
+            individual = individuals[i]
+            table.append(individual.parameters)
+
+        results = problem.eval_batch(table)
+
+        for i in range(n):
+            individual = individuals[i]
+            individual.costs = results[i]
+            individual.is_evaluated = True
+
+
 class Population_NSGA_II(Population):
 
-    def __init__(self, problem, individuals = []):
-            return super().__init__(problem, individuals)
+    def __init__(self, problem, individuals=None):
+            if individuals is None:
+                individuals = []
+            super().__init__(problem, individuals)
 
     def gen_random_population(self, population_size, vector_length, parameters):
         self.individuals = Individual_NSGA_II.gen_individuals(population_size, self.problem, self.number)

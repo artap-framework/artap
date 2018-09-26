@@ -4,7 +4,7 @@ from artap.algorithm_scipy import ScipyNelderMead
 
 
 class MyProblem(Problem):
-    """ Describe simple one obejctive optimization problem. """
+    """ Describe simple one objective optimization problem. """
     def __init__(self, name):
         self.max_population_number = 1
         self.max_population_size = 1

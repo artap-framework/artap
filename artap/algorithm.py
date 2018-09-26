@@ -7,7 +7,7 @@ import random
 
 
 class Algorithm(metaclass=ABCMeta):
-    """ Base class for optimizaion algorithms. """
+    """ Base class for optimization algorithms. """
 
     def __init__(self, problem: Problem, name="Algorithm"):
         self.name = name
@@ -18,7 +18,7 @@ class Algorithm(metaclass=ABCMeta):
         pass
 
 
-class GeneralEvolutionalAlgorithm(Algorithm):
+class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
 
     def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
@@ -38,7 +38,7 @@ class GeneralEvolutionalAlgorithm(Algorithm):
         pass
 
 
-class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
+class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
     def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
         super().__init__(problem, name)
@@ -70,7 +70,7 @@ class GeneticAlgorithm(GeneralEvolutionalAlgorithm):
 
 class NSGA_II(GeneticAlgorithm):
 
-    def __init__(self, problem: Problem, name="NSGAII Evolutionary Algorithm"):
+    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
         self.prob_cross = 0.6
         self.prob_mutation = 0.05
@@ -108,7 +108,7 @@ class NSGA_II(GeneticAlgorithm):
     def fast_non_dominated_sort(self, population):
         pareto_front = []
         front_number = 1
-        # population = self.problem.populations[-1]
+
         for p in population:
             for q in population:
                 if p is q:
@@ -240,6 +240,7 @@ class NSGA_II(GeneticAlgorithm):
         pass
 
     def run(self):
+
         self.gen_initial_population()
         parent_individuals = self.problem.populations[0].individuals
         child_individuals = []
@@ -247,8 +248,8 @@ class NSGA_II(GeneticAlgorithm):
         for it in range(self.problem.max_population_count):
 
             individuals = parent_individuals + child_individuals
-            for individual in individuals:
-                individual.evaluate()
+
+            Population.batch_evaluate_individuals(individuals, self.problem)
 
             self.fast_non_dominated_sort(individuals)
             self.calculate_crowd_dis(individuals)
@@ -287,16 +288,16 @@ class Sensitivity(Algorithm):
             population = Population(self.problem)
 
             index = 0
-            selected_parametr = None
+            selected_parameter = None
             for parameter in self.problem.parameters.items():
                 if parameter[0] == parameter_name:
-                    selected_parametr = parameter
+                    selected_parameter = parameter
                     break
                 index += 1
 
             individuals = []
             for i in range(self.problem.max_population_size):
-                value = Individual.gen_number(selected_parametr[1]['bounds'], selected_parametr[1]['precision'],
+                value = Individual.gen_number(selected_parameter[1]['bounds'], selected_parameter[1]['precision'],
                                               'normal')
                 parameters[index] = value
                 parameter_values.append(value)
@@ -306,16 +307,8 @@ class Sensitivity(Algorithm):
             population.individuals = individuals
             population.evaluate()
             costs = []
-            # TODO: Make also for multiobjective
+            # TODO: Make also for multi-objective
             for individual in population.individuals:
-                costs.append(individual.costs[0])
-
-            # print(parameter_values)
-            # print(costs)
-
-            # print(mean(costs))
-            # print(std(costs))
-            # print(mean(parameter_values))
-            # print(std(parameter_values))
+                costs.append(individual.costs)
 
             self.problem.populations.append(population)
