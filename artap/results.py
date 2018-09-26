@@ -1,9 +1,10 @@
+import matplotlib
+matplotlib.use('Agg')
+import pylab as pl
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
-import pylab as pl
-import matplotlib
-matplotlib.use('Agg')
+
 
 
 class Results:
