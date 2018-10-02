@@ -7,7 +7,7 @@ from artap.enviroment import Enviroment
 
 
 class TestProblem(Problem):
-    """ Describe simple one obejctive optimization problem. """
+    """ Describe simple one objective optimization problem. """
 
     def __init__(self, name):
 
