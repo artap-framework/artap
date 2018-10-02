@@ -6,7 +6,6 @@ from matplotlib.figure import Figure
 from matplotlib import rc
 
 
-
 class Results:
 
     def __init__(self, problem):

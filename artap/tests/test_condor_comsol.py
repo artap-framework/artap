@@ -52,7 +52,7 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
-        result = problem.eval_batch([[5, 4], [2, 1], [3, 2]])
+        result = problem.eval_batch([[1, 4], [2, 1], [3, 2], [5, 5]])
         print(result)
 
 

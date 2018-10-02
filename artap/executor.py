@@ -86,7 +86,7 @@ class ComsolExecutor(Executor):
 
 class RemoteExecutor(Executor):
     """
-        Allows distributing of calculation of obejctive functions.
+        Allows distributing of calculation of objective functions.
         """
 
     def __init__(self, hostname=None,
@@ -97,7 +97,7 @@ class RemoteExecutor(Executor):
         self.username = username
         self.password = password
         self.working_dir = working_dir
-        self.suplementary_files = suplementary_files
+        self.supplementary_files = suplementary_files
 
         self.script = ""
 
@@ -203,7 +203,7 @@ class RemoteExecutor(Executor):
 
     def eval(self, x):
 
-        for file in self.suplementary_files:
+        for file in self.supplementary_files:
             self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
 
         parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
@@ -227,25 +227,27 @@ class RemoteExecutor(Executor):
 
 
 class CondorComsolJobExecutor(RemoteExecutor):
-    """ Allwes submit goal function calculation as a HT Condor job """
+    """ Allows submit goal function calculation as a HT Condor job """
 
     def __init__(self, parameters, model_name, output_filename, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, suplementary_files=None):
+                 username=None, password=None, port=22, working_dir=None, supplementary_files=None, time_out=None):
 
         self.parameters = parameters
         self.output_filename = output_filename
         self.model_name = model_name
+        self.time_out = time_out
 
-        if suplementary_files is None:
-            suplementary_files = []
-        suplementary_files.append(self.model_name)
+        if supplementary_files is None:
+            supplementary_files = []
+        supplementary_files.append(self.model_name)
 
         super().__init__(hostname, username, password, port, working_dir=working_dir,
-                         suplementary_files=suplementary_files)
+                         suplementary_files=supplementary_files)
 
     def eval_batch(self, table):
         # add parameters
         param_names_string = ""
+        n = len(self.parameters)
         for parameter in self.parameters:
             param_names_string += parameter + ","
         # remove last comma
@@ -280,7 +282,7 @@ class CondorComsolJobExecutor(RemoteExecutor):
 
             with open(self.working_dir + "/remote%d.job" % i, 'w') as job_remote_file:
                 job_remote_file.write(job_file)
-            self.suplementary_files.append("remote%d.job" % i)
+            self.supplementary_files.append("remote%d.job" % i)
 
             with open(self.working_dir + "/run.tp", 'r') as run_file:
                 run_file = Template(run_file.read())
@@ -289,9 +291,9 @@ class CondorComsolJobExecutor(RemoteExecutor):
             run_file = run_file.substitute(output_base_file=output_filename, output_file=output_file)
             with open(self.working_dir + "/run%d.sh" % i, 'w') as job_run_file:
                 job_run_file.write(run_file)
-            self.suplementary_files.append("run%d.sh" % i)
+            self.supplementary_files.append("run%d.sh" % i)
 
-            for file in self.suplementary_files:
+            for file in self.supplementary_files:
                 self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
             output = self.run_command_on_remote("condor_submit remote%d.job" % i)
             process_id = re.search('cluster \d+', output).group().split(" ")[1]
@@ -303,7 +305,7 @@ class CondorComsolJobExecutor(RemoteExecutor):
             for process_id in ids:
                 output += self.run_command_on_remote("condor_q -l " + str(process_id))
             print(time.time() - start)
-            if (time.time() - start) > 140:  # Time out is 20 seconds
+            if (time.time() - start) > n * self.time_out:
                 break
 
         result = []
@@ -344,7 +346,7 @@ class CondorComsolJobExecutor(RemoteExecutor):
         with open(self.working_dir + "/elstat.java", 'w') as output_file:
             output_file.write(output_java)
 
-        for file in self.suplementary_files:
+        for file in self.supplementary_files:
             self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
         output = self.run_command_on_remote("condor_submit ./remote.job")
         print("output:", output)
@@ -355,7 +357,7 @@ class CondorComsolJobExecutor(RemoteExecutor):
         while output != "":  # If the job is complete it disappears from que
             output = self.run_command_on_remote("condor_q -l " + str(process_id))
             print(time.time() - start)
-            if (time.time() - start) > 140:  # Time out is 20 seconds
+            if (time.time() - start) > 300:  # Time out is 20 seconds
                 break
 
         self.transfer_files_from_remote('./max.txt', self.working_dir + '/max.txt')
@@ -395,7 +397,7 @@ class CondorPythonJobExecutor(RemoteExecutor):
 
         self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')
 
-        for file in self.suplementary_files:
+        for file in self.supplementary_files:
             self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
         output = self.run_command_on_remote("condor_submit ./remote.job")
         print("output:", output)

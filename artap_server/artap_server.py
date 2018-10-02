@@ -1,7 +1,7 @@
 import cherrypy
 
 from artap.enviroment import Enviroment
-from templates import WebPagesWriter
+from .templates import WebPagesWriter
 
 class ArtapServer(object):
 

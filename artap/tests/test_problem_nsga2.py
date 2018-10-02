@@ -18,13 +18,6 @@ class MyProblem(Problem):
     def eval(self, x):
         return Binh_and_Korn.eval(x)
 
-    def eval_batch(self, table):
-        n = len(table)
-        results = [0] * n
-        for i in range(n):
-            results[i] = self.eval(table[i])
-        return results
-
 
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
