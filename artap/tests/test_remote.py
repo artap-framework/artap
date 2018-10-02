@@ -22,7 +22,7 @@ class TestProblem(Problem):
         
         host = Enviroment.available_ssh_servers[0]
         self.executor = RemoteExecutor(username=user, hostname=host, working_dir="./workspace/remote",
-                                       suplementary_files=["remote.py"])
+                                       supplementary_files=["remote.py"])
         self.executor.script = Enviroment.tests_root + "/remote.py"            
 
         super().__init__(name, self.parameters, self.costs)

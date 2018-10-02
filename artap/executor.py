@@ -1,4 +1,3 @@
-import time
 import re
 import paramiko
 import sys
@@ -14,7 +13,7 @@ from artap.enviroment import Enviroment
 
 class Executor:
     """
-    Function is a class representing objective or cost function for 
+    Function is a class representing objective or cost function for
     optimization problems.
     """
 
@@ -92,14 +91,14 @@ class RemoteExecutor(Executor):
         """
 
     def __init__(self, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, suplementary_files=None):
+                 username=None, password=None, port=22, working_dir=None, supplementary_files=None):
         super().__init__()
         self.hostname = hostname
         self.port = port
         self.username = username
         self.password = password
         self.working_dir = working_dir
-        self.supplementary_files = suplementary_files
+        self.supplementary_files = supplementary_files
 
         self.script = ""
 
@@ -236,7 +235,7 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def run_command_on_remote(self, command, suppress_stdout = True, suppress_stderr = False):
+    def run_command_on_remote(self, command, suppress_stdout=True, suppress_stderr=False):
         # Run ssh command
         output = ""
         try:
@@ -295,19 +294,23 @@ class RemoteCondorExecutor(RemoteExecutor):
         """
 
     def __init__(self, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, suplementary_files=None):
+                 username=None, password=None, port=22, working_dir=None, supplementary_files=None):
         super().__init__(hostname, username, password, port, working_dir=working_dir,
-                         suplementary_files=suplementary_files)
+                         supplementary_files=supplementary_files)
 
-    def parse_condor_log(self, content):
+    @staticmethod
+    def parse_condor_log(content):
         pre_hack = '<?xml version="1.0"?><!DOCTYPE classads SYSTEM "classads.dtd"><classads>'
         post_hack = "</classads>"
 
-        xmldoc = minidom.parseString(pre_hack + content + post_hack)
+        xml_doc = minidom.parseString(pre_hack + content + post_hack)
+        event_time = ""
+        state = ""
+        cluster = 0
 
-        classads = xmldoc.getElementsByTagName('c')
+        class_ads = xml_doc.getElementsByTagName('c')
         execute_host = ""  # only in "ExecuteEvent"
-        for c in classads:
+        for c in class_ads:
             ads = c.getElementsByTagName('a')
 
             state = ""
@@ -350,8 +353,9 @@ class RemoteCondorExecutor(RemoteExecutor):
 
         return [event_time, state, cluster, execute_host]
 
+
 class CondorComsolJobExecutor(RemoteCondorExecutor):
-    """ Allwes submit goal function calculation as a HT Condor job """
+    """ Allows submit goal function calculation as a HT Condor job """
 
     def __init__(self, parameters, model_name, output_filename, hostname=None,
                  username=None, password=None, port=22, working_dir=None, supplementary_files=None, time_out=None):
@@ -366,12 +370,11 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
         supplementary_files.append(self.model_name)
 
         super().__init__(hostname, username, password, port, working_dir=working_dir,
-                         suplementary_files=supplementary_files)
+                         supplementary_files=supplementary_files)
 
     def eval_batch(self, table):
         # add parameters
         param_names_string = ""
-        n = len(self.parameters)
         for parameter in self.parameters:
             param_names_string += parameter + ","
         # remove last comma
@@ -380,8 +383,6 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
         ids = []
         i = 0
-        start = 0
-        output = ""
         for x in table:
             # add values
             param_values_string = ""
@@ -432,7 +433,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
         while any((e != "Completed" and e != "Held") for e in event.values()):
             for process_id in ids:
                 content = self.read_file_from_remote("%s.condor_log" % process_id)
-                state = self.parse_condor_log(content)
+                state = RemoteCondorExecutor.parse_condor_log(content)
 
                 if state[1] != event[process_id]:
                     print(state)
@@ -454,9 +455,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
         return result
 
-
     def eval(self, x):
-
         return self.eval_batch([x])
 
 
@@ -464,14 +463,14 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
     """ Allows submit goal function calculation as a HT Condor job """
 
     def __init__(self, parameters, model_name, output_filename, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, suplementary_files=None):
+                 username=None, password=None, port=22, working_dir=None, supplementary_files=None):
 
         self.parameters = parameters
         self.output_filename = output_filename
         self.model_name = model_name
 
         super().__init__(hostname, username, password, port, working_dir=working_dir,
-                         suplementary_files=suplementary_files)
+                         supplementary_files=supplementary_files)
 
     def eval(self, x):
 
@@ -479,7 +478,7 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
         parameters_file.write(str(x[0]) + " " + str(x[1]))
         parameters_file.close()
 
-        for file in self.suplementary_files:
+        for file in self.supplementary_files:
             self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
         output = self.run_command_on_remote("condor_submit ./remote.job")
         print("output:", output)
@@ -488,7 +487,7 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
         event = ""
         while event != "Completed":  # If the job is complete it disappears from que
             content = self.read_file_from_remote("%s.condor_log" % process_id)
-            state = self.parse_condor_log(content)
+            state = RemoteCondorExecutor.parse_condor_log(content)
 
             if state[1] != event:
                 print(state)
