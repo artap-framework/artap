@@ -373,6 +373,7 @@ class CondorComsolJobExecutor(RemoteExecutor):
                 log_file = self.working_dir + "/%s.condor_log" % process_id
                 self.transfer_files_from_remote("%s.condor_log" % process_id, log_file)
                 state = self.parse_condor_log(log_file)
+                os.unlink(log_file)
                 print(state)
 
             if (time.time() - start) > 140:  # Time out is 20 seconds
