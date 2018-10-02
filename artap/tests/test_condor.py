@@ -34,7 +34,7 @@ class TestProblem(Problem):
 
         self.executor = CondorPythonJobExecutor(self.parameters, model_file, output_file,
                                                 username=user, hostname=host, working_dir="./workspace/condor",
-                                                suplementary_files=supplementary_files)
+                                                supplementary_files=supplementary_files)
 
     def eval(self, x):
         result = self.executor.eval(x)
