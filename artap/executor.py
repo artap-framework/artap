@@ -373,6 +373,9 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                          supplementary_files=supplementary_files)
 
     def eval_batch(self, table):
+
+        self.transfer_files_to_remote(self.working_dir + '/' + self.model_name, './' + self.model_name)
+
         # add parameters
         param_names_string = ""
         for parameter in self.parameters:
@@ -416,9 +419,6 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
             job_run_file = self.create_file_on_remote("run%d.sh" % i)
             job_run_file.write(run_file)
-
-            for file in self.supplementary_files:
-                self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
 
             # run
             output = self.run_command_on_remote("condor_submit remote%d.job" % i)
