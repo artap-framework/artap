@@ -5,7 +5,9 @@ import sys
 import tempfile
 import traceback
 import os
+import datetime
 from string import Template
+from xml.dom import minidom
 
 from artap.enviroment import Enviroment
 
@@ -127,10 +129,16 @@ class RemoteExecutor(Executor):
 
     def create_remote_dir(self, directory="htcondor"):
         try:
-            self.client.exec_command("mkdir " + directory)
-            self.client.exec_command("mkdir " + directory + "/" + "artap")
+            d = datetime.datetime.now()
+            ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
 
-            return directory + "/" + "artap"
+            # projects directory
+            self.client.exec_command("mkdir " + directory)
+            # working directory
+            wd = directory + "/" + "artap-" + ts
+            self.client.exec_command("mkdir " + wd)
+
+            return wd
 
         except Exception as e:
             print('*** Caught exception: %s: %s' % (e.__class__, e))
@@ -175,7 +183,7 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def run_command_on_remote(self, command):
+    def run_command_on_remote(self, command, suppress_stdout = True, suppress_stderr = False):
         # Run ssh command
         output = ""
         try:
@@ -185,10 +193,12 @@ class RemoteExecutor(Executor):
                 stdin, stdout, stderr = self.client.exec_command("cd " + self.remote_dir + "; " + command)
 
             for line in stdout:
-                print(line.strip('\n'))
+                if not suppress_stdout:
+                    print(line.strip('\n'))
                 output += line.strip('\n')
             for line in stderr:
-                print(line.strip('\n'))
+                if not suppress_stderr:
+                    print(line.strip('\n'))
 
         except Exception as e:
             print('*** Caught exception: %s: %s' % (e.__class__, e))
@@ -242,6 +252,62 @@ class CondorComsolJobExecutor(RemoteExecutor):
 
         super().__init__(hostname, username, password, port, working_dir=working_dir,
                          suplementary_files=suplementary_files)
+
+    def parse_condor_log(self, filename):
+        pre_hack = '<?xml version="1.0"?><!DOCTYPE classads SYSTEM "classads.dtd"><classads>'
+        post_hack = "</classads>"
+
+        with open(filename) as file:
+            str = file.read()
+
+            str = pre_hack + str + post_hack
+
+            xmldoc = minidom.parseString(str)
+
+            classads = xmldoc.getElementsByTagName('c')
+            execute_host = ""  # only in "ExecuteEvent"
+            for c in classads:
+                ads = c.getElementsByTagName('a')
+
+                state = ""
+                event_time = ""
+                cluster = 0
+                for a in ads:
+                    n = a.attributes['n'].value
+
+                    if n == "MyType":
+                        s = a.getElementsByTagName('s')[0].firstChild.nodeValue
+
+                        if s == "JobTerminatedEvent":
+                            state = "Completed"
+                        elif s == "SubmitEvent":
+                            state = "Submitted"
+                        elif s == "ExecuteEvent":
+                            state = "Executed"
+                        elif s == "JobImageSizeEvent":
+                            state = "Running"
+                        elif s == "JobDisconnectedEvent":
+                            state = "Disconnected"
+                        elif s == "JobAbortedEvent":
+                            state = "JobAbortedEvent"
+                        elif s == "JobHeldEvent":
+                            state = "Held"
+
+                    if n == "EventTime":
+                        s = a.getElementsByTagName('s')[0].firstChild.nodeValue
+                        event_time = s.replace("T", " ")
+
+                    if n == "ExecuteHost":
+                        s = a.getElementsByTagName('s')[0].firstChild.nodeValue
+                        execute_host = s.split(":")[0][1:]
+
+                    if n == "Cluster":
+                        s = a.getElementsByTagName('i')[0].firstChild.nodeValue
+                        cluster = int(s)
+
+                # print(event_time + ": " + state + "\t" + execute_host)
+
+        return [event_time, state, cluster, execute_host]
 
     def eval_batch(self, table):
         # add parameters
@@ -302,7 +368,13 @@ class CondorComsolJobExecutor(RemoteExecutor):
             output = ""
             for process_id in ids:
                 output += self.run_command_on_remote("condor_q -l " + str(process_id))
-            print(time.time() - start)
+                # print(process_id + ": " + "%f" % (time.time() - start))
+
+                log_file = self.working_dir + "/%s.condor_log" % process_id
+                self.transfer_files_from_remote("%s.condor_log" % process_id, log_file)
+                state = self.parse_condor_log(log_file)
+                print(state)
+
             if (time.time() - start) > 140:  # Time out is 20 seconds
                 break
 
@@ -317,58 +389,10 @@ class CondorComsolJobExecutor(RemoteExecutor):
 
         return result
 
+
     def eval(self, x):
 
-        # with open(self.working_dir + "/parameters.txt", 'w') as input_file:
-        # input_file.write(str(x[0]) + " " + str(x[1]))
-
-        # self.suplementary_files.append("parameters.txt")
-
-        with open(self.working_dir + "/remote.tp", 'r') as job_file:
-            job_file = Template(job_file.read())
-
-        job_file = job_file.substitute(input_file='elstat.java')
-
-        with open(self.working_dir + "/remote.job", 'w') as job_output_file:
-            job_output_file.write(job_file)
-
-        with open(self.working_dir + "/elstat.tp", 'r') as input_file:
-            begin_params = "//---------------------\n"
-            java_str = input_file.read()
-        index = java_str.find(begin_params) + len(begin_params)
-        output_java = java_str[:index]
-        output_java += 'model.param().set("a", %f);\n' % x[0]
-        output_java += 'model.param().set("b", %f);\n' % x[1]
-        output_java += java_str[index:]
-
-        with open(self.working_dir + "/elstat.java", 'w') as output_file:
-            output_file.write(output_java)
-
-        for file in self.suplementary_files:
-            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
-        output = self.run_command_on_remote("condor_submit ./remote.job")
-        print("output:", output)
-        process_id = re.search('cluster \d+', output).group().split(" ")[1]
-        output = "run"
-        start = time.time()
-
-        while output != "":  # If the job is complete it disappears from que
-            output = self.run_command_on_remote("condor_q -l " + str(process_id))
-            print(time.time() - start)
-            if (time.time() - start) > 140:  # Time out is 20 seconds
-                break
-
-        self.transfer_files_from_remote('./max.txt', self.working_dir + '/max.txt')
-        with open(self.working_dir + "/max.txt") as file:
-            y = file.readlines()
-        i = 0
-        for line in y:
-            if line == '=======================================================\n':
-                i = i + 1
-                break
-            i = i + 1
-        result = float(y[i])
-        return result
+        result = self.eval_batch([x])
 
 
 class CondorPythonJobExecutor(RemoteExecutor):
