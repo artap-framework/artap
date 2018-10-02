@@ -1,4 +1,3 @@
-from unittest import TestCase, main
 import getpass
 
 from artap.executor import CondorComsolJobExecutor
@@ -21,7 +20,7 @@ class ParameterEstimationProblem(Problem):
         self.max_population_size = 1
 
         self.time_out = 4 * 60  # time out 4 minutes per one set of parameters
-        super().__init__(name, self.parameters, self.costs)
+        super().__init__(name, self.parameters, self.costs, working_dir="./")
 
         output_file = "max.txt"
         model_file = "brazing.mph"
@@ -50,5 +49,8 @@ class ParameterEstimationProblem(Problem):
 
 if __name__ == '__main__':
     problem = ParameterEstimationProblem("Condor Comsol Problem")
-    result = problem.eval_batch([[900, 160, 3.774e7, 2700]])
+    result = problem.eval_batch([[900, 160, 3.774e7, 2700],
+                                 [900, 160, 3.774e7, 2700],
+                                 [900, 160, 3.774e7, 2700],
+                                 [900, 160, 3.774e7, 2700]])
     print(result)

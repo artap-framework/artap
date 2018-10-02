@@ -12,7 +12,7 @@ class MyProblem(Problem):
                            'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         self.costs = ['F_1']
 
-        working_dir = "./workspace"
+        working_dir = "./workspace/common_data"
 
         super().__init__(name, self.parameters, self.costs, working_dir=working_dir)
 
