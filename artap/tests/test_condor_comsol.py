@@ -39,10 +39,6 @@ class TestProblem(Problem):
         result = self.executor.eval(x)
         return result
 
-    def eval_batch(self, table):
-        result = self.executor.eval_batch(table)
-        return result
-
 
 class TestCondor(TestCase):
     """ Tests simple optimization problem where calculation of 
@@ -52,8 +48,7 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
-        result = problem.eval_batch([[5, 4], [2, 1], [1, 2]])
-        #result = problem.eval_batch([[5, 4]])
+        result = problem.eval([5, 4])
         print(result)
 
 
