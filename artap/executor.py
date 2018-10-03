@@ -7,7 +7,7 @@ import os
 import datetime
 from string import Template
 from xml.dom import minidom
-
+from multiprocessing import Process
 from artap.enviroment import Enviroment
 
 
@@ -127,7 +127,9 @@ class RemoteExecutor(Executor):
         # close connection
         self.client.close()
 
-    def create_remote_dir(self, directory="htcondor"):
+    def create_remote_dir(self, directory="htcondor", client=None):
+        if client is not None:
+            self.client = client
         try:
             d = datetime.datetime.now()
             ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
@@ -149,7 +151,9 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def transfer_files_to_remote(self, source_file, destination_file):
+    def transfer_files_to_remote(self, source_file, destination_file, client=None):
+        if client is not None:
+            self.client = client
         source = source_file
         dest = self.remote_dir + "/" + destination_file
 
@@ -166,7 +170,9 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def transfer_files_from_remote(self, source_file, destination_file):
+    def transfer_files_from_remote(self, source_file, destination_file, client=None):
+        if client is not None:
+            self.client = client
         dest = destination_file
         source = self.remote_dir + "/" + source_file
 
@@ -183,7 +189,9 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def read_file_from_remote(self, source_file):
+    def read_file_from_remote(self, source_file, client=None):
+        if client is not None:
+            self.client = client
         source = self.remote_dir + "/" + source_file
 
         try:
@@ -200,7 +208,9 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def create_file_on_remote(self, source_file):
+    def create_file_on_remote(self, source_file, client=None):
+        if client is not None:
+            self.client = client
         source = self.remote_dir + "/" + source_file
 
         try:
@@ -216,7 +226,10 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def remove_remote_dir(self):
+    def remove_remote_dir(self, client=None):
+        if client is not None:
+            self.client = client
+
         try:
             sftp = paramiko.SFTPClient.from_transport(self.client.get_transport())
 
@@ -236,7 +249,9 @@ class RemoteExecutor(Executor):
                 pass
             sys.exit(1)
 
-    def run_command_on_remote(self, command, suppress_stdout=True, suppress_stderr=False):
+    def run_command_on_remote(self, command, suppress_stdout=True, suppress_stderr=False, client=None):
+        if client is not None:
+            self.client = client
         # Run ssh command
         output = ""
         try:
@@ -361,17 +376,18 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
     def __init__(self, parameters, model_name, output_filename, hostname=None,
                  username=None, password=None, port=22, working_dir=None, supplementary_files=None, time_out=None):
 
+        super().__init__(hostname, username, password, port, working_dir=working_dir)
+
         self.parameters = parameters
         self.output_filename = output_filename
         self.model_name = model_name
         self.time_out = time_out
 
-        if supplementary_files is None:
-            supplementary_files = []
-        supplementary_files.append(self.model_name)
+        self.transfer_files_to_remote(self.working_dir + '/' + self.model_name, './' + self.model_name)
 
-        super().__init__(hostname, username, password, port, working_dir=working_dir,
-                         supplementary_files=supplementary_files)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # remove remote dir
+        self.remove_remote_dir()
 
     # TODO: Internal use
     # def eval_batch(self, table):
@@ -457,8 +473,15 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
     #
     #     return result
 
-    def eval(self, x):
-        self.transfer_files_to_remote(self.working_dir + '/' + self.model_name, './' + self.model_name)
+    def eval_try(self, x):
+        hostname = "edison.fel.zcu.cz"
+        username = "panek50"
+        password = ""
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=hostname, username=username, password=password)
+
         param_names_string = ""
         for parameter in self.parameters:
             param_names_string += parameter + ","  # remove last comma
@@ -486,8 +509,76 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                                        param_names=param_names_string,
                                        param_values=param_values_string)
 
-        job_remote_file = self.create_file_on_remote("remote%s.job" % ts)
-        job_remote_file.write(job_file)
+        with open("remote%s.job" % ts, "w") as file:
+            file.write(job_file)
+
+        self.transfer_files_to_remote("remote%s.job" % ts, './' + "remote%s.job" % ts, client)
+
+        with open(self.working_dir + "/run.tp", 'r') as run_file:
+            run_file = Template(run_file.read())
+
+        output_file = os.path.splitext(output_filename)[0] + ts + os.path.splitext(output_filename)[1]
+        run_file = run_file.substitute(output_base_file=output_filename, output_file=output_file)
+
+        job_run_file = self.create_file_on_remote("run%s.sh" % ts, client)
+        job_run_file.write(run_file)
+        job_run_file.close()
+
+        # run
+        output = self.run_command_on_remote("condor_submit remote%s.job" % ts, client)
+
+        process_id = re.search('cluster \d+', output).group().split(" ")[1]
+
+        event = ""
+
+        while event != "Completed":
+            content = self.read_file_from_remote("%s.condor_log" % process_id, client)
+            state = RemoteCondorExecutor.parse_condor_log(content)
+
+            if state[1] != event:
+                print(state)
+                event = state[1]
+
+        if state[1] == "Completed":
+            content = self.read_file_from_remote('./max%s.txt' % ts, client)
+            result = float(content.split("\n")[5])
+        else:
+            assert 0
+        return result
+
+    def eval(self, x):
+        self.remote_dir = self.create_remote_dir()
+
+        param_names_string = ""
+        for parameter in self.parameters:
+            param_names_string += parameter + ","  # remove last comma
+            if (len(self.parameters)) > 1:
+                param_names_string = param_names_string[:-1]
+
+        param_values_string = ""
+        for val in x:
+            param_values_string += str(val) + ","
+        # remove last comma
+        if (len(x)) > 1:
+            param_values_string = param_values_string[:-1]
+
+        with open(self.working_dir + "/remote.tp", 'r') as job_file:
+            job_file = Template(job_file.read())
+
+        output_filename = os.path.basename(self.output_filename)
+        d = datetime.datetime.now()
+        ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
+
+        job_file = job_file.substitute(model_name=os.path.basename(self.model_name),
+                                       output_file="{0}{1}{2}".format(os.path.splitext(output_filename)[0], ts,
+                                                                      os.path.splitext(output_filename)[1]),
+                                       log_file="comsol%s.log" % ts, run_file="run%s.sh" % ts,
+                                       param_names=param_names_string,
+                                       param_values=param_values_string)
+
+        with open("remote%s.job" % ts, "w") as file:
+            file.write(job_file)
+        self.transfer_files_to_remote(self.working_dir + '/' + "remote%s.job" % ts, './' + "remote%s.job" % ts)
 
         with open(self.working_dir + "/run.tp", 'r') as run_file:
             run_file = Template(run_file.read())
@@ -497,9 +588,11 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
         job_run_file = self.create_file_on_remote("run%s.sh" % ts)
         job_run_file.write(run_file)
+        job_run_file.close()
 
         # run
         output = self.run_command_on_remote("condor_submit remote%s.job" % ts)
+
         process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
         event = ""
@@ -517,11 +610,13 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
             result = float(content.split("\n")[5])
         else:
             assert 0
-
-        # remove remote dir
-        self.remove_remote_dir()
-
         return result
+
+    def eval_parallel(self, *x):
+        p = Process(target=self.eval_try, args=x)
+        p.start()
+
+
 
 
 class CondorPythonJobExecutor(RemoteCondorExecutor):
@@ -563,5 +658,5 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
 
         # remove remote dir
         self.remove_remote_dir()
-
         return y
+
