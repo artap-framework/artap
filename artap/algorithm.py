@@ -249,7 +249,7 @@ class NSGA_II(GeneticAlgorithm):
 
             individuals = parent_individuals + child_individuals
 
-            Population.batch_evaluate_individuals(individuals, self.problem)
+            Population.evaluate_individuals(individuals, self.problem)
 
             self.fast_non_dominated_sort(individuals)
             self.calculate_crowd_dis(individuals)

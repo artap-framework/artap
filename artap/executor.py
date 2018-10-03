@@ -24,21 +24,22 @@ class Executor:
         pass
 
 
-class LocalBatchExecutor(Executor):
-
-    def __init__(self, evaluate):
-        self.evaluate = evaluate
-        super().__init__()
-
-    def exec(self, x: list):
-        return self.evaluate(x)
-
-    def exec_batch(self, table: list):
-        n = len(table)
-        results = [0]*n
-        for i in range(len(table)):
-            results[i] = self.evaluate(table[i])
-        return results
+# TODO: For internal use
+# class LocalBatchExecutor(Executor):
+#
+#     def __init__(self, evaluate):
+#         self.evaluate = evaluate
+#         super().__init__()
+#
+#     def exec(self, x: list):
+#         return self.evaluate(x)
+#
+#     def exec_batch(self, table: list):
+#         n = len(table)
+#         results = [0]*n
+#         for i in range(len(table)):
+#             results[i] = self.evaluate(table[i])
+#         return results
 
 
 class ComsolExecutor(Executor):
@@ -372,91 +373,155 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
         super().__init__(hostname, username, password, port, working_dir=working_dir,
                          supplementary_files=supplementary_files)
 
-    def eval_batch(self, table):
+    # TODO: Internal use
+    # def eval_batch(self, table):
+    #
+    #     self.transfer_files_to_remote(self.working_dir + '/' + self.model_name, './' + self.model_name)
+    #
+    #     # add parameters
+    #     param_names_string = ""
+    #     for parameter in self.parameters:
+    #         param_names_string += parameter + ","
+    #     # remove last comma
+    #     if (len(self.parameters)) > 1:
+    #         param_names_string = param_names_string[:-1]
+    #
+    #     ids = []
+    #     i = 0
+    #     for x in table:
+    #         # add values
+    #         param_values_string = ""
+    #         for val in x:
+    #             param_values_string += str(val) + ","
+    #         # remove last comma
+    #         if (len(x)) > 1:
+    #             param_values_string = param_values_string[:-1]
+    #
+    #         i += 1
+    #         with open(self.working_dir + "/remote.tp", 'r') as job_file:
+    #             job_file = Template(job_file.read())
+    #
+    #         output_filename = os.path.basename(self.output_filename)
+    #
+    #         job_file = job_file.substitute(model_name=os.path.basename(self.model_name),
+    #                                        output_file="{0}{1}{2}".format(os.path.splitext(output_filename)[0], ts,
+    #                                                                       os.path.splitext(output_filename)[1]),
+    #                                        log_file="comsol%d.log" % i, run_file="run%d.sh" % i,
+    #                                        param_names=param_names_string,
+    #                                        param_values=param_values_string)
+    #
+    #         job_remote_file = self.create_file_on_remote("remote%d.job" % i)
+    #         job_remote_file.write(job_file)
+    #
+    #         with open(self.working_dir + "/run.tp", 'r') as run_file:
+    #             run_file = Template(run_file.read())
+    #
+    #         output_file = os.path.splitext(output_filename)[0] + str(i) + os.path.splitext(output_filename)[1]
+    #         run_file = run_file.substitute(output_base_file=output_filename, output_file=output_file)
+    #
+    #         job_run_file = self.create_file_on_remote("run%d.sh" % i)
+    #         job_run_file.write(run_file)
+    #
+    #         # run
+    #         output = self.run_command_on_remote("condor_submit remote%d.job" % i)
+    #         process_id = re.search('cluster \d+', output).group().split(" ")[1]
+    #         ids.append(process_id)
+    #
+    #     event = dict()
+    #
+    #     for process_id in ids:
+    #         event[process_id] = ""
+    #
+    #     while any((e != "Completed" and e != "Held") for e in event.values()):
+    #         for process_id in ids:
+    #             content = self.read_file_from_remote("%s.condor_log" % process_id)
+    #             state = RemoteCondorExecutor.parse_condor_log(content)
+    #
+    #             if state[1] != event[process_id]:
+    #                 print(state)
+    #             event[process_id] = state[1]
+    #
+    #     result = []
+    #     for j in range(len(table)):
+    #         index = j + 1
+    #         if event[ids[j]] == "Completed":
+    #             content = self.read_file_from_remote('./max%d.txt' % index)
+    #             y = float(content.split("\n")[5])
+    #             result.append(y)
+    #         else:
+    #             result.append(0)
+    #             assert 0
+    #
+    #     # remove remote dir
+    #     self.remove_remote_dir()
+    #
+    #     return result
 
+    def eval(self, x):
         self.transfer_files_to_remote(self.working_dir + '/' + self.model_name, './' + self.model_name)
-
-        # add parameters
         param_names_string = ""
         for parameter in self.parameters:
-            param_names_string += parameter + ","
+            param_names_string += parameter + ","  # remove last comma
+            if (len(self.parameters)) > 1:
+                param_names_string = param_names_string[:-1]
+
+        param_values_string = ""
+        for val in x:
+            param_values_string += str(val) + ","
         # remove last comma
-        if (len(self.parameters)) > 1:
-            param_names_string = param_names_string[:-1]
+        if (len(x)) > 1:
+            param_values_string = param_values_string[:-1]
 
-        ids = []
-        i = 0
-        for x in table:
-            # add values
-            param_values_string = ""
-            for val in x:
-                param_values_string += str(val) + ","
-            # remove last comma
-            if (len(x)) > 1:
-                param_values_string = param_values_string[:-1]
+        with open(self.working_dir + "/remote.tp", 'r') as job_file:
+            job_file = Template(job_file.read())
 
-            i += 1
-            with open(self.working_dir + "/remote.tp", 'r') as job_file:
-                job_file = Template(job_file.read())
+        output_filename = os.path.basename(self.output_filename)
+        d = datetime.datetime.now()
+        ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
 
-            output_filename = os.path.basename(self.output_filename)
+        job_file = job_file.substitute(model_name=os.path.basename(self.model_name),
+                                       output_file="{0}{1}{2}".format(os.path.splitext(output_filename)[0], ts,
+                                                                      os.path.splitext(output_filename)[1]),
+                                       log_file="comsol%s.log" % ts, run_file="run%s.sh" % ts,
+                                       param_names=param_names_string,
+                                       param_values=param_values_string)
 
-            job_file = job_file.substitute(model_name=os.path.basename(self.model_name),
-                                           output_file="{0}{1}{2}".format(os.path.splitext(output_filename)[0], str(i),
-                                                                          os.path.splitext(output_filename)[1]),
-                                           log_file="comsol%d.log" % i, run_file="run%d.sh" % i,
-                                           param_names=param_names_string,
-                                           param_values=param_values_string)
+        job_remote_file = self.create_file_on_remote("remote%s.job" % ts)
+        job_remote_file.write(job_file)
 
-            job_remote_file = self.create_file_on_remote("remote%d.job" % i)
-            job_remote_file.write(job_file)
+        with open(self.working_dir + "/run.tp", 'r') as run_file:
+            run_file = Template(run_file.read())
 
-            with open(self.working_dir + "/run.tp", 'r') as run_file:
-                run_file = Template(run_file.read())
+        output_file = os.path.splitext(output_filename)[0] + ts + os.path.splitext(output_filename)[1]
+        run_file = run_file.substitute(output_base_file=output_filename, output_file=output_file)
 
-            output_file = os.path.splitext(output_filename)[0] + str(i) + os.path.splitext(output_filename)[1]
-            run_file = run_file.substitute(output_base_file=output_filename, output_file=output_file)
+        job_run_file = self.create_file_on_remote("run%s.sh" % ts)
+        job_run_file.write(run_file)
 
-            job_run_file = self.create_file_on_remote("run%d.sh" % i)
-            job_run_file.write(run_file)
+        # run
+        output = self.run_command_on_remote("condor_submit remote%s.job" % ts)
+        process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
-            # run
-            output = self.run_command_on_remote("condor_submit remote%d.job" % i)
-            process_id = re.search('cluster \d+', output).group().split(" ")[1]
-            ids.append(process_id)
+        event = ""
 
-        event = dict()
+        while event != "Completed":
+            content = self.read_file_from_remote("%s.condor_log" % process_id)
+            state = RemoteCondorExecutor.parse_condor_log(content)
 
-        for process_id in ids:
-            event[process_id] = ""
+            if state[1] != event:
+                print(state)
+                event = state[1]
 
-        while any((e != "Completed" and e != "Held") for e in event.values()):
-            for process_id in ids:
-                content = self.read_file_from_remote("%s.condor_log" % process_id)
-                state = RemoteCondorExecutor.parse_condor_log(content)
-
-                if state[1] != event[process_id]:
-                    print(state)
-                event[process_id] = state[1]
-
-        result = []
-        for j in range(len(table)):
-            index = j + 1
-            if event[ids[j]] == "Completed":
-                content = self.read_file_from_remote('./max%d.txt' % index)
-                y = float(content.split("\n")[5])
-                result.append(y)
-            else:
-                result.append(0)
-                assert 0
+        if state[1] == "Completed":
+            content = self.read_file_from_remote('./max%s.txt' % ts)
+            result = float(content.split("\n")[5])
+        else:
+            assert 0
 
         # remove remote dir
         self.remove_remote_dir()
 
         return result
-
-    def eval(self, x):
-        return self.eval_batch([x])
 
 
 class CondorPythonJobExecutor(RemoteCondorExecutor):
