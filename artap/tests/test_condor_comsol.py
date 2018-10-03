@@ -48,10 +48,9 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
-
-        result = problem.eval([5, 4])
-        print(result)
-
+        problem.executor.eval_parallel([1, 1])
+        problem.executor.eval_parallel([1, 1])
+        problem.executor.eval_parallel([1, 1])
 
 if __name__ == '__main__':
     main()
