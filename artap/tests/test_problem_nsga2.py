@@ -13,7 +13,7 @@ class MyProblem(Problem):
         self.costs = ['F_1', 'F_2']
         super().__init__(name, self.parameters, self.costs)
         self.max_population_number = 3
-        self.max_population_size = 50
+        self.max_population_size = 10
 
     def eval(self, x):
         return Binh_and_Korn.eval(x)

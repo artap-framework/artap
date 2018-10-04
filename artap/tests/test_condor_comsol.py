@@ -4,6 +4,7 @@ import getpass
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
 from artap.enviroment import Enviroment
+from artap.population import Population_NSGA_II
 
 
 class TestProblem(Problem):
@@ -11,12 +12,12 @@ class TestProblem(Problem):
 
     def __init__(self, name):
 
-        self.parameters = {'a': {'initial_value': 10},
-                           'b': {'initial_value': 10}}
+        self.parameters = {'a': {'initial_value': 10, 'bounds': [1, 5], 'precision': 1e-1},
+                           'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
         self.costs = ['F1']
 
         self.max_population_number = 1
-        self.max_population_size = 1
+        self.max_population_size = 5
 
         super().__init__(name, self.parameters, self.costs)
 
@@ -48,9 +49,11 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
-        problem.executor.eval_parallel([1, 1])
-        problem.executor.eval_parallel([1, 1])
-        problem.executor.eval_parallel([1, 1])
+        population = Population_NSGA_II(problem)
+        population.gen_random_population(15, len(problem.parameters),
+                                         problem.parameters)
+        population.evaluate()
+
 
 if __name__ == '__main__':
     main()
