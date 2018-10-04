@@ -1,13 +1,14 @@
 from random import random
 from numpy.random import normal
 from abc import *
-
+from multiprocessing import Queue
 
 class Individual(metaclass=ABCMeta):
     """
        Collects information about one point in design space.
     """
     number = 0
+    results = Queue()
 
     def __init__(self, design_parameters, problem, population_id=0):
         self.parameters = design_parameters
@@ -47,6 +48,7 @@ class Individual(metaclass=ABCMeta):
             self.costs = costs
 
         self.is_evaluated = True
+        Individual.results.put([self.number, costs])
         return costs
 
     def set_id(self):
