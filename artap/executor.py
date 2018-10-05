@@ -116,15 +116,12 @@ class RemoteExecutor(Executor):
 
         return wd
 
-
     def transfer_files_to_remote(self, source_file, destination_file, client=None):
         source = source_file
         dest = self.remote_dir + "/" + destination_file
 
         sftp = paramiko.SFTPClient.from_transport(client.get_transport())
         sftp.put(source, dest)
-
-
 
     def transfer_files_from_remote(self, source_file, destination_file, client=None):
         dest = destination_file
@@ -175,8 +172,13 @@ class RemoteExecutor(Executor):
 
     def eval(self, x):
 
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=self.hostname, username=self.username, password=self.password)
+
         for file in self.supplementary_files:
-            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file)
+            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file, client=client)
 
         parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         parameters_file.write(str(x[0]) + " " + str(x[1]))
@@ -185,10 +187,10 @@ class RemoteExecutor(Executor):
         output_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         output_file.close()
 
-        self.transfer_files_to_remote(parameters_file.name, 'parameters.txt')
-        self.run_command_on_remote("python3 remote.py")
+        self.transfer_files_to_remote(parameters_file.name, 'parameters.txt', client=client)
+        self.run_command_on_remote("python3 remote.py", client=client)
 
-        self.transfer_files_from_remote('output.txt', output_file.name)
+        self.transfer_files_from_remote('output.txt', output_file.name, client=client)
         with open(output_file.name) as file:
             y = float(file.read())
 
@@ -402,21 +404,21 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
         parameters_file.close()
 
         for file in self.supplementary_files:
-            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file, client)
-        output = self.run_command_on_remote("condor_submit ./remote.job")
+            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file, client=client)
+        output = self.run_command_on_remote("condor_submit ./remote.job", client=client)
         print("output:", output)
         process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
         event = ""
         while event != "Completed":  # If the job is complete it disappears from que
-            content = self.read_file_from_remote("%s.condor_log" % process_id, client)
+            content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
             state = RemoteCondorExecutor.parse_condor_log(content)
 
             if state[1] != event:
                 print(state)
             event = state[1]
 
-        content = self.read_file_from_remote(self.output_filename, client)
+        content = self.read_file_from_remote(self.output_filename, client=client)
         y = float(content[0])
 
         # remove remote dir
