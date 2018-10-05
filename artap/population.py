@@ -50,30 +50,22 @@ class Population:
     def evaluate_individuals(individuals, problem):
         processes = []
         n = len(individuals)
-        sets = int(n / 10)
-        rest = int(n % 10)
 
-        for j in range(sets+1):
-            if j == sets:
-                end = rest
-            else:
-                end = 10
+        for individual in individuals:
+            individual.problem = problem
+            p = Process(target=individual.evaluate, args=[])
+            processes.append(p)
+            p.start()
 
-            for individual in individuals[j*10:j*10+end]:
-                individual.problem = problem
-                p = Process(target=individual.evaluate, args=[])
-                processes.append(p)
-                p.start()
+        for process in processes:
+            process.join()
 
-            for process in processes:
-                process.join()
-
-            for i in range(Individual.results.qsize()):
-                result = Individual.results.get()
-                for individual in individuals[j*10:j*10+end]:
-                    if individual.number == result[0]:
-                        individual.costs = result[1]
-                        individual.is_solved = True
+        for i in range(Individual.results.qsize()):
+            result = Individual.results.get()
+            for individual in individuals:
+                if individual.number == result[0]:
+                    individual.costs = result[1]
+                    individual.is_solved = True
 
 
 class Population_NSGA_II(Population):
