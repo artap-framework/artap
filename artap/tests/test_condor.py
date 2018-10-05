@@ -11,12 +11,16 @@ class TestProblem(Problem):
 
     def __init__(self, name):
 
-        self.parameters = {'x_1': {'initial_value': 5},
-                           'x_2': {'initial_value': 10}}
-        self.costs = ['F1']
-        super().__init__(name, self.parameters, self.costs)
+        parameters = {'x_1': {'initial_value': 5},
+                      'x_2': {'initial_value': 10}}
+        costs = ['F1']
+        working_dir = "./workspace/condor/"
+
+        super().__init__(name, parameters, costs, working_dir=working_dir)
+
         self.max_population_number = 1
         self.max_population_size = 1
+        self.save_data = False
 
         supplementary_files = ["remote.job", "remote.py"]
 
@@ -33,7 +37,7 @@ class TestProblem(Problem):
         host = Enviroment.condor_host_ip
 
         self.executor = CondorPythonJobExecutor(self.parameters, model_file, output_file,
-                                                username=user, hostname=host, working_dir="./workspace/condor",
+                                                username=user, hostname=host, working_dir=working_dir,
                                                 supplementary_files=supplementary_files)
 
     def eval(self, x):
