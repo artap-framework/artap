@@ -25,7 +25,7 @@ class GraphicalResults(Results):
             for individual in population.individuals:
                 pl.plot(individual.number, individual.parameters[0], 'x')
 
-        pl.savefig("all_individuals.pdf")
+        pl.savefig(self.problem.working_dir + "all_individuals.pdf")
 
     def plot_populations(self):
         for population in self.problem.populations:

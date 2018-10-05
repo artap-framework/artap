@@ -12,14 +12,13 @@ class TestProblem(Problem):
 
     def __init__(self, name):
 
-        self.parameters = {'a': {'initial_value': 10, 'bounds': [1, 5], 'precision': 1e-1},
-                           'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
-        self.costs = ['F1']
-
+        parameters = {'a': {'initial_value': 10, 'bounds': [1, 5], 'precision': 1e-1},
+                      'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
+        costs = ['F1']
+        working_dir = "./workspace/condor_comsol/"
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
         self.max_population_number = 1
         self.max_population_size = 5
-
-        super().__init__(name, self.parameters, self.costs)
 
         output_file = "max.txt"
         model_file = "elstat.mph"
@@ -33,8 +32,8 @@ class TestProblem(Problem):
 
         host = Enviroment.condor_host_ip
 
-        self.executor = CondorComsolJobExecutor(self.parameters, model_file, output_file,
-                                                username=user, hostname=host, working_dir="./workspace/condor_comsol")
+        self.executor = CondorComsolJobExecutor(parameters, model_file, output_file,
+                                                username=user, hostname=host, working_dir=working_dir)
 
     def eval(self, x):
         result = self.executor.eval(x)
