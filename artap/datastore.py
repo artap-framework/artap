@@ -71,8 +71,14 @@ class SqliteDataStore(DataStore):
     def save_problem(self, problem):
         pass
 
-    def create_structure(self, problem):
-        pass
+    def create_structure_problem(self, problem):
+        cursor = self.connection.cursor()
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (id INTEGER PRIMARY KEY, name TEXT, description TEXT)'
+        cursor.execute(exec_cmd)
+        exec_cmd = "INSERT INTO problem(name, description) values('%s', '%s');" % (problem.name, problem.description)
+        cursor.execute(exec_cmd)
+        self.connection.commit()
+        cursor.close()
 
     def create_structure_individual(self, parameters, costs):
         cursor = self.connection.cursor()
