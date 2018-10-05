@@ -1,0 +1,21 @@
+universe = vanilla
+initialdir = ./
+executable = $run_file
+arguments = -inputfile $model_name -nosave -pname $param_names -plist $param_values
+requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+input = $model_name
+output = $log_file
+log = $$(cluster).condor_log
+error = $$(cluster)_$$(process).condor_err
+
+request_cpus = 10
+request_memory = 10 GB
+log_xml = true
+should_transfer_files = yes
+when_to_transfer_output = ON_EXIT
+transfer_input_files = $run_file, $model_name
+transfer_output_files = $output_file
+# transfer_output_files = max.txt
+transfer_executable = true
+queue

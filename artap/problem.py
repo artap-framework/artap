@@ -16,6 +16,7 @@ class ProblemBase(ABC):
 
     def __init__(self):
         self.name: str = None
+        self.description = ""
         self.populations: list = None
         self.parameters: dict = None
         self.costs: list = None
@@ -51,7 +52,7 @@ class Problem(ProblemBase):
         if (working_dir is None) or (not save_data):
             self.working_dir = tempfile.mkdtemp()
         else:
-            self.working_dir = working_dir + self.name
+            self.working_dir = working_dir + "data"
 
         if not os.path.isdir(self.working_dir):
             os.mkdir(self.working_dir)
