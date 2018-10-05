@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-
+import os
+import tempfile
+import shutil
 from .datastore import SqliteDataStore
 from .individual import Individual
 from .utils import flatten
@@ -37,16 +39,25 @@ class ProblemBase(ABC):
 class Problem(ProblemBase):
     """ Is a main class which collects information about optimization task """
            
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, save_data=True):
 
         super().__init__()
         self.name = name
         self.working_dir = working_dir
         self.parameters = parameters
         self.costs = {cost: 0 for cost in costs}
+        self.save_data = save_data
+
+        if (working_dir is None) or (not save_data):
+            self.working_dir = tempfile.mkdtemp()
+        else:
+            self.working_dir = working_dir + self.name
+
+        if not os.path.isdir(self.working_dir):
+            os.mkdir(self.working_dir)
 
         if data_store is None:
-            self.data_store = SqliteDataStore(self, working_dir=working_dir)
+            self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
             self.data_store.create_structure_individual(self.parameters, self.costs)
             self.data_store.create_structure_parameters(self.get_parameters_list())
             self.data_store.create_structure_costs(self.costs)
@@ -57,7 +68,11 @@ class Problem(ProblemBase):
         self.id = self.data_store.get_id()
         self.populations = []
         
-    def add_population(self, population):                
+    def __del__(self):
+        if not self.save_data:
+            shutil.rmtree(self.working_dir)
+
+    def add_population(self, population):
         self.populations.append(population)
         
     def evaluate_individual(self, x, population=0):
@@ -102,11 +117,21 @@ class Problem(ProblemBase):
 
 class ProblemDataStore(ProblemBase):
 
-    def __init__(self, data_store):
+    def __init__(self, data_store, working_dir=None):
 
         super().__init__()
         self.data_store = data_store
         self.data_store.read_problem(self)
+        if working_dir is None:
+            self.working_dir = tempfile.mkdtemp()
+            self.save_data = False
+        else:
+            self.working_dir = working_dir + self.name
+            self.save_data = True
+
+    def __del__(self):
+        if not self.save_data:
+            shutil.rmtree(self.working_dir)
 
     def to_table(self):
         table = []

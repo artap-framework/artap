@@ -8,10 +8,10 @@ class MyProblem(Problem):
     def __init__(self, name):
         self.max_population_number = 1
         self.max_population_size = 1
-        self.parameters = {'x_1': {'initial_value': 10}}
-        self.costs = ['F_1']
 
-        super().__init__(name, self.parameters, self.costs)
+        parameters = {'x_1': {'initial_value': 10}}
+        costs = ['F_1']
+        super().__init__(name, parameters, costs)
 
     def eval(self, x):
         result = 0

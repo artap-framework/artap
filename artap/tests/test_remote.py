@@ -11,21 +11,23 @@ class TestProblem(Problem):
     def __init__(self, name):        
         self.max_population_number = 1
         self.max_population_size = 1
-        self.parameters = {'x_1': {'initial_value': 10},
-                           'x_2': {'initial_value': 10}}
-        self.costs = ['F1']
-        
+        parameters = {'x_1': {'initial_value': 10},
+                      'x_2': {'initial_value': 10}}
+        costs = ['F1']
+
+        # working_dir = "./workspace/common_data/"
+        # super().__init__(name, parameters, costs, working_dir=working_dir)
+
+        super().__init__(name, parameters, costs)
         if Enviroment.ssh_login == "":
-            user = getpass.getuser()        
+            user = getpass.getuser()
         else:
             user = Enviroment.ssh_login
-        
+
         host = Enviroment.available_ssh_servers[0]
         self.executor = RemoteExecutor(username=user, hostname=host, working_dir="./workspace/remote",
                                        supplementary_files=["remote.py"])
-        self.executor.script = Enviroment.tests_root + "/remote.py"            
-
-        super().__init__(name, self.parameters, self.costs)
+        self.executor.script = Enviroment.tests_root + "/remote.py"
 
     def eval(self, x):
         result = self.executor.eval(x)        

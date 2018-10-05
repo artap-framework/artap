@@ -8,12 +8,17 @@ from artap.algorithm import NSGA_II
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        self.parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
-                           'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
-        self.costs = ['F_1', 'F_2']
-        super().__init__(name, self.parameters, self.costs)
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
+                      'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
+        costs = ['F_1', 'F_2']
+
+        # working_dir = "./workspace/common_data/"
+        # super().__init__(name, parameters, costs, working_dir=working_dir)
+
+        super().__init__(name, parameters, costs)
         self.max_population_number = 3
         self.max_population_size = 10
+
 
     def eval(self, x):
         return Binh_and_Korn.eval(x)
