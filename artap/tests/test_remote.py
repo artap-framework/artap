@@ -15,9 +15,6 @@ class TestProblem(Problem):
                       'x_2': {'initial_value': 10}}
         costs = ['F1']
 
-        # working_dir = "./workspace/common_data/"
-        # super().__init__(name, parameters, costs, working_dir=working_dir)
-
         super().__init__(name, parameters, costs)
         if Enviroment.ssh_login == "":
             user = getpass.getuser()

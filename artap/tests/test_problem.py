@@ -11,7 +11,8 @@ class MyProblem(Problem):
 
         parameters = {'x_1': {'initial_value': 10}}
         costs = ['F_1']
-        super().__init__(name, parameters, costs)
+        working_dir = "./workspace/common_data/"
+        super().__init__(name, parameters, costs, working_dir=working_dir)
 
     def eval(self, x):
         result = 0

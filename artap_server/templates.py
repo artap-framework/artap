@@ -1,5 +1,6 @@
 import string
 import sqlite3
+import os
 
 from artap.enviroment import Enviroment
 from artap.datastore import SqliteDataStore
@@ -9,61 +10,25 @@ from artap.problem import ProblemDataStore
 class WebPagesWriter:
 
     def __init__(self):
-
-        self.problems_db = Enviroment.artap_root + "problems.db"
-        self.table = self.read_problems_db()
+        self.table = self.read_problems()
         self.static_dir = Enviroment.artap_root + "../artap_server/static/"
         self.connection_problem = None
 
-    def read_problem_db(self, database):
-        self.connection_problem = sqlite3.connect(database)
-        cursor = self.connection_problem.cursor()
-        table_info = cursor.execute("PRAGMA table_info(problem)").fetchall()
-        table = []
-        line = []
+    def read_problems(self):
+        table = [["Problem", "Description"]]
+        problems = os.listdir("../artap/projects/")
+        for problem in problems:
+            table.append([problem, ""])
 
-        for item in table_info:
-            line.append(item[1])
-        table.append(line)
-
-        table_content = cursor.execute("SELECT * FROM problem").fetchall()
-
-        for item in table_content:
-            table.append(list(item))
-
-        cursor.close()
-        self.connection_problem.close()
-        return table
-
-    def read_problems_db(self):
-        self.connection_problem = sqlite3.connect(self.problems_db)
-        cursor = self.connection_problem.cursor()
-        table_info = cursor.execute("PRAGMA table_info(problem)").fetchall()
-        table = []
-        line = []
-
-        for item in table_info:
-            line.append(item[1])
-        table.append(line)
-
-        table_content = cursor.execute("SELECT * FROM problem").fetchall()
-
-        for item in table_content:
-            table.append(list(item))
-
-        cursor.close()
-        self.connection_problem.close()
         return table
 
     def problems(self):
-        self.table_to_html(self.table, link_column=1)
-        file = open(self.static_dir + 'problem.html', 'r')
-        html_page = file.readlines()
+        html_page = self.table_to_html(self.table, link_column=0)
         return html_page
 
     def problem_details(self, id):
-        datastore = SqliteDataStore(new_database=False, problem_id=id)
-        problem = ProblemDataStore(datastore)
+        data_store = SqliteDataStore(new_database=False, problem_id=id)
+        problem = ProblemDataStore(data_store)
         html_page = self.table_to_html(problem.to_table())
 
         return html_page
@@ -103,8 +68,6 @@ class WebPagesWriter:
 
         return page_html
 
-
 if __name__ == "__main__":
     writer = WebPagesWriter()
-    table = writer.read_problems_db()
-    writer.table_to_html(table)
+    print(writer.table_to_html(writer.table))
