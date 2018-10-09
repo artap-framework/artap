@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 import os
 import tempfile
 import shutil
@@ -52,13 +53,17 @@ class Problem(ProblemBase):
         if (working_dir is None) or (not save_data):
             self.working_dir = tempfile.mkdtemp()
         else:
-            self.working_dir = working_dir + "data"
+            time_stamp = str(datetime.now())
+            self.working_dir += time_stamp
+            if not os.path.isdir(self.working_dir):
+                os.mkdir(self.working_dir)
 
         if not os.path.isdir(self.working_dir):
             os.mkdir(self.working_dir)
 
         if data_store is None:
             self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
+            self.data_store.create_structure_task(self)
             self.data_store.create_structure_individual(self.parameters, self.costs)
             self.data_store.create_structure_parameters(self.get_parameters_list())
             self.data_store.create_structure_costs(self.costs)
@@ -79,7 +84,7 @@ class Problem(ProblemBase):
     def evaluate_individual(self, x, population=0):
         individual = Individual(x, self, population)
         individual.evaluate()
-        self.data_store.write_individual(individual.to_list())
+        #self.data_store.write_individual(individual.to_list())
         self.populations[population].individuals.append(individual)
         
         if len(individual.costs) == 1:
@@ -123,6 +128,9 @@ class ProblemDataStore(ProblemBase):
         super().__init__()
         self.data_store = data_store
         self.data_store.read_problem(self)
+
+        self.save_data = True
+
         if working_dir is None:
             self.working_dir = tempfile.mkdtemp()
             self.save_data = False
@@ -131,8 +139,9 @@ class ProblemDataStore(ProblemBase):
             self.save_data = True
 
     def __del__(self):
-        if not self.save_data:
-            shutil.rmtree(self.working_dir)
+        pass
+        # if not self.save_data:
+        #    shutil.rmtree(self.working_dir)
 
     def to_table(self):
         table = []

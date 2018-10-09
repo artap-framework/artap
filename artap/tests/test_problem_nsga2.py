@@ -12,10 +12,9 @@ class MyProblem(Problem):
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         costs = ['F_1', 'F_2']
 
-        # working_dir = "./workspace/common_data/"
-        # super().__init__(name, parameters, costs, working_dir=working_dir)
+        working_dir = "./workspace/common_data/"
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
         self.max_population_number = 3
         self.max_population_size = 10
 
