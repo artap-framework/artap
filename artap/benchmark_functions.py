@@ -4,14 +4,16 @@
 class Rosenbrock:
 
     @classmethod
-    def eval(cls, x_list):
+    def eval(cls, X):
         # -30 <= xi <= 30
         # global minimal is at [1,1,..] where value = 0
-        x1 = 0.0
-        for i in range(0, len(x_list) - 1):
-            x1 = x1 + 100 * (x_list[i] * x_list[i] - x_list[i + 1]) * (x_list[i] * x_list[i] - x_list[i + 1]) + \
-                 (1 - x_list[i]) * (1 - x_list[i])
-        return [x1]
+
+        x = X[0]
+        y = X[1]
+        a = 1. - x
+        b = y - x * x
+
+        return [a * a + b * b * 100.0]
 
 
 class Binh_and_Korn:

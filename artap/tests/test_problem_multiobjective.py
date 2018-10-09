@@ -1,6 +1,6 @@
 import unittest
 from artap.problem import Problem
-from artap.algorithm import GeneticAlgorithm
+from artap.algorithm_genetic import GeneticAlgorithm
 
 
 class MyProblem(Problem):
