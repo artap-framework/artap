@@ -50,7 +50,7 @@ class SqliteDataStore(DataStore):
 
         time_stamp = str(datetime.now())
         if create_database:
-            self.database_name = self.working_dir + "/" + "data_" + time_stamp + ".sqlite"
+            self.database_name = self.working_dir + "/" + "data" + ".sqlite"
         else:
             if database_file is not None:
                     self.database_name = database_file
@@ -71,18 +71,25 @@ class SqliteDataStore(DataStore):
     def save_problem(self, problem):
         pass
 
-    def create_structure_problem(self, problem):
+    def create_structure_task(self, problem):
         cursor = self.connection.cursor()
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (id INTEGER PRIMARY KEY, name TEXT, description TEXT)'
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (INTEGER PRIMARY KEY, ' \
+                   'name TEXT, ' \
+                   'description TEXT,' \
+                   'algorithm TEXT,' \
+                   'calculation_time NUMBER,' \
+                   'state TEXT)'
+
         cursor.execute(exec_cmd)
-        exec_cmd = "INSERT INTO problem(name, description) values('%s', '%s');" % (problem.name, problem.description)
+        exec_cmd = "INSERT INTO problem(name, description, state) " \
+                   "values('%s', '%s', '%s');" % (problem.name, problem.description, "running")
         cursor.execute(exec_cmd)
         self.connection.commit()
         cursor.close()
 
     def create_structure_individual(self, parameters, costs):
         cursor = self.connection.cursor()
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS data (id INTEGER PRIMARY KEY, population_id INTEGER, '
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS data (id INTEGER, population_id INTEGER, '
 
         for parameter in parameters.keys():
             exec_cmd += parameter + " NUMBER, "
@@ -143,6 +150,10 @@ class SqliteDataStore(DataStore):
     def read_problem(self, problem):
         cursor = self.connection.cursor()
 
+        exec_cmd_problem = "SELECT * FROM problem"
+        problem_table = cursor.execute(exec_cmd_problem).fetchall()
+        problem.name = problem_table[0][1]
+
         # parameters
         exec_cmd_params = "SELECT * FROM parameters"
 
@@ -162,17 +173,25 @@ class SqliteDataStore(DataStore):
 
         exec_cmd_data = "SELECT * FROM data"
         problem.populations = []
-        population = Population(problem)
+
         current_population = 0
-        next_population = []
-        for row in cursor.execute(exec_cmd_data):
-            individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
-            individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
-            population.individuals.append(individual)
-            if row[1] != current_population:
-                problem.populations.append(next_population.copy())
-                next_population = []
-                current_population = row[1]
+
+        is_all = False
+
+        data = cursor.execute(exec_cmd_data)
+        while not is_all:
+            population = Population(problem)
+            is_all = True
+            for row in data:
+                if row[1] == current_population:
+                    individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
+                    individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
+                    population.individuals.append(individual)
+                    del row
+                else:
+                    is_all = False
+            problem.populations.append(population)
+            current_population +=1
 
         problem.populations.append(population)
         cursor.close()
