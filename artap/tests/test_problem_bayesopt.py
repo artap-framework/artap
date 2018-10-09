@@ -1,7 +1,6 @@
 import unittest
 
 from artap.problem import Problem
-from artap.benchmark_functions import Rosenbrock
 from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
 
 
@@ -16,8 +15,11 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
 
     def eval(self, x):
-        result = Rosenbrock.eval(x)
-        return result[0]
+        result = 0
+        for i in x:
+            result += i*i
+
+        return result
 
 
 class TestBayesOptOptimization(unittest.TestCase):
@@ -28,7 +30,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         problem = MyProblem("LocalPythonProblemBayesOptParallel")
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
-        algorithm.options['n_iterations'] = 30
+        algorithm.options['n_iterations'] = 50
         algorithm.run()
         # TODO: population.find_min
 
@@ -36,7 +38,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         problem = MyProblem("LocalPythonProblemBayesOptSerial")
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
-        algorithm.options['n_iterations'] = 30
+        algorithm.options['n_iterations'] = 50
         algorithm.run()
         # TODO: population.find_min
 
