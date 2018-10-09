@@ -76,6 +76,7 @@ class Problem(ProblemBase):
         
     def __del__(self):
         if not self.save_data:
+           if os.path.isdir(self.working_dir):
             shutil.rmtree(self.working_dir)
 
     def add_population(self, population):
@@ -84,7 +85,6 @@ class Problem(ProblemBase):
     def evaluate_individual(self, x, population=0):
         individual = Individual(x, self, population)
         individual.evaluate()
-        #self.data_store.write_individual(individual.to_list())
         self.populations[population].individuals.append(individual)
         
         if len(individual.costs) == 1:
