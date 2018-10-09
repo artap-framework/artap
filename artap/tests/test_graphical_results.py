@@ -7,7 +7,7 @@ from artap.results import GraphicalResults
 class TestDataStore(unittest.TestCase):
 
     def test_local_problem_data_store(self):
-        database_file = "./workspace/common_data/test_db.sqlite"
+        database_file = "./workspace/common_data/data.sqlite"
         # working_dir = "./workspace/common_data/"
         # data_store = SqliteDataStore(database_file=database_file, working_dir=working_dir)
         data_store = SqliteDataStore(database_file=database_file)

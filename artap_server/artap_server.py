@@ -23,6 +23,11 @@ class ArtapServer(object):
         return html_page
 
     @cherrypy.expose
+    def calculation(self, id=None):
+        html_page = self.writer.calculation_details(id)
+        return html_page
+
+    @cherrypy.expose
     def problem(self, id=None):
         html_page = self.writer.problem_details(id)
         return html_page
