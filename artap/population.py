@@ -32,9 +32,9 @@ class Population:
         
         return string
 
-    def save(self):
-        for individual in self.individuals:            
-            individual.problem.data_store.write_individual(individual.to_list())
+    # def save(self):
+    #     for individual in self.individuals:
+    #         individual.problem.data_store.write_individual(individual.to_list())
 
     def print(self):
         print(self.to_string())
@@ -52,10 +52,11 @@ class Population:
         n = len(individuals)
 
         for individual in individuals:
-            individual.problem = problem
-            p = Process(target=individual.evaluate, args=[])
-            processes.append(p)
-            p.start()
+            if not individual.is_evaluated:
+                individual.problem = problem
+                p = Process(target=individual.evaluate, args=[])
+                processes.append(p)
+                p.start()
 
         for process in processes:
             process.join()

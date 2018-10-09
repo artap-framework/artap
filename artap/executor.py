@@ -360,8 +360,9 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                         print(state)
                         event = state[1]
 
-                if state[1] == "Completed":
+                if event == "Completed":
                     content = self.read_file_from_remote('./max%s.txt' % ts, client=client)
+                    line = content.split("\n")[5]
                     result = float(content.split("\n")[5])
                 else:
                     assert 0
@@ -372,9 +373,6 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
             except:
                 print("Exception")
                 continue
-
-            finally:
-                result = 0
 
         return result
 

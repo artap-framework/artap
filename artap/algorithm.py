@@ -220,10 +220,10 @@ class Algorithm(metaclass=ABCMeta):
 
         self.options.declare(name='verbose_level', default=1, lower=0,
                              desc='Verbose level')
-
     @abstractmethod
     def run(self):
         pass
+
 
 class Sensitivity(Algorithm):
     def __init__(self, problem, parameters, name='Sensitivity analysis'):
