@@ -53,6 +53,5 @@ class TestCondor(TestCase):
                                          problem.parameters)
         population.evaluate()
 
-
 if __name__ == '__main__':
     main()

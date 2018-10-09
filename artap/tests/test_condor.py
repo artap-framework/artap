@@ -16,7 +16,7 @@ class TestProblem(Problem):
         costs = ['F1']
         working_dir = "./workspace/condor/"
 
-        super().__init__(name, parameters, costs, working_dir=working_dir)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
 
         self.max_population_number = 1
         self.max_population_size = 1
