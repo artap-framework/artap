@@ -1,0 +1,44 @@
+import unittest
+
+from artap.problem import Problem
+from artap.benchmark_functions import Rosenbrock
+from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
+
+
+class MyProblem(Problem):
+    """ Describe simple one objective optimization problem. """
+    def __init__(self, name):
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-30, 30], 'precision': 1e-1},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-30, 30], 'precision': 1e-1}}
+        costs = ['F']
+
+        working_dir = "./workspace/common_data/"
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
+
+    def eval(self, x):
+        result = Rosenbrock.eval(x)
+        return result[0]
+
+
+class TestBayesOptOptimization(unittest.TestCase):
+    """ Tests simple one objective optimization problem."""
+    
+
+    def test_local_problem_bayesopt_parallel(self):
+        problem = MyProblem("LocalPythonProblemBayesOptParallel")
+        algorithm = BayesOptParallel(problem)
+        algorithm.options['verbose_level'] = 0
+        algorithm.options['n_iterations'] = 30
+        algorithm.run()
+        # TODO: population.find_min
+
+    def test_local_problem_bayesopt_serial(self):
+        problem = MyProblem("LocalPythonProblemBayesOptSerial")
+        algorithm = BayesOptSerial(problem)
+        algorithm.options['verbose_level'] = 0
+        algorithm.options['n_iterations'] = 30
+        algorithm.run()
+        # TODO: population.find_min
+
+if __name__ == '__main__':
+    unittest.main()
