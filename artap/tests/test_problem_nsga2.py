@@ -2,7 +2,7 @@ import unittest
 
 from artap.problem import Problem
 from artap.benchmark_functions import Binh_and_Korn
-from artap.algorithm import NSGA_II
+from artap.algorithm_genetic import NSGA_II
 
 
 class MyProblem(Problem):

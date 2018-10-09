@@ -5,6 +5,210 @@ from .individual import Individual_NSGA_II, Individual
 from abc import ABCMeta, abstractmethod
 import random
 
+class ConfigDictionary(object):
+    """
+    Attributes
+    ----------
+    _dict : dict of dict
+        Dictionary of entries. Each entry is a dictionary consisting of value, values, types, desc, lower, and upper.
+    _read_only : bool
+        If True, setting (via __setitem__ or update) is not permitted.
+    """
+
+    def __init__(self, read_only=False):
+        """
+        Initialize all attributes.
+
+        Parameters
+        ----------
+        read_only : bool
+            If True, setting (via __setitem__ or update) is not permitted.
+        """
+        self._dict = {}
+        self._read_only = read_only
+
+    def _assert_valid(self, name, value):
+        """
+        Check whether the given value is valid, where the key has already been declared.
+
+        The optional checks consist of ensuring: the value is one of a list of acceptable values,
+        the type of value is one of a list of acceptable types, value is not less than lower,
+        value is not greater than upper, and value satisfies is_valid.
+
+        Parameters
+        ----------
+        name : str
+            The key for the declared entry.
+        value : object
+            The default or user-set value to check for value, type, lower, and upper.
+        """
+        meta = self._dict[name]
+        values = meta['values']
+        types = meta['types']
+        lower = meta['lower']
+        upper = meta['upper']
+        is_valid = meta['is_valid']
+
+        if not (value is None and meta['allow_none']):
+            # If only values is declared
+            if values is not None:
+                if value not in values:
+                    raise ValueError("Entry '{}'\'s value is not one of {}".format(name, values))
+            # If only types is declared
+            elif types is not None:
+                if not isinstance(value, types):
+                    raise TypeError("Entry '{}' has the wrong type ({})".format(name, types))
+
+            if upper is not None:
+                if value > upper:
+                    msg = "Value of {} exceeds maximum of {} for entry 'x'"
+                    raise ValueError(msg.format(value, upper))
+            if lower is not None:
+                if value < lower:
+                    msg = "Value of {} exceeds minimum of {} for entry 'x'"
+                    raise ValueError(msg.format(value, lower))
+
+        # General function test
+        if is_valid is not None and not is_valid(value):
+            raise ValueError("Function is_valid returns False for {}.".format(name))
+
+    def declare(self, name, default, values=None, types=None, desc='',
+                upper=None, lower=None, is_valid=None, allow_none=False):
+        r"""
+        Declare an option.
+
+        The value of the option must satisfy the following:
+        1. If values only was given when declaring, value must be in values.
+        2. If types only was given when declaring, value must satisfy isinstance(value, types).
+        3. It is an error if both values and types are given.
+
+        Parameters
+        ----------
+        name : str
+            Name of the option.
+        default : object or Null
+            Optional default value that must be valid under the above 3 conditions.
+        values : set or list or tuple or None
+            Optional list of acceptable option values.
+        types : type or tuple of types or None
+            Optional type or list of acceptable option types.
+        desc : str
+            Optional description of the option.
+        upper : float or None
+            Maximum allowable value.
+        lower : float or None
+            Minimum allowable value.
+        is_valid : function or None
+            General check function that returns True if valid.
+        allow_none : bool
+            If True, allow None as a value regardless of values or types.
+        """
+
+        if values is not None and not isinstance(values, (set, list, tuple)):
+            raise TypeError("'values' must be of type None, list, or tuple - not %s." % values)
+        if types is not None and not isinstance(types, (type, set, list, tuple)):
+            raise TypeError("'types' must be None, a type or a tuple  - not %s." % types)
+
+        if types is not None and values is not None:
+            raise RuntimeError("'types' and 'values' were both specified for option '%s'." %
+                               name)
+
+        self._dict[name] = {
+            'value': default,
+            'values': values,
+            'types': types,
+            'desc': desc,
+            'upper': upper,
+            'lower': lower,
+            'is_valid': is_valid,
+            'allow_none': allow_none
+        }
+
+        # check for validity
+        self._assert_valid(name, default)
+
+    def update(self, in_dict):
+        """
+        Update the internal dictionary with the given one.
+
+        Parameters
+        ----------
+        in_dict : dict
+            The incoming dictionary to add to the internal one.
+        """
+        for name in in_dict:
+            self[name] = in_dict[name]
+
+    def __iter__(self):
+        """
+        Provide an iterator.
+
+        Returns
+        -------
+        iterable
+            iterator over the keys in the dictionary.
+        """
+        return iter(self._dict)
+
+    def __contains__(self, key):
+        """
+        Check if the key is in the local dictionary.
+
+        Parameters
+        ----------
+        key : str
+            name of the entry.
+
+        Returns
+        -------
+        boolean
+            whether key is in the local dict.
+        """
+        return key in self._dict
+
+    def __setitem__(self, name, value):
+        """
+        Set an entry in the local dictionary.
+
+        Parameters
+        ----------
+        name : str
+            name of the entry.
+        value : -
+            value of the entry to be value- and type-checked if declared.
+        """
+        if self._read_only:
+            msg = "Tried to set '{}' on a read-only OptionsDictionary."
+            raise KeyError(msg.format(name))
+
+        # The key must have been declared.
+        if name not in self._dict:
+            msg = "Key '{}' cannot be set because it has not been declared."
+            raise KeyError(msg.format(name))
+
+        self._assert_valid(name, value)
+        self._dict[name]['value'] = value
+
+    def __getitem__(self, name):
+        """
+        Get an entry from the local dict, global dict, or declared default.
+
+        Parameters
+        ----------
+        name : str
+            name of the entry.
+
+        Returns
+        -------
+        value : -
+            value of the entry.
+        """
+        # If the entry has been set in this system, return the set value
+        try:
+            meta = self._dict[name]
+            return meta['value']
+        except KeyError:
+            raise KeyError("Entry '{}' cannot be found".format(name))
 
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
@@ -12,266 +216,14 @@ class Algorithm(metaclass=ABCMeta):
     def __init__(self, problem: Problem, name="Algorithm"):
         self.name = name
         self.problem = problem
+        self.options = ConfigDictionary()
+
+        self.options.declare(name='verbose_level', default=1, lower=0,
+                             desc='Verbose level')
 
     @abstractmethod
     def run(self):
         pass
-
-
-class GeneralEvolutionaryAlgorithm(Algorithm):
-    """ Basis Class for evolutionary algorithms """
-
-    def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
-        super().__init__(problem, name)
-        self.problem = problem
-
-    def gen_initial_population(self):
-        pass
-
-    def select(self):
-        pass
-
-    def form_new_population(self):
-        pass
-
-    def run(self):
-        pass
-
-
-class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
-
-    def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
-        super().__init__(problem, name)
-        self.population_size = self.problem.max_population_size
-        self.parameters_length = len(self.problem.parameters)
-        self.populations_number = self.problem.max_population_count
-        self.current_population = 0
-
-    def gen_initial_population(self):
-        population = Population(self.problem)
-        population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
-        population.evaluate()
-        population.save()
-
-        self.problem.add_population(population)
-
-        self.current_population += 1
-        return population
-
-    def select(self):
-        pass
-
-    def form_new_population(self):
-        pass
-
-    def run(self):
-        pass
-
-
-class NSGA_II(GeneticAlgorithm):
-
-    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
-        super().__init__(problem, name)
-        self.prob_cross = 0.6
-        self.prob_mutation = 0.05
-
-    def gen_initial_population(self):
-        population = Population_NSGA_II(self.problem)
-        population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
-        population.evaluate()
-        population.save()
-        self.problem.populations.append(population)
-
-    def is_dominate(self, p, q):
-        dominate = False
-        for i in range(0, len(self.problem.costs)):
-            if p.costs[i] > q.costs[i]:
-                return False
-            if p.costs[i] < q.costs[i]:
-                dominate = True
-
-        # TODO: Constrains
-        # for i in range(0,len(p.violation)):
-        #    if p.violation[i] > q.violation[i] :
-        #        return False
-        #    if p.violation[i] < q.violation[i] :
-        #        dominate = True
-
-        return dominate
-
-    def crossover(self):
-        pass
-
-    def mutate(self):
-        pass
-
-    def fast_non_dominated_sort(self, population):
-        pareto_front = []
-        front_number = 1
-
-        for p in population:
-            for q in population:
-                if p is q:
-                    continue
-                if self.is_dominate(p, q):
-                    p.dominate.add(q)
-                elif self.is_dominate(q, p):
-                    p.domination_counter = p.domination_counter + 1
-
-            if p.domination_counter == 0:
-                p.front_number = front_number
-                pareto_front.append(p)
-
-        while not len(pareto_front) == 0:
-            front_number += 1
-            temp_set = []
-            for p in pareto_front:
-                for q in p.dominate:
-                    q.domination_counter -= 1
-                    if q.domination_counter == 0 and q.front_number == 0:
-                        q.front_number = front_number
-                        temp_set.append(q)
-            pareto_front = temp_set
-
-    # TODO: faster algorithm
-    @staticmethod
-    def sort_by_coordinate(population, dim):
-        # individuals = population.individuals.copy()
-        individuals = population
-
-        for i in range(0, len(individuals) - 1):
-            for j in range(i + 1, len(individuals)):
-                if individuals[i].parameters[dim] < individuals[j].parameters[dim]:
-                    temp = individuals[i]
-                    individuals[i] = individuals[j]
-                    individuals[j] = temp
-
-        return individuals
-
-    def calculate_crowd_dis(self, population):
-        infinite = float("inf")
-
-        for dim in range(0, len(self.problem.parameters)):
-            new_list = self.sort_by_coordinate(population, dim)
-
-            new_list[0].crowding_distance += infinite
-            new_list[-1].crowding_distance += infinite
-            max_distance = new_list[0].parameters[dim] - new_list[-1].parameters[dim]
-            for i in range(1, len(new_list) - 1):
-                distance = new_list[i - 1].parameters[dim] - new_list[i + 1].parameters[dim]
-                if max_distance == 0:
-                    new_list[i].crowding_distance = 0
-                else:
-                    new_list[i].crowding_distance += distance / max_distance
-
-        for p in population:
-            p.crowding_distance = p.crowding_distance / len(self.problem.parameters)
-
-    @staticmethod
-    def tournament_select(parents, part_num=2):  # binary tournament selection
-        participants = random.sample(parents, part_num)
-        best = participants[0]
-        best_rank = participants[0].front_number
-        best_crowding_distance = participants[0].crowding_distance
-
-        for p in participants[1:]:
-            if p.front_number < best_rank or \
-                    (p.front_number == best_rank and p.crowding_distance > best_crowding_distance):
-                best = p
-                best_rank = p.front_number
-                best_crowding_distance = p.crowding_distance
-
-        return best
-
-    def generate(self, parents):
-        # generate two children from two parents
-
-        children = []
-        while len(children) < self.population_size:
-            parent1 = self.tournament_select(parents)
-            parent2 = self.tournament_select(parents)
-            while parent1 == parent2:
-                parent2 = self.tournament_select(parents)
-
-            child1, child2 = self.cross(parent1, parent2)
-            child1 = self.mutation(child1)
-            child2 = self.mutation(child2)
-
-            children.append(child1)
-            children.append(child2)
-        return children
-
-    def cross(self, p1, p2):  # the random linear operator
-        if random.uniform(0, 1) >= self.prob_cross:
-            return p1, p2
-
-        parameter1, parameter2 = [], []
-        linear_range = 2
-        alpha = random.uniform(0, linear_range)
-        for j in range(0, len(p1.parameters)):
-            parameter1.append(alpha * p1.parameters[j] +
-                              (1 - alpha) * p2.parameters[j])
-            parameter2.append((1 - alpha) * p1.parameters[j] +
-                              alpha * p2.parameters[j])
-        c1 = Individual_NSGA_II(parameter1, self.problem)
-        c2 = Individual_NSGA_II(parameter2, self.problem)
-        return c1, c2
-
-    def mutation(self, p):  # uniform random mutation
-        mutation_space = 0.1
-        parameters = []
-        i = 0
-        for parameter in self.problem.parameters.items():
-            if random.uniform(0, 1) < self.prob_mutation:
-                para_range = mutation_space * (parameter[1]['bounds'][0] - parameter[1]['bounds'][1])
-                mutation = random.uniform(-para_range, para_range)
-                parameters.append(p.parameters[i] + mutation)
-            else:
-                parameters.append(p.parameters[i])
-            i += 1
-
-        p_new = Individual_NSGA_II(parameters, self.problem)
-        return p_new
-
-    def select(self):
-        pass
-
-    def form_new_population(self):
-        pass
-
-    def run(self):
-
-        self.gen_initial_population()
-        parent_individuals = self.problem.populations[0].individuals
-        child_individuals = []
-
-        for it in range(self.problem.max_population_count):
-
-            individuals = parent_individuals + child_individuals
-
-            Population.evaluate_individuals(individuals, self.problem)
-
-            self.fast_non_dominated_sort(individuals)
-            self.calculate_crowd_dis(individuals)
-
-            parents = []
-            front = 1
-
-            while len(parents) < self.population_size:
-                for individual in individuals:
-                    if individual.front_number == front:
-                        parents.append(individual)
-                        if len(parents) == self.population_size:
-                            break
-                front = front + 1
-
-            population = Population_NSGA_II(self.problem, individuals)
-            population.save()
-            self.problem.add_population(population)
-            self.current_population += 1
-
-            child_individuals = self.generate(parent_individuals)
-
 
 class Sensitivity(Algorithm):
     def __init__(self, problem, parameters, name='Sensitivity analysis'):
