@@ -16,7 +16,7 @@ class TestProblem(Problem):
                       'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
         costs = ['F1']
         working_dir = "./workspace/condor_comsol/"
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
         self.max_population_number = 1
         self.max_population_size = 5
 

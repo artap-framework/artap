@@ -49,7 +49,6 @@ class Population:
     @staticmethod
     def evaluate_individuals(individuals, problem):
         processes = []
-        n = len(individuals)
 
         for individual in individuals:
             if not individual.is_evaluated:

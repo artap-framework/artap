@@ -295,9 +295,9 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
         self.remove_remote_dir()
 
     def eval(self, x):
-        succes = False
+        success = False
         result = 0
-        while not succes:
+        while not success:
             try:
                 client = paramiko.SSHClient()
                 client.load_system_host_keys()
@@ -308,7 +308,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                 for parameter in self.parameters:
                     param_names_string += parameter + ","
                 if (len(self.parameters)) > 1:
-                   param_names_string = param_names_string[:-1]
+                    param_names_string = param_names_string[:-1]
 
                 param_values_string = ""
                 for val in x:
@@ -362,16 +362,15 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
                 if event == "Completed":
                     content = self.read_file_from_remote('./max%s.txt' % ts, client=client)
-                    line = content.split("\n")[5]
-                    result = float(content.split("\n")[5])
+                    success = True
+                    result = self.parse_results(content)
                 else:
                     assert 0
+
                 client.close()
 
-                succes = True
-
-            except:
-                print("Exception")
+            except Exception as e:
+                print(e)
                 continue
 
         return result
