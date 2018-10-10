@@ -12,7 +12,7 @@ from logging import NullHandler, getLogger
 getLogger('paramiko.transport').addHandler(NullHandler())
 
 
-class Executor:
+class Executor():
     """
     Function is a class representing objective or cost function for
     optimization problems.
@@ -129,7 +129,6 @@ class RemoteExecutor(Executor):
         sftp = paramiko.SFTPClient.from_transport(client.get_transport())
         sftp.get(source, dest)
 
-
     def read_file_from_remote(self, source_file, client):
         source = self.remote_dir + "/" + source_file
         sftp = paramiko.SFTPClient.from_transport(client.get_transport())
@@ -169,7 +168,6 @@ class RemoteExecutor(Executor):
                 print(line.strip('\n'))
         return output
 
-
     def eval(self, x):
 
         client = paramiko.SSHClient()
@@ -208,6 +206,11 @@ class RemoteCondorExecutor(RemoteExecutor):
                  username=None, password=None, port=22, working_dir=None, supplementary_files=None):
         super().__init__(hostname, username, password, port, working_dir=working_dir,
                          supplementary_files=supplementary_files)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("__exit__")
+        # remove remote dir
+        self.remove_remote_dir()
 
     @staticmethod
     def parse_condor_log(content):
@@ -289,10 +292,6 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
         except:
             print("Exception in __init__")
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # remove remote dir
-        self.remove_remote_dir()
 
     def eval(self, x):
         success = False
