@@ -3,6 +3,7 @@ from numpy.random import normal
 from abc import *
 from multiprocessing import Queue
 
+
 class Individual(metaclass=ABCMeta):
     """
        Collects information about one point in design space.
@@ -15,7 +16,6 @@ class Individual(metaclass=ABCMeta):
         self.problem = problem
         self.length = len(self.parameters)
         self.costs = []
-        self.is_saved = False
         self.number = Individual.number
         Individual.number += 1
 
@@ -48,9 +48,8 @@ class Individual(metaclass=ABCMeta):
             self.costs = costs
 
         self.is_evaluated = True
-        if not self.is_saved:
-            self.problem.data_store.write_individual(self.to_list())
-            self.is_saved = True
+        self.problem.data_store.write_individual(self.to_list())
+
         Individual.results.put([self.number, costs])
         return costs
 

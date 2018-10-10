@@ -76,8 +76,8 @@ class Problem(ProblemBase):
         
     def __del__(self):
         if not self.save_data:
-           if os.path.isdir(self.working_dir):
-            shutil.rmtree(self.working_dir)
+            if os.path.isdir(self.working_dir):
+                shutil.rmtree(self.working_dir)
 
     def add_population(self, population):
         self.populations.append(population)
@@ -138,11 +138,6 @@ class ProblemDataStore(ProblemBase):
             self.working_dir = working_dir + self.name
             self.save_data = True
 
-    def __del__(self):
-        pass
-        # if not self.save_data:
-        #    shutil.rmtree(self.working_dir)
-
     def to_table(self):
         table = []
         line = ["Population ID"]
@@ -153,7 +148,7 @@ class ProblemDataStore(ProblemBase):
         table.append(line)
         for population in self.populations:
             for individual in population.individuals:
-                line = [population.number]
+                line = [individual.population_id]
                 for parameter in individual.parameters:
                     line.append(parameter)
                 for cost in individual.costs:
