@@ -34,9 +34,16 @@ class TestProblem(Problem):
 
         self.executor = CondorComsolJobExecutor(parameters, model_file, output_file,
                                                 username=user, hostname=host, working_dir=working_dir)
+        self.executor.parse_results = self.parse_results
 
     def eval(self, x):
         result = self.executor.eval(x)
+        return result
+
+    def parse_results(self, content):
+        lines = content.split("\n")
+        line_with_results = lines[10]  # 10th line contains results
+        result = float(line_with_results.split(" ")[-1])
         return result
 
 
@@ -52,6 +59,7 @@ class TestCondor(TestCase):
         population.gen_random_population(15, len(problem.parameters),
                                          problem.parameters)
         population.evaluate()
+
 
 if __name__ == '__main__':
     main()

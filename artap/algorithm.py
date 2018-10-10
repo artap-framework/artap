@@ -263,7 +263,6 @@ class NSGA_II(GeneticAlgorithm):
                 front = front + 1
 
             population = Population_NSGA_II(self.problem, individuals)
-            # population.save()
             self.problem.add_population(population)
             self.current_population += 1
 
