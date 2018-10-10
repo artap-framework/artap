@@ -194,7 +194,7 @@ def worker(pipe, problem):
     x = None
     while True:
         x = pipe.recv()
-        if x == 'STOP':
+        if str(x) == 'STOP':
             break
 
         result = problem.evaluate_individual(x)
