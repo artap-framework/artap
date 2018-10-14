@@ -31,9 +31,10 @@
 
 <script type="text/javascript">
 
-  document.write(window.location.pathname);
+  document.write(Enviroment.artap_root);
 
   var container = document.getElementById('visualization');
+
   var items = [
     {x: 0, y: 10},
     {x: 1, y: 25},
@@ -48,6 +49,7 @@
     start: 0,
     end: 50
   };
+
   var graph2d = new vis.Graph2d(container, dataset, options);
 </script>
 </body>
