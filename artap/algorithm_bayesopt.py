@@ -1,12 +1,13 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
+from .enviroment import Enviroment
 
 from time import clock
 import numpy as np
 
 import sys
-sys.path.append("./lib/")
+sys.path.append(Enviroment.artap_root + "/lib/")
 import bayesopt
 
 from multiprocessing import Process, Pipe
