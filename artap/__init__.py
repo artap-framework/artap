@@ -5,10 +5,10 @@ from .algorithm_genetic import *
 
 import platform
 
-#if platform.system() == 'Linux':
-#    from .algorithm_bayesopt import *
+if platform.system() == 'Linux':
+    from .algorithm_bayesopt import *
 
-#    __all__ = ['Problem', 'NSGA_II', 'BayesOpt']
+    __all__ = ['Problem', 'NSGA_II', 'BayesOpt']
 
-# else:
-#    __all__ = ['Problem', 'NSGA_II']
+else:
+    __all__ = ['Problem', 'NSGA_II']
