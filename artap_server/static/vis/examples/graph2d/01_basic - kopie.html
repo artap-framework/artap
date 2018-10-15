@@ -12,8 +12,8 @@
     }
   </style>
 
-  <script src="../../dist/vis.js"></script>
-  <link href="../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+  <script src="../static/vis/dist/vis.js"></script>
+  <link href="../static/vis/dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <h2>Graph2d | Basic Exampl - Only for tests with Artap</h2>
@@ -31,7 +31,7 @@
 
 <script type="text/javascript">
 
-  document.write(Enviroment.artap_root);
+  document.write("Ahoj");
 
   var container = document.getElementById('visualization');
 
@@ -51,6 +51,7 @@
   };
 
   var graph2d = new vis.Graph2d(container, dataset, options);
+  document.write(items)
 </script>
 </body>
 </html>

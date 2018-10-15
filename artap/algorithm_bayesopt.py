@@ -6,7 +6,7 @@ from time import clock
 import numpy as np
 
 import sys
-sys.path.append("../lib/")
+sys.path.append("./lib/")
 import bayesopt
 
 from multiprocessing import Process, Pipe
