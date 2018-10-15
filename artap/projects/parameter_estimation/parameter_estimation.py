@@ -3,7 +3,7 @@ import getpass
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
 from artap.enviroment import Enviroment
-from artap.population import Population_NSGA_II
+from artap.popuxlation import Population_NSGA_II
 
 
 class ParameterEstimationProblem(Problem):

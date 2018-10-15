@@ -63,9 +63,9 @@ class SqliteDataStore(DataStore):
     def __del__(self):
         pass
         # remove database
-        # os.remove(self.database_name)
         # self.connection_problem.close()
         # self.connection.close()
+        # os.remove(self.database_name)
         super().__del__()
 
     def save_problem(self, problem):
