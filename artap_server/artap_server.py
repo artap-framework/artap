@@ -35,7 +35,7 @@ class ArtapServer(object):
     # only for first vis library tests
     @cherrypy.expose
     def testvis(self):
-        file = open(Enviroment.artap_root + "../artap_server/vis/examples/graph2d/01_basic - kopie.html", 'r')
+        file = open(Enviroment.artap_root + "../artap_server/static/vis/examples/graph2d/01_basic - kopie.html", 'r')
         html_page = file.readlines()
         return html_page
 
