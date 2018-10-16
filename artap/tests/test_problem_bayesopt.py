@@ -25,7 +25,6 @@ class MyProblem(Problem):
 class TestBayesOptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
-
     def test_local_problem_bayesopt_parallel(self):
         problem = MyProblem("LocalPythonProblemBayesOptParallel")
         algorithm = BayesOptParallel(problem)
@@ -41,6 +40,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         algorithm.options['n_iterations'] = 50
         algorithm.run()
         # TODO: population.find_min
+
 
 if __name__ == '__main__':
     unittest.main()
