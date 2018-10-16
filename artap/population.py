@@ -1,5 +1,4 @@
 from multiprocessing import Process
-
 from .individual import Individual, Individual_NSGA_II
 
 
@@ -32,16 +31,17 @@ class Population:
         
         return string
 
-    # def save(self):
-    #     for individual in self.individuals:
-    #         individual.problem.data_store.write_individual(individual.to_list())
-
     def print(self):
         print(self.to_string())
       
     def gen_random_population(self, population_size, vector_length, parameters):
         self.individuals = Individual.gen_individuals(population_size, self.problem, self.number)
         return self.individuals
+
+    def gen_population_from_table(self, table):
+        for parameters in table:
+            individual = Individual_NSGA_II(parameters, self.problem, self.number)
+            self.individuals.append(individual)
 
     def evaluate(self):
         Population.evaluate_individuals(self.individuals, self.problem)
@@ -77,3 +77,4 @@ class Population_NSGA_II(Population):
 
     def gen_random_population(self, population_size, vector_length, parameters):
         self.individuals = Individual_NSGA_II.gen_individuals(population_size, self.problem, self.number)
+

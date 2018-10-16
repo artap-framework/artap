@@ -35,8 +35,16 @@ class TestProblem(Problem):
         self.executor = CondorComsolJobExecutor(parameters, model_file, output_file,
                                                 username=user, hostname=host, working_dir=working_dir)
 
+        self.executor.parse_results = self.parse_results
+
     def eval(self, x):
         result = self.executor.eval(x)
+        return result
+
+    def parse_results(self, content):
+        lines = content.split("\n")
+        line_with_results = lines[5]  # 5th line contains results
+        result = float(line_with_results)
         return result
 
 
@@ -49,8 +57,11 @@ class TestCondor(TestCase):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
         population = Population_NSGA_II(problem)
-        population.gen_random_population(15, len(problem.parameters),
-                                         problem.parameters)
+        # population.gen_random_population(15, len(problem.parameters),
+        #                                  problem.parameters)
+
+        table = [[10, 10], [11, 11]]
+        population.gen_population_from_table(table)
         population.evaluate()
 
 
