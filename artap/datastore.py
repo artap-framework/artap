@@ -195,3 +195,6 @@ class SqliteDataStore(DataStore):
 
         problem.populations.append(population)
         cursor.close()
+
+    def close_connection(self):
+        self.connection.close()
