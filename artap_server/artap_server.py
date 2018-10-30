@@ -39,6 +39,12 @@ class ArtapServer(object):
         html_page = file.readlines()
         return html_page
 
+    @cherrypy.expose
+    def plotly2(self):
+        file = open(Enviroment.artap_root + "../artap_server/static/plotly/plotlytest2.html", 'r')
+        html_page = file.readlines()
+        return html_page
+
 
 if __name__ == '__main__':
 
