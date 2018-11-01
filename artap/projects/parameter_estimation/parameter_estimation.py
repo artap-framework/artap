@@ -1,4 +1,5 @@
 import getpass
+import os
 
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
@@ -38,7 +39,7 @@ class ParameterEstimationProblem(Problem):
         self.max_population_size = 1
 
         self.time_out = 4 * 60  # time out 4 minutes per one set of parameters
-        super().__init__(name, self.parameters, self.costs, working_dir="./")
+        super().__init__(name, self.parameters, self.costs, working_dir="." + os.sep)
 
         output_file = "max.txt"
         model_file = "brazing.mph"
@@ -54,7 +55,7 @@ class ParameterEstimationProblem(Problem):
 
         self.executor = CondorComsolJobExecutor(self.parameters, model_file, output_file,
                                                 username=user, hostname=host,
-                                                working_dir="./", time_out=self.time_out)
+                                                working_dir="." + os.sep, time_out=self.time_out)
         self.executor.parse_results = self.parse_results
 
     def eval(self, x):
