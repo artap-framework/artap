@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from artap.problem import Problem
@@ -12,7 +13,7 @@ class MyProblem(Problem):
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         costs = ['F_1', 'F_2']
 
-        working_dir = "./workspace/common_data/"
+        working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
         super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
         self.max_population_number = 3
