@@ -1,4 +1,5 @@
-import unittest 
+import os
+import unittest
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyNelderMead   
 
@@ -11,7 +12,7 @@ class MyProblem(Problem):
 
         parameters = {'x_1': {'initial_value': 10}}
         costs = ['F_1']
-        working_dir = "./workspace/common_data/"
+        working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
         super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
 
     def eval(self, x):
