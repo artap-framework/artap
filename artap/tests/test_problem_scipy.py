@@ -1,6 +1,6 @@
 import unittest 
 from artap.problem import Problem
-from artap.algorithm_scipy import ScipyNelderMead   
+from artap.algorithm_scipy import ScipyOpt
 
 
 class MyProblem(Problem):
@@ -27,8 +27,11 @@ class TestSimpleOptimization(unittest.TestCase):
     
     def test_local_problem(self):           
         problem = MyProblem("LocalPythonProblem")
-        algorithm = ScipyNelderMead(problem)
+        algorithm = ScipyOpt(problem)
+        algorithm.options['algorithm'] = 'Nelder-Mead'
+        algorithm.options['tol'] = 1e-4
         algorithm.run()                
+
         optimum = problem.populations[-1].individuals[-1].costs[0]  # Takes last cost function
         self.assertAlmostEqual(optimum, 0)
 
