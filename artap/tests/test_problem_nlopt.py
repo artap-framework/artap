@@ -27,11 +27,14 @@ class TestBayesOptOptimization(unittest.TestCase):
     def test_local_problem_nlopt_bobyqa(self):
         problem = MyProblem("LocalPythonProblemNLopt_LN_BOBYQA")
         algorithm = NLopt(problem)
-        algorithm.options['verbose_level'] = 1
+        algorithm.options['verbose_level'] = 0
         algorithm.options['algorithm'] = LN_BOBYQA
         algorithm.options['n_iterations'] = 200
         algorithm.run()
-        # TODO: population.find_min
+
+        optimum = problem.populations[-1].individuals[-1].costs[0]  # Takes last cost function
+        self.assertAlmostEqual(optimum, 0)
+
 
     def test_local_problem_nlopt_ln_neldermead(self):
         problem = MyProblem("LocalPythonProblemNLopt_LN_NELDERMEAD")
@@ -40,7 +43,9 @@ class TestBayesOptOptimization(unittest.TestCase):
         algorithm.options['algorithm'] = LN_NELDERMEAD
         algorithm.options['n_iterations'] = 150
         algorithm.run()
-        # TODO: population.find_min
+
+        optimum = problem.populations[-1].individuals[-1].costs[0]  # Takes last cost function
+        self.assertAlmostEqual(optimum, 0)
 
 if __name__ == '__main__':
     unittest.main()
