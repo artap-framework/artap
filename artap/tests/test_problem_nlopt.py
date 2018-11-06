@@ -21,7 +21,7 @@ class MyProblem(Problem):
         return Rosenbrock.eval(x)
 
 
-class TestBayesOptOptimization(unittest.TestCase):
+class TestNLoptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
     def test_local_problem_nlopt_bobyqa(self):
