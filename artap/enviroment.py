@@ -4,10 +4,10 @@ import json
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)
 
-if os.path.exists(dir_path + "/enviroment_local.json"):
-    file_name = dir_path + "/enviroment_local.json"
+if os.path.exists(dir_path + os.sep + "enviroment_local.json"):
+    file_name = dir_path + os.sep + "enviroment_local.json"
 else:   
-    file_name = dir_path + "/enviroment.json"
+    file_name = dir_path + os.sep + "enviroment.json"
 
 with open(file_name, 'r') as f:
     enviroment = json.load(f)
@@ -18,7 +18,7 @@ class Enviroment:
     path = path.replace("enviroment.py", "")
 
     artap_root = path
-    tests_root = os.path.abspath(path + "./tests/")    
+    tests_root = os.path.abspath(path + "." + os.sep + "tests" + os.sep)
             
     condor_host_ip = enviroment["condor_host_ip"]
     condor_host_login = enviroment["condor_host_login"]
