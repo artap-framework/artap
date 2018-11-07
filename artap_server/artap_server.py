@@ -1,3 +1,5 @@
+import os
+
 import cherrypy
 
 from artap.enviroment import Enviroment
@@ -7,7 +9,7 @@ from templates import WebPagesWriter
 class ArtapServer(object):
 
     def __init__(self):
-        self.static_dir = Enviroment.artap_root + "../artap_server/static/"
+        self.static_dir = Enviroment.artap_root + ".." + os.sep + "artap_server" + os.sep + "static" + os.sep
         self.writer = WebPagesWriter()
 
     @cherrypy.expose
@@ -35,20 +37,20 @@ class ArtapServer(object):
     # only for first plotly library tests
     @cherrypy.expose
     def plotly(self):
-        file = open(Enviroment.artap_root + "../artap_server/static/plotly/plotlytest.html", 'r')
+        file = open(Enviroment.artap_root + ".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "plotly" + os.sep + "plotlytest.html", 'r')
         html_page = file.readlines()
         return html_page
 
     @cherrypy.expose
     def plotly2(self):
-        file = open(Enviroment.artap_root + "../artap_server/static/plotly/plotlytest2.html", 'r')
+        file = open(Enviroment.artap_root + ".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "plotly" + os.sep + "plotlytest2.html", 'r')
         html_page = file.readlines()
         return html_page
 
 
 if __name__ == '__main__':
 
-    static_dir = Enviroment.artap_root + "../artap_server/"
+    static_dir = Enviroment.artap_root + ".." + os.sep + "artap_server" + os.sep
     conf = {
         '/': {
             'tools.sessions.on': True,
@@ -56,7 +58,7 @@ if __name__ == '__main__':
         },
         '/static': {
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': static_dir + 'static/'
+            'tools.staticdir.dir': static_dir + "static/"
         }
     }
     cherrypy.config.update({'server.socket_host': '127.0.0.1',
