@@ -70,7 +70,7 @@ class Population:
                 time.sleep(1)
             if not individual.is_evaluated:
                 individual.problem = problem
-                p = Process(target=individual.evaluate, args=[])
+                p = Process(target=individual.evaluate)
                 processes.append(p)
                 p.start()
 
