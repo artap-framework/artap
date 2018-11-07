@@ -76,7 +76,7 @@ class Individual(metaclass=ABCMeta):
         for parameter in design_parameters.items():
 
             if not ('bounds' in parameter[1]):
-                bounds = None
+                bounds = [parameter["initial_value"] * 0.5, parameter["initial_value"] * 1.5]
             else:
                 bounds = parameter[1]['bounds']
 

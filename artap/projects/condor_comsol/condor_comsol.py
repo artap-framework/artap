@@ -1,5 +1,6 @@
 from unittest import TestCase, main
 import getpass
+import os
 
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
@@ -15,7 +16,7 @@ class TestProblem(Problem):
         parameters = {'a': {'initial_value': 10, 'bounds': [1, 5], 'precision': 1e-1},
                       'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
         costs = ['F1']
-        working_dir = "./"
+        working_dir = "." + os.sep
         super().__init__(name, parameters, costs, working_dir=working_dir)
         self.max_population_number = 1
         self.max_population_size = 5

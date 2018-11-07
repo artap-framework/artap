@@ -1,5 +1,6 @@
 import sqlite3
 import tempfile
+import os
 from datetime import datetime
 from string import Template
 from abc import abstractmethod
@@ -50,7 +51,7 @@ class SqliteDataStore(DataStore):
 
         time_stamp = str(datetime.now())
         if create_database:
-            self.database_name = self.working_dir + "/" + "data" + ".sqlite"
+            self.database_name = self.working_dir + os.sep + "data" + ".sqlite"
         else:
             if database_file is not None:
                     self.database_name = database_file
