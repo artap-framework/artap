@@ -1,5 +1,6 @@
 from unittest import TestCase, main
 import getpass
+import os
 
 from artap.executor import CondorPythonJobExecutor
 from artap.problem import Problem
@@ -14,7 +15,7 @@ class TestProblem(Problem):
         parameters = {'x_1': {'initial_value': 5},
                       'x_2': {'initial_value': 10}}
         costs = ['F1']
-        working_dir = "./workspace/condor/"
+        working_dir = "." + os.sep + "workspace" + os.sep + "condor" + os.sep
 
         super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
 

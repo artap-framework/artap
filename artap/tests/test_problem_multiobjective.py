@@ -1,4 +1,5 @@
 import unittest
+
 from artap.problem import Problem
 from artap.algorithm_genetic import GeneticAlgorithm
 
@@ -14,7 +15,7 @@ class MyProblem(Problem):
         
         costs = ['F_1', 'F_2']
 
-        # working_dir = "./workspace/common_data/"
+        # working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
         # super().__init__(name, parameters, costs, working_dir=working_dir)
 
         super().__init__(name, parameters, costs)

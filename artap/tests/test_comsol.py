@@ -15,8 +15,8 @@
 #          self.costs = ['F1']
 #
 #          curr_dir = os.path.abspath(os.curdir)
-#          output_file = curr_dir + "/workspace/comsol/max.txt"
-#          model_file = curr_dir + "/workspace/comsol/elstat.mph"
+#          output_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "max.txt"
+#          model_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "elstat.mph"
 #
 #          self.executor = ComsolExecutor(2, 1, self.parameters, model_file, output_file)
 #          super().__init__(name, self.parameters, self.costs)
