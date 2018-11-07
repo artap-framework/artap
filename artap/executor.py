@@ -341,7 +341,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                 job_config_file.close()
 
                 with open(self.working_dir + os.sep + "run.tp", 'r') as run_file:
-                    run_file = Template(run_file.read())
+                    run_file = run_file.read()
 
                 substitute = ""
 
@@ -376,7 +376,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                 if event == "Completed":
                     content = self.read_file_from_remote("." + os.sep + "max%s.txt" % ts, client=client)
                     success = True
-                    result = parse_results(content, x)
+                    result = self.parse_results(content, x)
                 else:
                     assert 0
 

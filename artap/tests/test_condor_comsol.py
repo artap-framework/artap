@@ -17,11 +17,11 @@ class TestProblem(Problem):
                       'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
         self.max_population_number = 1
-        self.max_population_size = 5
+        self.max_population_size = 1
 
-        output_file = "max.txt"
+        output_files = ["max.txt"]
         model_file = "elstat.mph"
 
         # current username
@@ -33,7 +33,7 @@ class TestProblem(Problem):
 
         host = Enviroment.condor_host_ip
 
-        self.executor = CondorComsolJobExecutor(parameters, model_file, output_file,
+        self.executor = CondorComsolJobExecutor(parameters, model_file, output_files,
                                                 username=user, hostname=host, working_dir=working_dir)
 
         self.executor.parse_results = self.parse_results
@@ -42,7 +42,7 @@ class TestProblem(Problem):
         result = self.executor.eval(x)
         return result
 
-    def parse_results(self, content):
+    def parse_results(self, content, x):
         lines = content.split("\n")
         line_with_results = lines[5]  # 5th line contains results
         result = float(line_with_results)
