@@ -1,4 +1,3 @@
 #!/bin/sh
 
-/opt/comsol-5.3/bin/comsol batch $$@
-mv $output_base_file $output_file
+/opt/comsol-5.3/bin/comsol batch $@
