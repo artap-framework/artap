@@ -6,8 +6,10 @@ from .enviroment import Enviroment
 from time import clock
 import numpy as np
 
+import os
+
 import sys
-sys.path.append(Enviroment.artap_root + "/lib/")
+sys.path.append(Enviroment.artap_root + os.sep + "lib" + os.sep)
 import bayesopt
 
 from multiprocessing import Process, Pipe

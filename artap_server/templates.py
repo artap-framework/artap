@@ -8,11 +8,12 @@ from artap.problem import ProblemDataStore
 
 class WebPagesWriter:
 
-    data_dirs = ["../artap/tests/workspace/", "../artap/projects"]
+    data_dirs = [".." + os.sep + "artap" + os.sep + "tests" + os.sep + "workspace" + os.sep,
+                 ".." + os.sep + "artap" + os.sep + "projects"]
 
     def __init__(self):
         self.table = self.read_problems()
-        self.static_dir = Enviroment.artap_root + "../artap_server/static/"
+        self.static_dir = Enviroment.artap_root + ".." + os.sep + "artap_server" + os.sep + "static" + os.sep
         self.connection_problem = None
 
     def read_problems(self):
@@ -32,17 +33,17 @@ class WebPagesWriter:
     def calculation_details(self, id):
         table = [["Problem", "Description"]]
         index = int(id) + 1
-        path = self.table[index][1] + self.table[index][2] + "/"
+        path = self.table[index][1] + self.table[index][2] + os.sep
         items = os.listdir(path)
         calculations = []
 
         for item in items:
             if os.path.isdir(path + item):
-                calculations.append(path + item + "/")
+                calculations.append(path + item + os.sep)
         i = 0
         self.database_files = []
         for problem in calculations:
-            file = problem + "/data.sqlite"
+            file = problem + os.sep + "data.sqlite"
             self.database_files.append(file)
             data_store = SqliteDataStore(database_file=file)
             problem = ProblemDataStore(data_store)
@@ -85,7 +86,7 @@ class WebPagesWriter:
             row_content += "\n"
             table_content += row.substitute(row=row_content)
 
-        with open('../artap_server/static/problem.tp', 'r') as file:
+        with open(".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "problem.tp", 'r') as file:
             page = string.Template(file.read())
             page_html = page.substitute(content=table_template.substitute(table=table_content))
 
