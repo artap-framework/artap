@@ -1,9 +1,9 @@
 from .problem import Problem
-from .population import Population, Population_NSGA_II
-from .individual import Individual_NSGA_II, Individual
+from .population import Population
+from .individual import Individual
 
 from abc import ABCMeta, abstractmethod
-import random
+
 
 class ConfigDictionary(object):
     """
@@ -210,6 +210,7 @@ class ConfigDictionary(object):
         except KeyError:
             raise KeyError("Entry '{}' cannot be found".format(name))
 
+
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
 
@@ -220,9 +221,11 @@ class Algorithm(metaclass=ABCMeta):
 
         self.options.declare(name='verbose_level', default=1, lower=0,
                              desc='Verbose level')
+
     @abstractmethod
     def run(self):
         pass
+
 
 class Sensitivity(Algorithm):
     def __init__(self, problem, parameters, name='Sensitivity analysis'):

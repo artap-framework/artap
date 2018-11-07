@@ -14,6 +14,7 @@ class TestDataStore(unittest.TestCase):
         problem = ProblemDataStore(data_store)
         results = GraphicalResults(problem)
         results.plot_all_individuals()
+        results.plot_populations()
 
 
 if __name__ == '__main__':
