@@ -2,7 +2,7 @@ universe = vanilla
 initialdir = ./
 executable = $run_file
 arguments = -inputfile $model_name -nosave -pname $param_names -plist $param_values
-requirements = (OpSys == "LINUX" && Arch == "X86_64")
+requirements = (OpSys == "LINUX" && Arch == "X86_64" && ( Machine == "condor00" || Machine == "condor04" || Machine == "condor05" || Machine == "condor06" || Machine == "condor07"))
 
 input = $model_name
 output = $log_file
@@ -16,6 +16,7 @@ should_transfer_files = yes
 when_to_transfer_output = ON_EXIT
 transfer_input_files = $run_file, $model_name
 transfer_output_files = $output_file
-# transfer_output_files = max.txt
 transfer_executable = true
 queue
+
+

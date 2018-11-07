@@ -60,6 +60,7 @@ class SqliteDataStore(DataStore):
                 parameters_file.close()
 
         self.connection = sqlite3.connect(self.database_name)
+        self.connection.execute('pragma journal_mode=wal')
 
     def __del__(self):
         pass
