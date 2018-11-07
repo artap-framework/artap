@@ -271,13 +271,13 @@ class RemoteCondorExecutor(RemoteExecutor):
 class CondorComsolJobExecutor(RemoteCondorExecutor):
     """ Allows submit goal function calculation as a HT Condor job """
 
-    def __init__(self, parameters, model_name, output_filename, hostname=None,
+    def __init__(self, parameters, model_name, output_filenames, hostname=None,
                  username=None, password=None, port=22, working_dir=None, supplementary_files=None, time_out=None):
 
         super().__init__(hostname, username, password, port, working_dir=working_dir)
 
         self.parameters = parameters
-        self.output_filename = output_filename
+        self.output_file_names = output_filenames
         self.model_name = model_name
         self.time_out = time_out
 
@@ -319,13 +319,19 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                 with open(self.working_dir + "/remote.tp", 'r') as job_file:
                     job_file = Template(job_file.read())
 
-                output_filename = os.path.basename(self.output_filename)
                 d = datetime.datetime.now()
                 ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
 
+                output_files = ""
+
+                for i in range(len(self.output_file_names)):
+                    output_filename = os.path.basename(self.output_file_names[i])
+                    output_files += "{0}{1}{2}, ".format(os.path.splitext(output_filename)[0], ts,
+                                                                                  os.path.splitext(output_filename)[1])
+
+                output_files = output_files[:-2]  # remove last coma
                 job_file = job_file.substitute(model_name=os.path.basename(self.model_name),
-                                               output_file="{0}{1}{2}".format(os.path.splitext(output_filename)[0], ts,
-                                                                              os.path.splitext(output_filename)[1]),
+                                               output_file=output_files,
                                                log_file="comsol%s.log" % ts, run_file="run%s.sh" % ts,
                                                param_names=param_names_string,
                                                param_values=param_values_string)
@@ -335,10 +341,18 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                 job_config_file.close()
 
                 with open(self.working_dir + "/run.tp", 'r') as run_file:
-                    run_file = Template(run_file.read())
+                    run_file = run_file.read()
 
-                output_file = os.path.splitext(output_filename)[0] + ts + os.path.splitext(output_filename)[1]
-                run_file = run_file.substitute(output_base_file=output_filename, output_file=output_file)
+                substitute = ""
+
+                for i in range(len(self.output_file_names)):
+                    output_filename = self.output_file_names[i]
+                    substitute_tmp = "mv {0} {1} \n".format(self.output_file_names[i],
+                                                           os.path.splitext(output_filename)[0] + ts +
+                                                           os.path.splitext(output_filename)[1])
+                    substitute += substitute_tmp
+
+                run_file += substitute
 
                 job_run_file = self.create_file_on_remote("run%s.sh" % ts, client)
                 job_run_file.write(run_file)
@@ -361,8 +375,16 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
                 if event == "Completed":
                     content = self.read_file_from_remote('./max%s.txt' % ts, client=client)
+
+                    for file in self.output_file_names:
+                        file_name = "{0}{1}{2}".format(os.path.splitext(file)[0], ts,
+                                                                                  os.path.splitext(output_filename)[1])
+                        self.transfer_files_from_remote(file_name, self.working_dir + file_name,  client=client)
+                        with open(self.working_dir + 'params_%s.txt' % ts, "w") as params_file:
+                            for item in x:
+                                params_file.write("%s\n" % item)
                     success = True
-                    result = self.parse_results(content)
+                    result = self.parse_results(content, x)
                 else:
                     assert 0
 
