@@ -1,5 +1,6 @@
 import getpass
 import os
+import numpy as np
 
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
