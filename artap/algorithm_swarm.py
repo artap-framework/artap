@@ -18,32 +18,9 @@ class PSO(GeneticAlgorithm):
         population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
         self.problem.populations.append(population)
 
-class PSO(GeneticAlgorithm):
-    """
-    Modified particle swarm optimizer -- this implementation deals with the intertia moment of the particle.
 
-    """
-    def __init__(self, problem: Problem, name="PSO Evolutionary Algorithm"):
-        super().__init__(problem, name)
 
-    def gen_initial_population(self):
-        population = Population_NSGA_II(self.problem)
-        population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
-        self.problem.populations.append(population)
-
-    def crossover(self):
-        pass
-
-    def mutate(self):
-        pass
-
-    def select(self):
-        pass
-
-    def form_new_population(self):
-        pass
 """
-
 import random
 import math
 

@@ -27,13 +27,15 @@ class MyProblem(Problem):
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
-    def test_local_problem_nsga2(self):   
+    def test_local_problem_nsga2(self):
+
         problem = MyProblem("LocalPythonProblemNSGA_II")
         algorithm = NSGA_II(problem)
         algorithm.run()
         results = GraphicalResults(problem)
         results.plot_all_individuals()
         results.plot_populations()
+
 
 
 if __name__ == '__main__':
