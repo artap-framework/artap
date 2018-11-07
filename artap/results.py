@@ -26,6 +26,7 @@ class GraphicalResults(Results):
                 pl.plot(individual.number, individual.parameters[0], 'x')
 
         pl.savefig(self.problem.working_dir + "all_individuals.pdf")
+        pl.show()
 
     def plot_populations(self):
         for population in self.problem.populations:
@@ -50,3 +51,4 @@ class GraphicalResults(Results):
                 ax.set_ylabel('$y$')
                 ax.grid()
                 figure.savefig(figure_name)
+

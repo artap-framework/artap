@@ -59,7 +59,7 @@ class NSGA_II(GeneticAlgorithm):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
-        self.prob_cross = 0.6
+        self.prob_cross = 0.9
         self.prob_mutation = 0.05
 
     def gen_initial_population(self):
@@ -184,7 +184,7 @@ class NSGA_II(GeneticAlgorithm):
 
             children.append(child1)
             children.append(child2)
-        return children
+        return children.copy()
 
     def cross(self, p1, p2):  # the random linear operator
         if random.uniform(0, 1) >= self.prob_cross:
@@ -225,17 +225,16 @@ class NSGA_II(GeneticAlgorithm):
         pass
 
     def run(self):
-
         self.gen_initial_population()
-        parent_individuals = self.problem.populations[0].individuals
-        child_individuals = []
+        parent_individuals = []
+        child_individuals = self.problem.populations[0].individuals
 
-        for it in range(self.problem.max_population_count):
+        for it in range(self.problem.max_population_number):
+            population = Population_NSGA_II(self.problem, child_individuals)
+            population.evaluate()
+            self.problem.add_population(population)
 
             individuals = parent_individuals + child_individuals
-
-            Population.evaluate_individuals(individuals, self.problem)
-
             self.fast_non_dominated_sort(individuals)
             self.calculate_crowd_dis(individuals)
 
@@ -250,8 +249,4 @@ class NSGA_II(GeneticAlgorithm):
                             break
                 front = front + 1
 
-            population = Population_NSGA_II(self.problem, individuals)
-            self.problem.add_population(population)
-            self.current_population += 1
-
-            child_individuals = self.generate(parent_individuals)
+            child_individuals = self.generate(parents)
