@@ -13,7 +13,7 @@ class MyProblem(Problem):
                       'x_2': {'initial_value': 2.5, 'bounds': [2.2, 2.4], 'precision': 1e-1},
                       'x_3': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}}
         costs = ['F_1']
-        # working_dir = "./workspace/common_data/"
+        # working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
         # super().__init__(name, parameters, costs, working_dir=working_dir)
 
         super().__init__(name, parameters, costs)

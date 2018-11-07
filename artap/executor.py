@@ -111,33 +111,33 @@ class RemoteExecutor(Executor):
         # projects directory
         client.exec_command("mkdir " + directory)
         # working directory
-        wd = directory + "/" + "artap-" + ts
+        wd = directory + os.sep + "artap-" + ts
         client.exec_command("mkdir " + wd)
 
         return wd
 
     def transfer_files_to_remote(self, source_file, destination_file, client=None):
         source = source_file
-        dest = self.remote_dir + "/" + destination_file
+        dest = self.remote_dir + os.sep + destination_file
 
         sftp = paramiko.SFTPClient.from_transport(client.get_transport())
         sftp.put(source, dest)
 
     def transfer_files_from_remote(self, source_file, destination_file, client=None):
         dest = destination_file
-        source = self.remote_dir + "/" + source_file
+        source = self.remote_dir + os.sep + source_file
         sftp = paramiko.SFTPClient.from_transport(client.get_transport())
         sftp.get(source, dest)
 
     def read_file_from_remote(self, source_file, client):
-        source = self.remote_dir + "/" + source_file
+        source = self.remote_dir + os.sep + source_file
         sftp = paramiko.SFTPClient.from_transport(client.get_transport())
         remote_file = sftp.open(source)
         result = remote_file.read().decode("utf-8")
         return result
 
     def create_file_on_remote(self, source_file, client):
-        source = self.remote_dir + "/" + source_file
+        source = self.remote_dir + os.sep + source_file
         sftp = paramiko.SFTPClient.from_transport(client.get_transport())
         return sftp.open(source, 'w')
 
@@ -176,7 +176,7 @@ class RemoteExecutor(Executor):
         client.connect(hostname=self.hostname, username=self.username, password=self.password)
 
         for file in self.supplementary_files:
-            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file, client=client)
+            self.transfer_files_to_remote(self.working_dir + os.sep + file, "." + os.sep + file, client=client)
 
         parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         parameters_file.write(str(x[0]) + " " + str(x[1]))
@@ -287,7 +287,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
             client.connect(hostname=self.hostname, username=self.username, password=self.password)
-            self.transfer_files_to_remote(self.working_dir + '/' + self.model_name, './' + self.model_name, client)
+            self.transfer_files_to_remote(self.working_dir + os.sep + self.model_name, "." + os.sep + self.model_name, client)
             client.close()
 
         except:
@@ -316,7 +316,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                 if (len(x)) > 1:
                     param_values_string = param_values_string[:-1]
 
-                with open(self.working_dir + "/remote.tp", 'r') as job_file:
+                with open(self.working_dir + os.sep + "remote.tp", 'r') as job_file:
                     job_file = Template(job_file.read())
 
                 d = datetime.datetime.now()
@@ -340,8 +340,8 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                 job_config_file.write(job_file)
                 job_config_file.close()
 
-                with open(self.working_dir + "/run.tp", 'r') as run_file:
-                    run_file = run_file.read()
+                with open(self.working_dir + os.sep + "run.tp", 'r') as run_file:
+                    run_file = Template(run_file.read())
 
                 substitute = ""
 
@@ -374,17 +374,9 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                         event = state[1]
 
                 if event == "Completed":
-                    content = self.read_file_from_remote('./max%s.txt' % ts, client=client)
-
-                    for file in self.output_file_names:
-                        file_name = "{0}{1}{2}".format(os.path.splitext(file)[0], ts,
-                                                                                  os.path.splitext(output_filename)[1])
-                        self.transfer_files_from_remote(file_name, self.working_dir + file_name,  client=client)
-                        with open(self.working_dir + 'params_%s.txt' % ts, "w") as params_file:
-                            for item in x:
-                                params_file.write("%s\n" % item)
+                    content = self.read_file_from_remote("." + os.sep + "max%s.txt" % ts, client=client)
                     success = True
-                    result = self.parse_results(content, x)
+                    result = parse_results(content, x)
                 else:
                     assert 0
 
@@ -422,8 +414,8 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
         parameters_file.close()
 
         for file in self.supplementary_files:
-            self.transfer_files_to_remote(self.working_dir + '/' + file, './' + file, client=client)
-        output = self.run_command_on_remote("condor_submit ./remote.job", client=client)
+            self.transfer_files_to_remote(self.working_dir + os.sep + file, "." + os.sep + file, client=client)
+        output = self.run_command_on_remote("condor_submit ." + os.sep +"remote.job", client=client)
         print("output:", output)
         process_id = re.search('cluster \d+', output).group().split(" ")[1]
 

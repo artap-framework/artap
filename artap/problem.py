@@ -53,7 +53,8 @@ class Problem(ProblemBase):
         if (working_dir is None) or (not save_data):
             self.working_dir = tempfile.mkdtemp()
         else:
-            time_stamp = str(datetime.now())
+            time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+
             self.working_dir += time_stamp
             if not os.path.isdir(self.working_dir):
                 os.mkdir(self.working_dir)
