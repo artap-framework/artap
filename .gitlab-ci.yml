@@ -2,6 +2,11 @@ build:
   tags:
     - linux
   script: 
+    # build deps
+    - cd 3rdparty
+    - ./submodules.sh
+    - cd ..
+
     # tests
     - cd artap/tests
     - python3 -m unittest -v 
