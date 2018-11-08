@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libmatplotpp.a  CMakeFiles/matplotpp.dir/__/matplotpp/matplotpp.cc.o CMakeFiles/matplotpp.dir/__/matplotpp/gl2ps.c.o
+/usr/bin/ranlib ../lib/libmatplotpp.a
