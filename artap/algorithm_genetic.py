@@ -229,7 +229,7 @@ class NSGA_II(GeneticAlgorithm):
         parent_individuals = []
         child_individuals = self.problem.populations[0].individuals
 
-        for it in range(self.problem.max_population_number):
+        for it in range(self.problem.max_population_number-1):
             population = Population_NSGA_II(self.problem, child_individuals)
             population.evaluate()
             self.problem.add_population(population)

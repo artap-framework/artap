@@ -24,16 +24,25 @@ class Population:
 
         Population.number += 1
 
-    def to_string(self):
+    def __repr__(self):
+
         string = "population number: " + str(self.number) + " \n"
-      
+
         for individual in self.individuals:
             string += individual.to_string() + ", "
-        
+
         return string
 
-    def print(self):
-        print(self.to_string())
+    # def to_string(self):
+    #     string = "population number: " + str(self.number) + " \n"
+    #
+    #     for individual in self.individuals:
+    #         string += individual.to_string() + ", "
+    #
+    #     return string
+    #
+    # def print(self):
+    #     print(self.to_string())
       
     def gen_random_population(self, population_size, vector_length, parameters):
         self.individuals = Individual.gen_individuals(population_size, self.problem, self.number)
