@@ -15,7 +15,7 @@ class MyProblem(Problem):
 
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
         self.max_population_number = 10
         self.max_population_size = 100
 
@@ -33,6 +33,10 @@ class TestNSGA2Optimization(unittest.TestCase):
         algorithm = NSGA_II(problem)
         algorithm.run()
 
+        for population in self.problem.populations:
+            for individual in population.individuals:
+
+                pl.plot(individual.number, individual.parameters[0], 'x')
 
 
 if __name__ == '__main__':
