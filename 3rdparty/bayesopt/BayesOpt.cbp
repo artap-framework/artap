@@ -1,0 +1,1478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="BayesOpt"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\nlopt2\;CMake Files\examples\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v all"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v install/local"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v install/strip"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="doc">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v doc"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="doxygen">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v doxygen"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v install"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bayesopt">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/lib/libbayesopt.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bayesopt"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bayesopt/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/lib/libbayesopt.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bayesopt/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v edit_cache"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v rebuild_cache"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v list_install_components"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="nlopt">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/lib/libnlopt.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/nlopt2"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cdirect"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/praxis"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/crs"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mlsl"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mma"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cobyla"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/newuoa"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/neldermead"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/auglag"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/bobyqa"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/isres"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/slsqp"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/esch"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v nlopt"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="nlopt/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/lib/libnlopt.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/nlopt2"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cdirect"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/praxis"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/crs"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mlsl"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mma"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cobyla"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/newuoa"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/neldermead"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/auglag"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/bobyqa"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/isres"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/slsqp"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/esch"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v nlopt/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_oned">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_oned" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_oned"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_oned/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_oned" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_oned/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_cont">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_cont" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_cont"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_cont/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_cont" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_cont/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="branin_system_calls">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/branin_system_calls" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v branin_system_calls"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="branin_system_calls/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/branin_system_calls" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v branin_system_calls/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_display">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_display" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_display"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_display/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_display" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_display/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_disc">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_disc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_disc"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_disc/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_disc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_disc/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin_display">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin_display" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin_display"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin_display/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin_display" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin_display/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin_mcmc">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin_mcmc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin_mcmc"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin_mcmc/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin_mcmc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin_mcmc/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="branin_xml">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/branin_xml" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v branin_xml"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="branin_xml/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/branin_xml" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v branin_xml/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin_timed">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin_timed" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin_timed"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_branin_timed/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_branin_timed" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_branin_timed/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_compare">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_compare" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_compare"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_compare/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_compare" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_compare/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_hartmann">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_hartmann" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_hartmann"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_hartmann/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_hartmann" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_hartmann/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="matplotpp">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/lib/libmatplotpp.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/examples"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v matplotpp"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="matplotpp/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/lib/libmatplotpp.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/examples"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v matplotpp/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_camelback">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_camelback" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_camelback"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bo_camelback/fast">
+				<Option output="/home/karban/Projects/3rdparty/bayesopt/bin/bo_camelback" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/karban/Projects/3rdparty/bayesopt/bin"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUSE_SOBOL"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/include"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/utils"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/sobol"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api"/>
+					<Add directory="/home/karban/Projects/3rdparty/bayesopt/matplotpp"/>
+					<Add directory="/usr/include/c++/5"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5"/>
+					<Add directory="/usr/include/c++/5/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/ninja -v bo_camelback/fast"/>
+					<CompileFile command="/usr/bin/ninja -v &quot;$file&quot;"/>
+					<Clean command="/usr/bin/ninja -v clean"/>
+					<DistClean command="/usr/bin/ninja -v clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_branin.cpp">
+			<Option target="bo_branin"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_branin_display.cpp">
+			<Option target="bo_branin_display"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_branin_mcmc.cpp">
+			<Option target="bo_branin_mcmc"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_branin_timed.cpp">
+			<Option target="bo_branin_timed"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_camelback.cpp">
+			<Option target="bo_camelback"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_compare.cpp">
+			<Option target="bo_compare"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_cont.cpp">
+			<Option target="bo_cont"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_disc.cpp">
+			<Option target="bo_disc"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_display.cpp">
+			<Option target="bo_display"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_hartmann.cpp">
+			<Option target="bo_hartmann"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/bo_oned.cpp">
+			<Option target="bo_oned"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/branin_system_calls.cpp">
+			<Option target="branin_system_calls"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/branin_xml.cpp">
+			<Option target="branin_xml"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/matplotpp/gl2ps.c">
+			<Option target="matplotpp"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/matplotpp/gl2ps.h">
+			<Option target="matplotpp"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/matplotpp/matplotpp.cc">
+			<Option target="matplotpp"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/matplotpp/matplotpp.h">
+			<Option target="matplotpp"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/deprecated.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/f77api.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/f77funcs.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/f77funcs_.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/general.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/nlopt-in.hpp">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/nlopt-internal.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/nlopt.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/nlopt.hpp">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/optimize.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/api/options.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/auglag/auglag.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/auglag/auglag.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/bobyqa/bobyqa.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/bobyqa/bobyqa.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cdirect/cdirect.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cdirect/cdirect.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cdirect/hybrid.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cobyla/cobyla.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/cobyla/cobyla.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/crs/crs.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/crs/crs.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct/DIRect.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct/DIRserial.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct/DIRsubrout.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct/direct-internal.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct/direct.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/direct/direct_wrap.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/esch/esch.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/esch/esch.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/isres/isres.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/isres/isres.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan/luksan.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan/mssubs.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan/plip.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan/plis.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan/pnet.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/luksan/pssubs.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mlsl/mlsl.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mlsl/mlsl.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mma/ccsa_quadratic.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mma/mma.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/mma/mma.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/neldermead/neldermead.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/neldermead/nldrmd.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/neldermead/sbplx.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/newuoa/newuoa.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/newuoa/newuoa.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/praxis/praxis.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/praxis/praxis.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/slsqp/slsqp.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/slsqp/slsqp.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/global.cc">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/global.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/linalg.cc">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/linalg.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/local.cc">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/local.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/stogo.cc">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/stogo.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/stogo_config.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/tools.cc">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/stogo/tools.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/mt19937ar.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/nlopt-util.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/qsort_r.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/redblack.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/redblack.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/rescale.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/soboldata.h">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/sobolseq.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/stop.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/util/timer.c">
+			<Option target="nlopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/sobol/sobol.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/sobol/sobol.hpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/sobol/sobol_i4.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/sobol/sobol_i8.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/bayesoptbase.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/bayesoptcont.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/bayesoptdisc.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/bopt_state.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/conditionalbayesprocess.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/criteria_functors.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/criteria_hedge.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/dataset.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/gauss_distribution.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/gaussian_process.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/gaussian_process_hierarchical.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/gaussian_process_ml.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/gaussian_process_normal.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/inneroptimization.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/kernel_functors.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/kernelregressor.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/mcmc_sampler.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/mean_functors.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/nonparametricprocess.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/parameters.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/posterior_empirical.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/posterior_fixed.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/posterior_mcmc.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/posteriormodel.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/student_t_distribution.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/student_t_process_jef.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/student_t_process_nig.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/src/wrappers/bayesoptwpr.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/displaygp.cpp">
+			<Option target="bo_display"/>
+			<Option target="bo_branin_display"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/displaygp.hpp">
+			<Option target="bo_display"/>
+			<Option target="bo_branin_display"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/fileparser.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/fileparser.hpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/param_loader.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/param_loader.hpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/parser.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/parser.hpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/ublas_extra.cpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/utils/ublas_extra.hpp">
+			<Option target="bayesopt"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/Doxyfile.in">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/cmake/UseDoxygen.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\nlopt2\"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/nlopt2/config.cmake.h.in">
+			<Option virtualFolder="CMake Files\nlopt2\"/>
+		</Unit>
+		<Unit filename="/home/karban/Projects/3rdparty/bayesopt/examples/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\examples\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
