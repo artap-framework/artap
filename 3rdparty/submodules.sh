@@ -19,7 +19,6 @@ cp $DIR/nlopt2/build/src/swig/_nlopt.so $DIR/../artap/lib/
 strip $DIR/../artap/lib/_nlopt.so
 
 # BayesOpt
-
 cd $DIR/bayesopt
 mkdir -p build
 cd build
@@ -29,4 +28,5 @@ cp $DIR/bayesopt/build/lib/bayesopt.so $DIR/../artap/lib/
 strip $DIR/../artap/lib/bayesopt.so
 
 
-
+# go back
+cd $DIR
