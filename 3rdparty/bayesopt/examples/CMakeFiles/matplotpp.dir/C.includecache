@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/karban/Projects/3rdparty/bayesopt/matplotpp/gl2ps.c
+gl2ps.h
+/home/karban/Projects/3rdparty/bayesopt/matplotpp/gl2ps.h
+math.h
+-
+string.h
+-
+sys/types.h
+-
+stdarg.h
+-
+time.h
+-
+float.h
+-
+zlib.h
+-
+png.h
+-
+
+/home/karban/Projects/3rdparty/bayesopt/matplotpp/gl2ps.h
+stdio.h
+-
+stdlib.h
+-
+windows.h
+-
+OpenGL/gl.h
+-
+GL/gl.h
+-
+
