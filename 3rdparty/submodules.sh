@@ -7,7 +7,7 @@ DIR=$PWD
 # git submodule add git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/bayesopt.git 3rdparty/bayesopt
 
 # update
-git submodule update 
+git submodule update --init --recursive
 
 # nlopt2
 cd $DIR/nlopt2
