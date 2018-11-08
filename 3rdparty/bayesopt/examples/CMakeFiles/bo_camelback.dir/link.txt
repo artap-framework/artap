@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -DNDEBUG  -rdynamic CMakeFiles/bo_camelback.dir/bo_camelback.cpp.o  -o ../bin/bo_camelback  -L/home/karban/Projects/3rdparty/bayesopt/lib -Wl,-rpath,/home/karban/Projects/3rdparty/bayesopt/lib ../lib/libbayesopt.so ../lib/libnlopt.a 
