@@ -526,7 +526,7 @@ algorithm_name = _nlopt.algorithm_name
 _algorithm = [GN_DIRECT_L, GN_DIRECT_L_RAND, GN_MLSL, GN_CRS2_LM, GN_ISRES, GN_ESCH, LN_BOBYQA, LN_COBYLA, LN_NELDERMEAD, LN_SBPLX,  LN_PRAXIS, LN_AUGLAG_EQ]
 
 class NLopt(Algorithm):
-    """ BayesOpt algorithms """
+    """ NLopt algorithms """
 
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
@@ -595,7 +595,8 @@ class NLopt(Algorithm):
             x = op.optimize(self.problem.get_initial_values())
 
             if (self.options['verbose_level'] >= 1):
-                print('optimum at ', x[0], x[1])
+                print('method: ', op.get_algorithm_name())
+                print('optimum at ', x)
                 print('minimum value = ', op.last_optimum_value())
                 print('nevals = ', op.get_numevals())
         except RuntimeError:

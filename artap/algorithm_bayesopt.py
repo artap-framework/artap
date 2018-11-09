@@ -244,13 +244,13 @@ class BayesOptParallel(BayesOpt):
         self.bo.params['sc_type'] = self.options['sc_type']
         self.bo.params['verbose_level'] = self.options['verbose_level']
 
-        p = Process(target=worker, args=(self.pipe_par, self.problem))
+        process = Process(target=worker, args=(self.pipe_par, self.problem))
 
         self.bo.start()
-        p.start()
+        process.start()
 
         self.bo.join()
-        p.join()
+        process.join()
 
         # self.result = self.mvalue
 
