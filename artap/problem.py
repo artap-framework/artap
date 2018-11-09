@@ -40,14 +40,17 @@ class ProblemBase(ABC):
 
 class Problem(ProblemBase):
     """ Is a main class which collects information about optimization task """
-           
+
+    MINIMIZE = -1
+    MAXIMIZE = 1
+
     def __init__(self, name, parameters, costs, data_store=None, working_dir=None, save_data=True):
 
         super().__init__()
         self.name = name
         self.working_dir = working_dir
         self.parameters = parameters
-        self.costs = {cost: 0 for cost in costs}
+        self.costs = {cost: 0.0 for cost in costs}
         self.save_data = save_data
 
         if (working_dir is None) or (not save_data):

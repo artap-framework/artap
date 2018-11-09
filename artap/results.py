@@ -1,3 +1,5 @@
+from .problem import Problem
+
 import matplotlib
 matplotlib.use('Agg')
 import pylab as pl
@@ -5,12 +7,28 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
 
+import sys
 
 class Results:
-
     def __init__(self, problem):
         self.problem = problem
 
+    def find_minimum(self, name=0):
+        ind = None
+
+        # get index
+        index = 0 # self.problem.costs.index(name)
+
+        for population in self.problem.populations:
+            if len(population.individuals) > 1:
+                for individual in population.individuals:
+                    if ind is None:
+                        ind = individual
+                    # compare
+                    if individual.costs[index] < ind.costs[index]:
+                        ind = individual
+
+        return ind
 
 class GraphicalResults(Results):
 
@@ -20,17 +38,19 @@ class GraphicalResults(Results):
         rc('text', usetex=True)
         rc('font', family='serif')
 
-    def plot_all_individuals(self):
+    def plot_all_individuals(self, filename=None):
         for population in self.problem.populations:
             for individual in population.individuals:
                 pl.plot(individual.number, individual.parameters[0], 'x')
 
-        pl.savefig(self.problem.working_dir + "all_individuals.pdf")
-        pl.show()
+        if filename is not None:
+            pl.savefig(filename)
+        else:
+            pl.savefig(self.problem.working_dir + "all_individuals.pdf")
 
     def plot_populations(self):
         for population in self.problem.populations:
-            figure_name = "pareto_" + str(population.number) + ".pdf"
+            figure_name = self.problem.working_dir + "pareto_" + str(population.number) + ".pdf"
             if len(population.individuals) > 1:
                 figure = Figure()
                 FigureCanvas(figure)
@@ -50,5 +70,7 @@ class GraphicalResults(Results):
                 ax.set_xlabel('$x$')
                 ax.set_ylabel('$y$')
                 ax.grid()
+
                 figure.savefig(figure_name)
+
 
