@@ -136,3 +136,15 @@ class Binh_and_Korn:
         g2 = max(0, pow(x - 8, 2) + pow(y + 3, 2) - 7.7)
         violation = [g1, g2]
         return violation
+
+class Booth:
+    """
+    Booth function
+    """
+
+    @classmethod
+    def eval(cls, X):
+        x = X[0]
+        y = X[1]
+
+        return (x + 2*y - 7)**2 + (2*x + y - 5)**2
