@@ -24,12 +24,18 @@ class MyProblem(Problem):
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
-    def test_local_problem_nsga2(self):   
+    def test_local_problem_nsga2(self):
+
         problem = MyProblem("LocalPythonProblemNSGA_II")
         algorithm = NSGA_II(problem)
         algorithm.options['max_population_number'] = 10
         algorithm.options['max_population_size'] = 100
         algorithm.run()
+
+        for population in self.problem.populations:
+            for individual in population.individuals:
+
+                pl.plot(individual.number, individual.parameters[0], 'x')
 
 
 if __name__ == '__main__':
