@@ -57,19 +57,15 @@ class Population:
             j += 1
 
     def evaluate(self):
-        Population.evaluate_individuals(self.individuals, self.problem)
-
-    @staticmethod
-    def evaluate_individuals(individuals, problem):
         processes = []
         i = 0
-        time.sleep(1)
-        for individual in individuals:
+        #time.sleep(1)
+        for individual in self.individuals:
             i += 1
-            if i % 10 == 0:
-                time.sleep(1)
+            #if i % 10 == 0:
+            #    time.sleep(1)
             if not individual.is_evaluated:
-                individual.problem = problem
+                individual.problem = self.problem
                 p = Process(target=individual.evaluate)
                 processes.append(p)
                 p.start()
@@ -79,11 +75,10 @@ class Population:
 
         for i in range(Individual.results.qsize()):
             result = Individual.results.get()
-            for individual in individuals:
+            for individual in self.individuals:
                 if individual.number == result[0]:
                     individual.costs = result[1]
                     individual.is_solved = True
-
 
 class Population_NSGA_II(Population):
 
