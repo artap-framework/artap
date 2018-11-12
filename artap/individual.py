@@ -22,17 +22,36 @@ class Individual(metaclass=ABCMeta):
         self.population_id = population_id
         self.is_evaluated = False
 
-    def to_string(self):
-        string = "["
-        for number in self.parameters:
-            string += str(number) + ", "
+    def __repr__(self):
+        """ :return: [parameters[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
+        string = "parameters: ["
+
+        for i,number in enumerate(self.parameters):
+            string += str(number)
+            if i<len(self.costs)-1:
+                string += ", "
+
         string = string[:len(string) - 1]
         string += "]"
         string += "; costs:["
-        for number in self.costs:
-            string += str(number) + ", "
+        for i,number in enumerate(self.costs):
+            string += str(number)
+            if i<len(self.costs)-1:
+                string += ", "
         string += "]\n"
         return string
+
+    # def to_string(self):
+    #     string = "["
+    #     for number in self.parameters:
+    #         string += str(number) + ", "
+    #     string = string[:len(string) - 1]
+    #     string += "]"
+    #     string += "; costs:["
+    #     for number in self.costs:
+    #         string += str(number) + ", "
+    #     string += "]\n"
+    #     return string
 
     def to_list(self):
         params = [self.number, self.population_id, self.parameters, self.costs]
@@ -48,7 +67,7 @@ class Individual(metaclass=ABCMeta):
             self.costs = costs
 
         self.is_evaluated = True
-        self.problem.data_store.write_individual(self.to_list())
+        # self.problem.data_store.write_individual(self.to_list())
 
         Individual.results.put([self.number, costs])
         return costs
