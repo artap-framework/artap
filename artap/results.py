@@ -10,14 +10,23 @@ from matplotlib import rc
 import sys
 
 class Results:
+
     def __init__(self, problem):
         self.problem = problem
 
     def find_minimum(self, name=0):
+        """
+        Search the optimal value for the given (by name parameter) single objective .
+
+        :param name:
+        :return:
+        """
         ind = None
 
-        # get index
-        index = 0 # self.problem.costs.index(name)
+        # get the index of the required parameter
+        index = [i for i, s in enumerate(self.problem.costs) if name in s]
+
+        #index = self.problem.costs.index(name)
 
         for population in self.problem.populations:
             if len(population.individuals) > 1:
@@ -29,6 +38,19 @@ class Results:
                         ind = individual
 
         return ind
+
+    def pareto_values(self):
+        """
+        :return: a list of lists which contains the optimal values of the cost function:
+                l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
+        """
+        print('aa')
+        population = self.problem.populations[-1]
+        l_sol = []
+        if len(population.individuals) > 1:
+            for individual in population.individuals:
+                l_sol.append(individual.costs)
+        return l_sol
 
 class GraphicalResults(Results):
 
@@ -66,11 +88,9 @@ class GraphicalResults(Results):
                             scale = 100 / (individual.front_number / 4.)
                             ax.scatter(individual.costs[0], individual.costs[1],
                                        scale, c=colors[(individual.front_number - 1) % 6])
-
                 ax.set_xlabel('$x$')
                 ax.set_ylabel('$y$')
                 ax.grid()
-
                 figure.savefig(figure_name)
 
 
