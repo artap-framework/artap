@@ -23,8 +23,6 @@ class ProblemBase(ABC):
         self.costs: list = None
         self.data_store: SqliteDataStore = None
         self._algorithm = None
-        self.max_population_size = 1
-        self.max_population_count = 10
 
     def get_parameters_list(self):
         parameters_list = []
