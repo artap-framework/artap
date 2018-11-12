@@ -295,7 +295,6 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
     def eval(self, x):
         success = False
-        result = 0
         while not success:
             try:
                 client = paramiko.SSHClient()
@@ -382,12 +381,12 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
                 client.close()
 
+                return result
+
             except Exception as e:
                 print(e)
+                time.sleep(1)
                 continue
-
-        return result
-
 
 class CondorPythonJobExecutor(RemoteCondorExecutor):
     """ Allows submit goal function calculation as a HT Condor job """
@@ -404,35 +403,43 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
 
     def eval(self, x):
 
-        client = paramiko.SSHClient()
-        client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(hostname=self.hostname, username=self.username, password=self.password)
+        success = False
+        while not success:
+            try:
+                client = paramiko.SSHClient()
+                client.load_system_host_keys()
+                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                client.connect(hostname=self.hostname, username=self.username, password=self.password)
 
-        parameters_file = self.create_file_on_remote("parameters.txt", client)
-        parameters_file.write(str(x[0]) + " " + str(x[1]))
-        parameters_file.close()
+                parameters_file = self.create_file_on_remote("parameters.txt", client)
+                parameters_file.write(str(x[0]) + " " + str(x[1]))
+                parameters_file.close()
 
-        for file in self.supplementary_files:
-            self.transfer_files_to_remote(self.working_dir + os.sep + file, "." + os.sep + file, client=client)
-        output = self.run_command_on_remote("condor_submit ." + os.sep +"remote.job", client=client)
-        print("output:", output)
-        process_id = re.search('cluster \d+', output).group().split(" ")[1]
+                for file in self.supplementary_files:
+                    self.transfer_files_to_remote(self.working_dir + os.sep + file, "." + os.sep + file, client=client)
+                output = self.run_command_on_remote("condor_submit ." + os.sep +"remote.job", client=client)
+                print("output:", output)
+                process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
-        event = ""
-        while event != "Completed":  # If the job is complete it disappears from que
-            content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
-            state = RemoteCondorExecutor.parse_condor_log(content)
+                event = ""
+                while event != "Completed":  # If the job is complete it disappears from que
+                    content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
+                    state = RemoteCondorExecutor.parse_condor_log(content)
 
-            if state[1] != event:
-                print(state)
-            event = state[1]
+                    if state[1] != event:
+                        print(state)
+                    event = state[1]
 
-        content = self.read_file_from_remote(self.output_filename, client=client)
-        y = float(content[0])
+                content = self.read_file_from_remote(self.output_filename, client=client)
+                result = float(content[0])
 
-        # remove remote dir
-        self.remove_remote_dir(client)
-        client.close()
-        return y
+                # remove remote dir
+                self.remove_remote_dir(client)
+                client.close()
 
+                return result
+
+            except Exception as e:
+                print(e)
+                time.sleep(1)
+                continue

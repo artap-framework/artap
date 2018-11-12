@@ -4,7 +4,7 @@ from .population import Population, Population_NSGA_II
 from .individual import Individual_NSGA_II, Individual
 
 from abc import ABCMeta, abstractmethod
-import random, operator
+import random
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -30,9 +30,7 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
     def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
         super().__init__(problem, name)
-        self.population_size = self.problem.max_population_size
         self.parameters_length = len(self.problem.parameters)
-        self.populations_number = self.problem.max_population_count
         self.current_population = 0
 
     def gen_initial_population(self):
@@ -59,12 +57,21 @@ class NSGA_II(GeneticAlgorithm):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
-        self.prob_cross = 0.9
-        self.prob_mutation = 0.05
+
+        self.options.declare(name='n_iterations', default=50, lower=1,
+                             desc='Maximum evaluations')
+        self.options.declare(name='prob_cross', default=0.9, lower=0,
+                             desc='prob_cross')
+        self.options.declare(name='prob_mutation', default=0.05, lower=0,
+                             desc='prob_mutation')
+        self.options.declare(name='max_population_number', default=10, lower=1,
+                             desc='max_population_number')
+        self.options.declare(name='max_population_size', default=100, lower=1,
+                             desc='max_population_size')
 
     def gen_initial_population(self):
         population = Population_NSGA_II(self.problem)
-        population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
+        population.gen_random_population(self.options['max_population_size'], self.parameters_length, self.problem.parameters)
         self.problem.populations.append(population)
 
     def is_dominate(self, p, q):
@@ -175,7 +182,7 @@ class NSGA_II(GeneticAlgorithm):
         # generate two children from two parents
 
         children = []
-        while len(children) < self.population_size:
+        while len(children) < self.options['max_population_size']:
             parent1 = self.tournament_select(parents)
             parent2 = self.tournament_select(parents)
             while parent1 == parent2:
@@ -191,7 +198,7 @@ class NSGA_II(GeneticAlgorithm):
 
     def cross(self, p1, p2):
         """ the random linear operator """
-        if random.uniform(0, 1) >= self.prob_cross:
+        if random.uniform(0, 1) >= self.options['prob_cross']:
             return p1, p2
 
         parameter1, parameter2 = [], []
@@ -210,15 +217,14 @@ class NSGA_II(GeneticAlgorithm):
         """ uniform random mutation """
         mutation_space = 0.1
         parameters = []
-        #i = 0
-        for i,parameter in enumerate(self.problem.parameters.items()):
-            if random.uniform(0, 1) < self.prob_mutation:
+
+        for i, parameter in enumerate(self.problem.parameters.items()):
+            if random.uniform(0, 1) < self.options['prob_mutation']:
                 para_range = mutation_space * (parameter[1]['bounds'][0] - parameter[1]['bounds'][1])
                 mutation = random.uniform(-para_range, para_range)
                 parameters.append(p.parameters[i] + mutation)
             else:
                 parameters.append(p.parameters[i])
-            #i += 1
 
         p_new = Individual_NSGA_II(parameters, self.problem)
         return p_new
@@ -234,7 +240,7 @@ class NSGA_II(GeneticAlgorithm):
         parent_individuals = []
         child_individuals = self.problem.populations[0].individuals
 
-        for it in range(self.problem.max_population_number-1):
+        for it in range(self.options['max_population_number']):
             population = Population_NSGA_II(self.problem, child_individuals)
             population.evaluate()
             self.problem.add_population(population)
@@ -246,12 +252,11 @@ class NSGA_II(GeneticAlgorithm):
             parents = []
             front = 1
 
-            # !!!
-            while len(parents) < self.population_size:
+            while len(parents) < self.options['max_population_size']:
                 for individual in individuals:
                     if individual.front_number == front:
                         parents.append(individual)
-                        if len(parents) == self.population_size:
+                        if len(parents) == self.options['max_population_size']:
                             break
                 front = front + 1
 

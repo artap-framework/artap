@@ -15,10 +15,7 @@ class MyProblem(Problem):
 
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
-        self.max_population_number = 10
-        self.max_population_size = 100
-
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
 
     def eval(self, x):
         return Binh_and_Korn.eval(x)
@@ -31,6 +28,8 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         problem = MyProblem("LocalPythonProblemNSGA_II")
         algorithm = NSGA_II(problem)
+        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_size'] = 100
         algorithm.run()
 
 if __name__ == '__main__':

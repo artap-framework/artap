@@ -5,7 +5,7 @@ import os
 from artap.executor import CondorPythonJobExecutor
 from artap.problem import Problem
 from artap.enviroment import Enviroment
-
+from artap.population import Population_NSGA_II
 
 class TestProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -57,6 +57,14 @@ class TestCondor(TestCase):
         result = problem.eval([1, 1])
         self.assertAlmostEqual(result, 2)
 
+    def xtest_condor_run(self):
+        """ Tests one calculation of goal function."""
+        problem = TestProblem("Condor Problem")
+        population = Population_NSGA_II(problem)
+
+        table = [[10, 10], [11, 11]]
+        population.gen_population_from_table(table)
+        population.evaluate()
 
 if __name__ == '__main__':
     main()
