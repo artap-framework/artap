@@ -117,11 +117,24 @@ class Binh_and_Korn:
 
     search domain: 0 <= x <=5, 0 <= y <= 3
 
-    The solution is approximately:
-
-    f(x) = 2.8873e-10*x^6-1.2854e-7*x^5+2.2318*x^4-0.0019*x^3+0.087*x^2-2.3012*x+46.1968
-
     """
+
+    @staticmethod
+    def approx(x):
+        """
+        Estimates the pareto front of the Binh_and_Korn function in the following domain: [10;100]
+
+        The approximate function is:
+
+        f(x) = 2.8873e-10*x^6-1.2854e-7*x^5+2.2318*x^4-0.0019*x^3+0.087*x^2-2.3012*x+46.1968
+
+        fitted on a platypus calculation: algorithm nsga II, 10 000 evaluations
+
+        :param x: the value of the f1 function
+        :return:
+        """
+
+        return 2.8873e-10*x**6.-1.2854e-7*x**5.+2.2318e-5*x**4.-0.0019*x**3.+0.087*x**2.-2.3012*x+46.1968
 
     @classmethod
     def eval(cls, x_list):
@@ -141,6 +154,7 @@ class Binh_and_Korn:
         g2 = max(0, pow(x - 8, 2) + pow(y + 3, 2) - 7.7)
         violation = [g1, g2]
         return violation
+
 
 class Booth:
     """
