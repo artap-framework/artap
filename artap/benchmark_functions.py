@@ -116,6 +116,11 @@ class Binh_and_Korn:
     $g_{1}(x,y) = (x-8)^2 + (y+3)^2 \leq 7.7$
 
     search domain: 0 <= x <=5, 0 <= y <= 3
+
+    The solution is approximately:
+
+    f(x) = 2.8873e-10*x^6-1.2854e-7*x^5+2.2318*x^4-0.0019*x^3+0.087*x^2-2.3012*x+46.1968
+
     """
 
     @classmethod
