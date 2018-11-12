@@ -4,7 +4,7 @@ from .population import Population, Population_NSGA_II
 from .individual import Individual_NSGA_II, Individual
 
 from abc import ABCMeta, abstractmethod
-import random
+import random, operator
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -122,16 +122,18 @@ class NSGA_II(GeneticAlgorithm):
     @staticmethod
     def sort_by_coordinate(population, dim):
         # individuals = population.individuals.copy()
-        individuals = population
+        #individuals = population
 
-        for i in range(0, len(individuals) - 1):
-            for j in range(i + 1, len(individuals)):
-                if individuals[i].parameters[dim] < individuals[j].parameters[dim]:
-                    temp = individuals[i]
-                    individuals[i] = individuals[j]
-                    individuals[j] = temp
+        population.sort(key = lambda x: x.parameters[dim])
 
-        return individuals
+        # for i in range(0, len(individuals) - 1):
+        #     for j in range(i + 1, len(individuals)):
+        #         if individuals[i].parameters[dim] < individuals[j].parameters[dim]:
+        #             temp = individuals[i]
+        #             individuals[i] = individuals[j]
+        #             individuals[j] = temp
+
+        return population
 
     def calculate_crowd_dis(self, population):
         infinite = float("inf")
@@ -153,7 +155,8 @@ class NSGA_II(GeneticAlgorithm):
             p.crowding_distance = p.crowding_distance / len(self.problem.parameters)
 
     @staticmethod
-    def tournament_select(parents, part_num=2):  # binary tournament selection
+    def tournament_select(parents, part_num=2):
+        """ binary tournament selection """
         participants = random.sample(parents, part_num)
         best = participants[0]
         best_rank = participants[0].front_number
@@ -186,7 +189,8 @@ class NSGA_II(GeneticAlgorithm):
             children.append(child2)
         return children.copy()
 
-    def cross(self, p1, p2):  # the random linear operator
+    def cross(self, p1, p2):
+        """ the random linear operator """
         if random.uniform(0, 1) >= self.prob_cross:
             return p1, p2
 
@@ -202,18 +206,19 @@ class NSGA_II(GeneticAlgorithm):
         c2 = Individual_NSGA_II(parameter2, self.problem)
         return c1, c2
 
-    def mutation(self, p):  # uniform random mutation
+    def mutation(self, p):
+        """ uniform random mutation """
         mutation_space = 0.1
         parameters = []
-        i = 0
-        for parameter in self.problem.parameters.items():
+        #i = 0
+        for i,parameter in enumerate(self.problem.parameters.items()):
             if random.uniform(0, 1) < self.prob_mutation:
                 para_range = mutation_space * (parameter[1]['bounds'][0] - parameter[1]['bounds'][1])
                 mutation = random.uniform(-para_range, para_range)
                 parameters.append(p.parameters[i] + mutation)
             else:
                 parameters.append(p.parameters[i])
-            i += 1
+            #i += 1
 
         p_new = Individual_NSGA_II(parameters, self.problem)
         return p_new
@@ -241,6 +246,7 @@ class NSGA_II(GeneticAlgorithm):
             parents = []
             front = 1
 
+            # !!!
             while len(parents) < self.population_size:
                 for individual in individuals:
                     if individual.front_number == front:
