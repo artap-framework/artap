@@ -37,7 +37,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         #optimum = results.find_minimum(name='F').costs[0]
         #self.assertAlmostEqual(optimum, 0, places=2)
 
-    def xtest_local_problem_bayesopt_serial(self):
+    def test_local_problem_bayesopt_serial(self):
         problem = MyProblem("LocalPythonProblemBayesOptSerial")
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
