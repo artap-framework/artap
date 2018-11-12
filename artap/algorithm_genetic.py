@@ -125,21 +125,10 @@ class NSGA_II(GeneticAlgorithm):
                         temp_set.append(q)
             pareto_front = temp_set
 
-    # TODO: faster algorithm
     @staticmethod
     def sort_by_coordinate(population, dim):
-        # individuals = population.individuals.copy()
-        #individuals = population
 
         population.sort(key = lambda x: x.parameters[dim])
-
-        # for i in range(0, len(individuals) - 1):
-        #     for j in range(i + 1, len(individuals)):
-        #         if individuals[i].parameters[dim] < individuals[j].parameters[dim]:
-        #             temp = individuals[i]
-        #             individuals[i] = individuals[j]
-        #             individuals[j] = temp
-
         return population
 
     def calculate_crowd_dis(self, population):
