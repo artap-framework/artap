@@ -4,7 +4,7 @@ from .population import Population, Population_NSGA_II
 from .individual import Individual_NSGA_II, Individual
 
 from abc import ABCMeta, abstractmethod
-import random
+import random, time
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -76,7 +76,8 @@ class NSGA_II(GeneticAlgorithm):
 
     def is_dominate(self, p, q):
         dominate = False
-        for i in range(0, len(self.problem.costs)-1):
+        # This line is not good id the problem has only one cost function
+        for i in range(0, len(self.problem.costs)):
             if p.costs[i] > q.costs[i]:
                 return False
             if p.costs[i] < q.costs[i]:
@@ -229,6 +230,7 @@ class NSGA_II(GeneticAlgorithm):
         parent_individuals = []
         offsprings = self.problem.populations[0].individuals
 
+        t_s = time.time()
         for it in range(self.options['max_population_number']):
             population = Population_NSGA_II(self.problem, offsprings)
             population.evaluate()
@@ -238,15 +240,9 @@ class NSGA_II(GeneticAlgorithm):
             self.fast_non_dominated_sort(individuals)
             self.calculate_crowd_dis(individuals)
 
-            parents = []
-            front = 1
-
-            while len(parents) < self.options['max_population_size']:
-                for individual in individuals:
-                    if individual.front_number == front:
-                        parents.append(individual)
-                        if len(parents) == self.options['max_population_size']:
-                            break
-                front = front + 1
-
+            # sorts the offsprings by their front number
+            parents = sorted(individuals, key=lambda x: x.front_number)
             offsprings = self.generate(parents)
+
+        t = time.time() - t_s
+        print('Elapsed time:', t)
