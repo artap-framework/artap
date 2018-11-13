@@ -227,7 +227,6 @@ class NSGA_II(GeneticAlgorithm):
 
     def run(self):
         self.gen_initial_population()
-        parent_individuals = []
         offsprings = self.problem.populations[0].individuals
 
         t_s = time.time()
@@ -236,12 +235,10 @@ class NSGA_II(GeneticAlgorithm):
             population.evaluate()
             self.problem.add_population(population)
 
-            individuals = parent_individuals + offsprings
-            self.fast_non_dominated_sort(individuals)
-            self.calculate_crowd_dis(individuals)
+            self.fast_non_dominated_sort(offsprings)
+            self.calculate_crowd_dis(offsprings)
 
-            # sorts the offsprings by their front number
-            parents = sorted(individuals, key=lambda x: x.front_number)
+            parents = sorted(offsprings, key=lambda x: x.front_number)
             offsprings = self.generate(parents)
 
         t = time.time() - t_s
