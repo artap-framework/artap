@@ -24,20 +24,21 @@ class Results:
         ind = None
 
         # get the index of the required parameter
-        index = [i for i, s in enumerate(self.problem.costs) if name in s]
+        index = int(self.problem.costs.get(name))
 
-        #index = self.problem.costs.index(name)
-
+        min_l = []
         for population in self.problem.populations:
-            if len(population.individuals) > 1:
-                for individual in population.individuals:
-                    if ind is None:
-                        ind = individual
-                    # compare
-                    if individual.costs[index] < ind.costs[index]:
-                        ind = individual
 
-        return ind
+            if type(population.individuals[index].costs) is not list:
+                min_l.append(min(population.individuals, key=lambda x: x.costs))
+                opt = min(min_l, key=lambda x: x.costs)
+                opt = opt.costs
+            else:
+                min_l.append(min(population.individuals, key=lambda x: x.costs[name]))
+                opt = min(min_l, key=lambda x: x.costs[name])
+                opt = opt.costs[name]
+
+        return opt
 
     def pareto_values(self):
         """
