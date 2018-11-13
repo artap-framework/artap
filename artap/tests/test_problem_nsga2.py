@@ -2,9 +2,9 @@ import os
 import unittest
 
 from artap.problem import Problem
-from artap.benchmark_functions import Binh_and_Korn
+from artap.benchmark_functions import Binh_and_Korn, AckleyN2
 from artap.algorithm_genetic import NSGA_II
-from artap.results import GraphicalResults
+from artap.results import GraphicalResults, Results
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -31,6 +31,39 @@ class TestNSGA2Optimization(unittest.TestCase):
         algorithm.options['max_population_number'] = 10
         algorithm.options['max_population_size'] = 100
         algorithm.run()
+
+
+class AckleyN2Test(Problem):
+    """Test with a simple 2 variable Ackley N2 formula"""
+
+    def __init__(self, name):
+        self.max_population_number = 1
+        self.max_population_size = 1
+
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1},
+                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
+        costs = ['F_1']
+        working_dir = "./workspace/common_data/"
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
+
+    def eval(self, x):
+        return AckleyN2.eval(x)
+
+
+class TestAckleyN2(unittest.TestCase):
+    """ Tests simple one objective optimization problem."""
+
+    def test_local_problem(self):
+        problem = AckleyN2Test("LocalPythonProblem")
+        algorithm = NSGA_II(problem)
+        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_size'] = 100
+        algorithm.run()
+
+        b = Results(problem)
+        optimum = b.find_minimum('F_1')  # Takes last cost function
+        self.assertAlmostEqual(optimum, -200, 3)
+
 
 if __name__ == '__main__':
     unittest.main()

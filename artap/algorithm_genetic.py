@@ -76,7 +76,7 @@ class NSGA_II(GeneticAlgorithm):
 
     def is_dominate(self, p, q):
         dominate = False
-        for i in range(0, len(self.problem.costs)):
+        for i in range(0, len(self.problem.costs)-1):
             if p.costs[i] > q.costs[i]:
                 return False
             if p.costs[i] < q.costs[i]:
@@ -227,14 +227,14 @@ class NSGA_II(GeneticAlgorithm):
     def run(self):
         self.gen_initial_population()
         parent_individuals = []
-        child_individuals = self.problem.populations[0].individuals
+        offsprings = self.problem.populations[0].individuals
 
         for it in range(self.options['max_population_number']):
-            population = Population_NSGA_II(self.problem, child_individuals)
+            population = Population_NSGA_II(self.problem, offsprings)
             population.evaluate()
             self.problem.add_population(population)
 
-            individuals = parent_individuals + child_individuals
+            individuals = parent_individuals + offsprings
             self.fast_non_dominated_sort(individuals)
             self.calculate_crowd_dis(individuals)
 
@@ -249,4 +249,4 @@ class NSGA_II(GeneticAlgorithm):
                             break
                 front = front + 1
 
-            child_individuals = self.generate(parents)
+            offsprings = self.generate(parents)
