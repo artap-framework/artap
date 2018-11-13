@@ -8,8 +8,12 @@ from artap.problem import ProblemDataStore
 
 class WebPagesWriter:
 
+    '''
     data_dirs = [".." + os.sep + "artap" + os.sep + "tests" + os.sep + "workspace" + os.sep,
                  ".." + os.sep + "artap" + os.sep + "projects"]
+    '''
+
+    data_dirs = [".." + os.sep + "artap" + os.sep + "tests" + os.sep + "workspace" + os.sep]
 
     def __init__(self):
         self.table = self.read_problems()
