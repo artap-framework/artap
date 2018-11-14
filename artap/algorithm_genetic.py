@@ -155,26 +155,17 @@ class NSGA_II(GeneticAlgorithm):
     def tournament_select(parents, part_num=2):
         """ binary tournament selection """
         participants = random.sample(parents, part_num)
-        best = participants[0]
-        best_rank = participants[0].front_number
-        best_crowding_distance = participants[0].crowding_distance
+        return min(participants, key= lambda x: (x.front_number, x.crowding_distance))
 
-        for p in participants[1:]:
-            if p.front_number < best_rank or \
-                    (p.front_number == best_rank and p.crowding_distance > best_crowding_distance):
-                best = p
-                best_rank = p.front_number
-                best_crowding_distance = p.crowding_distance
-
-        return best
 
     def generate(self, parents):
-        # generate two children from two parents
-
+        """ generate two children from two different parents """
         children = []
         while len(children) < self.options['max_population_size']:
+
             parent1 = self.tournament_select(parents)
             parent2 = self.tournament_select(parents)
+
             while parent1 == parent2:
                 parent2 = self.tournament_select(parents)
 
@@ -184,6 +175,7 @@ class NSGA_II(GeneticAlgorithm):
 
             children.append(child1)
             children.append(child2)
+
         return children.copy()
 
     def cross(self, p1, p2):
