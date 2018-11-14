@@ -41,18 +41,6 @@ class Individual(metaclass=ABCMeta):
         string += "]\n"
         return string
 
-    # def to_string(self):
-    #     string = "["
-    #     for number in self.parameters:
-    #         string += str(number) + ", "
-    #     string = string[:len(string) - 1]
-    #     string += "]"
-    #     string += "; costs:["
-    #     for number in self.costs:
-    #         string += str(number) + ", "
-    #     string += "]\n"
-    #     return string
-
     def to_list(self):
         params = [self.number, self.population_id, self.parameters, self.costs]
         return params
