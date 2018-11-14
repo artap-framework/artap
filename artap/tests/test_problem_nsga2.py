@@ -51,18 +51,18 @@ class AckleyN2Test(Problem):
 
 
 class TestAckleyN2(unittest.TestCase):
-    """ Tests simple one objective optimization problem."""
+    """ Tests that the NSGA II algorithm can find the global optimum of a function."""
 
     def test_local_problem(self):
         problem = AckleyN2Test("LocalPythonProblem")
         algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 100
         algorithm.run()
 
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
-        self.assertAlmostEqual(optimum, -200, 3)
+        self.assertAlmostEqual(optimum, -200, 0)
 
 
 if __name__ == '__main__':
