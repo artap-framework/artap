@@ -76,20 +76,21 @@ class NSGA_II(GeneticAlgorithm):
 
     def is_dominate(self, p, q):
         dominate = False
-        # This line is not good id the problem has only one cost function
-        for i in range(0, len(self.problem.costs)):
-            if p.costs[i] > q.costs[i]:
+
+        # The cost function can be a float or a list of floats
+        # case of float
+        if type(self.problem.costs) != list:
+            if p.costs > q.costs:
                 return False
-            if p.costs[i] < q.costs[i]:
+            if p.costs < q.costs:
                 dominate = True
-
-        # TODO: Constrains
-        # for i in range(0,len(p.violation)):
-        #    if p.violation[i] > q.violation[i] :
-        #        return False
-        #    if p.violation[i] < q.violation[i] :
-        #        dominate = True
-
+        else:
+            for i in range(0, len(self.problem.costs)):
+                if p.costs[i] > q.costs[i]:
+                    return False
+                if p.costs[i] < q.costs[i]:
+                    dominate = True
+        # we don't need to check the constaints
         return dominate
 
     def crossover(self):
@@ -153,9 +154,12 @@ class NSGA_II(GeneticAlgorithm):
 
     @staticmethod
     def tournament_select(parents, part_num=2):
-        """ binary tournament selection """
+        """
+        Binary tournament selection:
+        An individual is selected in the rank is lesser than the other or if crowding distance is greater than the other
+        """
         participants = random.sample(parents, part_num)
-        return min(participants, key= lambda x: (x.front_number, x.crowding_distance))
+        return min(participants, key= lambda x: (x.front_number, -x.crowding_distance))
 
 
     def generate(self, parents):
