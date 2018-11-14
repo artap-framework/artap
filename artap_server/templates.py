@@ -35,7 +35,7 @@ class WebPagesWriter:
         return html_page
 
     def calculation_details(self, id):
-        table = [["Problem", "Description"]]
+        table = [["Problem", "Description", "Figure"]]
         index = int(id) + 1
         path = self.table[index][1] + self.table[index][2] + os.sep
         items = os.listdir(path)
@@ -91,6 +91,51 @@ class WebPagesWriter:
             table_content += row.substitute(row=row_content)
 
         with open(".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "problem.tp", 'r') as file:
+            page = string.Template(file.read())
+            page_html = page.substitute(content=table_template.substitute(table=table_content))
+
+        return page_html
+
+    '''
+    TODO: Generating figures using plotly
+    '''
+
+    def problem_figure(self, id):
+        data_store = SqliteDataStore(database_file=self.database_files[int(id)])
+        problem = ProblemDataStore(data_store)
+        html_page = self.table_to_fig(problem.to_table(), link_column=1, page="item")
+        return html_page
+
+    def table_to_fig(self, table, link_column=None, page=None):
+        table_template = string.Template(""" <table class="blueTable">
+                                    $table
+                                    </table> """)
+
+        cell_header = string.Template("<th>$cell</th>")
+        cell = string.Template("<td>$cell</td>")
+        cell_hyperlink = string.Template('<td><a href="$link"> $cell</a></td>')
+        row = string.Template("""<tr>$row</tr>""")
+
+        table_content = ""
+        row_content = ""
+        header = table[0]
+        for item in header:
+            row_content += cell_header.substitute(cell=item)
+        table_content += row.substitute(row=row_content) + "\n"
+
+        for i in range(1, len(table)):
+            row_content = ""
+
+            line = table[i]
+            for j in range(len(line)):
+                if (link_column != None) and (j == link_column):
+                    row_content += cell_hyperlink.substitute(cell=line[j], link= page +"?id=" + str(line[0]))
+                else:
+                    row_content += cell.substitute(cell=line[j], link="index?id=" + str(line[0]))
+            row_content += "\n"
+            table_content += row.substitute(row=row_content)
+
+        with open(".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "problem_fig.tp", 'r') as file:
             page = string.Template(file.read())
             page_html = page.substitute(content=table_template.substitute(table=table_content))
 
