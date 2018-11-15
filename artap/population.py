@@ -33,17 +33,10 @@ class Population:
 
         return string
 
-    # def to_string(self):
-    #     string = "population number: " + str(self.number) + " \n"
-    #
-    #     for individual in self.individuals:
-    #         string += individual.to_string() + ", "
-    #
-    #     return string
-    #
-    # def print(self):
-    #     print(self.to_string())
-      
+    def extend(self, new_individuals):
+        self.individuals.append(new_individuals)
+        self.length = len(new_individuals)
+
     def gen_random_population(self, population_size, vector_length, parameters):
         self.individuals = Individual.gen_individuals(population_size, self.problem, self.number)
         return self.individuals
@@ -66,6 +59,10 @@ class Population:
             j += 1
 
     def evaluate(self):
+        """
+        The evaluate function calculate the value of the
+        :return:
+        """
         processes = []
         i = 0
         #time.sleep(1)
