@@ -2,7 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population, Population_NSGA_II
 from .individual import Individual_NSGA_II, Individual
-
+from copy import copy
 from abc import ABCMeta, abstractmethod
 import random, time
 
@@ -77,22 +77,34 @@ class NSGA_II(GeneticAlgorithm):
         self.problem.populations.append(population)
 
     def is_dominate(self, p, q):
+        """
+        :param p: solution
+        :param q: candidate
+        :return: False if q not nominate p
+        """
         dominate = False
 
-        # The cost function can be a float or a list of floats
-        # case of float
-        if type(self.problem.costs) != list:
-            if p.costs > q.costs:
-                return False
-            if p.costs < q.costs:
-                dominate = True
-        else:
-            for i in range(0, len(self.problem.costs)):
-                if p.costs[i] > q.costs[i]:
+        # First check the constraints
+        # general evolutionary algorithms
+        if p.violations < 0:
+            if q.violations < 0:
+                if p.violations < q.violations:
+                    return True
+                else:
                     return False
-                if p.costs[i] < q.costs[i]:
-                    dominate = True
-        # we don't need to check the constaints
+            else:
+                return True
+        else:
+            if q.violations < 0:
+                return False
+
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(self.problem.costs)):
+            if p.costs[i] > q.costs[i]:
+                return False
+            if p.costs[i] < q.costs[i]:
+                dominate = True
+
         return dominate
 
     def crossover(self):
@@ -223,6 +235,17 @@ class NSGA_II(GeneticAlgorithm):
     def form_new_population(self):
         pass
 
+    def replace(self, p):
+        """
+        If the individual is infeasible it should be replaced by an other one.
+        If it is selected from the initial population, a new individual should be created,
+        if it has a parent it is replaced by it's parent. ???
+        :return:
+        """
+
+
+        return
+
     def run(self):
         self.gen_initial_population()
         offsprings = self.problem.populations[0].individuals
@@ -230,14 +253,20 @@ class NSGA_II(GeneticAlgorithm):
         t_s = time.time()
         for it in range(self.options['max_population_number']):
             population = Population_NSGA_II(self.problem, offsprings)
-            population.evaluate()
+
+            population.evaluate() # evaluate the offsprings
+
+            # non-dominated truncate on the guys
+            self.fast_non_dominated_sort(offsprings)
+            offsprings.extend(self.problem.populations[it].individuals)  # add the parents to the offsprings
+            self.calculate_crowd_dis(offsprings)
+            parents = sorted(offsprings, key=lambda x: x.front_number)
+
+            # truncate
+            self.problem.populations[it].individuals = parents[:self.options['max_population_size']]
             self.problem.add_population(population)
 
-            self.fast_non_dominated_sort(offsprings)
-            self.calculate_crowd_dis(offsprings)
-
-            parents = sorted(offsprings, key=lambda x: x.front_number)
-            offsprings = self.generate(parents)
+            offsprings = self.generate(self.problem.populations[it].individuals)
 
         t = time.time() - t_s
         print('Elapsed time:', t)
