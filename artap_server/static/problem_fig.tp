@@ -1,29 +1,36 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-US">
+		<head>
+			<meta http-equiv="content-type" content="application/xhtml+xml; charset=utf-8" />
+			<link rel="stylesheet" type="text/css" href="./static/css/style.css" media="screen" title="Default" />
+			<title>Artap</title>
+		    <script src="../static/plotly/plotly-latest.min.js"></script>
+		</head>
 
-<head>
-  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-  <meta content="utf-8" http-equiv="encoding">
-  <title>Plotly - Basic Example</title>
-
-  <style type="text/css">
-    body, html {
-      font-family: sans-serif;
-    }
-  </style>
-
-  <script src="../static/plotly/plotly-latest.min.js"></script>
-
-</head>
 <body>
-<h2>Plotly - Basic Example - Only for tests with Artap</h2>
-<div style="width:700px; font-size:14px; text-align: justify;">
-  This is a simple test of the Plotly library with Artap server
+<div class="header">
+<div id="title">
+<h1>Artap</h1>
 </div>
+<div class="name">			
+</div>
+</div>
+
+<div class="separator"></div> 
+</div>
+
+<div class="left-menu">
+<ul>
+<li><a href="problems">Problems</a></li>
+</ul>
+</div>
+<div class="content">
+$content
+</div>
+
+<h2>Plotly - only static testing figure - to test path correctnes etc.</h2>
 <br />
-
 <div id="tester" style="width:1024px;height:720px;"></div>
-
 <script type="text/javascript">
   TESTER = document.getElementById('tester');
 
@@ -74,4 +81,4 @@
 </script>
 
 </body>
-</html>
+</html> 
