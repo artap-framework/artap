@@ -34,9 +34,9 @@ class Results:
                 opt = min(min_l, key=lambda x: x.costs)
                 opt = opt.costs
             else:
-                min_l.append(min(population.individuals, key=lambda x: x.costs[name]))
-                opt = min(min_l, key=lambda x: x.costs[name])
-                opt = opt.costs[name]
+                min_l.append(min(population.individuals, key=lambda x: x.costs[index]))
+                opt = min(min_l, key=lambda x: x.costs[index])
+                opt = opt.costs[index]
 
         return opt
 

@@ -77,10 +77,11 @@ class Problem(ProblemBase):
         self.populations = []
         
     def __del__(self):
-        self.data_store.close_connection()
-        if not self.save_data:
-            if os.path.isdir(self.working_dir):
-                shutil.rmtree(self.working_dir)
+        pass
+        #print("Problem: def __del__(self):")
+        #if not self.save_data:
+        #    if os.path.isdir(self.working_dir):
+        #        shutil.rmtree(self.working_dir)
 
     def add_population(self, population):
         self.populations.append(population)
