@@ -1,4 +1,4 @@
-from numpy import exp, cos, sin, sqrt
+from numpy import exp, cos, sin, sqrt, infty
 
 
 class Rosenbrock:
@@ -58,7 +58,6 @@ class AckleyN2:
         y = X[1]
 
         return -200. * exp(-0.02 * (x ** 2 + y ** 2) ** 0.5)
-
 
 class Ackley4Modified:
     """
@@ -143,6 +142,7 @@ class Binh_and_Korn:
         f1 = 4 * pow(x, 2) + 4 * pow(y, 2)
         f2 = pow(x - 5, 2) + pow(y - 5, 2)
         target = [f1, f2]
+
         return target
 
     @classmethod
