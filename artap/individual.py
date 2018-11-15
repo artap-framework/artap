@@ -2,6 +2,7 @@ from random import random
 from numpy.random import normal
 from abc import *
 from multiprocessing import Queue
+from numpy import NaN
 
 import itertools
 
@@ -20,6 +21,7 @@ class Individual(metaclass=ABCMeta):
         self.number = Individual.number
         Individual.number += 1
 
+        self.violations = 0.0 # the distance from the feasibility region in min norm
         self.population_id = population_id
         self.is_evaluated = False
 
@@ -48,13 +50,19 @@ class Individual(metaclass=ABCMeta):
         return [val for sublist in params for val in sublist]
 
     def evaluate(self):
-        # problem cost function evaluate     
+
+        # check the constraints
+        self.violations = min(self.problem.eval_constraints(self.parameters))
+
+        # problem cost function evaluate only in that case when the problem is fits the constraints
+        # if self.violations < 0.:
+        #     costs = NaN
+        # else:
         costs = self.problem.eval(self.parameters)
 
+        # scipy uses the result number, the genetic algorithms using the property value
         if type(costs) != list:
             self.costs = [costs]
-        else:
-            self.costs = costs
 
         self.is_evaluated = True
         self.problem.data_store.write_individual(self.to_list())
