@@ -86,14 +86,18 @@ class Problem(ProblemBase):
         self.populations.append(population)
         
     def evaluate_individual(self, x, population=0):
+        """
+
+        :param x:
+        :param population:
+        :return: cost which is calculated
+        """
+
         individual = Individual(x, self, population)
-        individual.evaluate()
+        cost = individual.evaluate()
         self.populations[population].individuals.append(individual)
-        
-        if len(individual.costs) == 1:
-            return individual.costs[0]
-        else:
-            return individual.costs
+
+        return cost
 
     def eval_batch(self, table):
         n = len(table)
@@ -121,6 +125,12 @@ class Problem(ProblemBase):
 
     @abstractmethod
     def eval(self, x: list):
+        """ :param x: list of the variables """
+        pass
+
+    @abstractmethod
+    def eval_constraints(self, x: list):
+        """ :param x: list of the variables """
         pass
 
 
