@@ -10,8 +10,6 @@ class PSO(GeneticAlgorithm):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
-        self.prob_cross = 0.6
-        self.prob_mutation = 0.05
 
     def gen_initial_population(self):
         population = Population_NSGA_II(self.problem)
