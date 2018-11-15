@@ -53,7 +53,7 @@ class TestNLoptOptimization(unittest.TestCase):
         # optimum = problem.populations[-1].individuals[-1].costs[0]  # Takes last cost function
 
         results = Results(problem)
-        optimum = results.find_minimum(name='F').costs[0]
+        optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum, 0, places=1)
 
     def test_local_problem_nlopt_GN_DIRECT_L(self):
@@ -71,8 +71,8 @@ class TestNLoptOptimization(unittest.TestCase):
     def test_local_problem_nlopt_GN_ISRES(self):
         self.run_test(GN_ISRES, 3000)
 
-    #def test_local_problem_nlopt_GN_ESCH(self):
-    #    self.run_test(GN_ESCH, 10000)
+    def test_local_problem_nlopt_GN_ESCH(self):
+        self.run_test(GN_ESCH, 30000)
 
     def test_local_problem_nlopt_LN_BOBYQA(self):
         self.run_test(LN_BOBYQA)

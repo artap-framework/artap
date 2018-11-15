@@ -4,6 +4,7 @@ from abc import *
 from multiprocessing import Queue
 from numpy import NaN
 
+import itertools
 
 class Individual(metaclass=ABCMeta):
     """
@@ -44,8 +45,9 @@ class Individual(metaclass=ABCMeta):
         return string
 
     def to_list(self):
-        params = [self.number, self.population_id, self.parameters, self.costs]
-        return params
+        params = [[self.number], [self.population_id], self.parameters, self.costs]
+        # flatten list
+        return [val for sublist in params for val in sublist]
 
     def evaluate(self):
 
@@ -63,7 +65,7 @@ class Individual(metaclass=ABCMeta):
             self.costs = [costs]
 
         self.is_evaluated = True
-        # self.problem.data_store.write_individual(self.to_list())
+        self.problem.data_store.write_individual(self.to_list())
 
         Individual.results.put([self.number, costs])
         return costs
