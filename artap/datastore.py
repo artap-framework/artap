@@ -2,22 +2,35 @@ import sqlite3
 import tempfile
 import os
 from datetime import datetime
-from string import Template
 from abc import abstractmethod
 
 from .individual import Individual
 from .population import Population
 from .utils import flatten
 
+from threading import Thread
+from threading import Lock
+import asyncio
+
 
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
 
     def __init__(self):
-        pass
+        # create the new loop and worker thread
+        self.worker_loop = asyncio.new_event_loop()
+        worker = Thread(target=self._start_worker, args=(self.worker_loop,))
+        worker.daemon = True
+        # Start the thread
+        worker.start()
 
     def __del__(self):
+        # print("DataStore:def __del__(self):")
         pass
+
+    def _start_worker(self, loop):
+        asyncio.set_event_loop(loop)
+        loop.run_forever()
 
     @abstractmethod
     def create_structure(self, problem):
@@ -49,48 +62,60 @@ class SqliteDataStore(DataStore):
         if problem is not None:
             problem.data_store = self
 
-        time_stamp = str(datetime.now())
         if create_database:
             self.database_name = self.working_dir + os.sep + "data" + ".sqlite"
         else:
             if database_file is not None:
-                    self.database_name = database_file
+                self.database_name = database_file
             else:
-                parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".sqlite")
+                parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite")
                 parameters_file.close()
+                self.database_name = parameters_file.name()
 
-        self.connection = sqlite3.connect(self.database_name)
-        self.connection.execute('pragma journal_mode=wal')
+        # print(self.database_name)
 
     def __del__(self):
-        pass
-        # remove database
-        # self.connection_problem.close()
-        # self.connection.close()
-        # os.remove(self.database_name)
         super().__del__()
+
+    def _execute_command(self, command):
+        """Request notification email"""
+        self.worker_loop.call_soon_threadsafe(self._execute_command_async, self.database_name, command)
+
+    @staticmethod
+    def _execute_command_async(database_name, command):
+        # print(database_name)
+        # print(command)
+
+        try:
+            connection = sqlite3.connect(database_name)
+            # connection.execute('pragma journal_mode=wal')
+
+            cursor = connection.cursor()
+            cursor.execute(command)
+            connection.commit()
+            cursor.close()
+
+            connection.close()
+        except sqlite3.Error as e:
+            print("SqliteDataStore: execute: error occurred:", e.args[0])
 
     def save_problem(self, problem):
         pass
 
     def create_structure_task(self, problem):
-        cursor = self.connection.cursor()
         exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (INTEGER PRIMARY KEY, ' \
                    'name TEXT, ' \
                    'description TEXT,' \
                    'algorithm TEXT,' \
                    'calculation_time NUMBER,' \
                    'state TEXT)'
+        self._execute_command(exec_cmd)
 
-        cursor.execute(exec_cmd)
         exec_cmd = "INSERT INTO problem(name, description, state) " \
                    "values('%s', '%s', '%s');" % (problem.name, problem.description, "running")
-        cursor.execute(exec_cmd)
-        self.connection.commit()
-        cursor.close()
+        self._execute_command(exec_cmd)
 
     def create_structure_individual(self, parameters, costs):
-        cursor = self.connection.cursor()
         exec_cmd = 'CREATE TABLE IF NOT EXISTS data (id INTEGER, population_id INTEGER, '
 
         for parameter in parameters.keys():
@@ -102,55 +127,42 @@ class SqliteDataStore(DataStore):
         exec_cmd = exec_cmd[:-1]
         exec_cmd += ");"
 
-        cursor.execute(exec_cmd)
-        self.connection.commit()
-        cursor.close()
+        self._execute_command(exec_cmd)
 
     def create_structure_parameters(self, parameters_list):
-        cursor = self.connection.cursor()
         exec_cmd = 'CREATE TABLE IF NOT EXISTS parameters (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
                    'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
-        cursor.execute(exec_cmd)
-        self.connection.commit()
-        cursor.close()
-        cursor = self.connection.cursor()
+        self._execute_command(exec_cmd)
+
         for parameter in parameters_list:
             parameter_arg = [0] * 5
             length = len(parameter)
             parameter_arg[0:length] = parameter
             exec_cmd = 'INSERT INTO parameters(name, initial_value, low_boundary, high_boundary, precision) ' \
                        "VALUES( '%s', %f, %f, %f, %f);" % tuple(parameter_arg)
-            cursor.execute(exec_cmd)
-        self.connection.commit()
-        cursor.close()
+            self._execute_command(exec_cmd)
 
     def create_structure_costs(self, costs):
-        cursor = self.connection.cursor()
         exec_cmd = 'CREATE TABLE IF NOT EXISTS costs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);'
-        cursor.execute(exec_cmd)
+        self._execute_command(exec_cmd)
+
         for cost in costs:
             exec_cmd = "INSERT INTO costs(name) values('%s');" % cost
-        cursor.execute(exec_cmd)
-        self.connection.commit()
-        cursor.close()
+            self._execute_command(exec_cmd)
 
     def write_individual(self, params):
-        cursor = self.connection.cursor()
-        cmd_exec = Template("INSERT INTO data VALUES ($params)")
-        params_substitute = ""
+        exec_cmd = "INSERT INTO data VALUES ("
+        for i in range(len(params) - 1):
+            exec_cmd += " " + str(params[i]) + ","
+        exec_cmd += " " + str(params[i]) + ")"
 
-        flat_params = flatten(params)
-        for i in range(len(flat_params) - 1):
-            params_substitute += " ?,"
-        params_substitute += " ?"
-
-        cmd_exec = cmd_exec.substitute(params=params_substitute)
-        cursor.execute(cmd_exec, flat_params)
-        self.connection.commit()
-        cursor.close()
+        self._execute_command(exec_cmd)
 
     def read_problem(self, problem):
-        cursor = self.connection.cursor()
+        connection = sqlite3.connect(self.database_name)
+        # connection.execute('pragma journal_mode=wal')
+
+        cursor = connection.cursor()
 
         exec_cmd_problem = "SELECT * FROM problem"
         problem_table = cursor.execute(exec_cmd_problem).fetchall()
@@ -169,9 +181,10 @@ class SqliteDataStore(DataStore):
                                                 'bounds': [parameter[3], parameter[4]], 'precision': parameter[5]}
         exec_cmd_costs = "SELECT * FROM costs"
 
-        problem.costs = []
+        costs = []
         for cost in cursor.execute(exec_cmd_costs):
-            problem.costs.append(cost[1])
+            costs.append(cost[1])
+        problem.costs = {cost: 0.0 for cost in costs}
 
         exec_cmd_data = "SELECT * FROM data"
         problem.populations = []
@@ -198,5 +211,3 @@ class SqliteDataStore(DataStore):
         problem.populations.append(population)
         cursor.close()
 
-    def close_connection(self):
-        self.connection.close()
