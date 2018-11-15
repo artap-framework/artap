@@ -33,6 +33,14 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         self.parameters_length = len(self.problem.parameters)
         self.current_population = 0
 
+        self.options.declare(name='n_iterations', default=50, lower=1,
+                             desc='Maximum evaluations')
+        self.options.declare(name='max_population_number', default=10, lower=1,
+                             desc='max_population_number')
+        self.options.declare(name='max_population_size', default=100, lower=1,
+                             desc='max_population_size')
+
+
     def gen_initial_population(self):
         population = Population(self.problem)
         population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
@@ -58,16 +66,10 @@ class NSGA_II(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
 
-        self.options.declare(name='n_iterations', default=50, lower=1,
-                             desc='Maximum evaluations')
         self.options.declare(name='prob_cross', default=0.9, lower=0,
                              desc='prob_cross')
         self.options.declare(name='prob_mutation', default=0.05, lower=0,
                              desc='prob_mutation')
-        self.options.declare(name='max_population_number', default=10, lower=1,
-                             desc='max_population_number')
-        self.options.declare(name='max_population_size', default=100, lower=1,
-                             desc='max_population_size')
 
     def gen_initial_population(self):
         population = Population_NSGA_II(self.problem)
