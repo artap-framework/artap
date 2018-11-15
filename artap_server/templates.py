@@ -31,11 +31,11 @@ class WebPagesWriter:
         return table
 
     def problems(self):
-        html_page = self.table_to_html(self.table, link_column=0, page="calculation")
+        html_page = self.table_to_html(self.table, link_column=[0], page=["calculation"])
         return html_page
 
     def calculation_details(self, id):
-        table = [["Problem", "Description", "Figure"]]
+        table = [["Problem", "Description"]]
         index = int(id) + 1
         path = self.table[index][1] + self.table[index][2] + os.sep
         items = os.listdir(path)
@@ -53,12 +53,13 @@ class WebPagesWriter:
             problem = ProblemDataStore(data_store)
             table.append([i, problem.name, problem.description])
             i += 1
-        return self.table_to_html(table, link_column=1, page="problem")
+        return self.table_to_html(table, link_column=[1, 2], page=["problem", "problemfig"])
 
     def problem_details(self, id):
         data_store = SqliteDataStore(database_file=self.database_files[int(id)])
         problem = ProblemDataStore(data_store)
-        html_page = self.table_to_html(problem.to_table(), link_column=1, page="item")
+        # html_page = self.table_to_html(problem.to_table(), link_column=[1], page=["item"])
+        html_page = self.table_to_html(problem.to_table())
         return html_page
 
     def table_to_html(self, table, link_column=None, page=None):
@@ -83,8 +84,19 @@ class WebPagesWriter:
 
             line = table[i]
             for j in range(len(line)):
-                if (link_column != None) and (j == link_column):
-                    row_content += cell_hyperlink.substitute(cell=line[j], link= page +"?id=" + str(line[0]))
+                if (link_column != None) and (j in link_column):
+                    createLink = {
+                        'problems': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
+                        'calculation': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
+                        'problem': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
+                        'problemfig': lambda: cell_hyperlink.substitute(cell=line[j] + " Figure", link=page[1] + "?id=" + str(line[0])),
+                    }
+
+                    for currPage in page:
+                        funcCreateLink = createLink.get(currPage, lambda: "")
+                        row_content += funcCreateLink()
+
+                    # row_content += cell_hyperlink.substitute(cell=line[j], link= page +"?id=" + str(line[0]))
                 else:
                     row_content += cell.substitute(cell=line[j], link="index?id=" + str(line[0]))
             row_content += "\n"
@@ -103,11 +115,16 @@ class WebPagesWriter:
     def problem_figure(self, id):
         data_store = SqliteDataStore(database_file=self.database_files[int(id)])
         problem = ProblemDataStore(data_store)
-        html_page = self.table_to_fig(problem.to_table(), link_column=1, page="item")
+        html_page = self.table_to_fig(problem.to_table())
         return html_page
 
     def table_to_fig(self, table, link_column=None, page=None):
-        table_template = string.Template(""" <table class="blueTable">
+        '''
+        template will be based on:
+        <div id="figure" style="width:1024px;height:720px;" x_data="0.0,0.1,0.2,0.3,0.4" y_data="0.0,0.099833417,0.198669331,0.295520207,0.389418342"></div>
+        '''
+
+        figure_template = string.Template(""" <table class="blueTable">
                                     $table
                                     </table> """)
 
@@ -119,6 +136,7 @@ class WebPagesWriter:
         table_content = ""
         row_content = ""
         header = table[0]
+        '''
         for item in header:
             row_content += cell_header.substitute(cell=item)
         table_content += row.substitute(row=row_content) + "\n"
@@ -128,16 +146,27 @@ class WebPagesWriter:
 
             line = table[i]
             for j in range(len(line)):
-                if (link_column != None) and (j == link_column):
-                    row_content += cell_hyperlink.substitute(cell=line[j], link= page +"?id=" + str(line[0]))
+                if (link_column != None) and (j in link_column):
+                    createLink = {
+                        'problems': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
+                        'calculation': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
+                        'problem': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
+                        'problemfig': lambda: cell_hyperlink.substitute(cell=line[j] + " Figure", link=page[1] + "?id=" + str(line[0])),
+                    }
+
+                    for currPage in page:
+                        funcCreateLink = createLink.get(currPage, lambda: "")
+                        row_content += funcCreateLink()
+
+                    # row_content += cell_hyperlink.substitute(cell=line[j], link= page +"?id=" + str(line[0]))
                 else:
                     row_content += cell.substitute(cell=line[j], link="index?id=" + str(line[0]))
             row_content += "\n"
             table_content += row.substitute(row=row_content)
-
+        '''
         with open(".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "problem_fig.tp", 'r') as file:
             page = string.Template(file.read())
-            page_html = page.substitute(content=table_template.substitute(table=table_content))
+            page_html = page.substitute(content=figure_template.substitute(table=table_content))
 
         return page_html
 
