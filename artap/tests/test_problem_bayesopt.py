@@ -45,7 +45,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         algorithm.run()
 
         results = Results(problem)
-        optimum = results.find_minimum(name='F').costs[0]
+        optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum, 0, places=2)
 
 if __name__ == '__main__':
