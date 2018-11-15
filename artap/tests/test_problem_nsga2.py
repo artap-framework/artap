@@ -15,7 +15,7 @@ class MyProblem(Problem):
 
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
 
     def eval(self, x):
         return Binh_and_Korn.eval(x)
@@ -37,9 +37,6 @@ class AckleyN2Test(Problem):
     """Test with a simple 2 variable Ackley N2 formula"""
 
     def __init__(self, name):
-        self.max_population_number = 1
-        self.max_population_size = 1
-
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1},
                       'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
         costs = ['F_1']

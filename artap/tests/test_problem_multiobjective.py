@@ -7,8 +7,6 @@ from artap.algorithm_genetic import GeneticAlgorithm
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        self.max_population_number = 10
-        self.max_population_size = 10
         parameters = {'x_1': {'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01},
                       'x_2': {'initial_value': 10, 'bounds': [-10, -5], 'precision': 1e-6},
                       'x_3': {'initial_value': 10, 'bounds': [0, 5], 'precision': 0.01}}
@@ -18,8 +16,8 @@ class MyProblem(Problem):
         # working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
         # super().__init__(name, parameters, costs, working_dir=working_dir)
 
-        super().__init__(name, parameters, costs)
-        self.save_data = False  # For tests is not necessary to save data
+        super().__init__(name, parameters, costs, save_data=False)
+        # For tests is not necessary to save data
 
     def eval(self, x):
         f1 = 0
@@ -38,6 +36,8 @@ class TestSimpleOptimization(unittest.TestCase):
     def test_local_problem_genetic(self):   
         problem = MyProblem("LocalPythonProblem")        
         algorithm = GeneticAlgorithm(problem)
+        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_size'] = 10
         algorithm.run()        
 
 

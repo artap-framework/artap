@@ -34,6 +34,11 @@ class ArtapServer(object):
         html_page = self.writer.problem_details(id)
         return html_page
 
+    @cherrypy.expose
+    def problemfig(self, id=None):
+        html_page = self.writer.problem_figure(id)
+        return html_page
+
     # only for first plotly library tests
     @cherrypy.expose
     def plotly(self):
