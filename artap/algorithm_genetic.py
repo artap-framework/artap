@@ -257,9 +257,10 @@ class NSGA_II(GeneticAlgorithm):
             population.evaluate() # evaluate the offsprings
 
             # non-dominated truncate on the guys
-            self.fast_non_dominated_sort(offsprings)
-            offsprings.extend(self.problem.populations[it].individuals)  # add the parents to the offsprings
+            self.fast_non_dominated_sort(population.individuals)
             self.calculate_crowd_dis(offsprings)
+
+            offsprings.extend(self.problem.populations[it].individuals)  # add the parents to the offsprings
             parents = sorted(offsprings, key=lambda x: x.front_number)
 
             # truncate
