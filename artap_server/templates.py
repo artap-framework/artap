@@ -119,54 +119,28 @@ class WebPagesWriter:
         return html_page
 
     def table_to_fig(self, table, link_column=None, page=None):
-        '''
-        template will be based on:
-        <div id="figure" style="width:1024px;height:720px;" x_data="0.0,0.1,0.2,0.3,0.4" y_data="0.0,0.099833417,0.198669331,0.295520207,0.389418342"></div>
-        '''
 
-        figure_template = string.Template(""" <table class="blueTable">
-                                    $table
-                                    </table> """)
+        fig_par = string.Template('x_data="$x_axis_vals" y_data="$y_axis_vals" x_label="$x_label_vals" y_label="$y_label_vals"')
 
-        cell_header = string.Template("<th>$cell</th>")
-        cell = string.Template("<td>$cell</td>")
-        cell_hyperlink = string.Template('<td><a href="$link"> $cell</a></td>')
-        row = string.Template("""<tr>$row</tr>""")
+        figure_template = string.Template(""" <div id="figure" style="width:1024px;height:720px; "
+                                    $fig_params
+                                    "></div> """)
+        x_axis_data = ''
+        y_axis_data = ''
 
-        table_content = ""
-        row_content = ""
-        header = table[0]
-        '''
-        for item in header:
-            row_content += cell_header.substitute(cell=item)
-        table_content += row.substitute(row=row_content) + "\n"
+        line = table[0]
+        x_label_data = line[1]
+        y_label_data = line[2]
 
         for i in range(1, len(table)):
-            row_content = ""
-
             line = table[i]
-            for j in range(len(line)):
-                if (link_column != None) and (j in link_column):
-                    createLink = {
-                        'problems': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
-                        'calculation': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
-                        'problem': lambda:  cell_hyperlink.substitute(cell=line[j], link=page[0] + "?id=" + str(line[0])),
-                        'problemfig': lambda: cell_hyperlink.substitute(cell=line[j] + " Figure", link=page[1] + "?id=" + str(line[0])),
-                    }
+            # for j in range(len(line)):
+            x_axis_data += str(line[1]) + ','
+            y_axis_data += str(line[2]) + ','
 
-                    for currPage in page:
-                        funcCreateLink = createLink.get(currPage, lambda: "")
-                        row_content += funcCreateLink()
-
-                    # row_content += cell_hyperlink.substitute(cell=line[j], link= page +"?id=" + str(line[0]))
-                else:
-                    row_content += cell.substitute(cell=line[j], link="index?id=" + str(line[0]))
-            row_content += "\n"
-            table_content += row.substitute(row=row_content)
-        '''
         with open(".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "problem_fig.tp", 'r') as file:
             page = string.Template(file.read())
-            page_html = page.substitute(content=figure_template.substitute(table=table_content))
+            page_html = page.substitute(content=figure_template.substitute(fig_params=fig_par.substitute(x_axis_vals=x_axis_data, y_axis_vals=y_axis_data, x_label_vals=x_label_data, y_label_vals=y_label_data)))
 
         return page_html
 
