@@ -83,7 +83,7 @@ class Population:
             result = Individual.results.get()
             for individual in self.individuals:
                 if individual.number == result[0]:
-                    individual.costs = result[1]
+                    individual.costs.append(result[1])
                     individual.is_solved = True
 
 class Population_NSGA_II(Population):

@@ -52,23 +52,24 @@ class Individual(metaclass=ABCMeta):
     def evaluate(self):
 
         # check the constraints
-        self.violations = min(self.problem.eval_constraints(self.parameters))
+        constraints = self.problem.eval_constraints(self.parameters)
+
+        if constraints:
+            self.violations = min(self.problem.eval_constraints(self.parameters))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
         # if self.violations < 0.:
         #     costs = NaN
         # else:
         costs = self.problem.eval(self.parameters)
-
         # scipy uses the result number, the genetic algorithms using the property value
-        if type(costs) != list:
-            self.costs = [costs]
-
+        #if type(costs) != list:
+        #self.costs.append(costs)  <- doesn't matter because these values added again in the problem class
         self.is_evaluated = True
         self.problem.data_store.write_individual(self.to_list())
 
         Individual.results.put([self.number, costs])
-        return costs
+        return costs    # This result is used by the
 
     def set_id(self):
         self.number = Individual.number
