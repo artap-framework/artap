@@ -29,7 +29,7 @@ class AckleyN2Test(Problem):
 
 problem = AckleyN2Test("LocalPythonProblemNSGA_II")
 algorithm = NSGA_II(problem)
-algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_number'] = 15
 algorithm.options['max_population_size'] = 100
 algorithm.run()
 
