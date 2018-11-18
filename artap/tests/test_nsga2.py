@@ -46,18 +46,16 @@ x, y = zip(*solution)
 count = 0
 wrong = 0
 for sol in solution:
-    if sol[0]>10. and sol[0]<100:
+    if sol[0]>0. and sol[0]<1000:
         count += 1
         if abs(Binh_and_Korn.approx(sol[0])-sol[1]) > 1.:
             print(sol[0], Binh_and_Korn.approx(sol[0]), sol[1], abs(Binh_and_Korn.approx(sol[0])-sol[1]))
             wrong += 1
 
-print('Nr of solutions [10,1000],', count)
+print('Nr of solutions [10,100],', count)
 print('Wrong solutions', wrong)
 
 #print(*solution, sep=', ')
-
-
 #print(problem.populations[0].individuals[0].dominate)
 
 #results = problem.populations[-1].individuals[-1].dominate

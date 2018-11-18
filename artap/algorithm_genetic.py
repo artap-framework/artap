@@ -40,7 +40,6 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         self.options.declare(name='max_population_size', default=100, lower=1,
                              desc='max_population_size')
 
-
     def gen_initial_population(self):
         population = Population(self.problem)
         population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
@@ -73,7 +72,9 @@ class NSGA_II(GeneticAlgorithm):
 
     def gen_initial_population(self):
         population = Population_NSGA_II(self.problem)
-        population.gen_random_population(self.options['max_population_size'], self.parameters_length, self.problem.parameters)
+        population.gen_random_population(self.options['max_population_size'],
+                                         self.parameters_length,
+                                         self.problem.parameters)
         self.problem.populations.append(population)
 
     def is_dominate(self, p, q):
@@ -86,17 +87,17 @@ class NSGA_II(GeneticAlgorithm):
 
         # First check the constraints
         # general evolutionary algorithms
-        if p.feasible != 0.0:
-            if q.feasible != 0:
-                if p.feasible < q.feasible:
-                    return False
-                else:
-                    return True
-            else:
-                return True # the candicate is feasible
-        else:
-            if q.feasible < 0:
-                return False
+        #if p.feasible != 0.0:
+        #    if q.feasible != 0:
+        #        if p.feasible < q.feasible:
+        #            return False
+        #        else:
+        #            return True
+        #    else:
+        #        return True # the candicate is feasible
+        #else:
+        #    if q.feasible < 0:
+        #        return False
 
         # The cost function can be a float or a list of floats
         for i in range(0, len(self.problem.costs)):
@@ -171,6 +172,7 @@ class NSGA_II(GeneticAlgorithm):
         Binary tournament selection:
         An individual is selected in the rank is lesser than the other or if crowding distance is greater than the other
         """
+
         participants = random.sample(parents, part_num)
         return min(participants, key= lambda x: (x.front_number, -x.crowding_distance))
 
@@ -202,15 +204,36 @@ class NSGA_II(GeneticAlgorithm):
 
         parameter1, parameter2 = [], []
         linear_range = 2
+
         alpha = random.uniform(0, linear_range)
-        for j in range(0, len(p1.parameters)):
-            parameter1.append(alpha * p1.parameters[j] +
-                              (1 - alpha) * p2.parameters[j])
-            parameter2.append((1 - alpha) * p1.parameters[j] +
-                              alpha * p2.parameters[j])
+
+        for i, param in enumerate(self.problem.parameters.items()):
+
+            l_b = param[1]['bounds'][0]
+            u_b = param[1]['bounds'][1]
+
+            parameter1.append(self.clip(alpha*p1.parameters[i]+(1-alpha)*p2.parameters[i], l_b, u_b))
+            print(alpha*p1.parameters[i]+(1-alpha)*p2.parameters[i], l_b, u_b)
+            parameter2.append(self.clip((1 - alpha)*p1.parameters[i]+alpha*p2.parameters[i], l_b, u_b))
+
+        #for j,param in enumerate(p1.parameters):
+        #    print(self.problem.parameters)
+        #    print(param)
+        #    print(p1)
+        #    l_b = param['bounds'][0]
+        #    u_b = param['bounds'][1]
+        #
+        #    parameter1.append(self.clip(alpha*param+(1-alpha)*p2.parameters[j], l_b, u_b))
+        #    parameter2.append(self.clip((1 - alpha)*param+alpha*p2.parameters[j], l_b, u_b))
+
+        #print("cross:", parameter1, parameter2)
         c1 = Individual_NSGA_II(parameter1, self.problem)
         c2 = Individual_NSGA_II(parameter2, self.problem)
         return c1, c2
+
+    @staticmethod
+    def clip(value, min_value, max_value):
+        return max(min_value, min(value, max_value))
 
     def mutation(self, p):
         """ uniform random mutation """
@@ -219,9 +242,14 @@ class NSGA_II(GeneticAlgorithm):
 
         for i, parameter in enumerate(self.problem.parameters.items()):
             if random.uniform(0, 1) < self.options['prob_mutation']:
-                para_range = mutation_space * (parameter[1]['bounds'][0] - parameter[1]['bounds'][1])
+
+                l_b = parameter[1]['bounds'][0]
+                u_b = parameter[1]['bounds'][1]
+
+                para_range = mutation_space * (u_b - l_b)
                 mutation = random.uniform(-para_range, para_range)
-                parameters.append(p.parameters[i] + mutation)
+                parameters.append(self.clip(p.parameters[i] + mutation, l_b, u_b))
+                #print('mutated parameters: ', parameters, u_b, l_b)
             else:
                 parameters.append(p.parameters[i])
 
