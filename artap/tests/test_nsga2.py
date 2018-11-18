@@ -30,7 +30,7 @@ class MyProblem(Problem):
 
 problem = MyProblem("LocalPythonProblemNSGA_II")
 algorithm = NSGA_II(problem)
-algorithm.options['max_population_number'] = 50
+algorithm.options['max_population_number'] = 100
 algorithm.options['max_population_size'] = 100
 algorithm.run()
 
