@@ -3,6 +3,7 @@ from numpy.random import normal
 from abc import *
 from multiprocessing import Queue
 from numpy import NaN
+from copy import copy
 
 import itertools
 
@@ -58,18 +59,17 @@ class Individual(metaclass=ABCMeta):
             self.feasible = sum(map(abs,constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
-        # if self.violations < 0.:
-        #     costs = NaN
-        # else:
+
+        #if self.feasible == 0.:
         costs = self.problem.eval(self.parameters)
         # scipy uses the result number, the genetic algorithms using the property value
-        #if type(costs) != list:
-        #self.costs.append(costs)  <- doesn't matter because these values added again in the problem class
         self.is_evaluated = True
         self.problem.data_store.write_individual(self.to_list())
 
-        Individual.results.put([self.number, costs])
-        return costs    # This result is used by the
+        #Individual.results.put([copy()])
+        Individual.results.put([self.number, costs, self.feasible])
+
+        return costs # for scipy
 
     def set_id(self):
         self.number = Individual.number

@@ -112,7 +112,7 @@ class Binh_and_Korn:
     subject to the following constraints:
 
     $g_{1}(x,y) = (x-5)^2 + y^2 \leq 25$
-    $g_{1}(x,y) = (x-8)^2 + (y+3)^2 \leq 7.7$
+    $g_{2}(x,y) = (x-8)^2 + (y+3)^2 \leq 7.7$
 
     search domain: 0 <= x <=5, 0 <= y <= 3
 
@@ -150,8 +150,8 @@ class Binh_and_Korn:
         # 0 <= x <=5, 0 <= y <= 3
         x = x_list[0]
         y = x_list[1]
-        g1 = max(0, 25 - pow(x - 5, 2) - pow(y, 2))
-        g2 = max(0, pow(x - 8, 2) + pow(y + 3, 2) - 7.7)
+        g1 = min(0, 25 - pow(x - 5, 2) - pow(y, 2))
+        g2 = min(0, pow(x - 8, 2) + pow(y + 3, 2) - 7.7)
         violation = [g1, g2]
         return violation
 
