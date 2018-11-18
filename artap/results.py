@@ -45,12 +45,12 @@ class Results:
         :return: a list of lists which contains the optimal values of the cost function:
                 l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
         """
-        print('aa')
         population = self.problem.populations[-1]
         l_sol = []
         if len(population.individuals) > 1:
             for individual in population.individuals:
                 l_sol.append(individual.costs)
+                print(individual.feasible)
         return l_sol
 
 class GraphicalResults(Results):
@@ -93,5 +93,3 @@ class GraphicalResults(Results):
                 ax.set_ylabel('$y$')
                 ax.grid()
                 figure.savefig(figure_name)
-
-

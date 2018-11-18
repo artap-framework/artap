@@ -79,6 +79,7 @@ class Population:
         for process in processes:
             process.join()
 
+        # collect the results
         for i in range(Individual.results.qsize()):
             result = Individual.results.get()
             for individual in self.individuals:
@@ -87,6 +88,7 @@ class Population:
                         individual.costs.append(result[1])
                     else:
                         individual.costs.extend(result[1])
+                    individual.feasible = result[2]
                     individual.is_solved = True
 
 class Population_NSGA_II(Population):
