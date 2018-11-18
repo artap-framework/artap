@@ -78,24 +78,24 @@ class NSGA_II(GeneticAlgorithm):
 
     def is_dominate(self, p, q):
         """
-        :param p: solution
+        :param p: current solution
         :param q: candidate
-        :return: False if q not nominate p
+        :return: True if the candidate is better than the current solution
         """
         dominate = False
 
         # First check the constraints
         # general evolutionary algorithms
-        if p.violations < 0:
-            if q.violations < 0:
-                if p.violations < q.violations:
-                    return True
-                else:
+        if p.feasible != 0.0:
+            if q.feasible != 0:
+                if p.feasible < q.feasible:
                     return False
+                else:
+                    return True
             else:
-                return True
+                return True # the candicate is feasible
         else:
-            if q.violations < 0:
+            if q.feasible < 0:
                 return False
 
         # The cost function can be a float or a list of floats
@@ -104,7 +104,6 @@ class NSGA_II(GeneticAlgorithm):
                 return False
             if p.costs[i] < q.costs[i]:
                 dominate = True
-
         return dominate
 
     def crossover(self):

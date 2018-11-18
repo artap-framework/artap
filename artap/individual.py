@@ -21,7 +21,7 @@ class Individual(metaclass=ABCMeta):
         self.number = Individual.number
         Individual.number += 1
 
-        self.violations = 0.0 # the distance from the feasibility region in min norm
+        self.feasible = 0.0 # the distance from the feasibility region in min norm
         self.population_id = population_id
         self.is_evaluated = False
 
@@ -55,7 +55,7 @@ class Individual(metaclass=ABCMeta):
         constraints = self.problem.eval_constraints(self.parameters)
 
         if constraints:
-            self.violations = min(self.problem.eval_constraints(self.parameters))
+            self.feasible = sum(map(abs,constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
         # if self.violations < 0.:
