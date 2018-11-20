@@ -20,6 +20,8 @@ class MyProblem(Problem):
     def eval(self, x):
         return Binh_and_Korn.eval(x)
 
+    def eval_constraints(self, x):
+        return Binh_and_Korn.constraints(x)
 
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
@@ -28,13 +30,26 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         problem = MyProblem("LocalPythonProblemNSGA_II")
         algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_number'] = 40
         algorithm.options['max_population_size'] = 100
         algorithm.run()
 
+        b = Results(problem)
+        solution = b.pareto_values()
+        # print(*solution[0], sep="\n")
+
+        x, y = zip(*solution)
+
+        wrong = 0
+        for sol in solution:
+            if abs(Binh_and_Korn.approx(sol[0])-sol[1]) > 0.1 * Binh_and_Korn.approx(sol[0]) and sol[0] > 20 and sol[0]< 70:
+                wrong += 1
+
+        self.assertEqual(wrong, 0)
+
 
 class AckleyN2Test(Problem):
-    """Test with a simple 2 variable Ackley N2 formula"""
+    """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1},

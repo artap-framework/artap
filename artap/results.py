@@ -50,7 +50,6 @@ class Results:
         if len(population.individuals) > 1:
             for individual in population.individuals:
                 l_sol.append(individual.costs)
-                print(individual.feasible)
         return l_sol
 
 class GraphicalResults(Results):
