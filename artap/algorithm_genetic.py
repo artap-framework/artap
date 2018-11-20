@@ -213,20 +213,8 @@ class NSGA_II(GeneticAlgorithm):
             u_b = param[1]['bounds'][1]
 
             parameter1.append(self.clip(alpha*p1.parameters[i]+(1-alpha)*p2.parameters[i], l_b, u_b))
-            print(alpha*p1.parameters[i]+(1-alpha)*p2.parameters[i], l_b, u_b)
             parameter2.append(self.clip((1 - alpha)*p1.parameters[i]+alpha*p2.parameters[i], l_b, u_b))
 
-        #for j,param in enumerate(p1.parameters):
-        #    print(self.problem.parameters)
-        #    print(param)
-        #    print(p1)
-        #    l_b = param['bounds'][0]
-        #    u_b = param['bounds'][1]
-        #
-        #    parameter1.append(self.clip(alpha*param+(1-alpha)*p2.parameters[j], l_b, u_b))
-        #    parameter2.append(self.clip((1 - alpha)*param+alpha*p2.parameters[j], l_b, u_b))
-
-        #print("cross:", parameter1, parameter2)
         c1 = Individual_NSGA_II(parameter1, self.problem)
         c2 = Individual_NSGA_II(parameter2, self.problem)
         return c1, c2
@@ -249,7 +237,6 @@ class NSGA_II(GeneticAlgorithm):
                 para_range = mutation_space * (u_b - l_b)
                 mutation = random.uniform(-para_range, para_range)
                 parameters.append(self.clip(p.parameters[i] + mutation, l_b, u_b))
-                #print('mutated parameters: ', parameters, u_b, l_b)
             else:
                 parameters.append(p.parameters[i])
 
@@ -261,17 +248,6 @@ class NSGA_II(GeneticAlgorithm):
 
     def form_new_population(self):
         pass
-
-    def replace(self, p):
-        """
-        If the individual is infeasible it should be replaced by an other one.
-        If it is selected from the initial population, a new individual should be created,
-        if it has a parent it is replaced by it's parent. ???
-        :return:
-        """
-
-
-        return
 
     def run(self):
         self.gen_initial_population()
