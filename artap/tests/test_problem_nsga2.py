@@ -9,28 +9,28 @@ from artap.results import GraphicalResults, Results
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
-                      'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-32, 32], 'precision': 1e-1}}
         costs = ['F_1', 'F_2']
-
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
-
         super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
 
     def eval(self, x):
-        return Binh_and_Korn.eval(x)
+        return [AckleyN2.eval(x), -AckleyN2.eval(x)]
 
 
-class TestNSGA2Optimization(unittest.TestCase):
-    """ Tests simple one objective optimization problem."""
-    
-    def test_local_problem_nsga2(self):
-
-        problem = MyProblem("LocalPythonProblemNSGA_II")
-        algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 10
-        algorithm.options['max_population_size'] = 100
-        algorithm.run()
+# class TestNSGA2Optimization(unittest.TestCase):
+#     """ Tests simple one objective optimization problem."""
+#
+#     def test_local_problem_nsga2(self):
+#
+#         problem = MyProblem("LocalPythonProblemNSGA_II")
+#         algorithm = NSGA_II(problem)
+#         algorithm.options['max_population_number'] = 20
+#         algorithm.options['max_population_size'] = 100
+#         algorithm.run()
+#         results = GraphicalResults(problem)
+#         results.plot_populations()
 
 
 class AckleyN2Test(Problem):
@@ -56,6 +56,8 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 100
         algorithm.run()
+        results = GraphicalResults(problem)
+        results.plot_all_individuals()
 
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
