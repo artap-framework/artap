@@ -71,7 +71,7 @@ class Population:
                 if not individual.is_evaluated:
                     individual.problem = self.problem
                     individual.evaluate()
-                    individual.is_solved = True
+
 
         else:
             i = 0
@@ -90,20 +90,20 @@ class Population:
                         process.join()
                         processes = []
 
-        # collect the results
-        for i in range(Individual.results.qsize()):
-            result = Individual.results.get()
-            for individual in self.individuals:
-                if individual.number == result[0]:
-                    if type(result[1]) != list:
-                        individual.costs.append(result[1])
-                    else:
-                        individual.costs.extend(result[1])
-                    individual.feasible = result[2]
-                    individual.is_solved = True
+            # collect the results
+            for i in range(Individual.results.qsize()):
+                result = Individual.results.get()
+                for individual in self.individuals:
+                    if individual.number == result[0]:
+                        if type(result[1]) != list:
+                            individual.costs.append(result[1])
+                        else:
+                            individual.costs.extend(result[1])
+                        individual.feasible = result[2]
+                        individual.is_solved = True
 
-        Individual.results.close()
-        Individual.results.join_thread()
+            Individual.results.close()
+            Individual.results.join_thread()
 
 
 
