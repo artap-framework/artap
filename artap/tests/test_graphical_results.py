@@ -14,5 +14,6 @@ class TestDataStore(unittest.TestCase):
         results = GraphicalResults(problem)
         results.plot_all_individuals()
 
+
 if __name__ == '__main__':
     unittest.main()

@@ -33,7 +33,7 @@ class TestProblem(Problem):
             user = getpass.getuser()
         else:
             user = Enviroment.condor_host_login
-        # host        
+        # host
 
         host = Enviroment.condor_host_ip
 
@@ -47,8 +47,8 @@ class TestProblem(Problem):
 
 
 class TestCondor(TestCase):
-    """ Tests simple optimization problem where calculation of 
-        goal function is submitted as a job on HtCondor. 
+    """ Tests simple optimization problem where calculation of
+        goal function is submitted as a job on HtCondor.
     """
 
     def test_condor_run(self):

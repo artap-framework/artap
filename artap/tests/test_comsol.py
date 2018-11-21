@@ -3,9 +3,10 @@ import os
 from artap import ComsolExecutor
 from artap import Problem
 
-class TestProblem(Problem):
 
+class TestProblem(Problem):
      """ Describe simple one objective optimization problem. """
+
      def __init__(self, name):
 
          self.max_population_number = 1
@@ -26,6 +27,7 @@ class TestProblem(Problem):
          result = self.executor.eval(x)
          return result
 
+
 class TestSimpleComsolOptimization(unittest.TestCase):
      def test_upper(self):
 
@@ -33,6 +35,7 @@ class TestSimpleComsolOptimization(unittest.TestCase):
          result = problem.eval([1, 1])
          print(result)
          self.assertAlmostEqual(result, 11.294090668382257)
+
 
 if __name__ == '__main__':
      unittest.main()

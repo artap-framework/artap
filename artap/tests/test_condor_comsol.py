@@ -17,7 +17,8 @@ class TestProblem(Problem):
                       'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
+        max_processes = 10
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False, max_processes=max_processes)
         self.max_population_number = 1
         self.max_population_size = 1
 
@@ -29,7 +30,7 @@ class TestProblem(Problem):
             user = getpass.getuser()
         else:
             user = Enviroment.condor_host_login
-        # host        
+        # host
 
         host = Enviroment.condor_host_ip
 
@@ -50,8 +51,8 @@ class TestProblem(Problem):
 
 
 class TestCondor(TestCase):
-    """ Tests simple optimization problem where calculation of 
-        goal function is submitted as a job on HtCondor. 
+    """ Tests simple optimization problem where calculation of
+        goal function is submitted as a job on HtCondor.
     """
 
     def test_condor_run(self):
