@@ -6,6 +6,7 @@ from artap.benchmark_functions import Binh_and_Korn, AckleyN2
 from artap.algorithm_genetic import NSGA_II
 from artap.results import GraphicalResults, Results
 
+
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
@@ -15,13 +16,14 @@ class MyProblem(Problem):
 
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True, max_processes=2)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True, max_processes=10)
 
     def eval(self, x):
         return Binh_and_Korn.eval(x)
 
     def eval_constraints(self, x):
         return Binh_and_Korn.constraints(x)
+
 
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
@@ -45,7 +47,7 @@ class TestNSGA2Optimization(unittest.TestCase):
             if abs(Binh_and_Korn.approx(sol[0])-sol[1]) > 0.1 * Binh_and_Korn.approx(sol[0]) and sol[0] > 20 and sol[0]< 70:
                 wrong += 1
 
-        self.assertEqual(wrong, 0)
+        self.assertAlmostEqual(wrong, 0)
 
 
 class AckleyN2Test(Problem):
@@ -56,7 +58,7 @@ class AckleyN2Test(Problem):
                       'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
         costs = ['F_1']
         working_dir = "./workspace/common_data/"
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False, max_processes=2)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False, max_processes=10)
 
     def eval(self, x):
         return AckleyN2.eval(x)
