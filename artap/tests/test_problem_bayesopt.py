@@ -41,7 +41,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         problem = MyProblem("LocalPythonProblemBayesOptSerial")
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
-        algorithm.options['n_iterations'] = 100
+        algorithm.options['n_iterations'] = 200
         algorithm.run()
 
         results = Results(problem)

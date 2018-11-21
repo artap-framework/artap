@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 from .individual import Individual, Individual_NSGA_II
 import time
 
@@ -63,21 +63,31 @@ class Population:
         The evaluate function calculate the value of the
         :return:
         """
+        Individual.results = Queue()
         processes = []
-        i = 0
-        #time.sleep(1)
-        for individual in self.individuals:
-            i += 1
-            #if i % 10 == 0:
-            #    time.sleep(1)
-            if not individual.is_evaluated:
-                individual.problem = self.problem
-                p = Process(target=individual.evaluate)
-                processes.append(p)
-                p.start()
 
-        for process in processes:
-            process.join()
+        if self.problem.max_processes == 1:
+            for individual in self.individuals:
+                if not individual.is_evaluated:
+                    individual.problem = self.problem
+                    individual.evaluate()
+                    individual.is_solved = True
+
+        else:
+            i = 0
+            for individual in self.individuals:
+                if not individual.is_evaluated:
+                    individual.problem = self.problem
+                    p = Process(target=individual.evaluate)
+                    processes.append(p)
+                    p.start()
+                    i += 1
+
+                if ((i % self.problem.max_processes) == 0) or (i == len(self.individuals)):
+                    for process in processes:
+                        process.join()
+                        i = 0
+                        processes = []
 
         # collect the results
         for i in range(Individual.results.qsize()):
@@ -90,6 +100,11 @@ class Population:
                         individual.costs.extend(result[1])
                     individual.feasible = result[2]
                     individual.is_solved = True
+
+        Individual.results.close()
+        Individual.results.join_thread()
+
+
 
 class Population_NSGA_II(Population):
 

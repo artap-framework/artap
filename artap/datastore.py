@@ -88,7 +88,7 @@ class SqliteDataStore(DataStore):
 
         try:
             connection = sqlite3.connect(database_name)
-            # connection.execute('pragma journal_mode=wal')
+            connection.execute('pragma journal_mode=wal')
 
             cursor = connection.cursor()
             cursor.execute(command)

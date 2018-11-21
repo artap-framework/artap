@@ -19,6 +19,7 @@ from artap.results import Results
 
 from artap.benchmark_functions import Booth
 
+
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
