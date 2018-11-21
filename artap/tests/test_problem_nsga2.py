@@ -71,8 +71,8 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 100
         algorithm.run()
-        results = GraphicalResults(problem)
-        results.plot_all_individuals()
+        # results = GraphicalResults(problem)
+        # results.plot_all_individuals()
 
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
