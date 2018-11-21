@@ -75,6 +75,7 @@ class Population:
 
         else:
             i = 0
+            j = 0
             for individual in self.individuals:
                 if not individual.is_evaluated:
                     individual.problem = self.problem
@@ -82,11 +83,11 @@ class Population:
                     processes.append(p)
                     p.start()
                     i += 1
+                    j += 1
 
-                if ((i % self.problem.max_processes) == 0) or (i == len(self.individuals)):
+                if ((i % self.problem.max_processes) == 0) or (j >= len(self.individuals)):
                     for process in processes:
                         process.join()
-                        i = 0
                         processes = []
 
         # collect the results
