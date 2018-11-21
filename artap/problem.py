@@ -129,7 +129,7 @@ class Problem(ProblemBase):
         """ :param x: list of the variables """
         pass
 
-    @abstractmethod
+    # @abstractmethod
     def eval_constraints(self, x: list):
         """ :param x: list of the variables """
         pass
