@@ -59,10 +59,10 @@ class Individual(metaclass=ABCMeta):
             self.feasible = sum(map(abs,constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
-
-        #if self.feasible == 0.:
         costs = self.problem.eval(self.parameters)
-        self.costs = [costs]
+
+        if costs is not list:
+            self.costs = [costs]
         # scipy uses the result number, the genetic algorithms using the property value
         self.is_evaluated = True
         self.problem.data_store.write_individual(self.to_list())
