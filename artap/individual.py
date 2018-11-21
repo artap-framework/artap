@@ -12,7 +12,7 @@ class Individual(metaclass=ABCMeta):
        Collects information about one point in design space.
     """
     number = 0
-    results = Queue()
+    results = None
 
     def __init__(self, design_parameters, problem, population_id=0):
         self.parameters = design_parameters
@@ -62,12 +62,14 @@ class Individual(metaclass=ABCMeta):
 
         #if self.feasible == 0.:
         costs = self.problem.eval(self.parameters)
+        self.costs = [costs]
         # scipy uses the result number, the genetic algorithms using the property value
         self.is_evaluated = True
         self.problem.data_store.write_individual(self.to_list())
 
         #Individual.results.put([copy()])
-        Individual.results.put([self.number, costs, self.feasible])
+        if self.problem.max_processes > 1:
+            Individual.results.put([self.number, costs, self.feasible])
 
         return costs # for scipy
 

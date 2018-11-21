@@ -42,7 +42,7 @@ class Problem(ProblemBase):
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, save_data=True):
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, save_data=True, max_processes=1):
 
         super().__init__()
         self.name = name
@@ -50,6 +50,7 @@ class Problem(ProblemBase):
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
         self.save_data = save_data
+        self.max_processes = max_processes
 
         if (working_dir is None) or (not save_data):
             self.working_dir = tempfile.mkdtemp()
