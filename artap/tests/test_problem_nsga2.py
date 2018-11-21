@@ -54,7 +54,7 @@ class AckleyN2Test(Problem):
                       'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
         costs = ['F_1']
         working_dir = "./workspace/common_data/"
-        max_processes = 10
+        max_processes = 5
         super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False, max_processes=max_processes)
 
 
