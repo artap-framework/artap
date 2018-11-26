@@ -22,7 +22,7 @@ class TestProblem(Problem):
         self.max_population_number = 1
         self.max_population_size = 1
 
-        output_files = ["max.txt"]
+        output_files = ["out.txt"]
         model_file = "elstat.mph"
 
         # current username
