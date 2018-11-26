@@ -30,7 +30,8 @@ class MyProblem(Problem):
         costs = ['F']
 
         working_dir = "./workspace/common_data/"
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
+        super().__init__(name, parameters, costs, working_dir=working_dir)
+        self.options['save_data'] = False
 
     def eval(self, x):
         return Booth.eval(x)
