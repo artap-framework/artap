@@ -69,9 +69,8 @@ class Individual(metaclass=ABCMeta):
         self.is_evaluated = True
         self.problem.data_store.write_individual(self.to_list())
 
-        #Individual.results.put([copy()])
-        if self.problem.max_processes > 1:
-            Individual.results.put([self.number, costs, self.feasible])
+        #if self.problem.options['max_processes'] > 1:
+        #    Individual.results.put([self.number, costs, self.feasible])
 
         return costs # for scipy
 

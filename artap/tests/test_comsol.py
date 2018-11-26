@@ -5,27 +5,26 @@ from artap import Problem
 
 
 class TestProblem(Problem):
-     """ Describe simple one objective optimization problem. """
+    """ Describe simple one objective optimization problem. """
 
-     def __init__(self, name):
+    def __init__(self, name):
+        parameters = {'a': {'initial_value':10},
+                        'b': {'initial_value':10}}
+        costs = ['F1']
+        working_dir = "." + os.sep + "workspace" + os.sep + "condor" + os.sep
 
-         self.max_population_number = 1
-         self.max_population_size = 1
-         parameters = {'a': {'initial_value':10},
-                            'b': {'initial_value':10}}
-         self.costs = ['F1']
+        super().__init__(name, parameters, costs, working_dir=working_dir)
+        self.options['save_data'] = False
 
-         curr_dir = os.path.abspath(os.curdir)
-         output_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "max.txt"
-         model_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "elstat.mph"
+        curr_dir = os.path.abspath(os.curdir)
+        output_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "max.txt"
+        model_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "elstat.mph"
 
-         self.executor = ComsolExecutor(parameters, model_file, output_file)
+        self.executor = ComsolExecutor(parameters, model_file, output_file)
 
-         super().__init__(name, parameters, self.costs)
-
-     def eval(self, x):
-         result = self.executor.eval(x)
-         return result
+    def eval(self, x):
+        result = self.executor.eval(x)
+        return result
 
 
 class TestSimpleComsolOptimization(unittest.TestCase):
