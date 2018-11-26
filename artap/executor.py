@@ -372,6 +372,9 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                         print(state)
                         event = state[1]
 
+                    if event == "Held":
+                        break
+
                 if event == "Completed":
                     content = self.read_file_from_remote("." + os.sep + "out%s.txt" % ts, client=client)
                     success = True
