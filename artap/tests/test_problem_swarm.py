@@ -15,9 +15,8 @@ class PSO_Rosenbrock(Problem):
 
         working_dir = "./workspace/common_data/"
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
-        self.max_population_number = 10
-        self.max_population_size = 20
+        super().__init__(name, parameters, costs, working_dir=working_dir)
+        self.options['save_data'] = False
 
     def eval(self, x):
         return Rosenbrock.eval(x)
