@@ -1,11 +1,13 @@
+from .datastore import SqliteDataStore
+from .individual import Individual
+from .utils import flatten
+from .utils import ConfigDictionary
+
 from abc import ABC, abstractmethod
 from datetime import datetime
 import os
 import tempfile
-import shutil
-from .datastore import SqliteDataStore
-from .individual import Individual
-from .utils import flatten
+import multiprocessing
 
 
 """
@@ -22,7 +24,12 @@ class ProblemBase(ABC):
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: SqliteDataStore = None
-        self._algorithm = None
+
+        # options
+        self.options = ConfigDictionary()
+
+        self.options.declare(name='save_data', default=True,
+                             desc='Save data to database')
 
     def get_parameters_list(self):
         parameters_list = []
@@ -42,17 +49,19 @@ class Problem(ProblemBase):
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, save_data=True, max_processes=1):
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
 
         super().__init__()
         self.name = name
         self.working_dir = working_dir
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
-        self.save_data = save_data
-        self.max_processes = max_processes
 
-        if (working_dir is None) or (not save_data):
+        # options
+        self.options.declare(name='max_processes', default=max(int(2/3 * multiprocessing.cpu_count()), 1),
+                             desc='Max running processes')
+
+        if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()
         else:
             time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
@@ -108,14 +117,6 @@ class Problem(ProblemBase):
             results[i] = self.eval(table[i])
         return results
 
-    @property
-    def algorithm(self):
-        return self._algorithm
-
-    @algorithm.setter
-    def algorithm(self, algorithm):
-        self._algorithm = algorithm
-
     def get_initial_values(self):
         values = []
         for parameter in self.parameters.items():
@@ -144,14 +145,12 @@ class ProblemDataStore(ProblemBase):
         self.data_store = data_store
         self.data_store.read_problem(self)
 
-        self.save_data = True
-
         if working_dir is None:
             self.working_dir = tempfile.mkdtemp()
-            self.save_data = False
+            self.options['save_data'] = False
         else:
             self.working_dir = working_dir + self.name
-            self.save_data = True
+            self.options['save_data'] = True
 
     def to_table(self):
         table = []

@@ -13,11 +13,8 @@ class MyProblem(Problem):
         
         costs = ['F_1', 'F_2']
 
-        # working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
-        # super().__init__(name, parameters, costs, working_dir=working_dir)
-
-        super().__init__(name, parameters, costs, save_data=False)
-        # For tests is not necessary to save data
+        super().__init__(name, parameters, costs)
+        self.options['save_data'] = False
 
     def eval(self, x):
         f1 = 0
