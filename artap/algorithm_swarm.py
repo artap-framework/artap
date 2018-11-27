@@ -1,6 +1,6 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .population import Population, Population_NSGA_II
+from .population import Population, Population_Genetic
 from .individual import Individual_NSGA_II, Individual
 from .algorithm_genetic import GeneticAlgorithm
 
@@ -12,7 +12,7 @@ class PSO(GeneticAlgorithm):
         super().__init__(problem, name)
 
     def gen_initial_population(self):
-        population = Population_NSGA_II(self.problem)
+        population = Population_Genetic(self.problem)
         population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
         self.problem.populations.append(population)
 
