@@ -1,10 +1,11 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .population import Population, Population_NSGA_II
+from .population import Population, Population_Genetic
 from .individual import Individual_NSGA_II, Individual
 from copy import copy
 from abc import ABCMeta, abstractmethod
 import random, time
+
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -71,7 +72,7 @@ class NSGA_II(GeneticAlgorithm):
                              desc='prob_mutation')
 
     def gen_initial_population(self):
-        population = Population_NSGA_II(self.problem)
+        population = Population_Genetic(self.problem)
         population.gen_random_population(self.options['max_population_size'],
                                          self.parameters_length,
                                          self.problem.parameters)
@@ -255,7 +256,7 @@ class NSGA_II(GeneticAlgorithm):
 
         t_s = time.time()
         for it in range(self.options['max_population_number']):
-            population = Population_NSGA_II(self.problem, offsprings)
+            population = Population_Genetic(self.problem, offsprings)
 
             population.evaluate() # evaluate the offsprings
 
@@ -274,3 +275,148 @@ class NSGA_II(GeneticAlgorithm):
 
         t = time.time() - t_s
         print('Elapsed time:', t)
+
+class EpsMOEA(GeneticAlgorithm):
+
+    def __init__(self, problem: Problem, name="EpsMOEA"):
+        super().__init__(problem, name)
+
+        self.options.declare(name='prob_cross', default=0.9, lower=0,
+                             desc='prob_cross')
+        self.options.declare(name='prob_mutation', default=0.05, lower=0,
+                             desc='prob_mutation')
+
+    def gen_initial_population(self):
+        population = Population_Genetic(self.problem)
+        population.gen_random_population(self.options['max_population_size'],
+                                         self.parameters_length,
+                                         self.problem.parameters)
+        self.problem.populations.append(population)
+
+    def pop_select(self, p, q):
+        """
+        Randomly mates two individuals from the population (p,q) and selects the dominating subject.
+        If no dominance exist, select the second one (this is arbitrary).
+
+        :param p: assumes that p is the optimal
+        :param q: is the candidate
+        :return: the subject which is selected for breeding
+        """
+
+        # returns back p if this is the dominating
+        if self.is_dominate(p,q):
+            return p
+
+        if self.is_dominate(q, p):
+            return q
+
+        # if there is no dominating solution exist, returns back the second
+        return q
+
+    def random_selector(self, parents):
+        """
+        Selects an individual from the parents for breeding. Currently selects randomly.
+        :param parents:
+        :return: returns the selected individual
+        """
+        return random.sample(parents)
+
+    def is_dominate(self, p, q):
+        """
+        :param p: candidate
+        :param q: current solution
+        :return: True if the candidate is better than the current solution
+        """
+
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(self.problem.costs)):
+            if p.costs[i] > q.costs[i]:
+                return False
+            if p.costs[i] < q.costs[i]:
+                dominate = True
+        return dominate
+
+    def pareto_dominance(self, p, q):
+        """
+        Pareto dominance comparison with constraint check.
+
+        If either solution violates constraints, then the solution with a smaller
+        constraint violation is preferred.  If both solutions are feasible, then
+        Pareto dominance is used to select the preferred solution.
+
+        :param p, q: individuals
+        :return: 0 - no dominance, 1 - p is dominating, 2 - q is dominating
+        """
+
+        # First check the constraint violations
+        if p.feasible != 0.0:
+            if q.feasible != 0.0:
+                if abs(p.feasible) < abs(q.feasible):
+                    return 1
+                else:
+                    return 2
+            else:
+                return 2
+        else:
+            if q.feasible != 0.0:
+                return 1
+
+        # Then the pareto dominance
+
+        dominate_p = False
+        dominate_q = False
+
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(self.problem.costs)):
+            if p.costs[i] > q.costs[i]:
+                dominate_q = True
+
+                if dominate_p:
+                    return 0
+            if p.costs[i] < q.costs[i]:
+                dominate_p = True
+
+                if dominate_q:
+                    return 0
+
+        if dominate_q == dominate_p:
+            return 0
+        elif dominate_p:
+            return 1
+        else:
+            return 2
+
+    def crossover(self):
+        pass
+
+    def mutate(self):
+        pass
+
+    def run(self):
+
+        # initialize the first population
+        self.gen_initial_population()
+        population = self.problem.populations[0].individuals
+        population.evaluate()   # initial fitness
+
+        for it in range(self.options['max_population_number']):
+
+
+
+            #
+            # population = Population_Genetic(self.problem, offsprings)
+            #
+            # population.evaluate() # evaluate the offsprings
+            #
+            # # non-dominated truncate on the guys
+            # #self.fast_non_dominated_sort(population.individuals)
+            # #self.calculate_crowd_dis(offsprings)
+            #
+            # offsprings.extend(self.problem.populations[it].individuals)  # add the parents to the offsprings
+            # parents = sorted(offsprings, key=lambda x: x.front_number)
+            # random.shuffle(parents)
+            # # truncate
+            # self.problem.populations[it].individuals = parents[:self.options['max_population_size']]
+            # self.problem.add_population(population)
+            #
+            # offsprings = self.generate(self.problem.populations[it].individuals)

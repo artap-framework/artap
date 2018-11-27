@@ -105,7 +105,7 @@ class Population:
             Individual.results.join_thread()
 
 
-class Population_NSGA_II(Population):
+class Population_Genetic(Population):
 
     def __init__(self, problem, individuals=None):
             if individuals is None:
