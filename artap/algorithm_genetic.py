@@ -4,8 +4,8 @@ from .population import Population, Population_Genetic
 from .individual import Individual_NSGA_II, Individual
 from copy import copy
 from abc import ABCMeta, abstractmethod
-import random, time
-
+import random, time, itertools
+from numpy.random import random_integers
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -293,15 +293,18 @@ class EpsMOEA(GeneticAlgorithm):
                                          self.problem.parameters)
         self.problem.populations.append(population)
 
-    def pop_select(self, p, q):
+    def pop_select(self, population):
         """
         Randomly mates two individuals from the population (p,q) and selects the dominating subject.
         If no dominance exist, select the second one (this is arbitrary).
 
-        :param p: assumes that p is the optimal
-        :param q: is the candidate
+        :param population: the actual population
         :return: the subject which is selected for breeding
         """
+        compete = random_integers(0, len(population)-1, size=2)
+
+        p = population[compete[0]]
+        q = population[compete[1]]
 
         # returns back p if this is the dominating
         if self.is_dominate(p,q):
@@ -316,6 +319,7 @@ class EpsMOEA(GeneticAlgorithm):
     def random_selector(self, parents):
         """
         Selects an individual from the parents for breeding. Currently selects randomly.
+        It's a tournament selector
         :param parents:
         :return: returns the selected individual
         """
@@ -386,21 +390,80 @@ class EpsMOEA(GeneticAlgorithm):
         else:
             return 2
 
+    def pareto_front(self, population):
+        """
+        Given multiple fitness values of a population, find which individuals are in
+        the pareto-front(i.e. the non-dominated subset of the population.
+
+        :param population: list of the solutions
+        :return: an array which contains the information that which individual is in the pareto front
+        """
+
+        #archive = [False]*len(population)
+        archive = population
+
+        for i in range(len(population)):
+            for j in range(len(population))
+                if i != j:
+                    result = self.pareto_dominance(population[i], population[j])
+
+                    if result == 1:
+                       archive[i].isPareto = True
+                       if archive[j]:
+                           archive[j].isPareto = False
+
+                    if result == 2:
+                        archive[j].isPareto = True
+                        if archive[i]:
+                            archive[i].isPareto = False
+
+        return copy(archive)
+
     def crossover(self):
         pass
 
     def mutate(self):
         pass
 
+    def sbx(self, mama, papa):
+        """Create an offspring using simulated binary crossover.
+
+        :parameter mama, papa: - two breeders from the population, each a vector of genes.
+        :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
+        """
+
+        offsprings = [mama.copy(), papa.copy()]
+
+        if ranom.rand() <= self._p.
+
+        return offsprings
+
+    def breed(self, mama, papa):
+        """Creates a new genome for a subject by recombination of parent genes, and possibly mutation of the result,
+        depending on the individuals's mutation resistance.
+
+        :parameter mama, papa: - two breeders from the population, each a vector of genes.
+        :return offspring: - a length-g array with the genotype of the offspring after recombination and mutation.
+        """
+
+        offsprings = self.sbx(mama, papa)
+
+        return
+
     def run(self):
 
         # initialize the first population
         self.gen_initial_population()
-        population = self.problem.populations[0].individuals
-        population.evaluate()   # initial fitness
+        self.problem.populations[0].evaluate()
+        curr_population = self.problem.populations[0].individuals
+
+        # pareto values after the first iteration
+        archive = self.pareto_front(curr_population)
 
         for it in range(self.options['max_population_number']):
 
+            mama = self.pop_select(curr_population)
+            papa = self.random_selector(archive)
 
 
             #
