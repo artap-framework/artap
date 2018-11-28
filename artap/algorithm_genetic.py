@@ -272,6 +272,8 @@ class EpsMOEA(GeneticAlgorithm):
 
         self.options.declare(name='p_recomb', default=1.0, lower=0, desc='recombination_probability')
         self.options.declare(name='dist_ind', default=15.0, lower=0, desc='distribution_index')
+        self.options.declare(name='p_mutation', default=0.05, lower=0,
+                             desc='mutation_probability')
 
     def gen_initial_population(self):
         population = Population_Genetic(self.problem)
@@ -497,7 +499,19 @@ class EpsMOEA(GeneticAlgorithm):
         :return offspring: - a length-g array with the genotype of the offspring after recombination and mutation.
         """
 
+        # Recombination place, using one-point crossover:
         offsprings = self.sbx(mama, papa)
+
+        # Possibly mutate:
+        for kid in offsprings:
+            which_genes = random.rand(self.problem.chromosome_len()) <= self.options['p_mutation'] # TODO: check the value in platypus
+            if not any(which_genes):
+                continue
+
+            # Polinomial mutation, see ref. Kalyanmoy Deb, An efficient constraint handling method for genetic
+            #  algorithms, 31 May 2000
+            delta = 1 - N.array((offspring[which_genes] - self._low_bnds[which_genes],
+                                 self._up_bnds[which_genes] - offspring[which_genes])) / self._ranges[which_genes]
 
         return
 
