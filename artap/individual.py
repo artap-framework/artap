@@ -152,3 +152,4 @@ class Individual_NSGA_II(Individual):
         self.domination_counter = 0
         self.front_number = 0
         self.crowding_distance = 0
+        self.isPareto = False # for epsmoea
