@@ -17,8 +17,8 @@ class MyProblem(Problem):
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
         super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
-        self.options['max_processes'] = 10
+        self.options['save_level'] = "population"
+        self.options['max_processes'] = 1
 
     def eval(self, x):
         return Binh_and_Korn.eval(x)
@@ -34,7 +34,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         problem = MyProblem("LocalPythonProblemNSGA_II")
         algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 40
+        algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 100
         algorithm.run()
 
@@ -49,7 +49,7 @@ class TestNSGA2Optimization(unittest.TestCase):
             if abs(Binh_and_Korn.approx(sol[0])-sol[1]) > 0.1 * Binh_and_Korn.approx(sol[0]) and sol[0] > 20 and sol[0]< 70:
                 wrong += 1
 
-        self.assertAlmostEqual(wrong, 0)
+        self.assertEqual(wrong, 0)
 
 
 class AckleyN2Test(Problem):
@@ -61,8 +61,8 @@ class AckleyN2Test(Problem):
         costs = ['F_1']
         working_dir = "./workspace/common_data/"
         super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
-        self.options['max_processes'] = 10
+        self.options['save_level'] = "population"
+        self.options['max_processes'] = 1
 
     def eval(self, x):
         return AckleyN2.eval(x)
