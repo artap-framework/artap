@@ -25,6 +25,10 @@ class Individual(metaclass=ABCMeta):
         self.feasible = 0.0 # the distance from the feasibility region in min norm
         self.population_id = population_id
         self.is_evaluated = False
+        self.dominate = set()
+        self.domination_counter = 0
+        self.front_number = 0
+        self.crowding_distance = 0
 
     def __repr__(self):
         """ :return: [parameters[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
@@ -67,10 +71,11 @@ class Individual(metaclass=ABCMeta):
             self.costs = costs
         # scipy uses the result number, the genetic algorithms using the property value
         self.is_evaluated = True
-        self.problem.data_store.write_individual(self.to_list())
+        if self.problem.options['save_level'] == "individual":
+            self.problem.data_store.write_individual(self.to_list())
 
-        #if self.problem.options['max_processes'] > 1:
-        #    Individual.results.put([self.number, costs, self.feasible])
+        if self.problem.options['max_processes'] > 1:
+            Individual.results.put([self.number, costs, self.feasible])
 
         return costs # for scipy
 
@@ -142,13 +147,3 @@ class Individual(metaclass=ABCMeta):
             number = normal(mean, std)
 
         return number
-
-
-class Individual_NSGA_II(Individual):
-
-    def __init__(self, x, problem, population_id=0):
-        super().__init__(x, problem, population_id)
-        self.dominate = set()
-        self.domination_counter = 0
-        self.front_number = 0
-        self.crowding_distance = 0
