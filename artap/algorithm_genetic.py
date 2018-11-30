@@ -1,7 +1,7 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population, Population_Genetic
-from .individual import Individual_NSGA_II, Individual
+from .individual import Individual
 from copy import copy
 from abc import ABCMeta, abstractmethod
 import random, time, itertools
@@ -216,8 +216,8 @@ class NSGA_II(GeneticAlgorithm):
             parameter1.append(self.clip(alpha*p1.parameters[i]+(1-alpha)*p2.parameters[i], l_b, u_b))
             parameter2.append(self.clip((1 - alpha)*p1.parameters[i]+alpha*p2.parameters[i], l_b, u_b))
 
-        c1 = Individual_NSGA_II(parameter1, self.problem)
-        c2 = Individual_NSGA_II(parameter2, self.problem)
+        c1 = Individual(parameter1, self.problem)
+        c2 = Individual(parameter2, self.problem)
         return c1, c2
 
     @staticmethod
@@ -241,7 +241,7 @@ class NSGA_II(GeneticAlgorithm):
             else:
                 parameters.append(p.parameters[i])
 
-        p_new = Individual_NSGA_II(parameters, self.problem)
+        p_new = Individual(parameters, self.problem)
         return p_new
 
     def select(self):
@@ -403,7 +403,7 @@ class EpsMOEA(GeneticAlgorithm):
         archive = population
 
         for i in range(len(population)):
-            for j in range(len(population))
+            for j in range(len(population)):
                 if i != j:
                     result = self.pareto_dominance(population[i], population[j])
 
@@ -434,9 +434,9 @@ class EpsMOEA(GeneticAlgorithm):
 
         offsprings = [mama.copy(), papa.copy()]
 
-        if ranom.rand() <= self._p.
+        if random.rand() <= self._p:
 
-        return offsprings
+            return offsprings
 
     def breed(self, mama, papa):
         """Creates a new genome for a subject by recombination of parent genes, and possibly mutation of the result,

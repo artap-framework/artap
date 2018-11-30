@@ -72,14 +72,13 @@ class SqliteDataStore(DataStore):
                 parameters_file.close()
                 self.database_name = parameters_file.name()
 
-        # print(self.database_name)
-
     def __del__(self):
         super().__del__()
 
     def _execute_command(self, command):
         """Request notification email"""
-        self.worker_loop.call_soon_threadsafe(self._execute_command_async, self.database_name, command)
+        self._execute_command_async(self.database_name, command)
+        # self.worker_loop.call_soon_threadsafe(self._execute_command_async, self.database_name, command)
 
     @staticmethod
     def _execute_command_async(database_name, command):
@@ -88,7 +87,7 @@ class SqliteDataStore(DataStore):
 
         try:
             connection = sqlite3.connect(database_name)
-            connection.execute('pragma journal_mode=wal')
+            #connection.execute('pragma journal_mode=wal')
 
             cursor = connection.cursor()
             cursor.execute(command)
@@ -157,6 +156,21 @@ class SqliteDataStore(DataStore):
         exec_cmd += " " + str(params[i]) + ")"
 
         self._execute_command(exec_cmd)
+
+    def write_population(self, table):
+        connection = sqlite3.connect(self.database_name)
+
+        for params in table:
+            exec_cmd = "INSERT INTO data VALUES ("
+            for i in range(len(params) - 1):
+                exec_cmd += " " + str(params[i]) + ","
+            exec_cmd += " " + str(params[i]) + ")"
+            cursor = connection.cursor()
+            cursor.execute(exec_cmd)
+            cursor.close()
+        connection.commit()
+        connection.close()
+
 
     def read_problem(self, problem):
         connection = sqlite3.connect(self.database_name)
