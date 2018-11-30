@@ -97,7 +97,10 @@ class Problem(ProblemBase):
 
     def add_population(self, population):
         self.populations.append(population)
-        
+
+    def chromosome_len(self):
+        return len(self.parameters)
+
     def evaluate_individual(self, x, population=0):
         """
 
