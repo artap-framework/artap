@@ -32,6 +32,10 @@ class ProblemBase(ABC):
                              desc='Save data to database')
         self.options.declare(name='save_level', default="problem",
                              desc='Save level')
+        # options
+        self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
+                             desc='Max running processes')
+
 
     def get_parameters_list(self):
         parameters_list = []
@@ -59,9 +63,6 @@ class Problem(ProblemBase):
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
 
-        # options
-        self.options.declare(name='max_processes', default=max(int(2/3 * multiprocessing.cpu_count()), 1),
-                             desc='Max running processes')
 
         if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()

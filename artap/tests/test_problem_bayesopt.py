@@ -18,6 +18,7 @@ class MyProblem(Problem):
 
         super().__init__(name, parameters, costs, working_dir=working_dir)
         self.options['save_data'] = False
+        self.options['max_processes'] = 1
 
     def eval(self, x):
         return Booth.eval(x)
@@ -28,6 +29,7 @@ class TestBayesOptOptimization(unittest.TestCase):
     
     def test_local_problem_bayesopt_parallel(self):
         problem = MyProblem("LocalPythonProblemBayesOptParallel")
+        problem.options["max_processes"] = 1
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 100
