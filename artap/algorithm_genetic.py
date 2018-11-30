@@ -2,10 +2,13 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population, Population_Genetic
 from .individual import Individual
-from copy import copy
+from copy import copy, deepcopy
 from abc import ABCMeta, abstractmethod
 import random, time, itertools
 from numpy.random import random_integers
+import sys
+
+EPSILON = sys.float_info.epsilon
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -85,20 +88,6 @@ class NSGA_II(GeneticAlgorithm):
         :return: True if the candidate is better than the current solution
         """
         dominate = False
-
-        # First check the constraints
-        # general evolutionary algorithms
-        #if p.feasible != 0.0:
-        #    if q.feasible != 0:
-        #        if p.feasible < q.feasible:
-        #            return False
-        #        else:
-        #            return True
-        #    else:
-        #        return True # the candicate is feasible
-        #else:
-        #    if q.feasible < 0:
-        #        return False
 
         # The cost function can be a float or a list of floats
         for i in range(0, len(self.problem.costs)):
@@ -276,15 +265,16 @@ class NSGA_II(GeneticAlgorithm):
         t = time.time() - t_s
         print('Elapsed time:', t)
 
+
 class EpsMOEA(GeneticAlgorithm):
 
     def __init__(self, problem: Problem, name="EpsMOEA"):
         super().__init__(problem, name)
 
-        self.options.declare(name='prob_cross', default=0.9, lower=0,
-                             desc='prob_cross')
-        self.options.declare(name='prob_mutation', default=0.05, lower=0,
-                             desc='prob_mutation')
+        self.options.declare(name='p_recomb', default=1.0, lower=0, desc='recombination_probability')
+        self.options.declare(name='dist_ind_sbx', default=15.0, lower=0, desc='distribution_index')
+        self.options.declare(name='p_mutation', default=1.0, lower=0, desc='mutation_probability')
+        self.options.declare(name='dist_ind_pm', default=20.0, lower=0, desc='mutation_distribution_index')
 
     def gen_initial_population(self):
         population = Population_Genetic(self.problem)
@@ -310,7 +300,7 @@ class EpsMOEA(GeneticAlgorithm):
         if self.is_dominate(p,q):
             return p
 
-        if self.is_dominate(q, p):
+        if self.is_dominate(q,p):
             return q
 
         # if there is no dominating solution exist, returns back the second
@@ -420,10 +410,103 @@ class EpsMOEA(GeneticAlgorithm):
         return copy(archive)
 
     def crossover(self):
+        # it uses the sbx
         pass
 
-    def mutate(self):
-        pass
+    def mutate(self, parent):
+        # polynomial mutation
+
+        child_param = copy.deepcopy(parent.parameters)
+        probability = self.probability
+
+        if isinstance(probability, int):
+            probability /= float(len([t for t in problem.types if isinstance(t, Real)]))
+
+        for i in range(len(child_param)):
+            if isinstance(problem.types[i], Real):
+                if random.uniform(0.0, 1.0) <= probability:
+                    child_param[i] = self.pm_mutation(float(child_param[i]),
+                                                          problem.types[i].min_value,
+                                                          problem.types[i].max_value)
+
+        for i, param in enumerate(self.problem.parameters.items()):
+
+            if random.uniform(0.0, 1.0) <= probability:
+                child_param[i] = self.pm_mutation(float(child_param[i]),
+                                                        problem.types[i].min_value,
+                                                        problem.types[i].max_value)
+
+                x1 = cparam_a[i]
+                x2 = cparam_b[i]
+
+                lb = param[1]['bounds'][0]
+                ub = param[1]['bounds'][1]
+
+        return Individual_NSGA_II(child_param, self.problem)
+
+    def pm_mutation(self, x, lb, ub):
+        u = random.uniform(0, 1)
+        dx = ub - lb
+
+        if u < 0.5:
+            bl = (x - lb) / dx
+            b = 2.0 * u + (1.0 - 2.0 * u) * pow(1.0 - bl,  self.options['dist_ind_pm'] + 1.0)
+            delta = pow(b, 1.0 / (self.options['dist_ind_pm'] + 1.0)) - 1.0
+        else:
+            bu = (ub - x) / dx
+            b = 2.0 * (1.0 - u) + 2.0 * (u - 0.5) * pow(1.0 - bu, self.options['dist_ind_pm'] + 1.0)
+            delta = 1.0 - pow(b, 1.0 / (self.options['dist_ind_pm'] + 1.0))
+
+        x = x + delta * dx
+        x = self.clip(x, lb, ub)
+
+        return x
+
+    def sbx_crossover(self, x1, x2, lb, ub):
+        dx = x2 - x1
+
+        if dx > EPSILON:
+            if x2 > x1:
+                y2 = x2
+                y1 = x1
+            else:
+                y2 = x1
+                y1 = x2
+
+            beta = 1.0 / (1.0 + (2.0 * (y1 - lb) / (y2 - y1)))
+            alpha = 2.0 - pow(beta, self.options['dist_ind_sbx'] + 1.0)
+            rand = random.uniform(0.0, 1.0)
+
+            if rand <= 1.0 / alpha:
+                alpha = alpha * rand
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
+            else:
+                alpha = alpha * rand
+                alpha = 1.0 / (2.0 - alpha)
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
+
+            x1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1))
+            beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)))
+            alpha = 2.0 - pow(beta, self.options['dist_ind_sbx'] + 1.0)
+
+            if rand <= 1.0 / alpha:
+                alpha = alpha * rand
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
+            else:
+                alpha = alpha * rand
+                alpha = 1.0 / (2.0 - alpha)
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
+
+            x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1))
+
+            # randomly swap the values
+            if bool(random.getrandbits(1)):
+                x1, x2 = x2, x1
+
+            x1 = self.clip(x1, lb, ub)
+            x2 = self.clip(x2, lb, ub)
+
+        return x1, x2
 
     def sbx(self, mama, papa):
         """Create an offspring using simulated binary crossover.
@@ -432,11 +515,27 @@ class EpsMOEA(GeneticAlgorithm):
         :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        offsprings = [mama.copy(), papa.copy()]
+        cparam_a = deepcopy(mama.parameters)
+        cparam_b = deepcopy(papa.parameters)
 
-        if random.rand() <= self._p:
+        if random.uniform(0.0, 1.0) <= self.options['p_recomb']:
+            for i, param in enumerate(self.problem.parameters.items()):
 
-            return offsprings
+                x1 = cparam_a[i]
+                x2 = cparam_b[i]
+
+                lb = param[1]['bounds'][0]
+                ub = param[1]['bounds'][1]
+
+                x1, x2 = self.sbx_crossover(x1, x2, lb, ub)
+
+                cparam_a.variables[i] = x1
+                cparam_b.variables[i] = x2
+
+        offspring_a = Individual_NSGA_II(cparam_a, self.problem)
+        offspring_b = Individual_NSGA_II(cparam_b, self.problem)
+
+        return [offspring_a, offspring_b]
 
     def breed(self, mama, papa):
         """Creates a new genome for a subject by recombination of parent genes, and possibly mutation of the result,
@@ -446,9 +545,27 @@ class EpsMOEA(GeneticAlgorithm):
         :return offspring: - a length-g array with the genotype of the offspring after recombination and mutation.
         """
 
+        # Recombination place, using one-point crossover:
         offsprings = self.sbx(mama, papa)
 
+        # Possibly mutate:
+        for kid in offsprings:
+            which_genes = random.rand(self.problem.chromosome_len()) <= self.options['p_mutation'] # TODO: check the value in platypus
+            if not any(which_genes):
+                continue
+
+            # Polinomial mutation, see ref. Kalyanmoy Deb, An efficient constraint handling method for genetic
+            #  algorithms, 31 May 2000
+            delta = 1 - N.array((offspring[which_genes] - self._low_bnds[which_genes],
+                                 self._up_bnds[which_genes] - offspring[which_genes])) / self._ranges[which_genes]
+
         return
+
+
+    @staticmethod
+    def clip(value, min_value, max_value):
+        return max(min_value, min(value, max_value))
+
 
     def run(self):
 
