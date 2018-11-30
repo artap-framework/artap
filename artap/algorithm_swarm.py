@@ -1,7 +1,7 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population, Population_Genetic
-from .individual import Individual_NSGA_II, Individual
+from .individual import Individual
 from .algorithm_genetic import GeneticAlgorithm
 
 

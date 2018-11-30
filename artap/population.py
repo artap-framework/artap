@@ -63,12 +63,12 @@ class Population:
         The evaluate function calculate the value of the
         :return:
         """
+
         if self.problem.options['max_processes'] == 1:
             for individual in self.individuals:
                 if not individual.is_evaluated:
                     individual.problem = self.problem
                     individual.evaluate()
-
         else:
             Individual.results = Queue()
             processes = []
