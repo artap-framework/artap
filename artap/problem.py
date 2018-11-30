@@ -30,6 +30,8 @@ class ProblemBase(ABC):
 
         self.options.declare(name='save_data', default=True,
                              desc='Save data to database')
+        self.options.declare(name='save_level', default="problem",
+                             desc='Save level')
 
     def get_parameters_list(self):
         parameters_list = []

@@ -5,6 +5,7 @@ from .utils import ConfigDictionary
 
 from abc import ABCMeta, abstractmethod
 
+
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
 
@@ -15,6 +16,7 @@ class Algorithm(metaclass=ABCMeta):
 
         self.options.declare(name='verbose_level', default=1, lower=0,
                              desc='Verbose level')
+
 
     @abstractmethod
     def run(self):

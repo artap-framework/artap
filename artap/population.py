@@ -1,5 +1,5 @@
 from multiprocessing import Process, Queue
-from .individual import Individual, Individual_NSGA_II
+from .individual import Individual
 import time
 
 
@@ -43,7 +43,7 @@ class Population:
 
     def gen_population_from_table(self, table):
         for parameters in table:
-            individual = Individual_NSGA_II(parameters, self.problem, self.number)
+            individual = Individual(parameters, self.problem, self.number)
             self.individuals.append(individual)
 
     def gen_uniform_population(self, values_per_range):
@@ -54,7 +54,7 @@ class Population:
             parameters[j] = parameter[1]['bounds'][0]
             for i in range(values_per_range):
                 parameters[j] += i * inc
-                individual = Individual_NSGA_II(parameters.copy(), self.problem, self.number)
+                individual = Individual(parameters.copy(), self.problem, self.number)
                 self.individuals.append(individual)
             j += 1
 
@@ -104,6 +104,14 @@ class Population:
             Individual.results.close()
             Individual.results.join_thread()
 
+        if self.problem.options['save_level'] == "population":
+            self.save()
+
+    def save(self):
+        table = []
+        for individual in self.individuals:
+            table.append(individual.to_list())
+        self.problem.data_store.write_population(table)
 
 class Population_Genetic(Population):
 
@@ -113,4 +121,4 @@ class Population_Genetic(Population):
             super().__init__(problem, individuals)
 
     def gen_random_population(self, population_size, vector_length, parameters):
-        self.individuals = Individual_NSGA_II.gen_individuals(population_size, self.problem, self.number)
+        self.individuals = Individual.gen_individuals(population_size, self.problem, self.number)
