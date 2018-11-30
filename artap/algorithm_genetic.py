@@ -271,9 +271,9 @@ class EpsMOEA(GeneticAlgorithm):
         super().__init__(problem, name)
 
         self.options.declare(name='p_recomb', default=1.0, lower=0, desc='recombination_probability')
-        self.options.declare(name='dist_ind', default=15.0, lower=0, desc='distribution_index')
-        self.options.declare(name='p_mutation', default=0.05, lower=0,
-                             desc='mutation_probability')
+        self.options.declare(name='dist_ind_sbx', default=15.0, lower=0, desc='distribution_index')
+        self.options.declare(name='p_mutation', default=1.0, lower=0, desc='mutation_probability')
+        self.options.declare(name='dist_ind_pm', default=20.0, lower=0, desc='mutation_distribution_index')
 
     def gen_initial_population(self):
         population = Population_Genetic(self.problem)
@@ -409,10 +409,57 @@ class EpsMOEA(GeneticAlgorithm):
         return copy(archive)
 
     def crossover(self):
+        # it uses the sbx
         pass
 
-    def mutate(self):
-        pass
+    def mutate(self, parent):
+        # polynomial mutation
+
+        child_param = copy.deepcopy(parent.parameters)
+        probability = self.probability
+
+        if isinstance(probability, int):
+            probability /= float(len([t for t in problem.types if isinstance(t, Real)]))
+
+        for i in range(len(child_param)):
+            if isinstance(problem.types[i], Real):
+                if random.uniform(0.0, 1.0) <= probability:
+                    child_param[i] = self.pm_mutation(float(child_param[i]),
+                                                          problem.types[i].min_value,
+                                                          problem.types[i].max_value)
+
+        for i, param in enumerate(self.problem.parameters.items()):
+
+            if random.uniform(0.0, 1.0) <= probability:
+                child_param[i] = self.pm_mutation(float(child_param[i]),
+                                                        problem.types[i].min_value,
+                                                        problem.types[i].max_value)
+
+                x1 = cparam_a[i]
+                x2 = cparam_b[i]
+
+                lb = param[1]['bounds'][0]
+                ub = param[1]['bounds'][1]
+
+        return Individual_NSGA_II(child_param, self.problem)
+
+    def pm_mutation(self, x, lb, ub):
+        u = random.uniform(0, 1)
+        dx = ub - lb
+
+        if u < 0.5:
+            bl = (x - lb) / dx
+            b = 2.0 * u + (1.0 - 2.0 * u) * pow(1.0 - bl,  self.options['dist_ind_pm'] + 1.0)
+            delta = pow(b, 1.0 / (self.options['dist_ind_pm'] + 1.0)) - 1.0
+        else:
+            bu = (ub - x) / dx
+            b = 2.0 * (1.0 - u) + 2.0 * (u - 0.5) * pow(1.0 - bu, self.options['dist_ind_pm'] + 1.0)
+            delta = 1.0 - pow(b, 1.0 / (self.options['dist_ind_pm'] + 1.0))
+
+        x = x + delta * dx
+        x = self.clip(x, lb, ub)
+
+        return x
 
     def sbx_crossover(self, x1, x2, lb, ub):
         dx = x2 - x1
@@ -425,31 +472,29 @@ class EpsMOEA(GeneticAlgorithm):
                 y2 = x1
                 y1 = x2
 
-
-
             beta = 1.0 / (1.0 + (2.0 * (y1 - lb) / (y2 - y1)))
-            alpha = 2.0 - pow(beta, self.options['dist_ind'] + 1.0)
+            alpha = 2.0 - pow(beta, self.options['dist_ind_sbx'] + 1.0)
             rand = random.uniform(0.0, 1.0)
 
             if rand <= 1.0 / alpha:
                 alpha = alpha * rand
-                betaq = pow(alpha, 1.0 / (self.options['dist_ind'] + 1.0))
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
             else:
                 alpha = alpha * rand
                 alpha = 1.0 / (2.0 - alpha)
-                betaq = pow(alpha, 1.0 / (self.options['dist_ind'] + 1.0))
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
 
             x1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1))
             beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)))
-            alpha = 2.0 - pow(beta, self.options['dist_ind'] + 1.0)
+            alpha = 2.0 - pow(beta, self.options['dist_ind_sbx'] + 1.0)
 
             if rand <= 1.0 / alpha:
                 alpha = alpha * rand
-                betaq = pow(alpha, 1.0 / (self.options['dist_ind'] + 1.0))
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
             else:
                 alpha = alpha * rand
                 alpha = 1.0 / (2.0 - alpha)
-                betaq = pow(alpha, 1.0 / (self.options['dist_ind'] + 1.0))
+                betaq = pow(alpha, 1.0 / (self.options['dist_ind_sbx'] + 1.0))
 
             x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1))
 
