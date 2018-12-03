@@ -12,6 +12,9 @@ pip install dash  # The core dash backend
 pip install dash-html-components  # HTML components
 pip install dash-core-components  # Supercharged components
 pip install dash-table # Interactive DataTable component (new!)
+
+pip install flask_caching
+pip install redis
 ```
 
 ### Pandas
