@@ -7,6 +7,7 @@ from artap.problem import Problem
 from artap.enviroment import Enviroment
 from artap.population import Population_Genetic
 
+
 class TestProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
@@ -63,6 +64,7 @@ class TestCondor(TestCase):
         table = [[10, 10], [11, 11]]
         population.gen_population_from_table(table)
         population.evaluate()
+
 
 if __name__ == '__main__':
     main()

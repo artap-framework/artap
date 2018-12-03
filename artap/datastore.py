@@ -1,6 +1,7 @@
 import sqlite3
 import tempfile
 import os
+import json
 from datetime import datetime
 from abc import abstractmethod
 
@@ -123,7 +124,7 @@ class SqliteDataStore(DataStore):
         for cost in costs:
             exec_cmd += cost + " NUMBER,"
 
-        exec_cmd = exec_cmd[:-1]
+        exec_cmd += 'front_number NUMBER ,crowding_distance NUMBER, feasible NUMBER, dominates JSON'
         exec_cmd += ");"
 
         self._execute_command(exec_cmd)
@@ -164,7 +165,7 @@ class SqliteDataStore(DataStore):
             exec_cmd = "INSERT INTO data VALUES ("
             for i in range(len(params) - 1):
                 exec_cmd += " " + str(params[i]) + ","
-            exec_cmd += " " + str(params[i]) + ")"
+            exec_cmd += " " + json.dumps(params[i+1]) + ")"
             cursor = connection.cursor()
             cursor.execute(exec_cmd)
             cursor.close()
