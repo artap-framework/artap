@@ -253,6 +253,7 @@ class NSGA_II(GeneticAlgorithm):
             self.fast_non_dominated_sort(population.individuals)
             self.calculate_crowd_dis(offsprings)
 
+            population.save()
             offsprings.extend(self.problem.populations[it].individuals)  # add the parents to the offsprings
             parents = sorted(offsprings, key=lambda x: x.front_number)
 

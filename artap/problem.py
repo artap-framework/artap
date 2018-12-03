@@ -28,7 +28,7 @@ class ProblemBase(ABC):
         # options
         self.options = ConfigDictionary()
 
-        self.options.declare(name='save_data', default=True,
+        self.options.declare(name='save_data', default=False,
                              desc='Save data to database')
         self.options.declare(name='save_level', default="problem",
                              desc='Save level')
@@ -63,7 +63,6 @@ class Problem(ProblemBase):
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
 
-
         if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()
         else:
@@ -72,9 +71,6 @@ class Problem(ProblemBase):
             self.working_dir += time_stamp
             if not os.path.isdir(self.working_dir):
                 os.mkdir(self.working_dir)
-
-        if not os.path.isdir(self.working_dir):
-            os.mkdir(self.working_dir)
 
         if data_store is None:
             self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
