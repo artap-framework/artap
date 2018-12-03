@@ -1,6 +1,8 @@
 from random import random
 from numpy.random import normal
 from abc import *
+import json
+
 from multiprocessing import Queue
 from numpy import NaN
 from copy import copy
@@ -52,7 +54,21 @@ class Individual(metaclass=ABCMeta):
     def to_list(self):
         params = [[self.number], [self.population_id], self.parameters, self.costs]
         # flatten list
-        return [val for sublist in params for val in sublist]
+        out = [val for sublist in params for val in sublist]
+        out.append(self.front_number)
+        if self.crowding_distance == float('inf'):
+            out.append(0)
+        else:
+            out.append(self.crowding_distance)
+        if self.feasible == float('inf'):
+            out.append(0)
+        else:
+            out.append(self.feasible)
+        dominates = []
+        for individ in self.dominate:
+            dominates.append(individ.number)
+        out.append(json.dumps(dominates))
+        return out
 
     def evaluate(self):
 

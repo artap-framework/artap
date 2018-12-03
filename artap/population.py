@@ -104,9 +104,6 @@ class Population:
             Individual.results.close()
             Individual.results.join_thread()
 
-        if self.problem.options['save_level'] == "population":
-            self.save()
-
     def save(self):
         table = []
         for individual in self.individuals:
