@@ -14,21 +14,21 @@ class MyProblem(Problem):
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
         super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = True
+        self.options['save_data'] = False
         self.options['max_processes'] = 1
 
     def eval(self, x):
         result = 0
         for i in x:
-            result += i*i   
+            result += i*i
 
         return result
 
 
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
-    
-    def test_local_problem(self):           
+
+    def test_local_problem(self):
         problem = MyProblem("LocalPythonProblem")
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
@@ -49,7 +49,7 @@ class AckleyN2Test(Problem):
         working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
         super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = True
+        self.options['save_data'] = False
         self.options['max_processes'] = 1
 
     def eval(self, x):
