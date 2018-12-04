@@ -274,7 +274,7 @@ class EpsMOEA(GeneticAlgorithm):
 
         self.options.declare(name='p_recomb', default=1.0, lower=0, desc='recombination_probability')
         self.options.declare(name='dist_ind_sbx', default=15.0, lower=0, desc='distribution_index')
-        self.options.declare(name='p_mutation', default=1.0, lower=0, desc='mutation_probability')
+        self.options.declare(name='p_mutation', default= 1.0, lower=0, desc='mutation_probability')
         self.options.declare(name='dist_ind_pm', default=20.0, lower=0, desc='mutation_distribution_index')
 
     def gen_initial_population(self):
@@ -418,32 +418,20 @@ class EpsMOEA(GeneticAlgorithm):
         # polynomial mutation
 
         child_param = copy.deepcopy(parent.parameters)
-        probability = self.probability
+        probability = self.options['p_mutation']
 
         if isinstance(probability, int):
-            probability /= float(len([t for t in problem.types if isinstance(t, Real)]))
-
-        for i in range(len(child_param)):
-            if isinstance(problem.types[i], Real):
-                if random.uniform(0.0, 1.0) <= probability:
-                    child_param[i] = self.pm_mutation(float(child_param[i]),
-                                                          problem.types[i].min_value,
-                                                          problem.types[i].max_value)
+            probability /= float(len(parent.parameters))
 
         for i, param in enumerate(self.problem.parameters.items()):
 
+            lb = param[1]['bounds'][0]
+            ub = param[1]['bounds'][1]
+
             if random.uniform(0.0, 1.0) <= probability:
-                child_param[i] = self.pm_mutation(float(child_param[i]),
-                                                        problem.types[i].min_value,
-                                                        problem.types[i].max_value)
+                child_param[i] = self.pm_mutation(float(child_param[i]), lb, ub)
 
-                x1 = cparam_a[i]
-                x2 = cparam_b[i]
-
-                lb = param[1]['bounds'][0]
-                ub = param[1]['bounds'][1]
-
-        return Individual_NSGA_II(child_param, self.problem)
+        return Individual(child_param, self.problem)
 
     def pm_mutation(self, x, lb, ub):
         u = random.uniform(0, 1)
@@ -533,8 +521,8 @@ class EpsMOEA(GeneticAlgorithm):
                 cparam_a.variables[i] = x1
                 cparam_b.variables[i] = x2
 
-        offspring_a = Individual_NSGA_II(cparam_a, self.problem)
-        offspring_b = Individual_NSGA_II(cparam_b, self.problem)
+        offspring_a = Individual(cparam_a, self.problem)
+        offspring_b = Individual(cparam_b, self.problem)
 
         return [offspring_a, offspring_b]
 
@@ -557,9 +545,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             # Polinomial mutation, see ref. Kalyanmoy Deb, An efficient constraint handling method for genetic
             #  algorithms, 31 May 2000
-            delta = 1 - N.array((offspring[which_genes] - self._low_bnds[which_genes],
-                                 self._up_bnds[which_genes] - offspring[which_genes])) / self._ranges[which_genes]
-
+            
         return
 
 
