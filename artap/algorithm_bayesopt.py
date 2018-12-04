@@ -12,7 +12,8 @@ import sys
 sys.path.append(Enviroment.artap_root + os.sep + "lib" + os.sep)
 import bayesopt
 
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, Manager
+from multiprocessing.managers import BaseManager
 
 _l_type = ['L_FIXED', 'L_EMPIRICAL', 'L_DISCRETE', 'L_MCMC', 'L_ERROR']
 _sc_type = ['SC_MTL', 'SC_ML', 'SC_MAP', 'SC_LOOCV', 'SC_ERROR']
@@ -75,6 +76,7 @@ class BayesOptContinuous(object):
 
         return min_val, x_out, error
 
+
 class BayesOpt(Algorithm):
     """ BayesOpt algorithms """
 
@@ -99,6 +101,7 @@ class BayesOpt(Algorithm):
         self.options.declare(name='surr_noise', default=1e-10, lower=0.0,
                              desc='Variance of observation noise')
 
+
 class BayesOptClassSerial(BayesOptContinuous):
     def __init__(self, n, problem: Problem):
         super().__init__(n)
@@ -111,6 +114,7 @@ class BayesOptClassSerial(BayesOptContinuous):
 
     def evaluateSample(self, x):
         return self.problem.evaluate_individual(x)
+
 
 class BayesOptSerial(BayesOpt):
     """ BayesOpt algorithms """
@@ -149,27 +153,28 @@ class BayesOptSerial(BayesOpt):
 
         mvalue, x_out, error = self.bo.optimize()
 
-        # self.result = mvalue
-
-        # if error != 0:
-        #     print('Optimization FAILED.')
-        #     print("Error", error)
-        #     print('-' * 35)
-        #
-        # else:
-        #     print('Optimization Complete, %f seconds' % (clock() - start))
-        #     print("Result", x_out, mvalue)
-        #     print('-' * 35)
+        if error != 0:
+            print('Optimization FAILED.')
+            print("Error", error)
+            print('-' * 35)
+        #else:
+        #    print('Optimization Complete, %f seconds' % (clock() - start))
+        #    print("Result", x_out, mvalue)
+        #    print('-' * 35)
 
 
 class BayesOptClassParallel(Process, BayesOptContinuous):
-    def __init__(self, pipe, n, problem: Problem, opt):
+    def __init__(self, pipe, n, problem: Problem):
         Process.__init__(self)
         BayesOptContinuous.__init__(self, n)
 
+        # output
+        self.mvalue = -1.0
+        self.x_out = -1.0
+        self.error = 0
+
         self.pipe = pipe
         self.problem = problem
-        self.opt = opt
 
         # Size design variables.
         self.lb = np.empty((n,))
@@ -181,11 +186,14 @@ class BayesOptClassParallel(Process, BayesOptContinuous):
         self.pipe.send('STOP')
 
         # set output values
-        self.opt.mvalue = mvalue
-        self.opt.x_out = x_out
-        self.opt.error = error
+        self.mvalue = mvalue
+        self.x_out = x_out
+        self.error = error
 
-        return
+        # output
+        print(self.mvalue)
+        print(self.x_out)
+        print(self.error)
 
     def evaluateSample(self, x):
         self.pipe.send(x)
@@ -203,19 +211,15 @@ def worker(pipe, problem):
         result = problem.evaluate_individual(x)
         pipe.send(result)
 
+
 class BayesOptParallel(BayesOpt):
     """ BayesOpt algorithms """
 
     def __init__(self, problem: Problem, name="BayesOpt"):
         super().__init__(problem, name)
 
-        # output
-        self.mvalue = -1
-        self.x_out = -1
-        self.error = 0
-
         self.pipe_par, self.pipe_child = Pipe()
-        self.bo = BayesOptClassParallel(self.pipe_child, len(self.problem.parameters), problem, self)
+        self.bo = BayesOptClassParallel(self.pipe_child, len(self.problem.parameters), problem)
 
     def run(self):
         population = Population(self)
@@ -252,14 +256,18 @@ class BayesOptParallel(BayesOpt):
         self.bo.join()
         process.join()
 
+        print(self.bo.mvalue)
+        print(self.bo.x_out)
+        print(self.bo.error)
+
+
         # self.result = self.mvalue
 
-        # if self.error != 0:
-        #     print('Optimization FAILED.')
-        #     print("Error", self.error)
-        #     print('-' * 35)
-        #
-        # else:
-        #     print('Optimization Complete, %f seconds' % (clock() - start))
-        #     print("Result", self.x_out, self.mvalue)
-        #     print('-' * 35)
+        if self.bo.error != 0:
+            print('Optimization FAILED.')
+            print("Error", self.bo.error)
+            print('-' * 35)
+        else:
+            print('Optimization Complete, %f seconds' % (clock() - start))
+            print("Result", self.bo.x_out, self.bo.mvalue)
+            print('-' * 35)
