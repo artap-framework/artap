@@ -527,7 +527,9 @@ class EpsMOEA(GeneticAlgorithm):
         return [offspring_a, offspring_b]
 
     def breed(self, mama, papa):
-        """Creates a new genome for a subject by recombination of parent genes, and possibly mutation of the result,
+        """
+        >> Variator (crossover -> mutate)
+        Creates a new genome for a subject by recombination of parent genes, and possibly mutation of the result,
         depending on the individuals's mutation resistance.
 
         :parameter mama, papa: - two breeders from the population, each a vector of genes.
@@ -536,17 +538,13 @@ class EpsMOEA(GeneticAlgorithm):
 
         # Recombination place, using one-point crossover:
         offsprings = self.sbx(mama, papa)
-
+        childs = []
         # Possibly mutate:
-        for kid in offsprings:
-            which_genes = random.rand(self.problem.chromosome_len()) <= self.options['p_mutation'] # TODO: check the value in platypus
-            if not any(which_genes):
-                continue
+        for child in offsprings:
 
-            # Polinomial mutation, see ref. Kalyanmoy Deb, An efficient constraint handling method for genetic
-            #  algorithms, 31 May 2000
-            
-        return
+            childs.append(self.mutate(child))
+
+        return deepcopy(childs)
 
 
     @staticmethod
@@ -569,6 +567,9 @@ class EpsMOEA(GeneticAlgorithm):
             mama = self.pop_select(curr_population)
             papa = self.random_selector(archive)
 
+            offsprings = self.breed(mama,papa)
+
+            # evaluate all
 
             #
             # population = Population_Genetic(self.problem, offsprings)
