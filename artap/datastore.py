@@ -223,4 +223,5 @@ class SqliteDataStore(DataStore):
             current_population += 1
 
         cursor.close()
+        connection.close()
 
