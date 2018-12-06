@@ -29,9 +29,7 @@ class MyProblem(Problem):
         # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
         costs = ['F']
 
-        working_dir = "./workspace/common_data/"
-        super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def eval(self, x):

@@ -55,18 +55,21 @@ class Problem(ProblemBase):
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, save_data=False):
 
         super().__init__()
         self.name = name
         self.working_dir = working_dir
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
+        self.options['save_data'] = save_data
+
 
         if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()
         else:
-            time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+            #time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+            time_stamp = ""
 
             self.working_dir += time_stamp
             if not os.path.isdir(self.working_dir):
