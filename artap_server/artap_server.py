@@ -6,6 +6,12 @@ from artap.enviroment import Enviroment
 from templates import WebPagesWriter
 
 
+'''
+Dependecies:
+cherrypy
+paramiko
+'''
+
 class ArtapServer(object):
 
     def __init__(self):
