@@ -172,7 +172,6 @@ class SqliteDataStore(DataStore):
         connection.commit()
         connection.close()
 
-
     def read_problem(self, problem):
         connection = sqlite3.connect(self.database_name)
         # connection.execute('pragma journal_mode=wal')
@@ -221,8 +220,7 @@ class SqliteDataStore(DataStore):
                 else:
                     is_all = False
             problem.populations.append(population)
-            current_population +=1
+            current_population += 1
 
-        problem.populations.append(population)
         cursor.close()
 
