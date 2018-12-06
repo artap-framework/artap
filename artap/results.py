@@ -52,6 +52,7 @@ class Results:
                 l_sol.append(individual.costs)
         return l_sol
 
+
 class GraphicalResults(Results):
 
     def __init(self, problem):
