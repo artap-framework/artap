@@ -15,9 +15,7 @@ class MyProblem(Problem):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-30, 30], 'precision': 1e-1},
                       'x_2': {'initial_value': 1.5, 'bounds': [-30, 30], 'precision': 1e-1}}
         costs = ['F']
-        #working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
-        #super().__init__(name, parameters, costs, working_dir=working_dir, save_data=False)
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
