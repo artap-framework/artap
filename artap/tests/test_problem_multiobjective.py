@@ -14,7 +14,6 @@ class MyProblem(Problem):
         costs = ['F_1', 'F_2']
 
         super().__init__(name, parameters, costs)
-        self.options['save_data'] = False
 
     def eval(self, x):
         f1 = 0

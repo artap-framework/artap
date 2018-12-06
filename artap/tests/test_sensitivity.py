@@ -12,12 +12,9 @@ class MyProblem(Problem):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
                       'x_2': {'initial_value': 2.5, 'bounds': [2.2, 2.4], 'precision': 1e-1},
                       'x_3': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}}
-        costs = ['F_1']
-        # working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
-        # super().__init__(name, parameters, costs, working_dir=working_dir)
+        costs = ['F']
 
         super().__init__(name, parameters, costs)
-        self.save_data = False  # For tests is not necessary to save data
 
     def eval(self, x):
         result = 0

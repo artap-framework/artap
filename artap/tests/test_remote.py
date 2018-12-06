@@ -17,6 +17,7 @@ class TestProblem(Problem):
         costs = ['F1']
 
         super().__init__(name, parameters, costs)
+
         if Enviroment.ssh_login == "":
             user = getpass.getuser()
         else:
