@@ -13,10 +13,7 @@ class PSO_Rosenbrock(Problem):
                       'x': {'initial_value': 5., 'bounds': [0, 5], 'precision': 1e-1}}
         costs = ['F_1']
 
-        working_dir = "./workspace/common_data/"
-
-        super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
+        super().__init__(name, parameters, costs)
 
     def eval(self, x):
         return Rosenbrock.eval(x)

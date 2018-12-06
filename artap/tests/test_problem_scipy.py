@@ -11,10 +11,8 @@ class MyProblem(Problem):
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 10}}
         costs = ['F_1']
-        working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def eval(self, x):
@@ -46,10 +44,8 @@ class AckleyN2Test(Problem):
     def __init__(self, name):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         costs = ['F_1']
-        working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def eval(self, x):

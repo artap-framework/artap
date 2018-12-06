@@ -2,7 +2,7 @@ universe = vanilla
 initialdir = ./
 executable = $run_file
 arguments = -inputfile $model_name -nosave -pname $param_names -plist $param_values
-requirements = (OpSys == "LINUX" && Arch == "X86_64" && ( Machine == "condor00" || Machine == "condor04" || Machine == "condor05" || Machine == "condor06" || Machine == "condor07"))
+requirements = (OpSys == "LINUX" && Arch == "X86_64")
 
 input = $model_name
 output = $log_file
