@@ -64,7 +64,6 @@ class Problem(ProblemBase):
         self.costs = {cost: 0.0 for cost in costs}
         self.options['save_data'] = save_data
 
-
         if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()
         else:
@@ -115,6 +114,40 @@ class Problem(ProblemBase):
 
         return cost
 
+    def evaluate_gradient_richardson(self, individual):
+        n = len(self.parameters)
+        gradient = [0] * n
+        x0 = individual.parameters
+        h = 1e-6
+        y = self.eval(x0)
+        for i in range(len(self.parameters)):
+            x = x0.copy()
+            x[i] += h
+            y_h = self.eval(x)
+            D_0_h = gradient[i] = (y_h - y) / h
+            x[i] += h
+            y_2h = self.eval(x)
+            d_0_2h = (y_2h - y) / 2 / h
+            gradient[i] = (4*D_0_h - d_0_2h) / 3
+
+        print(gradient)
+        return gradient
+
+    def evaluate_gradient(self, individual):
+        n = len(self.parameters)
+        gradient = [0]*n
+        x0 = individual.parameters
+        y = self.eval(x0)
+        h = 1e-6
+        for i in range(len(self.parameters)):
+            x = x0.copy()
+            x[i] += h
+            y_h = self.eval(x)
+            gradient[i] = (y_h - y) / h
+
+        print(gradient)
+        return gradient
+
     def eval_batch(self, table):
         n = len(table)
         results = [0] * n
@@ -141,6 +174,9 @@ class Problem(ProblemBase):
         """ :param x: list of the variables """
         pass
 
+    def eval_gradient(self, x: list):
+        """ :param x: list of the variables """
+        pass
 
 class ProblemDataStore(ProblemBase):
 
