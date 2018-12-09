@@ -164,9 +164,11 @@ class WebPagesWriter:
             x_axis_data += str(line[1]) + ','
             y_axis_data += str(line[2]) + ','
 
+        jq_delim = "$"
+
         with open(".." + os.sep + "artap_server" + os.sep + "static" + os.sep + "problem_fig.tp", 'r') as file:
             page = string.Template(file.read())
-            page_html = page.substitute(content=figure_template.substitute(fig_params=fig_par.substitute(x_axis_vals=x_axis_data, y_axis_vals=y_axis_data, x_label_vals=x_label_data, y_label_vals=y_label_data)))
+            page_html = page.substitute(content=figure_template.substitute(fig_params=fig_par.substitute(x_axis_vals=x_axis_data, y_axis_vals=y_axis_data, x_label_vals=x_label_data, y_label_vals=y_label_data)), jqdelimitter = jq_delim)
 
         return page_html
 
