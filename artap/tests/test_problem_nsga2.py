@@ -1,10 +1,9 @@
-import os
 import unittest
 
 from artap.problem import Problem
 from artap.benchmark_functions import Binh_and_Korn, AckleyN2
 from artap.algorithm_genetic import NSGA_II
-from artap.results import GraphicalResults, Results
+from artap.results import Results
 
 
 class MyProblem(Problem):
@@ -13,10 +12,11 @@ class MyProblem(Problem):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         costs = ['F_1', 'F_2']
-
-        super().__init__(name, parameters, costs)
+        working_dir = "./workspace/common_data/"
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
         self.options['save_level'] = "population"
         self.options['max_processes'] = 1
+        self.options['save_data'] = True
 
     def eval(self, x):
         return Binh_and_Korn.eval(x)
@@ -59,7 +59,7 @@ class AckleyN2Test(Problem):
         costs = ['F_1']
         working_dir = "./workspace/common_data/"
         super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
+        self.options['save_data'] = True
         self.options['save_level'] = "population"
         self.options['max_processes'] = 1
 
