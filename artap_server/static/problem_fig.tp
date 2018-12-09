@@ -34,8 +34,9 @@ $content
 <script type="text/javascript">
     ${jqdelimitter}(document).ready(function() {
         plotDiv = makePlot();
+        document.write("Fuck You")
         // run the first time; all subsequent calls will take care of themselves
-        setTimeout(executeQuery(plotDiv), 5000);
+        // setTimeout(executeQuery(plotDiv), 10);
     });
 
     updateFigure(plotDiv) {
@@ -48,7 +49,7 @@ $content
     }
 
     function makePlot() {
-        return(makePlotly( [], [] ));
+        return(makePlotly( [1,2,3], [10,50,20] ));
     };
 
     function makePlotly( x, y ) {
