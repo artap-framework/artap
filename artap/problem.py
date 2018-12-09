@@ -129,8 +129,6 @@ class Problem(ProblemBase):
             y_2h = self.eval(x)
             d_0_2h = (y_2h - y) / 2 / h
             gradient[i] = (4*D_0_h - d_0_2h) / 3
-
-        print(gradient)
         return gradient
 
     def evaluate_gradient(self, individual):
@@ -144,8 +142,6 @@ class Problem(ProblemBase):
             x[i] += h
             y_h = self.eval(x)
             gradient[i] = (y_h - y) / h
-
-        print(gradient)
         return gradient
 
     def eval_batch(self, table):
@@ -177,6 +173,7 @@ class Problem(ProblemBase):
     def eval_gradient(self, x: list):
         """ :param x: list of the variables """
         pass
+
 
 class ProblemDataStore(ProblemBase):
 
