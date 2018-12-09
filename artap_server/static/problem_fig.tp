@@ -32,7 +32,7 @@ $content
 </html> 
 
 <script type="text/javascript">
-    $(document).ready(function() {
+    ${jqdelimitter}(document).ready(function() {
         plotDiv = makePlot();
         // run the first time; all subsequent calls will take care of themselves
         setTimeout(executeQuery(plotDiv), 5000);
