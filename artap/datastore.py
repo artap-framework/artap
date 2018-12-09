@@ -77,7 +77,7 @@ class SqliteDataStore(DataStore):
         super().__del__()
 
     def _execute_command(self, command):
-        """Request notification email"""
+        """  """
         self._execute_command_async(self.database_name, command)
         # self.worker_loop.call_soon_threadsafe(self._execute_command_async, self.database_name, command)
 
@@ -214,7 +214,13 @@ class SqliteDataStore(DataStore):
             for row in data:
                 if row[1] == current_population:
                     individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
+                    l = 2 + len(problem.parameters) + len(problem.costs)
                     individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
+
+                    individual.front_number = row[l]
+                    individual.crowding_distance = row[l+1]
+                    individual.feasible = row[l+2]
+                    individual.dominate = row[l+3]
                     population.individuals.append(individual)
                     del row
                 else:
