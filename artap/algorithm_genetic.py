@@ -331,7 +331,7 @@ class EpsMOEA(GeneticAlgorithm):
                 dominate = True
         return dominate
 
-    def pareto_dominance(self, p, q):
+    def pareto_dominance_compare(self, p, q):
         """
         Pareto dominance comparison with constraint check.
 
@@ -551,6 +551,30 @@ class EpsMOEA(GeneticAlgorithm):
     def clip(value, min_value, max_value):
         return max(min_value, min(value, max_value))
 
+    def _add_to_population(self, solution, curr_population):
+        dominates = []
+        dominated = False
+
+        for i in range(len(curr_population)):
+            flag = self.pareto_dominance_compare(solution, curr_population[i])
+
+            if flag == 1:
+                dominates.append(i) # 1 if the new solution is the dominant
+            elif flag == 2:
+                dominated = True # 2 if the other solution is the dominant one
+
+        if len(dominates) > 0:
+            del curr_population[random.choice(dominates)]
+            curr_population.append(solution)
+        elif not dominated:
+            curr_population.remove(random.choice(self.population))
+            curr_population.append(solution)
+
+            return curr_population
+
+    def archive(self):
+
+        return
 
     def run(self):
 
@@ -569,13 +593,15 @@ class EpsMOEA(GeneticAlgorithm):
 
             offsprings = self.breed(mama,papa)
 
-            # evaluate all
+            # evaluate all new childs
 
-            #
-            # population = Population_Genetic(self.problem, offsprings)
-            #
-            # population.evaluate() # evaluate the offsprings
-            #
+            ch_population = Population_Genetic(self.problem, offsprings)
+            ch_population.evaluate() # evaluate the offsprings
+
+            for child in ch_population.individuals:
+                self._add_to_population(child)
+                self.archive.add(child)
+
             # # non-dominated truncate on the guys
             # #self.fast_non_dominated_sort(population.individuals)
             # #self.calculate_crowd_dis(offsprings)
