@@ -34,7 +34,7 @@ $content
 <script type="text/javascript">
     ${jqdelimitter}(document).ready(function() {
         plotDiv = makePlot();
-        document.write("Fuck You")
+        document.write("Works O.K.")
         // run the first time; all subsequent calls will take care of themselves
         // setTimeout(executeQuery(plotDiv), 10);
     });
