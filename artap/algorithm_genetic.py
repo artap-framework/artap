@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 import random, time, itertools
 from numpy.random import random_integers
 import sys
+import math
 
 EPSILON = sys.float_info.epsilon
 
@@ -266,6 +267,135 @@ class NSGA_II(GeneticAlgorithm):
         t = time.time() - t_s
         print('Elapsed time:', t)
 
+
+class Dominance(object):
+    __metaclass__ = ABCMeta
+
+    def __init__(self):
+        super(Dominance, self).__init__()
+
+    def __call__(self, solution1, solution2):
+        return self.compare(solution1, solution2)
+
+    def compare(self, solution1, solution2):
+        raise NotImplementedError("method not implemented")
+
+
+class EpsilonDominance(Dominance):
+
+    def __init__(self, epsilons):
+        super(EpsilonDominance, self).__init__()
+
+        if hasattr(epsilons, "__getitem__"):
+            self.epsilons = epsilons
+        else:
+            self.epsilons = [epsilons]
+
+    def same_box(self, ind1, ind2):
+
+        # first check constraint violation
+        if ind1.feasible != ind2.feasible:
+            if ind1.feasible == 0:
+                return False
+            elif ind2.feasible == 0:
+                return False
+            elif ind1.feasible < ind2.feasible:
+                return False
+            elif ind2.feasible < ind1.feasible:
+                return False
+
+        # then use epsilon dominance on the objectives
+        dominate1 = False
+        dominate2 = False
+
+        for i in range(len(ind1.costs)):
+            o1 = ind1.costs[i]
+            o2 = ind2.costs[i]
+
+            # in artap we cannot change the direction of the optimization in this way
+            #if problem.directions[i] == Problem.MAXIMIZE:
+            #    o1 = -o1
+            #    o2 = -o2
+
+            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            i1 = math.floor(o1 / epsilon)
+            i2 = math.floor(o2 / epsilon)
+
+            if i1 < i2:
+                dominate1 = True
+
+                if dominate2:
+                    return False
+            elif i1 > i2:
+                dominate2 = True
+
+                if dominate1:
+                    return False
+
+        if not dominate1 and not dominate2:
+            return True
+        else:
+            return False
+
+    def compare(self, ind1, ind2):
+
+        # first check constraint violation
+        if ind1.feasible != ind2.feasible:
+            if ind1.feasible == 0:
+                return 2
+            elif ind2.feasible == 0:
+                return 1
+            elif ind1.feasible < ind2.feasible:
+                return 2
+            elif ind2.feasible < ind1.feasible:
+                return 1
+
+        # then use epsilon dominance on the objectives
+        dominate1 = False
+        dominate2 = False
+
+        for i in range(len(ind1.costs)):
+            o1 = ind1.costs[i]
+            o2 = ind2.costs[i]
+
+            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            i1 = math.floor(o1 / epsilon)
+            i2 = math.floor(o2 / epsilon)
+
+            if i1 < i2:
+                dominate1 = True
+
+                if dominate2:
+                    return 0
+            elif i1 > i2:
+                dominate2 = True
+
+                if dominate1:
+                    return 0
+
+        if not dominate1 and not dominate2:
+            dist1 = 0.0
+            dist2 = 0.0
+
+            for i in range(len(ind1.costs)):
+                o1 = ind1.objectives[i]
+                o2 = ind2.objectives[i]
+
+                epsilon = float(self.epsilons[i % len(self.epsilons)])
+                i1 = math.floor(o1 / epsilon)
+                i2 = math.floor(o2 / epsilon)
+
+                dist1 += math.pow(o1 - i1 * epsilon, 2.0)
+                dist2 += math.pow(o2 - i2 * epsilon, 2.0)
+
+            if dist1 < dist2:
+                return -1
+            else:
+                return 1
+        elif dominate1:
+            return -1
+        else:
+            return 1
 
 class EpsMOEA(GeneticAlgorithm):
 
