@@ -397,6 +397,111 @@ class EpsilonDominance(Dominance):
         else:
             return 1
 
+
+class ParetoDominance(Dominance):
+    # from platypus core
+    """Pareto dominance with constraints.
+
+    If either solution violates constraints, then the solution with a smaller
+    constraint violation is preferred.  If both solutions are feasible, then
+    Pareto dominance is used to select the preferred solution.
+    """
+
+    def __init__(self):
+        super(ParetoDominance, self).__init__()
+
+    def compare(self, p, q):
+        # First check the constraint violations
+        if p.feasible != 0.0:
+            if q.feasible != 0.0:
+                if abs(p.feasible) < abs(q.feasible):
+                    return 1
+                else:
+                    return 2
+            else:
+                return 2
+        else:
+            if q.feasible != 0.0:
+                return 1
+
+        # Then the pareto dominance
+
+        dominate_p = False
+        dominate_q = False
+
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(p.costs)):
+            if p.costs[i] > q.costs[i]:
+                dominate_q = True
+
+                if dominate_p:
+                    return 0
+            if p.costs[i] < q.costs[i]:
+                dominate_p = True
+
+                if dominate_q:
+                    return 0
+
+        if dominate_q == dominate_p:
+            return 0
+        elif dominate_p:
+            return 1
+        else:
+            return 2
+
+
+class Archive(object):
+    """An archive only containing non-dominated solutions."""
+
+    def __init__(self, dominance=ParetoDominance()):
+        super(Archive, self).__init__()
+        self._dominance = dominance
+        self._contents = []
+
+    def add(self, solution):
+        flags = [self._dominance.compare(solution, s) for s in self._contents]
+        dominates = [x > 0 for x in flags]
+        nondominated = [x == 0 for x in flags]
+
+        if any(dominates):
+            return False
+        else:
+            self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
+            return True
+
+    def append(self, solution):
+        self.add(solution)
+
+    def extend(self, solutions):
+        for solution in solutions:
+            self.append(solution)
+
+    def remove(self, solution):
+        try:
+            self._contents.remove(solution)
+            return True
+        except ValueError:
+            return False
+
+    def __len__(self):
+        return len(self._contents)
+
+    def __getitem__(self, key):
+        return self._contents[key]
+
+    def __iadd__(self, other):
+        if hasattr(other, "__iter__"):
+            for o in other:
+                self.add(o)
+        else:
+            self.add(other)
+
+        return self
+
+    def __iter__(self):
+        return iter(self._contents)
+
+
 class EpsMOEA(GeneticAlgorithm):
 
     def __init__(self, problem: Problem, name="EpsMOEA"):
@@ -406,6 +511,8 @@ class EpsMOEA(GeneticAlgorithm):
         self.options.declare(name='dist_ind_sbx', default=15.0, lower=0, desc='distribution_index')
         self.options.declare(name='p_mutation', default= 1.0, lower=0, desc='mutation_probability')
         self.options.declare(name='dist_ind_pm', default=20.0, lower=0, desc='mutation_distribution_index')
+
+        self.archive =
 
     def gen_initial_population(self):
         population = Population_Genetic(self.problem)
@@ -702,9 +809,6 @@ class EpsMOEA(GeneticAlgorithm):
 
             return curr_population
 
-    def archive(self):
-
-        return
 
     def run(self):
 
