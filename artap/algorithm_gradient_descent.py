@@ -26,14 +26,26 @@ class GradientDescent(Algorithm):
         self.problem.populations.append(population)
         n = self.options["n_iterations"]
         x = [0] * n
+        dx = [0] * n
         x[0] = self.options["x0"]
+        dx[0] = [0, 0]
         h = self.options["h"]
         for i in range(1, n):
             individual = Individual(x[i-1], self.problem)
             gradient = self.problem.evaluate_gradient_richardson(individual)
             x[i] = []
+            dx[i] = gradient
             for j in range(len(x[i-1])):
                 x[i].append(x[i-1][j] - h * gradient[j])
+
+            if i > 1:
+                d = 0
+                n = 0
+                for j in range(len(x[i])):
+                    n += (dx[i][j] - dx[i-1][j]) * (x[i][j] - x[i-1][j])
+                    d += (dx[i][j] - dx[i-1][j])**2
+                h = n / d
+                print(h)
 
             population.individuals.append(individual)
 
