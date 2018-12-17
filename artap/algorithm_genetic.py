@@ -3,13 +3,14 @@ from .algorithm import Algorithm
 from .population import Population, Population_Genetic
 from .individual import Individual
 from copy import copy, deepcopy
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 import random, time, itertools
 from numpy.random import random_integers
 import sys
 import math
 
 EPSILON = sys.float_info.epsilon
+
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -166,7 +167,6 @@ class NSGA_II(GeneticAlgorithm):
 
         participants = random.sample(parents, part_num)
         return min(participants, key= lambda x: (x.front_number, -x.crowding_distance))
-
 
     def generate(self, parents):
         """ generate two children from two different parents """
@@ -512,7 +512,7 @@ class EpsMOEA(GeneticAlgorithm):
         self.options.declare(name='p_mutation', default= 1.0, lower=0, desc='mutation_probability')
         self.options.declare(name='dist_ind_pm', default=20.0, lower=0, desc='mutation_distribution_index')
 
-        self.archive =
+        # self.archive =
 
     def gen_initial_population(self):
         population = Population_Genetic(self.problem)

@@ -12,6 +12,7 @@ import _nlopt
 
 import builtins as __builtin__
 
+
 def _swig_setattr_nondynamic(self, class_type, name, value, static=1):
     if (name == "thisown"):
         return self.this.own(value)
