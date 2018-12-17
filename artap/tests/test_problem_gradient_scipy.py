@@ -24,7 +24,7 @@ class TestAckleyN2(unittest.TestCase):
         problem = GradientProblem("GradientProblem")
         algorithm = GradientDescent(problem)
         algorithm.options["x0"] = [10, 10]
-        algorithm.options["n_iterations"] = 10
+        algorithm.options["n_iterations"] = 11
         algorithm.options["h"] = 0.3
         print(algorithm.run()[-1])
 
