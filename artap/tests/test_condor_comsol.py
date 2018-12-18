@@ -19,8 +19,6 @@ class TestProblem(Problem):
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
 
         super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['save_data'] = False
-        self.options['max_processes'] = 10
 
         output_files = ["out.txt"]
         model_file = "elstat.mph"
