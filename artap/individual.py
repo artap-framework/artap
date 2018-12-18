@@ -91,7 +91,8 @@ class Individual(metaclass=ABCMeta):
             self.problem.data_store.write_individual(self.to_list())
 
         if self.problem.options['max_processes'] > 1:
-            Individual.results.put([self.number, costs, self.feasible])
+            if Individual.results is not None:
+                Individual.results.put([self.number, costs, self.feasible])
 
         return costs # for scipy
 
