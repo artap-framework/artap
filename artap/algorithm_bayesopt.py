@@ -125,7 +125,7 @@ class BayesOptSerial(BayesOpt):
         self.bo = BayesOptClassSerial(len(self.problem.parameters), problem)
 
     def run(self):
-        population = Population(self)
+        population = Population(self.problem)
         self.problem.populations.append(population)
 
         start = clock()
@@ -222,7 +222,7 @@ class BayesOptParallel(BayesOpt):
         self.bo = BayesOptClassParallel(self.pipe_child, len(self.problem.parameters), problem)
 
     def run(self):
-        population = Population(self)
+        population = Population(self.problem)
         self.problem.populations.append(population)
 
         start = clock()

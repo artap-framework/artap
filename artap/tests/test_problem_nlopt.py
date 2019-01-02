@@ -28,8 +28,8 @@ class MyProblem(Problem):
 
         # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
         costs = ['F']
-
         super().__init__(name, parameters, costs)
+        self.options['max_processes'] = 1
 
     def eval(self, x):
         return Booth.eval(x)
@@ -59,7 +59,7 @@ class TestNLoptOptimization(unittest.TestCase):
     def test_local_problem_nlopt_GN_DIRECT_L(self):
         self.run_test(GN_DIRECT_L, 400)
 
-    #def test_local_problem_nlopt_GN_DIRECT_L_RAND(self):
+    # def test_local_problem_nlopt_GN_DIRECT_L_RAND(self):
     #    self.run_test(GN_DIRECT_L_RAND, 100)
 
     def test_local_problem_nlopt_GN_MLSL(self):

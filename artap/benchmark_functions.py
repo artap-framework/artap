@@ -217,22 +217,18 @@ class BinhAndKorn:
         return a0 + a1 * x + a2 * x ** 2. + a3 * x ** 3. + a4 * x ** 4. + a5 * x ** 5.
 
     @classmethod
-    def eval(cls, x_list):
-        x = x_list[0]
-        y = x_list[1]
-        f1 = 4 * pow(x, 2) + 4 * pow(y, 2)
-        f2 = pow(x - 5, 2) + pow(y - 5, 2)
+    def eval(cls, x):
+        f1 = 4 * pow(x[0], 2) + 4 * pow(x[1], 2)
+        f2 = pow(x[0] - 5, 2) + pow(x[1] - 5, 2)
         target = [f1, f2]
 
         return target
 
     @classmethod
-    def constraints(cls, x_list):
+    def constraints(cls, x):
         # 0 <= x <=5, 0 <= y <= 3
-        x = x_list[0]
-        y = x_list[1]
-        g1 = min(0, 25 - pow(x - 5, 2) - pow(y, 2))
-        g2 = min(0, pow(x - 8, 2) + pow(y + 3, 2) - 7.7)
+        g1 = min(0, 25 - pow(x[0] - 5, 2) - pow(x[1], 2))
+        g2 = min(0, pow(x[0] - 8, 2) + pow(x[1] + 3, 2) - 7.7)
         violation = [g1, g2]
         return violation
 
@@ -244,10 +240,7 @@ class Booth:
 
     @classmethod
     def eval(cls, x):
-        x = x[0]
-        y = x[1]
-
-        return (x + 2 * y - 7) ** 2 + (2 * x + y - 5) ** 2
+        return (x[0] + 2 * x[1] - 7) ** 2 + (2 * x[0] + x[1] - 5) ** 2
 
 
 if __name__ == '__main__':

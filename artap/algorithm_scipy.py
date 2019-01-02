@@ -22,7 +22,7 @@ class ScipyOpt(Algorithm):
         self.save_all = True
 
     def run(self):            
-        population = Population(self)
+        population = Population(self.problem)
         self.problem.populations.append(population)
 
         # initial vector
