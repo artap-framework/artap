@@ -4,7 +4,7 @@ from .utils import flatten
 from .utils import ConfigDictionary
 
 from abc import ABC, abstractmethod
-from datetime import datetime
+# from datetime import datetime
 import os
 import tempfile
 import multiprocessing
@@ -21,6 +21,7 @@ class ProblemBase(ABC):
         self.name: str = None
         self.description = ""
         self.populations: list = None
+        self.population_number = 0
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: SqliteDataStore = None
@@ -35,7 +36,6 @@ class ProblemBase(ABC):
         # options
         self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
                              desc='Max running processes')
-
 
     def get_parameters_list(self):
         parameters_list = []
@@ -67,7 +67,7 @@ class Problem(ProblemBase):
         if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()
         else:
-            #time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+            # time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
             time_stamp = ""
 
             self.working_dir += time_stamp
@@ -89,8 +89,8 @@ class Problem(ProblemBase):
         
     def __del__(self):
         pass
-        #print("Problem: def __del__(self):")
-        #if not self.save_data:
+        # print("Problem: def __del__(self):")
+        # if not self.save_data:
         #    if os.path.isdir(self.working_dir):
         #        shutil.rmtree(self.working_dir)
 
@@ -124,11 +124,11 @@ class Problem(ProblemBase):
             x = x0.copy()
             x[i] += h
             y_h = self.eval(x)
-            D_0_h = gradient[i] = (y_h - y) / h
+            d_0_h = gradient[i] = (y_h - y) / h
             x[i] += h
             y_2h = self.eval(x)
             d_0_2h = (y_2h - y) / 2 / h
-            gradient[i] = (4*D_0_h - d_0_2h) / 3
+            gradient[i] = (4*d_0_h - d_0_2h) / 3
         return gradient
 
     def evaluate_gradient(self, individual):
@@ -141,7 +141,13 @@ class Problem(ProblemBase):
             x = x0.copy()
             x[i] += h
             y_h = self.eval(x)
-            gradient[i] = (y_h - y) / h
+            if type(y_h) is list:
+                m = len(y_h)
+                for j in range(m):
+                    gradient[i] = (y_h[j] - y[j]) / h
+            else:
+                gradient[i] = (y_h - y) / h
+
         return gradient
 
     def eval_batch(self, table):
