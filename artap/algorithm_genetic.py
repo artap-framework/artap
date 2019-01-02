@@ -1,6 +1,6 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .population import Population, Population_Genetic
+from .population import Population, PopulationGenetic
 from .individual import Individual
 from copy import copy, deepcopy
 from abc import ABCMeta
@@ -51,6 +51,7 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
         population.evaluate()
 
+
         self.problem.add_population(population)
 
         self.current_population += 1
@@ -77,7 +78,7 @@ class NSGA_II(GeneticAlgorithm):
                              desc='prob_mutation')
 
     def gen_initial_population(self):
-        population = Population_Genetic(self.problem)
+        population = PopulationGenetic(self.problem)
         population.gen_random_population(self.options['max_population_size'],
                                          self.parameters_length,
                                          self.problem.parameters)
@@ -246,9 +247,10 @@ class NSGA_II(GeneticAlgorithm):
 
         t_s = time.time()
         for it in range(self.options['max_population_number']):
-            population = Population_Genetic(self.problem, offsprings)
+            population = PopulationGenetic(self.problem, offsprings)
 
-            population.evaluate() # evaluate the offsprings
+            population.evaluate()  # evaluate the offsprings
+            population.evaluate_gradients()
 
             # non-dominated truncate on the guys
             self.fast_non_dominated_sort(population.individuals)
@@ -515,7 +517,7 @@ class EpsMOEA(GeneticAlgorithm):
         # self.archive =
 
     def gen_initial_population(self):
-        population = Population_Genetic(self.problem)
+        population = PopulationGenetic(self.problem)
         population.gen_random_population(self.options['max_population_size'],
                                          self.parameters_length,
                                          self.problem.parameters)
@@ -829,7 +831,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             # evaluate all new childs
 
-            ch_population = Population_Genetic(self.problem, offsprings)
+            ch_population = PopulationGenetic(self.problem, offsprings)
             ch_population.evaluate() # evaluate the offsprings
 
             for child in ch_population.individuals:

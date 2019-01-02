@@ -5,7 +5,7 @@ import getpass
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
 from artap.enviroment import Enviroment
-from artap.population import Population_Genetic
+from artap.population import PopulationGenetic
 
 
 class TestProblem(Problem):
@@ -18,7 +18,7 @@ class TestProblem(Problem):
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir)
+        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
         self.options['save_data'] = False
         self.options['max_processes'] = 10
 
@@ -58,13 +58,15 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
-        population = Population_Genetic(problem)
+        population = PopulationGenetic(problem)
         # population.gen_random_population(15, len(problem.parameters),
         #                                  problem.parameters)
 
         table = [[10, 10], [11, 11]]
         population.gen_population_from_table(table)
         population.evaluate()
+        population.evaluate_gradients()
+        population.save()
 
 
 if __name__ == '__main__':

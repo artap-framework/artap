@@ -3,11 +3,12 @@ from numpy.random import normal
 from abc import *
 import json
 
-from multiprocessing import Queue
-from numpy import NaN
-from copy import copy
+# from multiprocessing import Queue
+# from numpy import NaN
+# from copy import copy
 
-import itertools
+# import itertools
+
 
 class Individual(metaclass=ABCMeta):
     """
@@ -22,9 +23,10 @@ class Individual(metaclass=ABCMeta):
         self.length = self.parameters
         self.costs = []
         self.number = Individual.number
+        self.gradient = []
         Individual.number += 1
 
-        self.feasible = 0.0 # the distance from the feasibility region in min norm
+        self.feasible = 0.0  # the distance from the feasibility region in min norm
         self.population_id = population_id
         self.is_evaluated = False
         self.dominate = set()
@@ -36,7 +38,7 @@ class Individual(metaclass=ABCMeta):
         """ :return: [parameters[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
         string = "parameters: ["
 
-        for i,number in enumerate(self.parameters):
+        for i, number in enumerate(self.parameters):
             string += str(number)
             if i<len(self.costs)-1:
                 string += ", "
@@ -65,9 +67,11 @@ class Individual(metaclass=ABCMeta):
         else:
             out.append(self.feasible)
         dominates = []
-        for individ in self.dominate:
-            dominates.append(individ.number)
+        for individual in self.dominate:
+            dominates.append(individual.number)
         out.append(json.dumps(dominates))
+
+        out.append(json.dumps(self.gradient))
         return out
 
     def evaluate(self):
@@ -76,7 +80,7 @@ class Individual(metaclass=ABCMeta):
         constraints = self.problem.eval_constraints(self.parameters)
 
         if constraints:
-            self.feasible = sum(map(abs,constraints))
+            self.feasible = sum(map(abs, constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
         costs = self.problem.eval(self.parameters)
@@ -94,6 +98,14 @@ class Individual(metaclass=ABCMeta):
             Individual.results.put([self.number, costs, self.feasible])
 
         return costs # for scipy
+
+    def evaluate_gradient(self):
+        self.gradient = self.problem.evaluate_gradient(self)
+
+        if self.problem.options['max_processes'] > 1:
+            Individual.gradients.put([self.number, self.gradient])
+
+        return self.gradient
 
     def set_id(self):
         self.number = Individual.number
