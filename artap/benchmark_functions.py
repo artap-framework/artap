@@ -1,7 +1,56 @@
-from numpy import exp, cos, sin, sqrt, infty
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator  # , FormatStrFormatter
+import numpy as np
+from numpy import exp, cos, sin, sqrt, linspace
 
 
-class Rosenbrock:
+class BenchmarkFunction:
+    """
+    The general class
+    """
+
+    def __init__(self):
+        self.dimension: int
+        self.bounds = []
+        self.global_optimum: float
+        self.global_optimum_coords: list
+
+    def eval(self, x: list):
+        pass
+
+    def eval_constraints(self, x: list):
+        pass
+
+    def plot(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        x = linspace(self.bounds[0][0], self.bounds[0][1])
+        y = linspace(self.bounds[1][0], self.bounds[1][1])
+        [x, y] = np.meshgrid(x, y)
+        n = len(x)
+        m = len(y)
+        z = np.zeros([n, m])
+        for i in range(n):
+            for j in range(m):
+                z[i, j] = self.eval([x[i, j], y[i, j]])
+
+        surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                               linewidth=0, antialiased=False)
+
+        # Customize the z axis.
+        # ax.set_zlim(-1.01, 1.01)
+        ax.zaxis.set_major_locator(LinearLocator(10))
+        # ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+        # Add a color bar which maps values to colors.
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+
+        plt.show()
+
+
+class Rosenbrock(BenchmarkFunction):
     """
     The unconstrained Rosenbrock function --also known as Rosenbrock's valley or Rosenbrock's banana function --
     The global minimum is inside a long, narrow, parabolic shaped flat valley. To find the valley is trivial
@@ -12,22 +61,37 @@ class Rosenbrock:
     Search domain: -30 <= (x, y) <= 30
     """
 
-    @classmethod
-    def eval(cls, X):
+    def __init__(self):
+        super().__init__()
+        self.bounds = [[-30, 30],
+                       [-30, 30]]
+
+    def eval(self, x):
         """
-        :param X: a two dimensional array/list/tuple, which contains the X[x,y]
+        :param x: a two dimensional array/list/tuple, which contains the X[x,y]
         :return: f(X)
         """
 
-        x = X[0]
-        y = X[1]
-        a = 1. - x
-        b = y - x * x
+        a = 1. - x[0]
+        b = x[1] - x[0] * x[0]
 
         return 0.5 * (a * a + b * b * 100.0)
 
+    def eval_constraints(self, x):
+        """
+        :param x: a two dimensional array/list/tuple, which contains the X[x,y]
+        :return:
+        """
+        violate_constraints = False
+        if (x[0] > self.bounds[0][1]) or (x[0] < self.bounds[0][0]):
+            violate_constraints = True
+        if (x[1] > self.bounds[1][1]) or (x[1] < self.bounds[1][0]):
+            violate_constraints = True
 
-class AckleyN2:
+        return violate_constraints
+
+
+class AckleyN2(BenchmarkFunction):
     """
     Ackley Nr. 2 test function is declared by the following formula:
 
@@ -52,12 +116,14 @@ class AckleyN2:
     located at x∗=(0,0)
    """
 
-    @classmethod
-    def eval(cls, X):
-        x = X[0]
-        y = X[1]
+    def __init__(self):
+        super().__init__()
+        self.bounds = [[-32, 32],
+                       [-32, 32]]
 
-        return -200. * exp(-0.02 * (x ** 2 + y ** 2) ** 0.5)
+    def eval(self, x):
+        return -200. * exp(-0.02 * (x[0] ** 2 + x[1] ** 2) ** 0.5)
+
 
 class Ackley4Modified:
     """
@@ -71,7 +137,7 @@ class Ackley4Modified:
         - defined on n-dimensional space
         - non-separable
         - differentiable
-        - continous
+        - continuous
         - scalable
 
     Search Domain
@@ -84,18 +150,19 @@ class Ackley4Modified:
     located at x∗=(−1.51,−0.755)
 
     """
+
     @classmethod
-    def eval(cls, X):
-        dim = len(X)
+    def eval(cls, x):
+        dim = len(x)
 
         value = 0.
         for i in range(0, dim - 1):
-            value += exp(-0.2) * sqrt(X[i] ** 2. + X[i + 1] ** 2.) + 3. * (cos(2 * X[i]) + sin(2 * X[i + 1]))
+            value += exp(-0.2) * sqrt(x[i] ** 2. + x[i + 1] ** 2.) + 3. * (cos(2 * x[i]) + sin(2 * x[i + 1]))
 
         return value
 
 
-class Binh_and_Korn:
+class BinhAndKorn:
     """
     This problem is often attributed to Binh and Korn, but is also mentioned in A Osyczka, H Tamura,
     Pareto set distribution method for multicriteria optimization using genetic algorithm.
@@ -147,7 +214,7 @@ class Binh_and_Korn:
         a4 = 5.666751361667045e-06
         a5 = -1.505297721151948e-08
 
-        return  a0+a1*x+a2*x**2.+a3*x**3.+a4*x**4.+a5*x**5.
+        return a0 + a1 * x + a2 * x ** 2. + a3 * x ** 3. + a4 * x ** 4. + a5 * x ** 5.
 
     @classmethod
     def eval(cls, x_list):
@@ -176,8 +243,15 @@ class Booth:
     """
 
     @classmethod
-    def eval(cls, X):
-        x = X[0]
-        y = X[1]
+    def eval(cls, x):
+        x = x[0]
+        y = x[1]
 
-        return (x + 2*y - 7)**2 + (2*x + y - 5)**2
+        return (x + 2 * y - 7) ** 2 + (2 * x + y - 5) ** 2
+
+
+if __name__ == '__main__':
+    test = Rosenbrock()
+    test.plot()
+    test = AckleyN2()
+    test.plot()
