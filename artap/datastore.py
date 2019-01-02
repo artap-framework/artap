@@ -167,13 +167,8 @@ class SqliteDataStore(DataStore):
             exec_cmd = "INSERT INTO data VALUES ("
             for i in range(len(params) - 2):
                 exec_cmd += " " + str(params[i]) + ","
-<<<<<<< HEAD
-            exec_cmd += " " + json.dumps(params[i + 1]) + ","
-            exec_cmd += " " + json.dumps(params[i+2]) + ")"
-=======
-            exec_cmd += " '" + json.dumps(params[i+1]) + "', '"
-            exec_cmd += json.dumps(params[i+2]) + " ')"
->>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
+            exec_cmd += " '" + json.dumps(params[i + 1]) + "',"
+            exec_cmd += "'" + json.dumps(params[i+2]) + "')"
             cursor = connection.cursor()
             cursor.execute(exec_cmd)
             cursor.close()
@@ -211,41 +206,12 @@ class SqliteDataStore(DataStore):
         exec_cmd_data = "SELECT * FROM data"
         problem.populations = []
 
-<<<<<<< HEAD
-        current_population = 0
-
-        is_all = False
-
-        # TODO: Specify structure of data somewhere
-
-        data = cursor.execute(exec_cmd_data)
-        while not is_all:
-            population = Population(problem)
-            is_all = True
-            for row in data:
-                if row[1] == current_population+1:
-                    individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
-                    l = 2 + len(problem.parameters) + len(problem.costs)
-                    individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
-                    individual.front_number = row[l]
-                    individual.crowding_distance = row[l+1]
-                    individual.feasible = row[l+2]
-                    individual.dominate = row[l+3]
-                    individual.gradient = row[l+4]
-                    population.individuals.append(individual)
-                    row
-                else:
-                    is_all = False
-            problem.populations.append(population)
-            current_population += 1
-=======
         data = cursor.execute(exec_cmd_data)
 
         population = Population(problem)
         table = list()
         for row in data:
             table.append(row)
->>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
 
         cursor.close()
         connection.close()
