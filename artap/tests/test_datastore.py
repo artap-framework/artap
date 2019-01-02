@@ -8,13 +8,13 @@ from artap.results import Results
 
 class TestDataStore(unittest.TestCase):
     def test_local_problem_data_store(self):
-        database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data_NSGA_2.sqlite"
+        database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
         data_store = SqliteDataStore(database_file=database_file)
         problem = ProblemDataStore(data_store)
 
         results = Results(problem)
-        #optimum = results.find_minimum('F_1')
-        #self.assertLessEqual(abs(optimum[0]), 5)
+        optimum = results.find_minimum('F_1')
+        self.assertLessEqual(abs(optimum[0]), 5)
         
 
 if __name__ == '__main__':

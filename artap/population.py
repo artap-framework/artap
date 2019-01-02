@@ -4,7 +4,11 @@ from .individual import Individual
 
 
 class Population:
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
     def __init__(self, problem, individuals=None):
 
         if individuals is None:
@@ -12,13 +16,22 @@ class Population:
 
         self.length = len(individuals)
         self.problem = problem     
+<<<<<<< HEAD
         self.number = len(problem.populations)
+=======
+        self.number = self.problem.population_number
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
         
         self.individuals = individuals.copy()
         for individual in self.individuals:
             individual.population_id = self.number
             individual.set_id()
 
+<<<<<<< HEAD
+=======
+        self.problem.population_number += 1
+
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
     def __repr__(self):
 
         string = "population number: " + str(self.number) + " \n"
@@ -101,7 +114,11 @@ class Population:
 
     def evaluate_gradients(self):
         """
+<<<<<<< HEAD
         The function calculate the value of the vector of gradient
+=======
+        The evaluate function calculate the value of the
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
         :return:
         """
 
@@ -110,6 +127,7 @@ class Population:
                     individual.problem = self.problem
                     individual.evaluate_gradient()
         else:
+<<<<<<< HEAD
             Individual.gradients = Queue()
             processes = []
             i = 0
@@ -122,6 +140,20 @@ class Population:
                     p.start()
                     i += 1
                     j += 1
+=======
+            Individual.results = Queue()
+            processes = []
+
+            i = 0
+            j = 0
+            for individual in self.individuals:
+                individual.problem = self.problem
+                p = Process(target=individual.evaluate_gradient)
+                processes.append(p)
+                p.start()
+                i += 1
+                j += 1
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
 
                 if ((i % self.problem.options['max_processes']) == 0) or (j >= len(self.individuals)):
                     for process in processes:
@@ -129,6 +161,7 @@ class Population:
                         processes = []
 
             # collect the results
+<<<<<<< HEAD
             for i in range(Individual.gradients.qsize()):
                 gradient = Individual.gradients.get()
                 for individual in self.individuals:
@@ -137,6 +170,16 @@ class Population:
 
             Individual.gradients.close()
             Individual.gradients.join_thread()
+=======
+            for i in range(Individual.results.qsize()):
+                result = Individual.results.get()
+                for individual in self.individuals:
+                    if individual.number == result[0]:
+                        individual.gradient = result[1]
+
+            Individual.results.close()
+            Individual.results.join_thread()
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
 
     def save(self):
         table = []
@@ -145,7 +188,11 @@ class Population:
         self.problem.data_store.write_population(table)
 
 
+<<<<<<< HEAD
 class PopulationGenetic(Population):
+=======
+class Population_Genetic(Population):
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
 
     def __init__(self, problem, individuals=None):
             if individuals is None:

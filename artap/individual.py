@@ -67,11 +67,10 @@ class Individual(metaclass=ABCMeta):
         else:
             out.append(self.feasible)
         dominates = []
-        for individual in self.dominate:
-            dominates.append(individual.number)
-        out.append(json.dumps(dominates))
-
-        out.append(json.dumps(self.gradient))
+        for individ in self.dominate:
+            dominates.append(individ.number)
+        out.append(dominates)
+        out.append(self.gradient)
         return out
 
     def evaluate(self):
@@ -95,9 +94,18 @@ class Individual(metaclass=ABCMeta):
             self.problem.data_store.write_individual(self.to_list())
 
         if self.problem.options['max_processes'] > 1:
-            Individual.results.put([self.number, costs, self.feasible])
+            if Individual.results is not None:
+                Individual.results.put([self.number, costs, self.feasible])
 
-        return costs # for scipy
+        return costs  # for scipy
+
+    def evaluate_gradient(self):
+        self.gradient = self.problem.evaluate_gradient(self)
+        if self.problem.options['max_processes'] > 1:
+            if Individual.results is not None:
+                Individual.results.put([self.number, self.gradient])
+
+        return self.gradient
 
     def evaluate_gradient(self):
         self.gradient = self.problem.evaluate_gradient(self)
