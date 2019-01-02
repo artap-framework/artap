@@ -249,7 +249,11 @@ class NSGA_II(GeneticAlgorithm):
         for it in range(self.options['max_population_number']):
             population = PopulationGenetic(self.problem, offsprings)
 
+<<<<<<< HEAD
             population.evaluate()  # evaluate the offsprings
+=======
+            population.evaluate() # evaluate the offsprings
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
             population.evaluate_gradients()
 
             # non-dominated truncate on the guys
