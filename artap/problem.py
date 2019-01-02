@@ -21,6 +21,7 @@ class ProblemBase(ABC):
         self.name: str = None
         self.description = ""
         self.populations: list = None
+        self.population_number = 0
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: SqliteDataStore = None
@@ -30,12 +31,13 @@ class ProblemBase(ABC):
 
         self.options.declare(name='save_data', default=False,
                              desc='Save data to database')
+        self.options.declare(name='calculate_gradients', default=False,
+                             desc='calculate gradient for individuals')
         self.options.declare(name='save_level', default="problem",
                              desc='Save level')
         # options
         self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
                              desc='Max running processes')
-
 
     def get_parameters_list(self):
         parameters_list = []
@@ -67,7 +69,7 @@ class Problem(ProblemBase):
         if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()
         else:
-            #time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+            # time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
             time_stamp = ""
 
             self.working_dir += time_stamp
@@ -89,9 +91,9 @@ class Problem(ProblemBase):
         
     def __del__(self):
         pass
-        #print("Problem: def __del__(self):")
-        #if not self.save_data:
-        #    if os.path.isdir(self.working_dir):
+        #  print("Problem: def __del__(self):")
+        #  if not self.save_data:
+        #      if os.path.isdir(self.working_dir):
         #        shutil.rmtree(self.working_dir)
 
     def add_population(self, population):
@@ -135,12 +137,12 @@ class Problem(ProblemBase):
         n = len(self.parameters)
         gradient = [0]*n
         x0 = individual.parameters
-        y = self.eval(x0)
+        y = self.eval(x0)[0]
         h = 1e-6
         for i in range(len(self.parameters)):
             x = x0.copy()
             x[i] += h
-            y_h = self.eval(x)
+            y_h = self.eval(x)[0]
             gradient[i] = (y_h - y) / h
         return gradient
 

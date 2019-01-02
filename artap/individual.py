@@ -3,11 +3,12 @@ from numpy.random import normal
 from abc import *
 import json
 
-from multiprocessing import Queue
-from numpy import NaN
-from copy import copy
+# from multiprocessing import Queue
+# from numpy import NaN
+# from copy import copy
 
-import itertools
+# import itertools
+
 
 class Individual(metaclass=ABCMeta):
     """
@@ -22,6 +23,7 @@ class Individual(metaclass=ABCMeta):
         self.length = self.parameters
         self.costs = []
         self.number = Individual.number
+        self.gradient = []
         Individual.number += 1
 
         self.feasible = 0.0 # the distance from the feasibility region in min norm
@@ -67,7 +69,8 @@ class Individual(metaclass=ABCMeta):
         dominates = []
         for individ in self.dominate:
             dominates.append(individ.number)
-        out.append(json.dumps(dominates))
+        out.append(dominates)
+        out.append(self.gradient)
         return out
 
     def evaluate(self):
@@ -94,7 +97,15 @@ class Individual(metaclass=ABCMeta):
             if Individual.results is not None:
                 Individual.results.put([self.number, costs, self.feasible])
 
-        return costs # for scipy
+        return costs  # for scipy
+
+    def evaluate_gradient(self):
+        self.gradient = self.problem.evaluate_gradient(self)
+        if self.problem.options['max_processes'] > 1:
+            if Individual.results is not None:
+                Individual.results.put([self.number, self.gradient])
+
+        return self.gradient
 
     def set_id(self):
         self.number = Individual.number
