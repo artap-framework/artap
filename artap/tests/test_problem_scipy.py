@@ -13,6 +13,7 @@ class MyProblem(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
+        self.options['max_processes'] = 1
 
     def eval(self, x):
         result = 0
@@ -45,9 +46,11 @@ class AckleyN2Test(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
+        self.options['max_processes'] = 1
 
     def eval(self, x):
-        return AckleyN2.eval(x)
+        function = AckleyN2()
+        return function.eval(x)
 
 
 class TestAckleyN2(unittest.TestCase):
@@ -60,9 +63,9 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.options['tol'] = 1e-4
         algorithm.run()
 
-        #results = Results(problem)
-        #optimum = results.find_minimum('F_1')
-        #self.assertAlmostEqual(optimum, -200, 3)
+        # results = Results(problem)
+        # optimum = results.find_minimum('F_1')
+        # self.assertAlmostEqual(optimum, -200, 3)
 
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ class MyProblem(Problem):
         costs = ['F']
 
         super().__init__(name, parameters, costs)
+        self.options['max_processes'] = 1
 
     def eval(self, x):
         return Booth.eval(x)
@@ -34,9 +35,9 @@ class TestBayesOptOptimization(unittest.TestCase):
         algorithm.run()
         # TODO - multiprocess test
 
-        #results = Results(problem)
-        #optimum = results.find_minimum(name='F')
-        #self.assertAlmostEqual(optimum, 0, places=2)
+        # results = Results(problem)
+        # optimum = results.find_minimum(name='F')
+        # self.assertAlmostEqual(optimum, 0, places=2)
 
     def test_local_problem_bayesopt_serial(self):
         problem = MyProblem("LocalPythonProblemBayesOptSerial")
@@ -48,6 +49,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         results = Results(problem)
         optimum = results.find_minimum(name='F')
         self.assertAlmostEqual(optimum, 0, places=2)
+
 
 if __name__ == '__main__':
     unittest.main()

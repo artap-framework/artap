@@ -5,7 +5,7 @@ import getpass
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
 from artap.enviroment import Enviroment
-from artap.population import PopulationGenetic
+from artap.population import Population
 
 
 class TestProblem(Problem):
@@ -58,14 +58,14 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
-        population = PopulationGenetic(problem)
+        population = Population(problem)
         # population.gen_random_population(15, len(problem.parameters),
         #                                  problem.parameters)
 
         table = [[10, 10], [11, 11]]
         population.gen_population_from_table(table)
         population.evaluate()
-        population.evaluate_gradients()
+        # population.evaluate_gradients()
         population.save()
 
 

@@ -1,6 +1,6 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .population import Population, PopulationGenetic
+from .population import Population
 from .individual import Individual
 from copy import copy, deepcopy
 from abc import ABCMeta
@@ -78,7 +78,7 @@ class NSGA_II(GeneticAlgorithm):
                              desc='prob_mutation')
 
     def gen_initial_population(self):
-        population = PopulationGenetic(self.problem)
+        population = Population(self.problem)
         population.gen_random_population(self.options['max_population_size'],
                                          self.parameters_length,
                                          self.problem.parameters)
@@ -247,14 +247,9 @@ class NSGA_II(GeneticAlgorithm):
 
         t_s = time.time()
         for it in range(self.options['max_population_number']):
-            population = PopulationGenetic(self.problem, offsprings)
+            population = Population(self.problem, offsprings)
 
-<<<<<<< HEAD
-            population.evaluate()  # evaluate the offsprings
-=======
             population.evaluate() # evaluate the offsprings
->>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
-            population.evaluate_gradients()
 
             # non-dominated truncate on the guys
             self.fast_non_dominated_sort(population.individuals)
@@ -521,7 +516,7 @@ class EpsMOEA(GeneticAlgorithm):
         # self.archive =
 
     def gen_initial_population(self):
-        population = PopulationGenetic(self.problem)
+        population = Population(self.problem)
         population.gen_random_population(self.options['max_population_size'],
                                          self.parameters_length,
                                          self.problem.parameters)
@@ -835,7 +830,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             # evaluate all new childs
 
-            ch_population = PopulationGenetic(self.problem, offsprings)
+            ch_population = Population(self.problem, offsprings)
             ch_population.evaluate() # evaluate the offsprings
 
             for child in ch_population.individuals:

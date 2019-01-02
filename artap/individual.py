@@ -16,6 +16,7 @@ class Individual(metaclass=ABCMeta):
     """
     number = 0
     results = None
+    gradients = None
 
     def __init__(self, design_parameters, problem, population_id=0):
         self.parameters = design_parameters

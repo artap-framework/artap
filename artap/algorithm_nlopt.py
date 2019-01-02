@@ -564,7 +564,7 @@ class NLopt(Algorithm):
         return 0
 
     def run(self):
-        population = Population(self)
+        population = Population(self.problem)
         self.problem.populations.append(population)
 
         start = clock()
