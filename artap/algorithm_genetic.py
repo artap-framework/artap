@@ -249,6 +249,7 @@ class NSGA_II(GeneticAlgorithm):
             population = Population_Genetic(self.problem, offsprings)
 
             population.evaluate() # evaluate the offsprings
+            population.evaluate_gradients()
 
             # non-dominated truncate on the guys
             self.fast_non_dominated_sort(population.individuals)

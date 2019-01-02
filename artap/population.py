@@ -1,12 +1,9 @@
 from multiprocessing import Process, Queue
 from .individual import Individual
-import time
+# import time
 
 
 class Population:
-    
-    size = 0
-    number = 0
 
     def __init__(self, problem, individuals=None):
 
@@ -15,14 +12,14 @@ class Population:
 
         self.length = len(individuals)
         self.problem = problem     
-        self.number = Population.number
+        self.number = self.problem.population_number
         
         self.individuals = individuals.copy()
         for individual in self.individuals:
             individual.population_id = self.number
             individual.set_id()
 
-        Population.number += 1
+        self.problem.population_number += 1
 
     def __repr__(self):
 
@@ -104,11 +101,51 @@ class Population:
             Individual.results.close()
             Individual.results.join_thread()
 
+    def evaluate_gradients(self):
+        """
+        The evaluate function calculate the value of the
+        :return:
+        """
+
+        if self.problem.options['max_processes'] == 1:
+            for individual in self.individuals:
+                    individual.problem = self.problem
+                    individual.evaluate_gradient()
+        else:
+            Individual.results = Queue()
+            processes = []
+
+            i = 0
+            j = 0
+            for individual in self.individuals:
+                individual.problem = self.problem
+                p = Process(target=individual.evaluate_gradient)
+                processes.append(p)
+                p.start()
+                i += 1
+                j += 1
+
+                if ((i % self.problem.options['max_processes']) == 0) or (j >= len(self.individuals)):
+                    for process in processes:
+                        process.join()
+                        processes = []
+
+            # collect the results
+            for i in range(Individual.results.qsize()):
+                result = Individual.results.get()
+                for individual in self.individuals:
+                    if individual.number == result[0]:
+                        individual.gradient = result[1]
+
+            Individual.results.close()
+            Individual.results.join_thread()
+
     def save(self):
         table = []
         for individual in self.individuals:
             table.append(individual.to_list())
         self.problem.data_store.write_population(table)
+
 
 class Population_Genetic(Population):
 
