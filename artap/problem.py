@@ -31,6 +31,8 @@ class ProblemBase(ABC):
 
         self.options.declare(name='save_data', default=False,
                              desc='Save data to database')
+        self.options.declare(name='calculate_gradients', default=False,
+                             desc='calculate gradient for individuals')
         self.options.declare(name='save_level', default="problem",
                              desc='Save level')
         # options
@@ -89,9 +91,15 @@ class Problem(ProblemBase):
         
     def __del__(self):
         pass
+<<<<<<< HEAD
         # print("Problem: def __del__(self):")
         # if not self.save_data:
         #    if os.path.isdir(self.working_dir):
+=======
+        #  print("Problem: def __del__(self):")
+        #  if not self.save_data:
+        #      if os.path.isdir(self.working_dir):
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
         #        shutil.rmtree(self.working_dir)
 
     def add_population(self, population):
@@ -135,11 +143,12 @@ class Problem(ProblemBase):
         n = len(self.parameters)
         gradient = [0]*n
         x0 = individual.parameters
-        y = self.eval(x0)
+        y = self.eval(x0)[0]
         h = 1e-6
         for i in range(len(self.parameters)):
             x = x0.copy()
             x[i] += h
+<<<<<<< HEAD
             y_h = self.eval(x)
             if type(y_h) is list:
                 m = len(y_h)
@@ -148,6 +157,10 @@ class Problem(ProblemBase):
             else:
                 gradient[i] = (y_h - y) / h
 
+=======
+            y_h = self.eval(x)[0]
+            gradient[i] = (y_h - y) / h
+>>>>>>> 90fd69bff6445bf07b0d19b7c9c6f48939a0ba4c
         return gradient
 
     def eval_batch(self, table):

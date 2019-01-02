@@ -1,4 +1,4 @@
-from .problem import Problem
+# from .problem import Problem
 
 import matplotlib
 matplotlib.use('Agg')
@@ -7,7 +7,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
 
-import sys
+# import sys
 
 class Results:
 
@@ -22,7 +22,6 @@ class Results:
         :return:
         """
         ind = None
-
         # get the index of the required parameter
         index = int(self.problem.costs.get(name))
 
