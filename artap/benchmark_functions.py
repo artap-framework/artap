@@ -1,4 +1,7 @@
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator  # , FormatStrFormatter
@@ -46,9 +49,7 @@ class BenchmarkFunction:
 
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=5)
-
-        plt.show()
-
+        # pl.show()
 
 class Rosenbrock(BenchmarkFunction):
     """
