@@ -16,6 +16,8 @@ class Algorithm(metaclass=ABCMeta):
 
         self.options.declare(name='verbose_level', default=1, lower=0,
                              desc='Verbose level')
+        self.options.declare(name='calculate_gradients', default=False,
+                             desc='Enable calculating of gradients')
 
 
     @abstractmethod

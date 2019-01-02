@@ -77,6 +77,7 @@ class TestAckleyN2(unittest.TestCase):
         algorithm = NSGA_II(problem)
         algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 100
+        algorithm.options['calculate_gradients'] = True
         algorithm.run()
 
         b = Results(problem)

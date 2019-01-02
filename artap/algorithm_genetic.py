@@ -251,6 +251,9 @@ class NSGA_II(GeneticAlgorithm):
 
             population.evaluate() # evaluate the offsprings
 
+            if self.options['calculate_gradients'] is True:
+                population.evaluate_gradients()
+
             # non-dominated truncate on the guys
             self.fast_non_dominated_sort(population.individuals)
             self.calculate_crowd_dis(offsprings)
