@@ -15,7 +15,7 @@ class MyProblem(Problem):
         working_dir = "./workspace/common_data/"
         super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
         self.options['save_level'] = "population"
-        self.options['max_processes'] = 1
+        self.options['max_processes'] = 10
         self.options['save_data'] = True
 
     def eval(self, x):
@@ -61,7 +61,7 @@ class AckleyN2Test(Problem):
         super().__init__(name, parameters, costs, working_dir=working_dir)
         self.options['save_data'] = True
         self.options['save_level'] = "population"
-        self.options['max_processes'] = 1
+        self.options['max_processes'] = 10
 
     def eval(self, x):
         return AckleyN2.eval(x)

@@ -9,8 +9,8 @@ class PSO_Rosenbrock(Problem):
     """ Search the optimal value of the Rosenbrock funtion in 2d"""
 
     def __init__(self, name):
-        parameters = {'x': {'initial_value': 5., 'bounds': [0, 5], 'precision': 1e-1},
-                      'x': {'initial_value': 5., 'bounds': [0, 5], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 5., 'bounds': [0, 5], 'precision': 1e-1},
+                      'x_2': {'initial_value': 5., 'bounds': [0, 5], 'precision': 1e-1}}
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)

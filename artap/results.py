@@ -93,3 +93,4 @@ class GraphicalResults(Results):
                 ax.set_ylabel('$y$')
                 ax.grid()
                 figure.savefig(figure_name)
+

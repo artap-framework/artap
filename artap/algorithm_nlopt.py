@@ -4,7 +4,6 @@ from .population import Population
 from .enviroment import Enviroment
 
 from time import clock
-import numpy as np
 
 import sys
 sys.path.append(Enviroment.artap_root + "/lib/")
@@ -59,6 +58,7 @@ except __builtin__.Exception:
     class _object:
         pass
     _newclass = 0
+
 
 class SwigPyIterator(_object):
     __swig_setmethods__ = {}
