@@ -8,7 +8,8 @@ from artap.benchmark_functions import Rosenbrock
 class TestDataStore(unittest.TestCase):
 
     def test_local_problem_data_store(self):
-        Rosenbrock.plot()
+        function = Rosenbrock()
+        function.plot()
         # working_dir = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep
         # database_file = working_dir + "data.sqlite"
         # data_store = SqliteDataStore(database_file=database_file)

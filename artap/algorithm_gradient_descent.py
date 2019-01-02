@@ -22,7 +22,7 @@ class GradientDescent(Algorithm):
 
     def run(self):
         # TODO: add adaptive step size
-        population = Population(self)
+        population = Population(self.problem)
         self.problem.populations.append(population)
         n = self.options["n_iterations"]
         x = [0] * n

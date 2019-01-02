@@ -3,7 +3,7 @@ import unittest
 from pygments.lexer import words
 
 from artap.problem import Problem
-from artap.benchmark_functions import Binh_and_Korn, AckleyN2
+from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGA_II
 from artap.results import Results
 
@@ -17,15 +17,15 @@ class MyProblem(Problem):
         working_dir = "./"
         super().__init__(name, parameters, costs, save_data=True, working_dir=working_dir)
         self.options['save_level'] = "population"
-        self.options['max_processes'] = 10
+        self.options['max_processes'] = 1
         self.options['save_data'] = True
 
     def eval(self, x):
-        return Binh_and_Korn.eval(x)
+        function = BinhAndKorn()
+        return function.eval(x)
 
     def eval_constraints(self, x):
-        return Binh_and_Korn.constraints(x)
-
+        return BinhAndKorn.constraints(x)
 
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
@@ -46,7 +46,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         wrong = 0
         for sol in solution:
-            if abs(Binh_and_Korn.approx(sol[0])-sol[1]) > 0.1 * Binh_and_Korn.approx(sol[0]) and sol[0] > 20 and sol[0]< 70:
+            if abs(BinhAndKorn.approx(sol[0])-sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) and sol[0] > 20 and sol[0]< 70:
                 wrong += 1
 
         self.assertLessEqual(wrong, 3)
@@ -65,7 +65,8 @@ class AckleyN2Test(Problem):
         self.options['max_processes'] = 10
 
     def eval(self, x):
-        return AckleyN2.eval(x)
+        function = AckleyN2()
+        return function.eval(x)
 
 
 class TestAckleyN2(unittest.TestCase):
