@@ -2,15 +2,15 @@ import sqlite3
 import tempfile
 import os
 import json
-from datetime import datetime
+# from datetime import datetime
 from abc import abstractmethod
 
 from .individual import Individual
 from .population import Population
-from .utils import flatten
+# from .utils import flatten
 
 from threading import Thread
-from threading import Lock
+# from threading import Lock
 import asyncio
 
 
@@ -65,6 +65,8 @@ class SqliteDataStore(DataStore):
 
         if create_database:
             self.database_name = self.working_dir + os.sep + "data" + ".sqlite"
+            if os.path.exists(self.database_name):
+                os.remove(self.database_name)
         else:
             if database_file is not None:
                 self.database_name = database_file
@@ -88,7 +90,7 @@ class SqliteDataStore(DataStore):
 
         try:
             connection = sqlite3.connect(database_name)
-            #connection.execute('pragma journal_mode=wal')
+            # connection.execute('pragma journal_mode=wal')
 
             cursor = connection.cursor()
             cursor.execute(command)
@@ -124,7 +126,7 @@ class SqliteDataStore(DataStore):
         for cost in costs:
             exec_cmd += cost + " NUMBER,"
 
-        exec_cmd += 'front_number NUMBER ,crowding_distance NUMBER, feasible NUMBER, dominates JSON'
+        exec_cmd += 'front_number NUMBER ,crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
         exec_cmd += ");"
 
         self._execute_command(exec_cmd)
@@ -163,9 +165,10 @@ class SqliteDataStore(DataStore):
 
         for params in table:
             exec_cmd = "INSERT INTO data VALUES ("
-            for i in range(len(params) - 1):
+            for i in range(len(params) - 2):
                 exec_cmd += " " + str(params[i]) + ","
-            exec_cmd += " " + json.dumps(params[i+1]) + ")"
+            exec_cmd += " '" + json.dumps(params[i+1]) + "', '"
+            exec_cmd += json.dumps(params[i+2]) + " ')"
             cursor = connection.cursor()
             cursor.execute(exec_cmd)
             cursor.close()
@@ -203,31 +206,34 @@ class SqliteDataStore(DataStore):
         exec_cmd_data = "SELECT * FROM data"
         problem.populations = []
 
-        current_population = 0
-
-        is_all = False
-
         data = cursor.execute(exec_cmd_data)
-        while not is_all:
-            population = Population(problem)
-            is_all = True
-            for row in data:
-                if row[1] == current_population:
-                    individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
-                    l = 2 + len(problem.parameters) + len(problem.costs)
-                    individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
 
-                    individual.front_number = row[l]
-                    individual.crowding_distance = row[l+1]
-                    individual.feasible = row[l+2]
-                    individual.dominate = row[l+3]
-                    population.individuals.append(individual)
-                    del row
-                else:
-                    is_all = False
-            problem.populations.append(population)
-            current_population += 1
+        population = Population(problem)
+        table = list()
+        for row in data:
+            table.append(row)
 
         cursor.close()
         connection.close()
 
+        table.sort(key=lambda x: x[1])  # Sorting according to population number
+
+        current_population = table[0][1]
+        for row in table:
+            if row[1] == current_population:
+                population.number = current_population
+                individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
+                l = 2 + len(problem.parameters) + len(problem.costs)
+                individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
+                individual.front_number = row[l]
+                individual.crowding_distance = row[l+1]
+                individual.feasible = row[l+2]
+                individual.dominate = row[l+3]
+                individual.gradient = row[l+4]
+                population.individuals.append(individual)
+            else:
+                problem.populations.append(population)
+                population = Population(problem)
+                current_population = row[1]
+
+        problem.populations.append(population)
