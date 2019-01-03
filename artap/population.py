@@ -12,7 +12,7 @@ class Population:
         self.length = len(individuals)
         self.problem = problem
         if problem is not None:
-            self.number = self.problem.population_number
+            self.number = len(self.problem.populations) + 1
         else:
             self.number = 0
         
@@ -20,8 +20,6 @@ class Population:
         for individual in self.individuals:
             individual.population_id = self.number
             individual.set_id()
-
-        self.problem.population_number += 1
 
     def __repr__(self):
 

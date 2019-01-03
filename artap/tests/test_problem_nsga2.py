@@ -27,6 +27,7 @@ class MyProblem(Problem):
     def eval_constraints(self, x):
         return BinhAndKorn.constraints(x)
 
+
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
@@ -40,13 +41,10 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         b = Results(problem)
         solution = b.pareto_values()
-        # print(*solution[0], sep="\n")
-
-        x, y = zip(*solution)
-
         wrong = 0
         for sol in solution:
-            if abs(BinhAndKorn.approx(sol[0])-sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) and sol[0] > 20 and sol[0]< 70:
+            if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
+                    and 20 < sol[0] < 70:
                 wrong += 1
 
         self.assertLessEqual(wrong, 3)
