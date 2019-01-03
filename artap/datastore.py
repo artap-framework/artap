@@ -126,7 +126,7 @@ class SqliteDataStore(DataStore):
         for cost in costs:
             exec_cmd += cost + " NUMBER,"
 
-        exec_cmd += 'front_number NUMBER ,crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
+        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
         exec_cmd += ");"
 
         self._execute_command(exec_cmd)
@@ -154,9 +154,24 @@ class SqliteDataStore(DataStore):
 
     def write_individual(self, params):
         exec_cmd = "INSERT INTO data VALUES ("
+        """
         for i in range(len(params) - 1):
             exec_cmd += " " + str(params[i]) + ","
         exec_cmd += " " + str(params[i]) + ")"
+        """
+
+        for i in range(len(params) - 1):
+            if type(params[i]) == list:
+                par = "'" + str(params[i]) + "'"
+            else:
+                par = str(params[i])
+            exec_cmd += " " + par + ","
+
+        if type(params[i]) == list:
+            par = "'" + str(params[i]) + "'"
+        else:
+            par = str(params[i])
+        exec_cmd += " " + par + ")"
 
         self._execute_command(exec_cmd)
 
