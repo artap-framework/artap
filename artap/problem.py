@@ -21,7 +21,6 @@ class ProblemBase(ABC):
         self.name: str = None
         self.description = ""
         self.populations: list = None
-        self.population_number = 0
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: SqliteDataStore = None
@@ -99,8 +98,14 @@ class Problem(ProblemBase):
     def add_population(self, population):
         self.populations.append(population)
 
-    def chromosome_len(self):
+    def parameters_len(self):
         return len(self.parameters)
+
+    def get_bounds(self):
+        table = []
+        for parameter in self.get_parameters_list():
+            table.append([parameter[2], parameter[3]])
+        return table
 
     def evaluate_individual(self, x, population=0):
         """
