@@ -117,56 +117,10 @@ class Individual(metaclass=ABCMeta):
 
         return self.gradient
 
-    def evaluate_gradient(self):
-        self.gradient = self.problem.evaluate_gradient(self)
-
-        if self.problem.options['max_processes'] > 1:
-            Individual.gradients.put([self.number, self.gradient])
-
-        return self.gradient
-
     def set_id(self):
         self.number = Individual.number
         Individual.number += 1
 
-    # PSO specific
-
-    # evaluate current fitness
-    def evaluate_pso(self):
-        self.err_i = self.costs[0]  # TODO: Only for one objective function - generalize
-
-        # check to see if the current position is an individual best
-        if self.err_i < self.err_best_i or self.err_best_i == -1:
-            self.pos_best_i = self.parameters
-            self.err_best_i = self.err_i
-
-    # update new particle velocity
-    def update_velocity(self, pos_best_g):
-        w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
-        c1 = 2  # cognitive constant
-        c2 = 1   # social constant
-
-        for i in range(0, len(self.parameters)):
-            r1 = random()
-            r2 = random()
-
-            vel_cognitive = c1 * r1 * (self.pos_best_i[i] - self.parameters[i])
-            vel_social = c2 * r2 * (pos_best_g[i] - self.parameters[i])
-            self.velocity_i[i] = w * self.velocity_i[i] + vel_cognitive + vel_social
-        print(self.velocity_i)
-
-    # update the particle position based off new velocity updates
-    def update_position(self, bounds):
-        for i in range(0, len(self.parameters)):
-            self.parameters[i] = self.parameters[i] + self.velocity_i[i]
-
-            # adjust maximum position if necessary
-            if self.parameters[i] > bounds[i][1]:
-                self.parameters[i] = bounds[i][1]
-
-            # adjust minimum position if necessary
-            if self.parameters[i] < bounds[i][0]:
-                self.parameters[i] = bounds[i][0]
 
     @classmethod
     def gen_individuals(cls, number, problem, population_id):
