@@ -28,7 +28,6 @@ class TestBayesOptOptimization(unittest.TestCase):
     
     def xtest_local_problem_bayesopt_parallel(self):
         problem = MyProblem("LocalPythonProblemBayesOptParallel")
-        problem.options["max_processes"] = 1
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 100
