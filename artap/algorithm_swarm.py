@@ -12,7 +12,7 @@ class PSO(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
 
-    # TODO: The same code as for genetic algorithm. Reuse.
+    # TODO: Almost the same code as for genetic algorithm. Reuse.
     def gen_initial_population(self):
         population = Population(self.problem)
         population.gen_random_population(self.options['max_population_size'],
@@ -49,7 +49,7 @@ class PSO(GeneticAlgorithm):
 
             for individual in population.individuals:
                 individual.costs = []
-                # print(individual.velocity_i)
+                print(individual.costs)
                 individual.update_velocity(pos_best_g)
                 # print(individual.velocity_i)
                 # print("---------------------")

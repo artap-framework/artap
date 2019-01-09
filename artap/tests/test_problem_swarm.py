@@ -5,7 +5,7 @@ from artap.benchmark_functions import Rosenbrock
 from artap.algorithm_swarm import PSO
 
 
-class PSO_Rosenbrock(Problem):
+class PSORosenbrock(Problem):
     """ Search the optimal value of the Rosenbrock funtion in 2d"""
 
     def __init__(self, name):
@@ -24,10 +24,10 @@ class TestPSOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem_pso(self):
-        problem = PSO_Rosenbrock("LocalPythonProblemPSO")
+        problem = PSORosenbrock("LocalPythonProblemPSO")
         algorithm = PSO(problem)
         algorithm.options['max_population_number'] = 10
-        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_population_size'] = 1
         algorithm.run()
 
 
