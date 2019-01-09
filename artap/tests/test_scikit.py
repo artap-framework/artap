@@ -6,13 +6,17 @@ from scipy import integrate
 from artap.problem import Problem
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.algorithm_genetic import NSGA_II
+from artap.algorithm_bayesopt import BayesOptSerial
 
 from artap.benchmark_functions import Booth
 
 from artap.results import Results
 
+import numpy as np
+from sklearn import linear_model
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
+from sklearn.neural_network import MLPClassifier
 
 class MyProblem(Problem):
     def __init__(self, name, costs):
@@ -181,145 +185,101 @@ class MyProblemBooth(Problem):
         costs = ['F']
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
+        self.options['save_level'] = "population"
+
+        self.counter = 0
+
+        # surrogate model
+        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+        kernel = 1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)
+        self.surrogate = GaussianProcessRegressor(kernel=kernel)
+        # self.surrogate = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+
+        self.surrogate_prepared = False
+        self.surrogate_predict_counter = 0
+        self.surrogate_eval_counter = 0
+        self.counter_step = 40
 
     def eval(self, x):
-        return Booth.eval(x)
+        self.counter += 1
+
+        if self.counter % self.counter_step == 0:
+            # surrogate model
+            counter_eff = 100.0 * self.surrogate_predict_counter / self.counter
+            # speed up
+            if (counter_eff > 30):
+                self.counter_step = int(self.counter_step * 1.5)
+            print("learning", self.counter, ", predict eff: ", counter_eff, ", counter_step: ", self.counter_step)
+
+            x_data = []
+            y_data = []
+            for population in self.populations:
+                for individual in population.individuals:
+                    if individual.is_evaluated:
+                        x_data.append(individual.parameters)
+                        y_data.append(individual.costs[0])
+
+            #print("x_data", x_data)
+            #print("y_data", y_data)
+
+            #clf = linear_model.SGDRegressor()
+            #clf = linear_model.SGDRegrBayesianRidgeessor()
+            #clf = linear_model.LassoLars()
+            #clf = linear_model.TheilSenRegressor()
+            #clf = linear_model.LinearRegression()
+
+            self.surrogate.fit(x_data, y_data)
+            self.surrogate_prepared = True
+
+        evaluation = True
+        if self.surrogate_prepared:
+            p, sigma = self.surrogate.predict([x], return_std=True)
+            # p = self.surrogate.predict([x])
+
+            # sigma = 0
+            if sigma < 0.01:
+                value = p[0]
+                self.surrogate_predict_counter += 1
+                evaluation = False
+                # print("x: ", x, "prediction: ", p[0], ", sigma: ", sigma)
+            else:
+                # value = Booth.eval(x)
+                self.surrogate_eval_counter += 1
+                # print("x: ", x, "prediction: ", p[0], ", value: ", value, "diff: ", math.fabs(p - value), ", sigma: ", sigma)
+
+        if evaluation:
+            value = Booth.eval(x)
+
+        return value
+
 
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-    def test_local_problem_one(self):
+    def xtest_local_problem_one(self):
         problem = MyProblemBooth("LocalPythonProblem")
-        algorithm = NLopt(problem)
-        algorithm.options['algorithm'] = LN_BOBYQA
-        algorithm.options['n_iterations'] = 50
+
+        #algorithm = BayesOptSerial(problem)
+        #algorithm.options['verbose_level'] = 0
+        #algorithm.options['n_iterations'] = 100
+
+        #algorithm = NLopt(problem)
+        #algorithm.options['algorithm'] = LN_BOBYQA
+        #algorithm.options['n_iterations'] = 200
+
+        algorithm = NSGA_II(problem)
+        algorithm.options['max_population_number'] = 80
+        algorithm.options['max_population_size'] = 20
+
         algorithm.run()
+
+        print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
+        print("surrogate_eval_counter: ", problem.surrogate_eval_counter)
 
         results = Results(problem)
         optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum, 1e-6, 3)
 
+
 if __name__ == '__main__':
     unittest.main()
-
-"""
-
-#!/usr/bin/python3
-
-import numpy as np
-from matplotlib import pyplot as plt
-
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-
-np.random.seed(1)
-
-
-def f(x):
-    return x * np.sin(x)
-
-# ----------------------------------------------------------------------
-#  First the noiseless case
-X = np.atleast_2d([1., 3., 5., 6., 7., 8.]).T
-
-# Observations
-y = f(X).ravel()
-
-# Mesh the input space for evaluations of the real function, the prediction and
-# its MSE
-x = np.atleast_2d(np.linspace(0, 10, 1000)).T
-
-# Instanciate a Gaussian Process model
-kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
-gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
-
-# Fit to data using Maximum Likelihood Estimation of the parameters
-gp.fit(X, y)
-
-# Make the prediction on the meshed x-axis (ask for MSE as well)
-y_pred, sigma = gp.predict(x, return_std=True)
-
-# Plot the function, the prediction and the 95% confidence interval based on
-# the MSE
-fig = plt.figure()
-plt.plot(x, f(x), 'r:', label=u'$f(x) = x\,\sin(x)$')
-plt.plot(X, y, 'r.', markersize=10, label=u'Observations')
-plt.plot(x, y_pred, 'b-', label=u'Prediction')
-plt.fill(np.concatenate([x, x[::-1]]),
-         np.concatenate([y_pred - 1.9600 * sigma,
-                        (y_pred + 1.9600 * sigma)[::-1]]),
-         alpha=.5, fc='b', ec='None', label='95% confidence interval')
-plt.xlabel('$x$')
-plt.ylabel('$f(x)$')
-plt.ylim(-10, 20)
-plt.legend(loc='upper left')
-# plt.show()
-
-
-
-
-
-
-
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF
-import scipy.stats as st
-
-np.random.seed(1)
-
-# Quadratic 2d potential
-def func(x):
-    return np.sum(x**2, axis=-1)
-
-
-# Grid
-lim = 1
-res = 50
-lin = np.linspace(-lim, lim, res)
-
-# x1.shape = (50, 50)
-x1, x2 = np.meshgrid(lin, lin)
-# xx.shape = (2500, 2)
-xx = np.vstack((x1.flatten(), x2.flatten())).T
-
-# Analytic function values
-y_analytic = func(xx)
-y_analytic = y_analytic.reshape(-1, res)
-
-# Observed data
-obs = 15
-# X.shape = (15, 2)
-X = np.stack(
-        (np.random.choice(lin, obs), np.random.choice(lin, obs)),
-        axis=-1
-)
-y_obs = func(X)
-
-kernel = RBF()
-gp = GaussianProcessRegressor(kernel=kernel,
-                              n_restarts_optimizer=10)
-gp.fit(X, y_obs)
-print("Learned kernel", gp.kernel_)
-# y_mean.shape = (2500, )
-# y_cov.shape = (2500, 2500)
-y_mean, y_cov = gp.predict(xx, return_cov=True)
-
-posterior_nums = 3
-posteriors = st.multivariate_normal.rvs(mean=y_mean, cov=y_cov,
-                                        size=posterior_nums)
-
-fig, axs = plt.subplots(posterior_nums+1)
-
-ax = axs[0]
-ax.contourf(x1, x2, y_analytic)
-ax.plot(X[:, 0], X[:, 1], "r.", ms=12)
-
-for i, post in enumerate(posteriors, 1):
-    axs[i].contourf(x1, x2, post.reshape(-1, res))
-
-plt.tight_layout()
-plt.show()
-
-"""
