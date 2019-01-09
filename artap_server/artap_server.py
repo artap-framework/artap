@@ -1,6 +1,8 @@
 import json
 from textwrap import dedent as d
 
+import flask
+
 import dash
 import dash_core_components as dashComp
 import dash_html_components as dashHtml
@@ -8,6 +10,7 @@ from dash.dependencies import Input, Output
 import plotly.graph_objs as grObj
 
 import numpy as np
+
 
 x = np.linspace(0, 5, 50)
 y = np.sin(x)
@@ -107,6 +110,37 @@ def display_selected_data(selectedData):
     [Input('basic-interactions', 'relayoutData')])
 def display_selected_data(relayoutData):
     return json.dumps(relayoutData, indent=2)
+
+
+@app.server.route('/foo', methods=['POST'])
+def foo():
+    if not flask.request.json:
+        flask.abort(400)
+    print(flask.request.json)
+    return json.dumps(flask.request.json)
+
+
+# Create a login route
+@app.server.route('/custom-auth/login', methods=['POST'])
+def route_login():
+    data = flask.request.form
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        flask.abort(401)
+
+    # actual implementation should verify the password.
+    # Recommended to only keep a hash in database and use something like
+    # bcrypt to encrypt the password and check the hashed results.
+
+    # Return a redirect with
+    rep = flask.redirect(_app_route)
+
+    # Here we just store the given username in a cookie.
+    # Actual session cookies should be signed or use a JWT token.
+    rep.set_cookie('custom-auth-session', username)
+    return rep
 
 
 if __name__ == '__main__':
