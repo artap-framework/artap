@@ -19,7 +19,7 @@ class Individual(metaclass=ABCMeta):
     gradients = None
 
     def __init__(self, design_parameters, problem, population_id=0):
-        self.parameters = design_parameters.copy()
+        self.parameters = list(design_parameters).copy()
         self.problem = problem
         self.length = len(self.parameters)
         self.costs = []
