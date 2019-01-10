@@ -21,7 +21,7 @@ class PSO(GeneticAlgorithm):
     # TODO: The same code as for genetic algorithm. Reuse.
     def gen_initial_population(self):
         population = Population(self.problem)
-        population.gen_random_population(self.options['max_population_size'],
+        population.gen_random_population(self.n,
                                          self.parameters_length,
                                          self.problem.parameters)
         population.evaluate()
@@ -34,9 +34,9 @@ class PSO(GeneticAlgorithm):
         individual.err_i = individual.costs[0]  # TODO: Only for one objective function - generalize
 
         # check to see if the current position is an individual best
-        if individual.err_i < individual.err_best_i or individual.err_best_i == -1:
-            individual.pos_best_i = individual.parameters
-            individual.err_best_i = individual.err_i
+        if individual.err_i < individual.best_costs or individual.best_costs == -1:
+            individual.best_parameters = individual.parameters
+            individual.best_costs = individual.err_i
 
     # update new particle velocity
     def update_velocity(self, individual):
@@ -45,7 +45,7 @@ class PSO(GeneticAlgorithm):
             r1 = random()
             r2 = random()
 
-            vel_cognitive = self.c1 * r1 * (individual.pos_best_i[i] - individual.parameters[i])
+            vel_cognitive = self.c1 * r1 * (individual.best_parameters[i] - individual.parameters[i])
             vel_social = self.c2 * r2 * (self.pos_best_g[i] - individual.parameters[i])
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
@@ -72,8 +72,8 @@ class PSO(GeneticAlgorithm):
 
             for j in range(self.n):
                 individual = Individual(self.problem.populations[-1].individuals[j].parameters.copy(), self.problem)
-                individual.pos_best_i = self.problem.populations[-1].individuals[j].pos_best_i
-                individual.err_best_i = self.problem.populations[-1].individuals[j].err_best_i
+                individual.best_parameters = self.problem.populations[-1].individuals[j].best_parameters
+                individual.best_costs = self.problem.populations[-1].individuals[j].best_costs
                 individual.costs = self.problem.populations[-1].individuals[j].costs
                 population.individuals.append(individual)
 

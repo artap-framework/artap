@@ -21,6 +21,9 @@ class Population:
             individual.population_id = self.number
             individual.set_id()
 
+        self.pareto_parameters: list = []
+        self.pareto_costs: list = []
+
     def __repr__(self):
 
         string = "population number: " + str(self.number) + " \n"

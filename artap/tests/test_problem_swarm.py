@@ -32,8 +32,8 @@ class TestPSOptimization(unittest.TestCase):
     def test_local_problem_pso(self):
         problem = PSORosenbrock("LocalPythonProblemPSO")
         algorithm = PSO(problem)
-        algorithm.options['max_population_number'] = 30
-        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_population_number'] = 15
+        algorithm.options['max_population_size'] = 30
         algorithm.run()
 
 

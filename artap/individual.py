@@ -1,7 +1,7 @@
 from random import random, uniform
 from numpy.random import normal
 from abc import *
-import json
+# import json
 
 # from multiprocessing import Queue
 # from numpy import NaN
@@ -37,9 +37,8 @@ class Individual(metaclass=ABCMeta):
 
         # For particle swarm optimization
         self.velocity_i = []  # particle velocity
-        self.pos_best_i = []  # best position individual
-        self.err_best_i = -1  # best error individual
-        self.err_i = -1  # error individual
+        self.best_parameters = []  # best position individual
+        self.best_costs = -1  # best error individual
 
         for i in range(0, len(self.parameters)):
             self.velocity_i.append(uniform(-1, 1))
@@ -50,15 +49,15 @@ class Individual(metaclass=ABCMeta):
 
         for i, number in enumerate(self.parameters):
             string += str(number)
-            if i<len(self.costs)-1:
+            if i < len(self.costs)-1:
                 string += ", "
 
         string = string[:len(string) - 1]
         string += "]"
         string += "; costs:["
-        for i,number in enumerate(self.costs):
+        for i, number in enumerate(self.costs):
             string += str(number)
-            if i<len(self.costs)-1:
+            if i < len(self.costs)-1:
                 string += ", "
         string += "]\n"
         return string
@@ -112,15 +111,14 @@ class Individual(metaclass=ABCMeta):
     def evaluate_gradient(self):
         self.gradient = self.problem.evaluate_gradient(self)
         if self.problem.options['max_processes'] > 1:
-            if Individual.results is not None:
-                Individual.results.put([self.number, self.gradient])
+            if Individual.gradients is not None:
+                Individual.gradients.put([self.number, self.gradient])
 
         return self.gradient
 
     def set_id(self):
         self.number = Individual.number
         Individual.number += 1
-
 
     @classmethod
     def gen_individuals(cls, number, problem, population_id):
@@ -141,7 +139,7 @@ class Individual(metaclass=ABCMeta):
         for parameter in design_parameters.items():
 
             if not ('bounds' in parameter[1]):
-                bounds = [parameter["initial_value"] * 0.5, parameter["initial_value"] * 1.5]
+                bounds = [parameter[1]["initial_value"] * 0.5, parameter[1]["initial_value"] * 1.5]
             else:
                 bounds = parameter[1]['bounds']
 
