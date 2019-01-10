@@ -51,7 +51,6 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         population.gen_random_population(self.population_size, self.parameters_length, self.problem.parameters)
         population.evaluate()
 
-
         self.problem.add_population(population)
 
         self.current_population += 1
@@ -83,6 +82,7 @@ class NSGA_II(GeneticAlgorithm):
                                          self.parameters_length,
                                          self.problem.parameters)
         self.problem.populations.append(population)
+
 
     def is_dominate(self, p, q):
         """

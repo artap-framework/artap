@@ -6,11 +6,7 @@ from artap.algorithm_swarm import PSO
 
 
 class PSORosenbrock(Problem):
-<<<<<<< HEAD
-    """ Search the optimal value of the Rosenbrock funtion in 2d"""
-=======
     """ Search the optimal value of the Rosenbrock function in 2d"""
->>>>>>> 269aa11b53e5e27df29c78c7471fde6fe2bcf8d2
 
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-7},
@@ -36,13 +32,8 @@ class TestPSOptimization(unittest.TestCase):
     def test_local_problem_pso(self):
         problem = PSORosenbrock("LocalPythonProblemPSO")
         algorithm = PSO(problem)
-<<<<<<< HEAD
-        algorithm.options['max_population_number'] = 10
-        algorithm.options['max_population_size'] = 1
-=======
         algorithm.options['max_population_number'] = 30
         algorithm.options['max_population_size'] = 100
->>>>>>> 269aa11b53e5e27df29c78c7471fde6fe2bcf8d2
         algorithm.run()
 
 
