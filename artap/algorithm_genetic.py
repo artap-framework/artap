@@ -251,7 +251,7 @@ class NSGA_II(GeneticAlgorithm):
 
             population.evaluate() # evaluate the offsprings
 
-            if self.options['calculate_gradients'] is True:
+            if (self.options['calculate_gradients'] is True) and  population.number > 20:
                 population.evaluate_gradients()
 
             # non-dominated truncate on the guys
