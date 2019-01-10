@@ -364,16 +364,13 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
                 event = ""
 
-                while event != "Completed":
+                while (event != "Completed") and (event != "Held"):
                     content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
                     state = RemoteCondorExecutor.parse_condor_log(content)
                     time.sleep(0.1)
                     if state[1] != event:
                         print(state)
                         event = state[1]
-
-                    if event == "Held":
-                        break
 
                 if event == "Completed":
                     content = self.read_file_from_remote("." + os.sep + "out%s.txt" % ts, client=client)

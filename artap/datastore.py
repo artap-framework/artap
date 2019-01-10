@@ -243,8 +243,8 @@ class SqliteDataStore(DataStore):
                 individual.front_number = row[l]
                 individual.crowding_distance = row[l+1]
                 individual.feasible = row[l+2]
-                individual.dominate = row[l+3]
-                individual.gradient = row[l+4]
+                individual.dominate = json.loads(row[l+3])
+                individual.gradient = json.loads(row[l+4])
                 population.individuals.append(individual)
             else:
                 problem.populations.append(population)
