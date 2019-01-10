@@ -4,10 +4,10 @@ from .problem import Problem
 # from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
-from .algorithm_genetic import GeneticAlgorithm
+from .algorithm_genetic import NSGA_II
 
 
-class PSO(GeneticAlgorithm):
+class PSO(NSGA_II):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
@@ -20,14 +20,11 @@ class PSO(GeneticAlgorithm):
 
     # TODO: Almost the same code as for genetic algorithm. Reuse.
     def gen_initial_population(self):
-        population = Population(self.problem)
-        population.gen_random_population(self.options['max_population_size'],
-                                         self.parameters_length,
-                                         self.problem.parameters)
+        super().gen_initial_population()
+        population = self.problem.populations[-1]
         population.evaluate()
         for individual in population.individuals:
             self.evaluate_pso(individual)
-        self.problem.populations.append(population)
 
     # evaluate current fitness
     def evaluate_pso(self, individual):
@@ -64,6 +61,7 @@ class PSO(GeneticAlgorithm):
 
     def run(self):
         self.gen_initial_population()
+        self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
         i = 0
         while i < self.options['max_population_number']:
             print(i, self.err_best_g)
