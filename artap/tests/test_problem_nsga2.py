@@ -1,6 +1,6 @@
 import unittest
 
-from pygments.lexer import words
+# from pygments.lexer import words
 
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
@@ -17,7 +17,7 @@ class MyProblem(Problem):
         working_dir = "./"
         super().__init__(name, parameters, costs, save_data=True, working_dir=working_dir)
         self.options['save_level'] = "population"
-        self.options['max_processes'] = 1
+        self.options['max_processes'] = 10
         self.options['save_data'] = True
 
     def eval(self, x):
@@ -35,8 +35,9 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         problem = MyProblem("LocalPythonProblemNSGA_II")
         algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 15
-        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_size'] = 10
+        algorithm.options['calculate_gradients'] = True
         algorithm.run()
 
         b = Results(problem)
@@ -60,7 +61,7 @@ class AckleyN2Test(Problem):
 
         super().__init__(name, parameters, costs)
         self.options['save_level'] = "population"
-        self.options['max_processes'] = 10
+        self.options['max_processes'] = 1
 
     def eval(self, x):
         function = AckleyN2()
@@ -75,7 +76,6 @@ class TestAckleyN2(unittest.TestCase):
         algorithm = NSGA_II(problem)
         algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 100
-        algorithm.options['calculate_gradients'] = True
         algorithm.run()
 
         b = Results(problem)
