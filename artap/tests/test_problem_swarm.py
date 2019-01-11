@@ -34,7 +34,7 @@ class TestPSOptimization(unittest.TestCase):
         algorithm = PSO(problem)
         algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 30
-        algorithm.run()
+        # algorithm.run()
 
 
 if __name__ == '__main__':
