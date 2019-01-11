@@ -1,4 +1,4 @@
-from random import random
+from random import random, randint
 # import math
 from .problem import Problem
 # from .algorithm import Algorithm
@@ -28,7 +28,7 @@ class PSO(NSGA_II):
 
     # evaluate current fitness
     def evaluate_pso(self, individual):
-        individual.err_i = individual.costs[0]  # TODO: Only for one objective function - generalize
+        individual.err_i = individual.costs
 
         # check to see if the current position is an individual best
         if individual.err_i < individual.best_costs or individual.best_costs == -1:
@@ -61,24 +61,28 @@ class PSO(NSGA_II):
 
     def run(self):
         self.gen_initial_population()
-        self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
+
         i = 0
         while i < self.options['max_population_number']:
             print(i, self.err_best_g)
             print(i, self.pos_best_g)
+            self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
             population = Population(self.problem)
 
-            for j in range(self.n):
+            pareto_front = []
+            for j in range(self.options['max_population_size']):
+                if self.problem.populations[-1].individuals[j].front_number == 1:
+                    pareto_front.append(self.problem.populations[-1].individuals[j])
                 individual = Individual(self.problem.populations[-1].individuals[j].parameters.copy(), self.problem)
                 individual.best_parameters = self.problem.populations[-1].individuals[j].best_parameters
                 individual.best_costs = self.problem.populations[-1].individuals[j].best_costs
                 individual.costs = self.problem.populations[-1].individuals[j].costs
                 population.individuals.append(individual)
 
-            for individual in population.individuals:
-                if individual.costs[0] < self.err_best_g or self.err_best_g == -1:
-                    self.pos_best_g = list(individual.parameters)
-                    self.err_best_g = float(individual.costs[0])
+            index = randint(0, len(pareto_front)-1)  # takes random individual from Pareto front
+            individual = pareto_front[index]
+            self.pos_best_g = list(individual.parameters)
+            self.err_best_g = float(individual.costs)
 
             for individual in population.individuals:
                 individual.costs = []
