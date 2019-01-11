@@ -96,10 +96,9 @@ class GraphicalResults(Results):
                     if hasattr(individual, 'front_number'):
                         if individual.front_number != 0:
                             scale = 100 / (individual.front_number / 4.)
-                            if individual.costs[0] < 0:  # TODO: remove this hack
-                                ax.scatter(individual.costs[0], individual.costs[1],
+                            ax.scatter(individual.costs[0], individual.costs[1],
                                            scale, c=colors[(individual.front_number - 1) % 6])
-                                ax.plot(individual.costs[0], individual.costs[1], 'o')
+                            ax.plot(individual.costs[0], individual.costs[1], 'o')
                 labels = list(self.problem.costs.keys())
                 x_label = r'$' + labels[0] + '$'
                 y_label = r'$' + labels[1] + '$'
