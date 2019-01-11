@@ -15,7 +15,7 @@ class PSO(NSGA_II):
         self.c1 = 2  # cognitive constant
         self.c2 = 1   # social constant
         self.n = self.options['max_population_size']
-        self.err_best_g = -1  # best error for group
+        self.err_best_g = [-1]  # best error for group
         self.pos_best_g = []  # best position for group
 
     # TODO: Almost the same code as for genetic algorithm. Reuse.
@@ -28,12 +28,17 @@ class PSO(NSGA_II):
 
     # evaluate current fitness
     def evaluate_pso(self, individual):
-        individual.err_i = individual.costs
+
+        dominates = True
+
+        for i in range(len(individual.best_costs)):
+            if individual.costs[i] > individual.best_costs[i]:
+                dominates = False
 
         # check to see if the current position is an individual best
-        if individual.err_i < individual.best_costs or individual.best_costs == -1:
+        if dominates:
             individual.best_parameters = individual.parameters
-            individual.best_costs = individual.err_i
+            individual.best_costs = individual.costs
 
     # update new particle velocity
     def update_velocity(self, individual):
@@ -61,12 +66,12 @@ class PSO(NSGA_II):
 
     def run(self):
         self.gen_initial_population()
-
+        self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
+        self.problem.populations[-1].save()
         i = 0
         while i < self.options['max_population_number']:
             print(i, self.err_best_g)
             print(i, self.pos_best_g)
-            self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
             population = Population(self.problem)
 
             pareto_front = []
@@ -82,7 +87,7 @@ class PSO(NSGA_II):
             index = randint(0, len(pareto_front)-1)  # takes random individual from Pareto front
             individual = pareto_front[index]
             self.pos_best_g = list(individual.parameters)
-            self.err_best_g = float(individual.costs)
+            self.err_best_g = individual.costs
 
             for individual in population.individuals:
                 individual.costs = []
@@ -98,6 +103,7 @@ class PSO(NSGA_II):
             population.evaluate()
             for individual in population.individuals:
                 self.evaluate_pso(individual)
-
+            self.fast_non_dominated_sort(population.individuals)
             self.problem.add_population(population)
+            population.save()
             i += 1
