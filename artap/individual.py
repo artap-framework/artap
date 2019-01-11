@@ -38,7 +38,7 @@ class Individual(metaclass=ABCMeta):
         # For particle swarm optimization
         self.velocity_i = []  # particle velocity
         self.best_parameters = []  # best position individual
-        self.best_costs = -1  # best error individual
+        self.best_costs = []  # best error individual
 
         for i in range(0, len(self.parameters)):
             self.velocity_i.append(uniform(-1, 1))
