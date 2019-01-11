@@ -4,19 +4,20 @@ import unittest
 from scipy import integrate
 
 from artap.problem import Problem
-from artap.algorithm_nlopt import NLopt, LN_BOBYQA
+# from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.algorithm_genetic import NSGA_II
-from artap.algorithm_bayesopt import BayesOptSerial
+# from artap.algorithm_bayesopt import BayesOptSerial
 
 from artap.benchmark_functions import Booth
 
 from artap.results import Results
 
-import numpy as np
-from sklearn import linear_model
+# import numpy as np
+# from sklearn import linear_model
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
-from sklearn.neural_network import MLPClassifier
+# from sklearn.neural_network import MLPClassifier
+
 
 class MyProblem(Problem):
     def __init__(self, name, costs):
@@ -259,13 +260,13 @@ class TestSimpleOptimization(unittest.TestCase):
     def xtest_local_problem_one(self):
         problem = MyProblemBooth("LocalPythonProblem")
 
-        #algorithm = BayesOptSerial(problem)
-        #algorithm.options['verbose_level'] = 0
-        #algorithm.options['n_iterations'] = 100
+        # algorithm = BayesOptSerial(problem)
+        # algorithm.options['verbose_level'] = 0
+        # algorithm.options['n_iterations'] = 100
 
-        #algorithm = NLopt(problem)
-        #algorithm.options['algorithm'] = LN_BOBYQA
-        #algorithm.options['n_iterations'] = 200
+        # algorithm = NLopt(problem)
+        # algorithm.options['algorithm'] = LN_BOBYQA
+        # algorithm.options['n_iterations'] = 200
 
         algorithm = NSGA_II(problem)
         algorithm.options['max_population_number'] = 80
