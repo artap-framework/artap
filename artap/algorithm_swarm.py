@@ -1,13 +1,13 @@
-from random import random
+from random import random, randint
 # import math
 from .problem import Problem
 # from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
-from .algorithm_genetic import GeneticAlgorithm
+from .algorithm_genetic import NSGA_II
 
 
-class PSO(GeneticAlgorithm):
+class PSO(NSGA_II):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
@@ -15,28 +15,30 @@ class PSO(GeneticAlgorithm):
         self.c1 = 2  # cognitive constant
         self.c2 = 1   # social constant
         self.n = self.options['max_population_size']
-        self.err_best_g = -1  # best error for group
+        self.err_best_g = [-1]  # best error for group
         self.pos_best_g = []  # best position for group
 
-    # TODO: The same code as for genetic algorithm. Reuse.
+    # TODO: Almost the same code as for genetic algorithm. Reuse.
     def gen_initial_population(self):
-        population = Population(self.problem)
-        population.gen_random_population(self.options['max_population_size'],
-                                         self.parameters_length,
-                                         self.problem.parameters)
+        super().gen_initial_population()
+        population = self.problem.populations[-1]
         population.evaluate()
         for individual in population.individuals:
             self.evaluate_pso(individual)
-        self.problem.populations.append(population)
 
     # evaluate current fitness
     def evaluate_pso(self, individual):
-        individual.err_i = individual.costs[0]  # TODO: Only for one objective function - generalize
+
+        dominates = True
+
+        for i in range(len(individual.best_costs)):
+            if individual.costs[i] > individual.best_costs[i]:
+                dominates = False
 
         # check to see if the current position is an individual best
-        if individual.err_i < individual.err_best_i or individual.err_best_i == -1:
-            individual.pos_best_i = individual.parameters
-            individual.err_best_i = individual.err_i
+        if dominates:
+            individual.best_parameters = individual.parameters
+            individual.best_costs = individual.costs
 
     # update new particle velocity
     def update_velocity(self, individual):
@@ -45,7 +47,7 @@ class PSO(GeneticAlgorithm):
             r1 = random()
             r2 = random()
 
-            vel_cognitive = self.c1 * r1 * (individual.pos_best_i[i] - individual.parameters[i])
+            vel_cognitive = self.c1 * r1 * (individual.best_parameters[i] - individual.parameters[i])
             vel_social = self.c2 * r2 * (self.pos_best_g[i] - individual.parameters[i])
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
@@ -64,23 +66,28 @@ class PSO(GeneticAlgorithm):
 
     def run(self):
         self.gen_initial_population()
+        self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
+        self.problem.populations[-1].save()
         i = 0
         while i < self.options['max_population_number']:
             print(i, self.err_best_g)
             print(i, self.pos_best_g)
             population = Population(self.problem)
 
-            for j in range(self.n):
+            pareto_front = []
+            for j in range(self.options['max_population_size']):
+                if self.problem.populations[-1].individuals[j].front_number == 1:
+                    pareto_front.append(self.problem.populations[-1].individuals[j])
                 individual = Individual(self.problem.populations[-1].individuals[j].parameters.copy(), self.problem)
-                individual.pos_best_i = self.problem.populations[-1].individuals[j].pos_best_i
-                individual.err_best_i = self.problem.populations[-1].individuals[j].err_best_i
+                individual.best_parameters = self.problem.populations[-1].individuals[j].best_parameters
+                individual.best_costs = self.problem.populations[-1].individuals[j].best_costs
                 individual.costs = self.problem.populations[-1].individuals[j].costs
                 population.individuals.append(individual)
 
-            for individual in population.individuals:
-                if individual.costs[0] < self.err_best_g or self.err_best_g == -1:
-                    self.pos_best_g = list(individual.parameters)
-                    self.err_best_g = float(individual.costs[0])
+            index = randint(0, len(pareto_front)-1)  # takes random individual from Pareto front
+            individual = pareto_front[index]
+            self.pos_best_g = list(individual.parameters)
+            self.err_best_g = individual.costs
 
             for individual in population.individuals:
                 individual.costs = []
@@ -96,6 +103,7 @@ class PSO(GeneticAlgorithm):
             population.evaluate()
             for individual in population.individuals:
                 self.evaluate_pso(individual)
-
+            self.fast_non_dominated_sort(population.individuals)
             self.problem.add_population(population)
+            population.save()
             i += 1
