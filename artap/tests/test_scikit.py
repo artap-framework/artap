@@ -8,7 +8,6 @@ from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.benchmark_functions import Booth
 from artap.results import Results
 
-
 class MyProblemCoil(Problem):
     def __init__(self, name, costs):
         parameters = {'x1': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
@@ -282,6 +281,15 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm = NLopt(problem)
         algorithm.options['algorithm'] = LN_BOBYQA
         algorithm.options['n_iterations'] = 200
+=======
+        # algorithm = BayesOptSerial(problem)
+        # algorithm.options['verbose_level'] = 0
+        # algorithm.options['n_iterations'] = 100
+
+        # algorithm = NLopt(problem)
+        # algorithm.options['algorithm'] = LN_BOBYQA
+        # algorithm.options['n_iterations'] = 200
+>>>>>>> 0c047fded2e42fe0fce8024cdb3c0856555ea07d
 
         #algorithm = NSGA_II(problem)
         #algorithm.options['max_population_number'] = 80
