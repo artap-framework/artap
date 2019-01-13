@@ -1,7 +1,6 @@
 from random import random, uniform
 from numpy.random import normal
 from abc import *
-import json
 
 # from multiprocessing import Queue
 # from numpy import NaN
@@ -19,7 +18,8 @@ class Individual(metaclass=ABCMeta):
     gradients = None
 
     def __init__(self, design_parameters, problem, population_id=0):
-        self.parameters = design_parameters.copy()
+        # self.parameters = design_parameters.copy()
+        self.parameters = design_parameters
         self.problem = problem
         self.length = len(self.parameters)
         self.costs = []
@@ -50,7 +50,7 @@ class Individual(metaclass=ABCMeta):
 
         for i, number in enumerate(self.parameters):
             string += str(number)
-            if i<len(self.costs)-1:
+            if i < len(self.costs)-1:
                 string += ", "
 
         string = string[:len(string) - 1]
@@ -58,7 +58,7 @@ class Individual(metaclass=ABCMeta):
         string += "; costs:["
         for i,number in enumerate(self.costs):
             string += str(number)
-            if i<len(self.costs)-1:
+            if i < len(self.costs)-1:
                 string += ", "
         string += "]\n"
         return string
@@ -77,14 +77,13 @@ class Individual(metaclass=ABCMeta):
         else:
             out.append(self.feasible)
         dominates = []
-        for individ in self.dominate:
-            dominates.append(individ.number)
+        for individual in self.dominate:
+            dominates.append(individual.number)
         out.append(dominates)
         out.append(self.gradient)
         return out
 
     def evaluate(self):
-
         # check the constraints
         constraints = self.problem.eval_constraints(self.parameters)
 
@@ -92,7 +91,14 @@ class Individual(metaclass=ABCMeta):
             self.feasible = sum(map(abs, constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
-        costs = self.problem.eval(self.parameters)
+        # TODO: find better solution for surrogate
+        if self.problem.surrogate:
+            costs = self.problem.evaluate_surrogate(self.parameters)
+        else:
+            # increase counter
+            self.problem.eval_counter += 1
+            # eval
+            costs = self.problem.eval(self.parameters)
 
         if type(costs) is not list:
             self.costs = [costs]
