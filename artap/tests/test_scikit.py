@@ -5,20 +5,11 @@ from scipy import integrate
 
 from artap.problem import Problem
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
-from artap.algorithm_genetic import NSGA_II
-from artap.algorithm_bayesopt import BayesOptSerial
-
 from artap.benchmark_functions import Booth
-
 from artap.results import Results
 
-import numpy as np
-from sklearn import linear_model
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
-from sklearn.neural_network import MLPClassifier
 
-class MyProblem(Problem):
+class MyProblemCoil(Problem):
     def __init__(self, name, costs):
         parameters = {'x1': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       'x2': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
@@ -31,8 +22,13 @@ class MyProblem(Problem):
                       'x9': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       'x10': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]}}
 
+        # workspace_dir = "/home/karban/Projects/rdolab/problems/benchmark/"
+        # super().__init__(name, parameters, costs, working_dir=workspace_dir, save_data=True)
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
+        self.options['save_level'] = "individual"
+
+        # self.init_surrogate_model()
 
     def intl22(self, R2, R, dZ, phi):
         return math.sqrt(R2 ** 2 + R ** 2 - 2.0 * R2 * R * math.cos(phi) + dZ ** 2)
@@ -90,7 +86,7 @@ class MyProblem(Problem):
         pass
 
 
-class MyProblemOne(MyProblem):
+class MyProblemCoilOne(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1'])
 
@@ -115,7 +111,8 @@ class MyProblemOne(MyProblem):
 
         return f1
 
-class MyProblemMultiTwo(MyProblem):
+
+class MyProblemCoilMultiTwo1(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1', 'F2'])
 
@@ -139,10 +136,43 @@ class MyProblemMultiTwo(MyProblem):
                 Bp1s = math.sqrt((Br - 0.0)**2 + (Bz - B0)**2)
                 f1 = max(f1, Bp1s)
 
-        return [f1, f2]
+        return [1e3 * f1, 1e3 * f2]
 
 
-class MyProblemMultiThree(MyProblem):
+class MyProblemCoilMultiTwo2(MyProblemCoil):
+    def __init__(self, name):
+        super().__init__(name, costs=['F1', 'F2'])
+
+    def eval(self, x):
+        B0 = 2e-3
+
+        dxy = 0.5e-3
+        nx = 8
+        ny = 8
+        dx = (5e-3 - dxy) / (nx - 1)
+        dy = (5e-3 - dxy) / (ny - 1)
+
+        f1 = 0.0
+        f3 = 0.0
+        for i in range(0, nx):
+            xx = dxy + i * dx
+            for j in range(0, ny):
+                yy = dxy + j * dy
+
+                [Br, Bz] = self.integral_all(xx, yy, x)
+                Bp1s = math.sqrt((Br - 0.0)**2 + (Bz - B0)**2)
+                f1 = max(f1, Bp1s)
+
+                dxsi = 0.5e-3
+                [Brp, Bzp] = self.integral_all(xx + dxsi, yy, x)
+                [Brm, Bzm] = self.integral_all(xx - dxsi, yy, x)
+                Bp3 = math.sqrt((Brp - Br) ** 2 + (Bzp - Bz) ** 2) + math.sqrt((Brm - Br) ** 2 + (Bzm - Bz) ** 2)
+                f3 = max(f3, Bp3)
+
+        return [1e3 * f1, 1e3 * f3]
+
+
+class MyProblemCoilMultiThree(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1', 'F2', 'F3'])
 
@@ -175,6 +205,7 @@ class MyProblemMultiThree(MyProblem):
 
         return [f1, f2, f3]
 
+
 class MyProblemBooth(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
@@ -187,99 +218,134 @@ class MyProblemBooth(Problem):
         self.options['max_processes'] = 1
         self.options['save_level'] = "population"
 
-        self.counter = 0
-
-        # surrogate model
-        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
-        kernel = 1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)
-        self.surrogate = GaussianProcessRegressor(kernel=kernel)
-        # self.surrogate = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-
-        self.surrogate_prepared = False
-        self.surrogate_predict_counter = 0
-        self.surrogate_eval_counter = 0
-        self.counter_step = 40
+        self.init_surrogate_model()
 
     def eval(self, x):
-        self.counter += 1
-
-        if self.counter % self.counter_step == 0:
-            # surrogate model
-            counter_eff = 100.0 * self.surrogate_predict_counter / self.counter
-            # speed up
-            if (counter_eff > 30):
-                self.counter_step = int(self.counter_step * 1.5)
-            print("learning", self.counter, ", predict eff: ", counter_eff, ", counter_step: ", self.counter_step)
-
-            x_data = []
-            y_data = []
-            for population in self.populations:
-                for individual in population.individuals:
-                    if individual.is_evaluated:
-                        x_data.append(individual.parameters)
-                        y_data.append(individual.costs[0])
-
-            #print("x_data", x_data)
-            #print("y_data", y_data)
-
-            #clf = linear_model.SGDRegressor()
-            #clf = linear_model.SGDRegrBayesianRidgeessor()
-            #clf = linear_model.LassoLars()
-            #clf = linear_model.TheilSenRegressor()
-            #clf = linear_model.LinearRegression()
-
-            self.surrogate.fit(x_data, y_data)
-            self.surrogate_prepared = True
-
-        evaluation = True
-        if self.surrogate_prepared:
-            p, sigma = self.surrogate.predict([x], return_std=True)
-            # p = self.surrogate.predict([x])
-
-            # sigma = 0
-            if sigma < 0.01:
-                value = p[0]
-                self.surrogate_predict_counter += 1
-                evaluation = False
-                # print("x: ", x, "prediction: ", p[0], ", sigma: ", sigma)
-            else:
-                # value = Booth.eval(x)
-                self.surrogate_eval_counter += 1
-                # print("x: ", x, "prediction: ", p[0], ", value: ", value, "diff: ", math.fabs(p - value), ", sigma: ", sigma)
-
-        if evaluation:
-            value = Booth.eval(x)
-
-        return value
+        return Booth.eval(x)
 
 
 class TestSimpleOptimization(unittest.TestCase):
-    """ Tests simple one objective optimization problem."""
+    """ Tests optimization problem."""
 
-    def xtest_local_problem_one(self):
+    def xtest_local_problem_booth(self):
         problem = MyProblemBooth("LocalPythonProblem")
 
-        #algorithm = BayesOptSerial(problem)
-        #algorithm.options['verbose_level'] = 0
-        #algorithm.options['n_iterations'] = 100
+        algorithm = NLopt(problem)
+        algorithm.options['algorithm'] = LN_BOBYQA
+        algorithm.options['n_iterations'] = 200
 
-        #algorithm = NLopt(problem)
-        #algorithm.options['algorithm'] = LN_BOBYQA
-        #algorithm.options['n_iterations'] = 200
-
-        algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 80
-        algorithm.options['max_population_size'] = 20
+        # t_s = time.time()
 
         algorithm.run()
 
-        print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
-        print("surrogate_eval_counter: ", problem.surrogate_eval_counter)
+        # t = time.time() - t_s
+        # print('Elapsed time:', t)
+
+        #print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
+        #print("surrogate_eval_counter: ", problem.eval_counter)
 
         results = Results(problem)
         optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum, 1e-6, 3)
 
+    def test_local_problem_coil_one(self):
+        problem = MyProblemCoilOne("LocalPythonProblem")
+
+        algorithm = NLopt(problem)
+        algorithm.options['algorithm'] = LN_BOBYQA
+        algorithm.options['n_iterations'] = 50
+
+        #t_s = time.time()
+
+        algorithm.run()
+
+        #t = time.time() - t_s
+        #print('Elapsed time:', t)
+
+        #print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
+        #print("surrogate_eval_counter: ", problem.eval_counter)
+
+        results = Results(problem)
+        optimum = results.find_minimum('F1')
+        self.assertAlmostEqual(optimum, 1e-6, 3)
+
+"""
+class TestSimpleOptimization(unittest.TestCase):
+    def test_local_problem_booth(self):
+        problem = MyProblemCoilOne("LocalPythonProblem")
+        #problem = MyProblemMultiTwo2("LocalPythonProblem")
+
+        #algorithm = BayesOptSerial(problem)
+        #algorithm.options['verbose_level'] = 0
+        #algorithm.options['n_iterations'] = 100
+
+        algorithm = NLopt(problem)
+        algorithm.options['algorithm'] = LN_BOBYQA
+        algorithm.options['n_iterations'] = 200
+
+        #algorithm = NSGA_II(problem)
+        #algorithm.options['max_population_number'] = 80
+        #algorithm.options['max_population_size'] = 20
+
+        t_s = time.time()
+
+        algorithm.run()
+
+        t = time.time() - t_s
+        print('Elapsed time:', t)
+
+        print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
+        print("surrogate_eval_counter: ", problem.surrogate_eval_counter)
+
+        results = Results(problem)
+        optimum = results.find_minimum('F1')
+        print(optimum)
+        self.assertAlmostEqual(optimum, 1e-6, 3)
+
+"""
+"""
+def figures(name):
+    import matplotlib
+    matplotlib.use('Agg')
+
+    import pylab as pl
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
+    from matplotlib import rc
+
+    data_store = SqliteDataStore(database_file=name + ".sqlite")
+    problem = ProblemDataStore(data_store)
+
+    data_x = []
+    data_y = []
+    pareto_front_x = []
+    pareto_front_y = []
+    for population in problem.populations:
+        if len(population.individuals) > 1:
+            for individual in population.individuals:
+                data_x.append(individual.costs[0])
+                data_y.append(individual.costs[1])
+
+    results = GraphicalResults(problem)
+    pareto_front_x, pareto_front_y = results.find_pareto({'F1': Results.MINIMIZE, 'F2': Results.MINIMIZE})
+
+    pl.rcParams['figure.figsize'] = 10, 4
+    pl.rcParams['legend.fontsize'] = 17
+    pl.rcParams['text.usetex'] = True
+    pl.rcParams['font.size'] = 20
+    pl.rcParams['font.serif'] = "Times"
+    pl.figure()
+    pl.plot(data_x, data_y, 'o', color='#d0d0d0', markersize=3)
+    pl.plot(pareto_front_x, pareto_front_y, 'o', markersize=4, label="Pareto Front")
+    pl.xlim(1e-4, 8e-4)
+    pl.ylim(0, 1e-3)
+    pl.grid(True)
+    pl.tight_layout()
+    pl.legend(loc="upper right")
+    pl.xlabel("$F_1$")
+    pl.ylabel("$F_2$")
+    pl.savefig(name + ".pdf", dpi=200)
+"""
 
 if __name__ == '__main__':
     unittest.main()
