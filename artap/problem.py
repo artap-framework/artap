@@ -4,11 +4,16 @@ from .utils import flatten
 from .utils import ConfigDictionary
 
 from abc import ABC, abstractmethod
-# from datetime import datetime
+
 import os
 import tempfile
 import multiprocessing
 
+# surrogate
+from sklearn import linear_model
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
+from sklearn.neural_network import MLPClassifier
 
 """
  Module is dedicated to describe optimization problem. 
@@ -34,7 +39,7 @@ class ProblemBase(ABC):
                              desc='calculate gradient for individuals')
         self.options.declare(name='save_level', default="problem",
                              desc='Save level')
-        # options
+        # TODO: move to Algorithm class
         self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
                              desc='Max running processes')
 
@@ -87,7 +92,18 @@ class Problem(ProblemBase):
         
         self.id = self.data_store.get_id()
         self.populations = []
-        
+        self.eval_counter = 0
+
+        # surrogate model
+        self.surrogate = None
+
+        self.surrogate_prepared = False
+        self.surrogate_predict_counter = 0
+        self.surrogate_counter_step = 30
+
+        self.surrogate_x_data = []
+        self.surrogate_y_data = []
+
     def __del__(self):
         pass
         #  print("Problem: def __del__(self):")
@@ -95,12 +111,20 @@ class Problem(ProblemBase):
         #      if os.path.isdir(self.working_dir):
         #        shutil.rmtree(self.working_dir)
 
+    def init_surrogate_model(self):
+        # surrogate model
+        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-6, 3e2))
+        kernel = 1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-5, 1e5), nu=1.5)
+        self.surrogate = GaussianProcessRegressor(kernel=kernel)
+        # self.surrogate = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+
     def add_population(self, population):
         self.populations.append(population)
 
     def parameters_len(self):
         return len(self.parameters)
 
+    # TODO: FIX table.append([parameter[2], parameter[3]])
     def get_bounds(self):
         table = []
         for parameter in self.get_parameters_list():
@@ -159,21 +183,68 @@ class Problem(ProblemBase):
 
         return gradient
 
+    def evaluate_surrogate(self, x: list):
+        evaluate = True
+        if self.surrogate_prepared:
+            p, sigma = self.surrogate.predict([x], return_std=True)
+            # p = self.surrogate.predict([x])
+
+            print("x: ", x, "prediction: ", p[0], ", sigma: ", sigma)
+            # sigma = 0
+            # if p[0][0] > 0 and p[0][1] > 0 and sigma < 0.01:
+            if sigma < 3:
+                value = p[0].tolist()
+                self.surrogate_predict_counter += 1
+                evaluate = False
+                # print("x: ", x, "prediction: ", p[0], ", sigma: ", sigma)
+
+        if evaluate:
+            value = self.eval(x)
+
+            # store surrogate
+            self.surrogate_x_data.append(x)
+            self.surrogate_y_data.append(value)
+
+            # increase counter
+            self.eval_counter += 1
+
+            if self.eval_counter % self.surrogate_counter_step == 0:
+                # surrogate model
+                counter_eff = 100.0 * self.surrogate_predict_counter / (self.eval_counter + self.surrogate_predict_counter)
+                # speed up
+                if counter_eff > 30:
+                    self.surrogate_counter_step = int(self.surrogate_counter_step * 1.3)
+                print("learning", self.surrogate_predict_counter, ", predict eff: ", counter_eff, ", counter_step: ", self.surrogate_counter_step)
+
+                # print("x_data", x_data)
+                # print("y_data", y_data)
+
+                # clf = linear_model.SGDRegressor()
+                # clf = linear_model.SGDRegrBayesianRidgeessor()
+                # clf = linear_model.LassoLars()
+                # clf = linear_model.TheilSenRegressor()
+                # clf = linear_model.LinearRegression()
+
+                self.surrogate.fit(self.surrogate_x_data, self.surrogate_y_data)
+                self.surrogate_prepared = True
+
+        return value
+
+    def get_initial_values(self):
+        values = []
+        for parameter in self.parameters.items():
+            if 'initial_value' in parameter[1]:
+                values.append(parameter[1]['initial_value'])
+            else:
+                values.append(0)
+        return values
+
     def eval_batch(self, table):
         n = len(table)
         results = [0] * n
         for i in range(n):
             results[i] = self.eval(table[i])
         return results
-
-    def get_initial_values(self):
-        values = []
-        for parameter in self.parameters.items():
-            if 'initial_value' in parameter[1]:
-                values.append(parameter[1]['initial_value'])    
-            else:
-                values.append(0)
-        return values
 
     @abstractmethod
     def eval(self, x: list):

@@ -13,20 +13,23 @@ from matplotlib import rc
 # import sys
 
 class Results:
+    MINIMIZE = -1
+    MAXIMIZE = 1
 
     def __init__(self, problem):
         self.problem = problem
 
-    def find_minimum(self, name=0):
+    def find_minimum(self, name=None):
         """
         Search the optimal value for the given (by name parameter) single objective .
 
         :param name:
         :return:
         """
-        ind = None
         # get the index of the required parameter
-        index = int(self.problem.costs.get(name))
+        index = 0 # default - one parameter
+        if name:
+            index = int(self.problem.costs.get(name))
 
         min_l = []
         for population in self.problem.populations:
@@ -41,6 +44,31 @@ class Results:
                 opt = opt.costs[index]
 
         return opt
+
+    def find_pareto(self, costs=[]):
+
+        keys = list(costs.keys())
+        index1 = 0 # int(self.problem.costs.get(keys[0]))
+        index2 = 1 # int(self.problem.costs.get(keys[1]))
+
+        pareto_front_x = []
+        pareto_front_y = []
+        for population1 in self.problem.populations:
+            for individual1 in population1.individuals:
+                is_pareto = True
+
+                for population2 in self.problem.populations:
+                    for individual2 in population2.individuals:
+                        # TODO: MINIMIZE and MAXIMIZE
+                        if individual1.costs[index1] > individual2.costs[index1] \
+                                and individual1.costs[index2] > individual2.costs[index2]:
+                            is_pareto = False
+
+                if is_pareto:
+                    pareto_front_x.append(individual1.costs[index1])
+                    pareto_front_y.append(individual1.costs[index2])
+
+        return pareto_front_x, pareto_front_y
 
     def pareto_values(self):
         """
@@ -94,4 +122,5 @@ class GraphicalResults(Results):
                 ax.set_xlabel('$x$')
                 ax.set_ylabel('$y$')
                 ax.grid()
+                print(figure_name)
                 figure.savefig(figure_name)
