@@ -2,7 +2,7 @@ from .datastore import SqliteDataStore
 from .individual import Individual
 from .utils import flatten
 from .utils import ConfigDictionary
-
+import collections
 from abc import ABC, abstractmethod
 
 import os
@@ -167,20 +167,19 @@ class Problem(ProblemBase):
         gradient = [0]*n
         x0 = individual.parameters
         y = self.eval(x0)
-        if type(y) is list:
-            y = y[0]
         h = 1e-6
         for i in range(len(self.parameters)):
             x = x0.copy()
             x[i] += h
             y_h = self.eval(x)
-            if type(y_h) is list:
+            if isinstance(y_h, collections.Iterable):
                 m = len(y_h)
+                gradient[i] = []
                 for j in range(m):
-                    gradient[i] = (y_h[j] - y[j]) / h
+                    gradient[i].append((y_h[j] - y[j]) / h)
             else:
                 gradient[i] = (y_h - y) / h
-
+        print(gradient)
         return gradient
 
     def evaluate_surrogate(self, x: list):
