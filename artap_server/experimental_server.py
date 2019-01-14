@@ -4,8 +4,10 @@ import dash_html_components as html
 import plotly.graph_objs as go
 import os
 import pandas as pd
+import dateutil
 
-kickstarter_df = pd.read_csv(os.path.join('..', 'kickstarter-cleaned.csv'), parse_dates=True)
+
+kickstarter_df = pd.read_csv(os.path.join('testdata', 'kickstarter-cleaned.csv'), parse_dates=True)
 kickstarter_df['broader_category'] = kickstarter_df['category_slug'].str.split('/').str.get(0)
 kickstarter_df['created_at'] = pd.to_datetime(kickstarter_df['created_at'])
 
@@ -19,7 +21,7 @@ STATES = ['successful', 'suspended', 'failed', 'canceled']
 
 app = dash.Dash()
 
-# This is optional but the app looks better with it
+# css styles
 '''
 app.css.append_css({
     "external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"
@@ -43,7 +45,6 @@ app.layout = html.Div(children=[
     )
 ])
 
-import dateutil
 
 @app.callback(
     dash.dependencies.Output('usd-pledged-vs-date', 'figure'),
