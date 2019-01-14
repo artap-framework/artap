@@ -227,7 +227,7 @@ class TestSimpleOptimization(unittest.TestCase):
     """ Tests optimization problem."""
 
     def test_local_problem_booth(self):
-        problem = MyProblemBooth("LocalPythonProblem")
+        problem = MyProblemBooth("MyProblemBooth")
 
         algorithm = NLopt(problem)
         algorithm.options['algorithm'] = LN_BOBYQA
@@ -248,7 +248,7 @@ class TestSimpleOptimization(unittest.TestCase):
         self.assertAlmostEqual(optimum, 1e-6, 3)
 
     def test_local_problem_coil_one(self):
-        problem = MyProblemCoilOne("LocalPythonProblem")
+        problem = MyProblemCoilOne("MyProblemCoilOne")
 
         algorithm = NLopt(problem)
         algorithm.options['algorithm'] = LN_BOBYQA
