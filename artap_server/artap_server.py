@@ -26,6 +26,8 @@ styles = {
     }
 }
 
+# app.layout = dashHtml.Div()
+
 app.layout = dashHtml.Div([
     dashComp.Graph(
         id='basic-interactions',
@@ -110,7 +112,6 @@ def display_selected_data(selectedData):
     [Input('basic-interactions', 'relayoutData')])
 def display_selected_data(relayoutData):
     return json.dumps(relayoutData, indent=2)
-
 
 @app.server.route('/foo', methods=['POST'])
 def foo():
