@@ -33,9 +33,9 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm.options['tol'] = 1e-4
         algorithm.run()
 
-        # results = Results(problem)
-        # optimum = results.find_minimum('F_1')
-        # self.assertAlmostEqual(optimum, 0)
+        results = Results(problem)
+        optimum = results.find_minimum('F_1')
+        self.assertAlmostEqual(optimum, 0)
 
 
 class AckleyN2Test(Problem):
@@ -64,9 +64,9 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.options['calculate_gradients'] = True
         algorithm.run()
 
-        # results = Results(problem)
-        # optimum = results.find_minimum('F_1')
-        # self.assertAlmostEqual(optimum, -200, 3)
+        results = Results(problem)
+        optimum = results.find_minimum('F_1')
+        self.assertAlmostEqual(optimum, -200, 3)
 
 
 if __name__ == '__main__':
