@@ -2,16 +2,72 @@ import sqlite3
 import tempfile
 import os
 import json
-# from datetime import datetime
+import time
+from threading import Thread
+import asyncio
+import logging
+
 from abc import abstractmethod
 
 from .individual import Individual
 from .population import Population
-# from .utils import flatten
 
-from threading import Thread
-# from threading import Lock
-import asyncio
+
+class SqliteHandler(logging.Handler):
+    """
+    Thread-safe logging handler for SQLite.
+    """
+
+    INSERTION_SQL = """INSERT INTO log(
+                        timestamp,
+                        source,
+                        loglevel,
+                        loglevelname,
+                        message,
+                        args,
+                        module,
+                        funcname,
+                        lineno,
+                        exception,
+                        process,
+                        thread,
+                        threadname
+                   )
+                   VALUES (
+                        '%(dbtime)s',
+                        '%(name)s',
+                        %(levelno)d,
+                        '%(levelname)s',
+                        '%(msg)s',
+                        '%(args)s',
+                        '%(module)s',
+                        '%(funcName)s',
+                        %(lineno)d,
+                        '%(exc_text)s',
+                        %(process)d,
+                        '%(thread)s',
+                        '%(threadName)s'
+                   );
+                   """
+
+    def __init__(self, data_store):
+        logging.Handler.__init__(self)
+
+        self.data_store = data_store
+        self.data_store.create_structure_log()
+
+    def emit(self, record):
+        self.format(record)
+        # format record
+        record.dbtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(record.created))
+        if record.exc_info:  # for exceptions
+            record.exc_text = logging._defaultFormatter.formatException(record.exc_info)
+        else:
+            record.exc_text = ""
+
+        # Insert the log record
+        sql = self.INSERTION_SQL % record.__dict__
+        self.data_store._execute_command(sql)
 
 
 class DataStore:
@@ -103,6 +159,24 @@ class SqliteDataStore(DataStore):
 
     def save_problem(self, problem):
         pass
+
+    def create_structure_log(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS log(' \
+                    'timestamp TEXT,' \
+                    'source TEXT,' \
+                    'loglevel INT,' \
+                    'loglevelname TEXT,' \
+                    'message TEXT,' \
+                    'args TEXT,' \
+                    'module TEXT,' \
+                    'funcname TEXT,' \
+                    'lineno INT,' \
+                    'exception TEXT,' \
+                    'process INT,' \
+                    'thread TEXT,' \
+                    'threadname TEXT)'
+
+        self._execute_command(exec_cmd)
 
     def create_structure_task(self, problem):
         exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (INTEGER PRIMARY KEY, ' \

@@ -1,4 +1,4 @@
-from .datastore import SqliteDataStore
+from .datastore import SqliteDataStore, SqliteHandler
 from .individual import Individual
 from .utils import flatten
 from .utils import ConfigDictionary
@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 import os
 import tempfile
 import multiprocessing
+import logging
 
 # surrogate
 from sklearn import linear_model
@@ -70,6 +71,7 @@ class Problem(ProblemBase):
         self.costs = {cost: 0.0 for cost in costs}
         self.options['save_data'] = save_data
 
+        # working dir
         if (working_dir is None) or (not self.options['save_data']):
             self.working_dir = tempfile.mkdtemp()
         else:
@@ -79,6 +81,28 @@ class Problem(ProblemBase):
             self.working_dir += time_stamp
             if not os.path.isdir(self.working_dir):
                 os.mkdir(self.working_dir)
+
+        # create logger
+        self.logger = logging.getLogger(self.name) # 'artap'
+        self.logger.setLevel(logging.DEBUG)
+        # create formatter
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+        # create console handler and set level to debug
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.DEBUG)
+        # add formatter to StreamHandler
+        stream_handler.setFormatter(formatter)
+        # add StreamHandler to logger
+        self.logger.addHandler(stream_handler)
+
+        # create file handler and set level to debug
+        file_handler = logging.FileHandler(self.working_dir + "/data.log")
+        file_handler.setLevel(logging.DEBUG)
+        # add formatter to FileHandler
+        file_handler.setFormatter(formatter)
+        # add FileHandler to logger
+        self.logger.addHandler(file_handler)
 
         if data_store is None:
             self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
@@ -93,6 +117,19 @@ class Problem(ProblemBase):
         self.id = self.data_store.get_id()
         self.populations = []
         self.eval_counter = 0
+
+        # create file handler and set level to debug
+        file_handler = SqliteHandler(self.data_store)
+        file_handler.setLevel(logging.DEBUG)
+        # add formatter to SqliteHandler
+        file_handler.setFormatter(formatter)
+        # add SqliteHandler to logger
+        self.logger.addHandler(file_handler)
+
+        self.logger.debug("START")
+        # self.logger.debug('This message should go to the log file')
+        # self.logger.info('So should this')
+        # self.logger.warning('And this, too')
 
         # surrogate model
         self.surrogate = None
@@ -160,6 +197,7 @@ class Problem(ProblemBase):
             y_2h = self.eval(x)
             d_0_2h = (y_2h - y) / 2 / h
             gradient[i] = (4*d_0_h - d_0_2h) / 3
+
         return gradient
 
     def evaluate_gradient(self, individual):
@@ -179,23 +217,24 @@ class Problem(ProblemBase):
                     gradient[i].append((y_h[j] - y[j]) / h)
             else:
                 gradient[i] = (y_h - y) / h
-        print(gradient)
+
         return gradient
 
     def evaluate_surrogate(self, x: list):
         evaluate = True
         if self.surrogate_prepared:
+            # predict
             p, sigma = self.surrogate.predict([x], return_std=True)
             # p = self.surrogate.predict([x])
 
-            print("x: ", x, "prediction: ", p[0], ", sigma: ", sigma)
+            self.logger.debug("Problem.evaluate_surrogate: x: %s, prediction: %s, sigma: %s", x, p[0], sigma)
             # sigma = 0
             # if p[0][0] > 0 and p[0][1] > 0 and sigma < 0.01:
             if sigma < 3:
+                # set predicted value
                 value = p[0].tolist()
                 self.surrogate_predict_counter += 1
                 evaluate = False
-                # print("x: ", x, "prediction: ", p[0], ", sigma: ", sigma)
 
         if evaluate:
             value = self.eval(x)
@@ -213,10 +252,8 @@ class Problem(ProblemBase):
                 # speed up
                 if counter_eff > 30:
                     self.surrogate_counter_step = int(self.surrogate_counter_step * 1.3)
-                print("learning", self.surrogate_predict_counter, ", predict eff: ", counter_eff, ", counter_step: ", self.surrogate_counter_step)
-
-                # print("x_data", x_data)
-                # print("y_data", y_data)
+                self.logger.debug("learning: ", self.surrogate_predict_counter, ", predict eff: ", counter_eff,
+                                  ", counter_step: ", self.surrogate_counter_step)
 
                 # clf = linear_model.SGDRegressor()
                 # clf = linear_model.SGDRegrBayesianRidgeessor()
@@ -224,6 +261,7 @@ class Problem(ProblemBase):
                 # clf = linear_model.TheilSenRegressor()
                 # clf = linear_model.LinearRegression()
 
+                # fit model
                 self.surrogate.fit(self.surrogate_x_data, self.surrogate_y_data)
                 self.surrogate_prepared = True
 
