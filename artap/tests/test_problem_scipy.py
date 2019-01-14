@@ -27,7 +27,7 @@ class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = MyProblem("LocalPythonProblem")
+        problem = MyProblem("TestSimpleOptimization")
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4
@@ -57,7 +57,7 @@ class TestAckleyN2(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = AckleyN2Test("LocalPythonProblem")
+        problem = AckleyN2Test("TestAckleyN2")
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4
