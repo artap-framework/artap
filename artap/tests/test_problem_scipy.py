@@ -2,7 +2,8 @@ import os
 import unittest
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
-from artap.benchmark_functions import Rosenbrock, Ackley4Modified, AckleyN2
+from artap.benchmark_functions import AckleyN2
+from artap.datastore import DummyDataStore
 from artap.results import Results
 
 
@@ -12,7 +13,7 @@ class MyProblem(Problem):
         parameters = {'x_1': {'initial_value': 10}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
     def eval(self, x):
@@ -45,7 +46,7 @@ class AckleyN2Problem(Problem):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
     def eval(self, x):

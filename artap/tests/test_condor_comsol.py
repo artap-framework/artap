@@ -4,6 +4,7 @@ import getpass
 
 from artap.executor import CondorComsolJobExecutor
 from artap.problem import Problem
+from artap.datastore import DummyDataStore
 from artap.enviroment import Enviroment
 from artap.population import Population
 
@@ -18,8 +19,7 @@ class TestProblem(Problem):
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, save_data=True)
-        self.options['save_data'] = False
+        super().__init__(name, parameters, costs, working_dir=working_dir, data_store=DummyDataStore(self))
         self.options['max_processes'] = 10
 
         output_files = ["out.txt"]

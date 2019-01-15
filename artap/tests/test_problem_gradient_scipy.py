@@ -1,5 +1,7 @@
 import unittest
+
 from artap.problem import Problem
+from artap.datastore import DummyDataStore
 from artap.algorithm_gradient_descent import GradientDescent
 
 
@@ -10,7 +12,7 @@ class GradientProblem(Problem):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
 
     def eval(self, x):
         return (x[0]-1)**2 + x[1]**2

@@ -3,7 +3,7 @@ from .algorithm import Algorithm
 from .population import Population
 from .enviroment import Enviroment
 
-from time import clock
+import time
 import numpy as np
 
 import os
@@ -128,8 +128,6 @@ class BayesOptSerial(BayesOpt):
         population = Population(self.problem)
         self.problem.populations.append(population)
 
-        start = clock()
-
         # Figure out bounds vectors.
         i = 0
         for id in self.problem.parameters:
@@ -151,7 +149,11 @@ class BayesOptSerial(BayesOpt):
         self.bo.params['sc_type'] = self.options['sc_type']
         self.bo.params['verbose_level'] = self.options['verbose_level']
 
+        t_s = time.time()
+        self.problem.logger.info("BayesOpt: surr_name{}".format(self.options['surr_name']))
         mvalue, x_out, error = self.bo.optimize()
+        t = time.time() - t_s
+        self.problem.logger.info("BayesOpt: elapsed time: {} s".format(t))
 
         if error != 0:
             print('Optimization FAILED.')
@@ -225,8 +227,6 @@ class BayesOptParallel(BayesOpt):
         population = Population(self.problem)
         self.problem.populations.append(population)
 
-        start = clock()
-
         # Figure out bounds vectors.
         i = 0
         for id in self.problem.parameters:
@@ -260,9 +260,8 @@ class BayesOptParallel(BayesOpt):
         print(self.bo.x_out)
         print(self.bo.error)
 
-
         # self.result = self.mvalue
-
+        """
         if self.bo.error != 0:
             print('Optimization FAILED.')
             print("Error", self.bo.error)
@@ -271,3 +270,5 @@ class BayesOptParallel(BayesOpt):
             print('Optimization Complete, %f seconds' % (clock() - start))
             print("Result", self.bo.x_out, self.bo.mvalue)
             print('-' * 35)
+            
+        """
