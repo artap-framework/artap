@@ -3,7 +3,7 @@ from .algorithm import Algorithm
 from .population import Population
 from .enviroment import Enviroment
 
-from time import clock
+import time
 
 import sys
 sys.path.append(Enviroment.artap_root + "/lib/")
@@ -567,8 +567,6 @@ class NLopt(Algorithm):
         population = Population(self.problem)
         self.problem.populations.append(population)
 
-        start = clock()
-
         # Figure out bounds vectors.
         lb = []
         ub = []
@@ -593,21 +591,26 @@ class NLopt(Algorithm):
         #op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, -1, 1), 1e-8)
 
         try:
+            t_s = time.time()
+            self.problem.logger.info("NLopt: {}".format(op.get_algorithm_name()))
             x = op.optimize(self.problem.get_initial_values())
+            t = time.time() - t_s
+            self.problem.logger.info("NLopt: elapsed time: {} s".format(t))
 
-            if (self.options['verbose_level'] >= 1):
+
+            """
+            if self.options['verbose_level'] >= 1:
                 print('method: ', op.get_algorithm_name())
                 print('optimum at ', x)
                 print('minimum value = ', op.last_optimum_value())
                 print('nevals = ', op.get_numevals())
+            """
         except RuntimeError:
             print('Optimization FAILED.')
             print(op.get_errmsg())
         except ValueError:
             print('Optimization FAILED.')
             print(op.get_errmsg())
-
-
 
         """
         FAILURE = -1, # generic failure code
@@ -622,22 +625,5 @@ class NLopt(Algorithm):
         MAXEVAL_REACHED = 5,
         MAXTIME_REACHED = 6
         """
-        if (self.options['verbose_level'] >= 1):
+        if self.options['verbose_level'] >= 1:
             print('result code = ', op.last_optimize_result())
-
-        # set bayesopt
-        #self.bo.params['verbose_level'] =
-
-        # mvalue, x_out, error = self.bo.optimize()
-
-        # self.result = mvalue
-
-        # if error != 0:
-        #     print('Optimization FAILED.')
-        #     print("Error", error)
-        #     print('-' * 35)
-        #
-        # else:
-        #     print('Optimization Complete, %f seconds' % (clock() - start))
-        #     print("Result", x_out, mvalue)
-        #     print('-' * 35)
