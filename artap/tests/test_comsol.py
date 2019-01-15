@@ -14,7 +14,6 @@
 #         working_dir = "." + os.sep + "workspace" + os.sep + "condor" + os.sep
 #
 #         super().__init__(name, parameters, costs, working_dir=working_dir)
-#         self.options['save_data'] = False
 #
 #         curr_dir = os.path.abspath(os.curdir)
 #         output_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "max.txt"

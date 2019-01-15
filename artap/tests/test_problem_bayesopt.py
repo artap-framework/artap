@@ -5,7 +5,7 @@ from artap.problem import Problem
 from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
 
 from artap.results import Results
-
+from artap.datastore import DummyDataStore
 from artap.benchmark_functions import Booth
 
 
@@ -16,7 +16,7 @@ class MyProblem(Problem):
                       'x_2': {'initial_value': 1.5, 'bounds': [-30, 30], 'precision': 1e-1}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
     def eval(self, x):

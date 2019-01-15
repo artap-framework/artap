@@ -1,6 +1,7 @@
 import unittest
 
 from artap.problem import Problem
+from artap.datastore import DummyDataStore
 from artap.algorithm_genetic import GeneticAlgorithm
 
 
@@ -13,7 +14,7 @@ class MyProblem(Problem):
         
         costs = ['F_1', 'F_2']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
 
     def eval(self, x):
         f1 = 0

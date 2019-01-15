@@ -1,11 +1,10 @@
 from random import random, randint
-# import math
 from .problem import Problem
-# from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
 from .algorithm_genetic import NSGA_II
 
+import time
 
 class PSO(NSGA_II):
 
@@ -68,10 +67,14 @@ class PSO(NSGA_II):
         self.gen_initial_population()
         self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
         self.problem.populations[-1].save()
+
+        t_s = time.time()
+        self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'], self.options['max_population_size']))
+
         i = 0
         while i < self.options['max_population_number']:
-            print(i, self.err_best_g)
-            print(i, self.pos_best_g)
+            #print(i, self.err_best_g)
+            #print(i, self.pos_best_g)
             population = Population(self.problem)
 
             pareto_front = []
@@ -107,3 +110,6 @@ class PSO(NSGA_II):
             self.problem.add_population(population)
             population.save()
             i += 1
+
+        t = time.time() - t_s
+        self.problem.logger.info("PSO: elapsed time: {} s".format(t))

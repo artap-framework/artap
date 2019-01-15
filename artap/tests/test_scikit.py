@@ -21,8 +21,6 @@ class MyProblemCoil(Problem):
                       'x9': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       'x10': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]}}
 
-        # workspace_dir = "/home/karban/Projects/rdolab/problems/benchmark/"
-        # super().__init__(name, parameters, costs, working_dir=workspace_dir, save_data=True)
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
         self.options['save_level'] = "individual"
