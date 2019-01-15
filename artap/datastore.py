@@ -83,21 +83,15 @@ class DataStore:
         loop.run_forever()
 
     @abstractmethod
-    def create_structure(self, problem):
-        pass
-
-    def create_structure_individual(self, parameters, costs):
-        pass
-
     def write_individual(self, params):
         pass
 
-    def read_problem(self, problem):
+    @abstractmethod
+    def write_population(self, table):
         pass
 
     def get_id(self):
-        pass
-
+        return 0
 
 class SqliteDataStore(DataStore):
 
@@ -318,3 +312,20 @@ class SqliteDataStore(DataStore):
                 current_population = row[1]
 
         problem.populations.append(population)
+
+
+class DummyDataStore(DataStore):
+
+    def __init__(self, problem=None):
+        super().__init__()
+
+        problem.data_store = self
+
+    def __del__(self):
+        super().__del__()
+
+    def write_individual(self, params):
+        pass
+
+    def write_population(self, table):
+        pass

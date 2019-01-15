@@ -1,10 +1,7 @@
 import unittest
-# from artap.results import GraphicalResults
 from artap.problem import Problem
-# from artap.benchmark_functions import Binh and Korn
+from artap.datastore import DummyDataStore
 from artap.algorithm_swarm import PSO
-
-import os
 
 
 class PSORosenbrock(Problem):
@@ -15,7 +12,7 @@ class PSORosenbrock(Problem):
                       'x_2': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-7}}
         costs = ['F_1', 'F_2']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
     # def eval(self, x):

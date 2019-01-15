@@ -16,7 +16,7 @@ from artap.algorithm_nlopt import LN_PRAXIS
 from artap.algorithm_nlopt import LN_AUGLAG_EQ
 
 from artap.results import Results
-
+from artap.datastore import DummyDataStore
 from artap.benchmark_functions import Booth
 
 
@@ -28,7 +28,7 @@ class MyProblem(Problem):
 
         # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
         costs = ['F']
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
     def eval(self, x):

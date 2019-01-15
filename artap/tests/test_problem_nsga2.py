@@ -3,6 +3,7 @@ import unittest
 # from pygments.lexer import words
 
 from artap.problem import Problem
+from artap.datastore import DummyDataStore
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGA_II
 from artap.results import Results
@@ -14,11 +15,9 @@ class MyProblem(Problem):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         costs = ['F_1', 'F_2']
-        working_dir = "./"
-        super().__init__(name, parameters, costs, save_data=True, working_dir=working_dir)
-        self.options['save_level'] = "population"
+
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 10
-        self.options['save_data'] = True
 
     def eval(self, x):
         function = BinhAndKorn()
@@ -59,8 +58,7 @@ class AckleyN2Test(Problem):
                       'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs)
-        self.options['save_level'] = "population"
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
     def eval(self, x):
