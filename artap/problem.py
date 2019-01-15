@@ -86,7 +86,7 @@ class Problem(ProblemBase):
         self.logger = logging.getLogger(self.name) # 'artap'
         self.logger.setLevel(logging.DEBUG)
         # create formatter
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s (%(levelname)s): %(name)s - %(funcName)s (%(lineno)d) - %(message)s')
 
         # create console handler and set level to debug
         stream_handler = logging.StreamHandler()
