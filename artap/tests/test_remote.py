@@ -5,7 +5,7 @@ import getpass
 from artap.executor import RemoteExecutor
 from artap.problem import Problem   
 from artap.enviroment import Enviroment
-
+from artap.datastore import DummyDataStore
 
 class TestProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -16,7 +16,7 @@ class TestProblem(Problem):
                       'x_2': {'initial_value': 10}}
         costs = ['F1']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
 
         if Enviroment.ssh_login == "":
             user = getpass.getuser()
