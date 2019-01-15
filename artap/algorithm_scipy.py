@@ -4,6 +4,7 @@ from artap.algorithm import Algorithm
 
 from scipy.optimize import minimize
 import numpy as np
+import time
 
 
 _algorithm = ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'Newton-CG', 'L-BFGS-B', 'TNC', 'COBYLA', 'SLSQP', 'dogleg', 'trust-ncg', 'trust-exact', 'trust-krylov']
@@ -29,4 +30,8 @@ class ScipyOpt(Algorithm):
         x0 = np.array(self.problem.get_initial_values())
 
         # optimization
+        t_s = time.time()
+        self.problem.logger.info("ScipyOpt: {}".format(self.options['algorithm']))
         minimize(self.problem.evaluate_individual, x0, method=self.options['algorithm'], tol=self.options['tol'])
+        t = time.time() - t_s
+        self.problem.logger.info("ScipyOpt: elapsed time: {} s".format(t))

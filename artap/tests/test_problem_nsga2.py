@@ -33,7 +33,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
     def test_local_problem_nsga2(self):
 
-        problem = MyProblem("LocalPythonProblemNSGA_II")
+        problem = MyProblem("TestNSGA2Optimization")
         algorithm = NSGA_II(problem)
         algorithm.options['max_population_number'] = 10
         algorithm.options['max_population_size'] = 10
@@ -72,7 +72,7 @@ class TestAckleyN2(unittest.TestCase):
     """ Tests that the NSGA II algorithm can find the global optimum of a function."""
 
     def test_local_problem(self):
-        problem = AckleyN2Test("LocalPythonProblem")
+        problem = AckleyN2Test("TestAckleyN2")
         algorithm = NSGA_II(problem)
         algorithm.options['max_population_number'] = 15
         algorithm.options['max_population_size'] = 100

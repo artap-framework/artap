@@ -27,7 +27,7 @@ class TestBayesOptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
     
     def xtest_local_problem_bayesopt_parallel(self):
-        problem = MyProblem("LocalPythonProblemBayesOptParallel")
+        problem = MyProblem("TestBayesOptParallel")
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 100
@@ -39,7 +39,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         # self.assertAlmostEqual(optimum, 0, places=2)
 
     def test_local_problem_bayesopt_serial(self):
-        problem = MyProblem("LocalPythonProblemBayesOptSerial")
+        problem = MyProblem("TestBayesOptSerial")
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 200
