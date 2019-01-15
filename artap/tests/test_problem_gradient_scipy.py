@@ -20,13 +20,12 @@ class TestAckleyN2(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = GradientProblem("GradientProblem")
+        problem = GradientProblem("TestAckleyN2")
         algorithm = GradientDescent(problem)
         algorithm.options["x0"] = [10, 10]
         algorithm.options["n_iterations"] = 11
         algorithm.options["h"] = 0.3
         print(algorithm.run()[-1])
-
 
 
 if __name__ == '__main__':

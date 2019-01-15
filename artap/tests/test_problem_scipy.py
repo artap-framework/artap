@@ -38,7 +38,7 @@ class TestSimpleOptimization(unittest.TestCase):
         self.assertAlmostEqual(optimum, 0)
 
 
-class AckleyN2Test(Problem):
+class AckleyN2Problem(Problem):
     """Test with a simple 2 variable Ackley N2 formula"""
 
     def __init__(self, name):
@@ -57,7 +57,7 @@ class TestAckleyN2(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = AckleyN2Test("TestAckleyN2")
+        problem = AckleyN2Problem("AckleyN2")
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4

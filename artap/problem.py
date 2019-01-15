@@ -20,6 +20,16 @@ from sklearn.neural_network import MLPClassifier
  Module is dedicated to describe optimization problem. 
 """
 
+CRITICAL = logging.CRITICAL
+FATAL = logging.FATAL
+ERROR = logging.ERROR
+WARNING = logging.WARNING
+WARN = logging.WARN
+INFO = logging.INFO
+DEBUG = logging.DEBUG
+NOTSET = logging.NOTSET
+
+_log_level = [CRITICAL, ERROR, WARNING, INFO, DEBUG]
 
 class ProblemBase(ABC):
 
@@ -40,6 +50,14 @@ class ProblemBase(ABC):
                              desc='calculate gradient for individuals')
         self.options.declare(name='save_level', default="problem",
                              desc='Save level')
+        self.options.declare(name='log_level', default=logging.DEBUG, values=_log_level,
+                             desc='Log level')
+        self.options.declare(name='log_file_handler', default=False,
+                             desc='Enable file handler')
+        self.options.declare(name='log_db_handler', default=True,
+                             desc='Enable DB handler')
+        self.options.declare(name='log_console_handler', default=True,
+                             desc='Enable console handler')
         # TODO: move to Algorithm class
         self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
                              desc='Max running processes')
@@ -83,26 +101,29 @@ class Problem(ProblemBase):
                 os.mkdir(self.working_dir)
 
         # create logger
-        self.logger = logging.getLogger(self.name) # 'artap'
-        self.logger.setLevel(logging.DEBUG)
+        self.logger = logging.getLogger(self.name)
+        self.logger.setLevel(self.options['log_level'])
         # create formatter
         formatter = logging.Formatter('%(asctime)s (%(levelname)s): %(name)s - %(funcName)s (%(lineno)d) - %(message)s')
 
-        # create console handler and set level to debug
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.DEBUG)
-        # add formatter to StreamHandler
-        stream_handler.setFormatter(formatter)
-        # add StreamHandler to logger
-        self.logger.addHandler(stream_handler)
+        if self.options['log_console_handler']:
+            # create console handler and set level to debug
+            stream_handler = logging.StreamHandler()
+            stream_handler.setLevel(logging.DEBUG)
+            # add formatter to StreamHandler
+            stream_handler.setFormatter(formatter)
+            # add StreamHandler to logger
+            self.logger.addHandler(stream_handler)
 
-        # create file handler and set level to debug
-        file_handler = logging.FileHandler(self.working_dir + "/data.log")
-        file_handler.setLevel(logging.DEBUG)
-        # add formatter to FileHandler
-        file_handler.setFormatter(formatter)
-        # add FileHandler to logger
-        self.logger.addHandler(file_handler)
+        # working dir must be set
+        if self.options['log_file_handler'] and working_dir:
+            # create file handler and set level to debug
+            file_handler = logging.FileHandler(self.working_dir + "/data.log")
+            file_handler.setLevel(logging.DEBUG)
+            # add formatter to FileHandler
+            file_handler.setFormatter(formatter)
+            # add FileHandler to logger
+            self.logger.addHandler(file_handler)
 
         if data_store is None:
             self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
@@ -118,13 +139,15 @@ class Problem(ProblemBase):
         self.populations = []
         self.eval_counter = 0
 
-        # create file handler and set level to debug
-        file_handler = SqliteHandler(self.data_store)
-        file_handler.setLevel(logging.DEBUG)
-        # add formatter to SqliteHandler
-        file_handler.setFormatter(formatter)
-        # add SqliteHandler to logger
-        self.logger.addHandler(file_handler)
+        # working dir must be set
+        if self.options['log_db_handler'] and isinstance(self.data_store, SqliteDataStore):
+            # create file handler and set level to debug
+            file_handler = SqliteHandler(self.data_store)
+            file_handler.setLevel(logging.DEBUG)
+            # add formatter to SqliteHandler
+            file_handler.setFormatter(formatter)
+            # add SqliteHandler to logger
+            self.logger.addHandler(file_handler)
 
         self.logger.debug("START")
         # self.logger.debug('This message should go to the log file')
@@ -227,7 +250,7 @@ class Problem(ProblemBase):
             p, sigma = self.surrogate.predict([x], return_std=True)
             # p = self.surrogate.predict([x])
 
-            self.logger.debug("Problem.evaluate_surrogate: x: %s, prediction: %s, sigma: %s", x, p[0], sigma)
+            self.logger.debug("Surrogate: predict: x: {}, prediction: {}, sigma: {}".format(x, p[0], sigma))
             # sigma = 0
             # if p[0][0] > 0 and p[0][1] > 0 and sigma < 0.01:
             if sigma < 3:
@@ -252,8 +275,8 @@ class Problem(ProblemBase):
                 # speed up
                 if counter_eff > 30:
                     self.surrogate_counter_step = int(self.surrogate_counter_step * 1.3)
-                self.logger.debug("learning: ", self.surrogate_predict_counter, ", predict eff: ", counter_eff,
-                                  ", counter_step: ", self.surrogate_counter_step)
+                self.logger.debug("Surrogate: learning: {}, predict eff: {}, counter_step: {}"
+                                  .format(self.surrogate_predict_counter, counter_eff, self.surrogate_counter_step))
 
                 # clf = linear_model.SGDRegressor()
                 # clf = linear_model.SGDRegrBayesianRidgeessor()
@@ -288,12 +311,7 @@ class Problem(ProblemBase):
         """ :param x: list of the variables """
         pass
 
-    # @abstractmethod
     def eval_constraints(self, x: list):
-        """ :param x: list of the variables """
-        pass
-
-    def eval_gradient(self, x: list):
         """ :param x: list of the variables """
         pass
 

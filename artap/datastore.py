@@ -18,45 +18,15 @@ class SqliteHandler(logging.Handler):
     Thread-safe logging handler for SQLite.
     """
 
-    INSERTION_SQL = """INSERT INTO log(
-                        timestamp,
-                        source,
-                        loglevel,
-                        loglevelname,
-                        message,
-                        args,
-                        module,
-                        funcname,
-                        lineno,
-                        exception,
-                        process,
-                        thread,
-                        threadname
-                   )
-                   VALUES (
-                        '%(dbtime)s',
-                        '%(name)s',
-                        %(levelno)d,
-                        '%(levelname)s',
-                        '%(msg)s',
-                        '%(args)s',
-                        '%(module)s',
-                        '%(funcName)s',
-                        %(lineno)d,
-                        '%(exc_text)s',
-                        %(process)d,
-                        '%(thread)s',
-                        '%(threadName)s'
-                   );
-                   """
-
     def __init__(self, data_store):
         logging.Handler.__init__(self)
 
         self.data_store = data_store
         self.data_store.create_structure_log()
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord):
+        """
+
         self.format(record)
         # format record
         record.dbtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(record.created))
@@ -64,10 +34,33 @@ class SqliteHandler(logging.Handler):
             record.exc_text = logging._defaultFormatter.formatException(record.exc_info)
         else:
             record.exc_text = ""
+        """
 
         # Insert the log record
-        sql = self.INSERTION_SQL % record.__dict__
-        self.data_store._execute_command(sql)
+        try:
+            connection = sqlite3.connect(self.data_store.database_name)
+
+            cursor = connection.cursor()
+            cursor.execute("INSERT INTO log(timestamp, source, loglevel, loglevelname, message, args, module, funcname, lineno, exception, process, threadname) "
+                           "VALUES (:timestamp, :source, :loglevel, :loglevelname, :message, :args, :module, :funcname, :lineno, :exception, :process, :threadname)",
+                           { "timestamp": str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(record.created))),
+                             "source": str(record.name),
+                             "loglevel": record.levelno,
+                             "loglevelname": str(record.levelname),
+                             "message": str(record.getMessage()),
+                             "args": str(record.args),
+                             "module": str(record.module),
+                             "funcname": str(record.funcName),
+                             "lineno": record.lineno,
+                             "exception": str(record.exc_text),
+                             "process": record.process,
+                             "threadname": str(record.threadName) })
+            connection.commit()
+            cursor.close()
+
+            connection.close()
+        except sqlite3.Error as e:
+            print("SqliteHandler: error occurred:", e.args[0])
 
 
 class DataStore:
@@ -173,7 +166,6 @@ class SqliteDataStore(DataStore):
                     'lineno INT,' \
                     'exception TEXT,' \
                     'process INT,' \
-                    'thread TEXT,' \
                     'threadname TEXT)'
 
         self._execute_command(exec_cmd)
