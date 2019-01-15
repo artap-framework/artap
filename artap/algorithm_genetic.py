@@ -246,6 +246,9 @@ class NSGA_II(GeneticAlgorithm):
         offsprings = self.problem.populations[0].individuals
 
         t_s = time.time()
+        self.problem.logger.info("NSGA_II: {}/{}".format(self.options['max_population_number'], self.options['max_population_size']))
+
+        # optimization
         for it in range(self.options['max_population_number']):
             population = Population(self.problem, offsprings)
 
@@ -269,7 +272,7 @@ class NSGA_II(GeneticAlgorithm):
             offsprings = self.generate(self.problem.populations[it].individuals)
 
         t = time.time() - t_s
-        print('Elapsed time:', t)
+        self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
 
 
 class Dominance(object):
@@ -813,9 +816,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             return curr_population
 
-
     def run(self):
-
         # initialize the first population
         self.gen_initial_population()
         self.problem.populations[0].evaluate()
@@ -825,7 +826,6 @@ class EpsMOEA(GeneticAlgorithm):
         archive = self.pareto_front(curr_population)
 
         for it in range(self.options['max_population_number']):
-
             mama = self.pop_select(curr_population)
             papa = self.random_selector(archive)
 

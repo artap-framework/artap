@@ -44,8 +44,6 @@ class ProblemBase(ABC):
         # options
         self.options = ConfigDictionary()
 
-        self.options.declare(name='save_data', default=False,
-                             desc='Save data to database')
         self.options.declare(name='calculate_gradients', default=False,
                              desc='calculate gradient for individuals')
         self.options.declare(name='save_level', default="problem",
@@ -80,17 +78,17 @@ class Problem(ProblemBase):
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, save_data=False):
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
 
         super().__init__()
         self.name = name
         self.working_dir = working_dir
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
-        self.options['save_data'] = save_data
 
         # working dir
-        if (working_dir is None) or (not self.options['save_data']):
+        """
+        if working_dir is None:
             self.working_dir = tempfile.mkdtemp()
         else:
             # time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
@@ -99,6 +97,7 @@ class Problem(ProblemBase):
             self.working_dir += time_stamp
             if not os.path.isdir(self.working_dir):
                 os.mkdir(self.working_dir)
+        """
 
         # create logger
         self.logger = logging.getLogger(self.name)
@@ -166,10 +165,6 @@ class Problem(ProblemBase):
 
     def __del__(self):
         pass
-        #  print("Problem: def __del__(self):")
-        #  if not self.save_data:
-        #      if os.path.isdir(self.working_dir):
-        #        shutil.rmtree(self.working_dir)
 
     def init_surrogate_model(self):
         # surrogate model
@@ -326,10 +321,8 @@ class ProblemDataStore(ProblemBase):
 
         if working_dir is None:
             self.working_dir = tempfile.mkdtemp()
-            self.options['save_data'] = False
         else:
             self.working_dir = working_dir + self.name
-            self.options['save_data'] = True
 
     def to_table(self):
         table = []
