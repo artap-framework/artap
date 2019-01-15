@@ -39,7 +39,7 @@ class TestNLoptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def run_test(self, method, n_iterations=100):
-        problem = MyProblem("LocalPythonProblemNLopt")
+        problem = MyProblem("NLopt_{}".format(method))
         algorithm = NLopt(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['algorithm'] = method
@@ -49,8 +49,6 @@ class TestNLoptOptimization(unittest.TestCase):
         algorithm.options['ftol_abs'] = 1e-6
         algorithm.options['n_iterations'] = n_iterations
         algorithm.run()
-
-        # optimum = problem.populations[-1].individuals[-1].costs[0]  # Takes last cost function
 
         results = Results(problem)
         optimum = results.find_minimum('F')
