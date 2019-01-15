@@ -2,7 +2,7 @@ import unittest
 
 from artap.problem import Problem
 from artap.algorithm import Sensitivity
-
+from artap.datastore import DummyDataStore
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -14,7 +14,7 @@ class MyProblem(Problem):
                       'x_3': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
 
     def eval(self, x):
         result = 0
