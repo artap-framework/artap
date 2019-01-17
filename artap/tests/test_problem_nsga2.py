@@ -19,11 +19,11 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 10
 
-    def eval(self, x):
+    def evaluate(self, x):
         function = BinhAndKorn()
         return function.eval(x)
 
-    def eval_constraints(self, x):
+    def evaluate_constraints(self, x):
         return BinhAndKorn.constraints(x)
 
 
@@ -61,9 +61,9 @@ class AckleyN2Test(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-    def eval(self, x):
+    def evaluate(self, x):
         function = AckleyN2()
-        return function.eval(x)
+        return [function.eval(x)]
 
 
 class TestAckleyN2(unittest.TestCase):

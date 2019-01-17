@@ -13,9 +13,10 @@ class GradientProblem(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        self.options['max_processes'] = 1
 
-    def eval(self, x):
-        return (x[0]-1)**2 + x[1]**2
+    def evaluate(self, x):
+        return [(x[0]-1)**2 + x[1]**2]
 
 
 class TestAckleyN2(unittest.TestCase):

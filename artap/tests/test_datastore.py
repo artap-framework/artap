@@ -14,7 +14,7 @@ class TestDataStore(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum('F_1')
-        self.assertLessEqual(abs(optimum[0]), 5)
+        self.assertLessEqual(abs(optimum), 5)
         
 
 if __name__ == '__main__':

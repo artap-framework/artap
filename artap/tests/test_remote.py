@@ -7,6 +7,7 @@ from artap.problem import Problem
 from artap.enviroment import Enviroment
 from artap.datastore import DummyDataStore
 
+
 class TestProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):        
@@ -29,9 +30,9 @@ class TestProblem(Problem):
                                        supplementary_files=["remote.py"])
         self.executor.script = Enviroment.tests_root + os.sep + "remote.py"
 
-    def eval(self, x):
+    def evaluate(self, x):
         result = self.executor.eval(x)        
-        return result
+        return [result]
         
 
 class TestRemoteOptimization(unittest.TestCase):
@@ -41,9 +42,9 @@ class TestRemoteOptimization(unittest.TestCase):
     def test_remote_run(self):        
         """ Tests one calculation of goal function."""
         problem = TestProblem("RemotePythonProblem")        
-        result = problem.eval([1, 2])
+        result = problem.evaluate([1, 2])
  
-        self.assertAlmostEqual(result, 5.0)
+        self.assertAlmostEqual(result[0], 5.0)
     
     # def test_remote_optimization(self):        
     #     """ Tests simple optimization problem. """ 
