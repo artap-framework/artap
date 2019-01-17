@@ -39,15 +39,15 @@ class TestProblem(Problem):
 
         self.executor.parse_results = self.parse_results
 
-    def eval(self, x):
+    def evaluate(self, x):
         result = self.executor.eval(x)
-        return result
+        return [result]
 
     def parse_results(self, content, x):
         lines = content.split("\n")
         line_with_results = lines[5]  # 5th line contains results
         result = float(line_with_results)
-        return result
+        return [result]
 
 
 class TestCondor(TestCase):

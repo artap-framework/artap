@@ -1,4 +1,4 @@
-import os
+# import os
 import unittest
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
@@ -16,12 +16,12 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-    def eval(self, x):
+    def evaluate(self, x):
         result = 0
         for i in x:
             result += i*i
 
-        return result
+        return [result]
 
 
 class TestSimpleOptimization(unittest.TestCase):
@@ -49,9 +49,9 @@ class AckleyN2Problem(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-    def eval(self, x):
+    def evaluate(self, x):
         function = AckleyN2()
-        return function.eval(x)
+        return [function.eval(x)]
 
 
 class TestAckleyN2(unittest.TestCase):
