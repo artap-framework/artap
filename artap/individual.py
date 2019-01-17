@@ -2,6 +2,7 @@ from random import random, uniform
 from numpy.random import normal
 from abc import *
 
+
 class Individual(metaclass=ABCMeta):
     """
        Collects information about one point in design space.
@@ -15,7 +16,7 @@ class Individual(metaclass=ABCMeta):
         self.parameters = design_parameters
         self.problem = problem
         self.length = len(self.parameters)
-        self.costs = []
+        self._costs = []
         self.number = Individual.number
         self.gradient = []
         Individual.number += 1
@@ -35,6 +36,14 @@ class Individual(metaclass=ABCMeta):
 
         for i in range(0, len(self.parameters)):
             self.velocity_i.append(uniform(-1, 1))
+
+    @property
+    def costs(self):
+        return self._costs
+
+    @costs.setter
+    def costs(self, costs):
+            self._costs = costs
 
     def __repr__(self):
         """ :return: [parameters[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
@@ -77,7 +86,7 @@ class Individual(metaclass=ABCMeta):
 
     def evaluate(self):
         # check the constraints
-        constraints = self.problem.eval_constraints(self.parameters)
+        constraints = self.problem.evaluate_constraints(self.parameters)
 
         if constraints:
             self.feasible = sum(map(abs, constraints))
@@ -90,15 +99,13 @@ class Individual(metaclass=ABCMeta):
             # increase counter
             self.problem.eval_counter += 1
             # eval
-            costs = self.problem.eval(self.parameters)
+            costs = self.problem.evaluate(self.parameters)
 
-        if type(costs) is not list:
-            self.costs = [costs]
-        else:
-            self.costs = costs
+        self._costs = costs
+
         # scipy uses the result number, the genetic algorithms using the property value
         self.is_evaluated = True
-        if self.problem.options['save_level'] == "individual":
+        if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
             self.problem.data_store.write_individual(self.to_list())
 
         if self.problem.options['max_processes'] > 1:

@@ -3,7 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.algorithm_nlopt import NLopt
 from artap.algorithm_nlopt import GN_DIRECT_L
-from artap.algorithm_nlopt import GN_DIRECT_L_RAND
+# from artap.algorithm_nlopt import GN_DIRECT_L_RAND
 from artap.algorithm_nlopt import GN_MLSL
 from artap.algorithm_nlopt import GN_CRS2_LM
 from artap.algorithm_nlopt import GN_ISRES
@@ -31,8 +31,8 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-    def eval(self, x):
-        return Booth.eval(x)
+    def evaluate(self, x):
+        return [Booth.eval(x)]
 
 
 class TestNLoptOptimization(unittest.TestCase):
