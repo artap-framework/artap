@@ -4,6 +4,7 @@ from artap.problem import Problem
 from artap.algorithm import Sensitivity
 from artap.datastore import DummyDataStore
 
+
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
@@ -16,10 +17,10 @@ class MyProblem(Problem):
 
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
 
-    def eval(self, x):
+    def evaluate(self, x):
         result = 0
         result += x[0] * x[0] + 0.1 * x[1] * x[1] + x[2] * x[2]
-        return result
+        return [result]
 
 
 class TestSensitivity(unittest.TestCase):

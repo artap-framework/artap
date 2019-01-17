@@ -3,7 +3,8 @@ import unittest
 from artap.problem import ProblemDataStore
 from artap.datastore import SqliteDataStore
 from artap.results import GraphicalResults
-from artap.benchmark_functions import Rosenbrock
+# from artap.benchmark_functions import Rosenbrock
+
 
 class TestDataStore(unittest.TestCase):
 

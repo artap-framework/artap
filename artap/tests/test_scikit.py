@@ -79,7 +79,7 @@ class MyProblemCoil(Problem):
 
         return [Br, Bz]
 
-    def eval(self, x):
+    def evaluate(self, x):
         pass
 
 
@@ -87,7 +87,7 @@ class MyProblemCoilOne(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1'])
 
-    def eval(self, x):
+    def evaluate(self, x):
         B0 = 2e-3
 
         dxy = 0.5e-3
@@ -106,14 +106,14 @@ class MyProblemCoilOne(MyProblemCoil):
                 Bp1s = math.sqrt((Br - 0.0)**2 + (Bz - B0)**2)
                 f1 = max(f1, Bp1s)
 
-        return f1
+        return [f1]
 
 
 class MyProblemCoilMultiTwo1(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1', 'F2'])
 
-    def eval(self, x):
+    def evaluate(self, x):
         B0 = 2e-3
 
         dxy = 0.5e-3
@@ -140,7 +140,7 @@ class MyProblemCoilMultiTwo2(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1', 'F2'])
 
-    def eval(self, x):
+    def evaluate(self, x):
         B0 = 2e-3
 
         dxy = 0.5e-3
@@ -173,7 +173,7 @@ class MyProblemCoilMultiThree(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1', 'F2', 'F3'])
 
-    def eval(self, x):
+    def evaluate(self, x):
         B0 = 2e-3
 
         dxy = 0.5e-3
@@ -211,14 +211,15 @@ class MyProblemBooth(Problem):
 
         # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
         costs = ['F']
+
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
         self.options['save_level'] = "population"
 
         self.init_surrogate_model()
 
-    def eval(self, x):
-        return Booth.eval(x)
+    def evaluate(self, x):
+        return [Booth.eval(x)]
 
 
 class TestSimpleOptimization(unittest.TestCase):
@@ -238,8 +239,8 @@ class TestSimpleOptimization(unittest.TestCase):
         # t = time.time() - t_s
         # print('Elapsed time:', t)
 
-        #print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
-        #print("surrogate_eval_counter: ", problem.eval_counter)
+        # print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
+        # print("surrogate_eval_counter: ", problem.eval_counter)
 
         results = Results(problem)
         optimum = results.find_minimum('F')

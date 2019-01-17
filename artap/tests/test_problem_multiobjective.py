@@ -16,7 +16,7 @@ class MyProblem(Problem):
 
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
 
-    def eval(self, x):
+    def evaluate(self, x):
         f1 = 0
 
         for i in x:

@@ -552,7 +552,7 @@ class NLopt(Algorithm):
         #    grad[1] = 0.5 / np.sqrt(x[1])
         #return np.sqrt(x[1])
 
-        val = self.problem.evaluate_individual(x)
+        val = self.problem.evaluate_individual_scalar(x)
         # print(x, val)
         return val
 

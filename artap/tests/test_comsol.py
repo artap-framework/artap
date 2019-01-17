@@ -23,7 +23,7 @@
 #
 #     def eval(self, x):
 #         result = self.executor.eval(x)
-#         return result
+#         return [result]
 #
 #
 # class TestSimpleComsolOptimization(unittest.TestCase):

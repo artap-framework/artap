@@ -31,6 +31,7 @@ NOTSET = logging.NOTSET
 
 _log_level = [CRITICAL, ERROR, WARNING, INFO, DEBUG]
 
+
 class ProblemBase(ABC):
 
     def __init__(self):
@@ -83,6 +84,12 @@ class Problem(ProblemBase):
         super().__init__()
         self.name = name
         self.working_dir = working_dir
+
+        forbidden_path = os.sep + "workspace" + os.sep + "common_data"
+        if working_dir is not None:
+            if forbidden_path in self.working_dir:
+                raise IOError('Folder "/workspace/common_data" is read only.')
+
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
 
@@ -200,19 +207,30 @@ class Problem(ProblemBase):
 
         return cost
 
+    def evaluate_individual_scalar(self, x, population=0):
+        """
+
+        :param x:
+        :param population:
+        :return: cost which is calculated
+        """
+
+        cost = self.evaluate_individual(x, population)
+        return cost[0]
+
     def evaluate_gradient_richardson(self, individual):
         n = len(self.parameters)
         gradient = [0] * n
         x0 = individual.parameters
         h = 1e-6
-        y = self.eval(x0)
+        y = self.evaluate_individual_scalar(x0)
         for i in range(len(self.parameters)):
             x = x0.copy()
             x[i] += h
-            y_h = self.eval(x)
+            y_h = self.evaluate_individual_scalar(x)
             d_0_h = gradient[i] = (y_h - y) / h
             x[i] += h
-            y_2h = self.eval(x)
+            y_2h = self.evaluate_individual_scalar(x)
             d_0_2h = (y_2h - y) / 2 / h
             gradient[i] = (4*d_0_h - d_0_2h) / 3
 
@@ -222,12 +240,12 @@ class Problem(ProblemBase):
         n = len(self.parameters)
         gradient = [0]*n
         x0 = individual.parameters
-        y = self.eval(x0)
+        y = self.evaluate(x0)
         h = 1e-6
         for i in range(len(self.parameters)):
             x = x0.copy()
             x[i] += h
-            y_h = self.eval(x)
+            y_h = self.evaluate(x)
             if isinstance(y_h, collections.Iterable):
                 m = len(y_h)
                 gradient[i] = []
@@ -255,7 +273,7 @@ class Problem(ProblemBase):
                 evaluate = False
 
         if evaluate:
-            value = self.eval(x)
+            value = self.evaluate(x)
 
             # store surrogate
             self.surrogate_x_data.append(x)
@@ -298,15 +316,15 @@ class Problem(ProblemBase):
         n = len(table)
         results = [0] * n
         for i in range(n):
-            results[i] = self.eval(table[i])
+            results[i] = self.evaluate(table[i])
         return results
 
     @abstractmethod
-    def eval(self, x: list):
+    def evaluate(self, x: list):
         """ :param x: list of the variables """
         pass
 
-    def eval_constraints(self, x: list):
+    def evaluate_constraints(self, x: list):
         """ :param x: list of the variables """
         pass
 

@@ -19,7 +19,7 @@ class PSORosenbrock(Problem):
     #     function = BinhAndKorn()
     #     return function.eval(x)
 
-    def eval(self, x):
+    def evaluate(self, x):
         y = 0
         for i in range(len(x)):
             y += x[i]**2

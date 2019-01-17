@@ -113,7 +113,7 @@ class BayesOptClassSerial(BayesOptContinuous):
         self.params = {}
 
     def evaluateSample(self, x):
-        return self.problem.evaluate_individual(x)
+        return self.problem.evaluate_individual_scalar(x)
 
 
 class BayesOptSerial(BayesOpt):
@@ -210,7 +210,7 @@ def worker(pipe, problem):
         if str(x) == 'STOP':
             break
 
-        result = problem.evaluate_individual(x)
+        result = problem.evaluate_individual_scalar(x)
         pipe.send(result)
 
 

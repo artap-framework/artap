@@ -19,8 +19,8 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-    def eval(self, x):
-        return Booth.eval(x)
+    def evaluate(self, x):
+        return [Booth.eval(x)]
 
 
 class TestBayesOptOptimization(unittest.TestCase):

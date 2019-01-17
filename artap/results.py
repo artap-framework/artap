@@ -10,9 +10,6 @@ from matplotlib.figure import Figure
 from matplotlib import rc
 
 
-
-# import sys
-
 class Results:
     MINIMIZE = -1
     MAXIMIZE = 1
@@ -28,21 +25,15 @@ class Results:
         :return:
         """
         # get the index of the required parameter
-        index = 0 # default - one parameter
+        index = 0  # default - one parameter
         if name:
             index = int(self.problem.costs.get(name))
 
         min_l = []
         for population in self.problem.populations:
-
-            if type(population.individuals[index].costs) is not list:
-                min_l.append(min(population.individuals, key=lambda x: x.costs))
-                opt = min(min_l, key=lambda x: x.costs)
-                opt = opt.costs
-            else:
-                min_l.append(min(population.individuals, key=lambda x: x.costs[index]))
-                opt = min(min_l, key=lambda x: x.costs[index])
-                opt = opt.costs[index]
+            min_l.append(min(population.individuals, key=lambda x: x.costs[index]))
+            opt = min(min_l, key=lambda x: x.costs[index])
+            opt = opt.costs[index]
 
         return opt
 

@@ -39,9 +39,9 @@ class TestProblem(Problem):
                                                 username=user, hostname=host, working_dir=working_dir,
                                                 supplementary_files=supplementary_files)
 
-    def eval(self, x):
+    def evaluate(self, x):
         result = self.executor.eval(x)
-        return result
+        return [result]
 
 
 class TestCondor(TestCase):
@@ -52,8 +52,8 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Problem")
-        result = problem.eval([1, 1])
-        self.assertAlmostEqual(result, 2)
+        result = problem.evaluate([1, 1])
+        self.assertAlmostEqual(result[0], 2)
 
     def xtest_condor_run(self):
         """ Tests one calculation of goal function."""
