@@ -2,6 +2,7 @@ import unittest
 from artap.problem import Problem
 from artap.datastore import DummyDataStore
 from artap.algorithm_swarm import PSO
+from artap.benchmark_functions import BinhAndKorn
 
 
 class PSORosenbrock(Problem):
@@ -15,15 +16,9 @@ class PSORosenbrock(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-    # def eval(self, x):
-    #     function = BinhAndKorn()
-    #     return function.eval(x)
-
-    def evaluate(self, x):
-        y = 0
-        for i in range(len(x)):
-            y += x[i]**2
-        return [x[0]**2, x[1]**2]
+    def evaluate(self, x: list):
+        function = BinhAndKorn()
+        return function.eval(x)
 
 
 class TestPSOptimization(unittest.TestCase):
@@ -32,8 +27,8 @@ class TestPSOptimization(unittest.TestCase):
     def test_local_problem_pso(self):
         problem = PSORosenbrock("PSORosenbrock")
         algorithm = PSO(problem)
-        algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 200
+        algorithm.options['max_population_number'] = 20
+        algorithm.options['max_population_size'] = 100
         algorithm.run()
         # results = GraphicalResults(problem)
         # results.plot_populations()
