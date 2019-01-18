@@ -7,6 +7,8 @@ from artap.problem import Problem
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.benchmark_functions import Booth
 from artap.results import Results
+from artap.datastore import  DummyDataStore
+
 
 class MyProblemCoil(Problem):
     def __init__(self, name, costs):
@@ -21,7 +23,7 @@ class MyProblemCoil(Problem):
                       'x9': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       'x10': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]}}
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
         self.options['save_level'] = "individual"
 
@@ -212,7 +214,7 @@ class MyProblemBooth(Problem):
         # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs)
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
         self.options['save_level'] = "population"
 
@@ -231,13 +233,7 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm = NLopt(problem)
         algorithm.options['algorithm'] = LN_BOBYQA
         algorithm.options['n_iterations'] = 200
-
-        # t_s = time.time()
-
         algorithm.run()
-
-        # t = time.time() - t_s
-        # print('Elapsed time:', t)
 
         # print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
         # print("surrogate_eval_counter: ", problem.eval_counter)
@@ -252,13 +248,7 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm = NLopt(problem)
         algorithm.options['algorithm'] = LN_BOBYQA
         algorithm.options['n_iterations'] = 50
-
-        #t_s = time.time()
-
         algorithm.run()
-
-        #t = time.time() - t_s
-        #print('Elapsed time:', t)
 
         #print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
         #print("surrogate_eval_counter: ", problem.eval_counter)
