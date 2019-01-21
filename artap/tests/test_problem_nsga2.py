@@ -24,7 +24,8 @@ class MyProblem(Problem):
         return function.eval(x)
 
     def evaluate_constraints(self, x):
-        return BinhAndKorn.constraints(x)
+        function = BinhAndKorn()
+        return function.constraints(x)
 
 
 class TestNSGA2Optimization(unittest.TestCase):
