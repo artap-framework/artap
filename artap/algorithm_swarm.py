@@ -98,9 +98,9 @@ class PSO(NSGA_II):
                 self.update_velocity(individual)
                 # print(individual.velocity_i)
                 # print("---------------------")
-                # print(individual.parameters)
+                # print(individual.vector)
                 self.update_position(individual, self.problem.get_bounds())
-                # print(individual.parameters)
+                # print(individual.vector)
                 # print("---------------------")
 
             population.evaluate()
