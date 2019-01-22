@@ -193,31 +193,6 @@ class Problem(ProblemBase):
             table.append([parameter[2], parameter[3]])
         return table
 
-    def evaluate_individual(self, x, population_id=0):
-        """
-
-        :param x:
-        :param population:
-        :return: cost which is calculated
-        """
-
-        individual = Individual(x, self, population_id)
-        cost = individual.evaluate()
-        self.populations[population_id].individuals.append(individual)
-
-        return cost
-
-    def evaluate_individual_scalar(self, x, population_id=0):
-        """
-
-        :param x:
-        :param population:
-        :return: cost which is calculated
-        """
-
-        cost = self.evaluate_individual(x, population_id)
-        return cost[0]
-
     def evaluate_gradient_richardson(self, individual):
         n = len(self.parameters)
         gradient = [0] * n
@@ -311,13 +286,6 @@ class Problem(ProblemBase):
             else:
                 values.append(0)
         return values
-
-    def eval_batch(self, table):
-        n = len(table)
-        results = [0] * n
-        for i in range(n):
-            results[i] = self.evaluate(table[i])
-        return results
 
     @abstractmethod
     def evaluate(self, x: list):
