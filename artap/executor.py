@@ -39,7 +39,7 @@ class ComsolExecutor(Executor):
         comsol_path = Enviroment.comsol_path
         run_string = comsol_path + "comsol batch -inputfile " + self.model_name + " -nosave -pname "
 
-        # add parameters
+        # add vector
         for parameter in self.parameters:
             run_string += parameter + ", "
 
@@ -185,7 +185,7 @@ class RemoteExecutor(Executor):
         output_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         output_file.close()
 
-        self.transfer_files_to_remote(parameters_file.name, 'parameters.txt', client=client)
+        self.transfer_files_to_remote(parameters_file.name, 'vector.txt', client=client)
         self.run_command_on_remote("python3 remote.py", client=client)
 
         self.transfer_files_from_remote('output.txt', output_file.name, client=client)
@@ -411,7 +411,7 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
                 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                 client.connect(hostname=self.hostname, username=self.username, password=self.password)
 
-                parameters_file = self.create_file_on_remote("parameters.txt", client)
+                parameters_file = self.create_file_on_remote("vector.txt", client)
                 parameters_file.write(str(x[0]) + " " + str(x[1]))
                 parameters_file.close()
 
