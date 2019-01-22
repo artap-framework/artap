@@ -57,6 +57,12 @@ class Job:
 
         return costs
 
+    def evaluate_scalar(self, x, population_id: int = None):
+        costs = self.evaluate(x, population_id)
+        return costs[0]
+
+
+
     # def evaluate_gradient(self):
     #     self.gradient = self.problem.evaluate_gradient(self)
     #     if self.problem.options['max_processes'] > 1:
