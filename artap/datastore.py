@@ -192,7 +192,7 @@ class SqliteDataStore(DataStore):
         self._execute_command(exec_cmd)
 
     def create_structure_parameters(self, parameters_list):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS parameters (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS vector (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
                    'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
         self._execute_command(exec_cmd)
 
@@ -200,7 +200,7 @@ class SqliteDataStore(DataStore):
             parameter_arg = [0] * 5
             length = len(parameter)
             parameter_arg[0:length] = parameter
-            exec_cmd = 'INSERT INTO parameters(name, initial_value, low_boundary, high_boundary, precision) ' \
+            exec_cmd = 'INSERT INTO vector(name, initial_value, low_boundary, high_boundary, precision) ' \
                        "VALUES( '%s', %f, %f, %f, %f);" % tuple(parameter_arg)
             self._execute_command(exec_cmd)
 
@@ -260,8 +260,8 @@ class SqliteDataStore(DataStore):
         problem_table = cursor.execute(exec_cmd_problem).fetchall()
         problem.name = problem_table[0][1]
 
-        # parameters
-        exec_cmd_params = "SELECT * FROM parameters"
+        # vector
+        exec_cmd_params = "SELECT * FROM vector"
 
         columns = []
         for row in cursor.execute(exec_cmd_params):

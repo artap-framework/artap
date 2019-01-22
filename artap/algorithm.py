@@ -2,7 +2,9 @@ from .problem import Problem
 from .population import Population
 from .individual import Individual
 from .utils import ConfigDictionary
+from .job import Job
 
+from multiprocessing import Process, Manager, Queue
 from abc import ABCMeta, abstractmethod
 
 
@@ -19,10 +21,57 @@ class Algorithm(metaclass=ABCMeta):
         self.options.declare(name='calculate_gradients', default=False,
                              desc='Enable calculating of gradients')
 
-
     @abstractmethod
     def run(self):
         pass
+
+    def evaluate(self, individuals: list, population_id: int = None):
+        if self.problem.options["max_processes"] > 1:
+            individuals = self.evaluate_parallel(individuals, population_id)
+        else:
+            self.evaluate_serial(individuals, population_id)
+
+        return individuals
+
+    def evaluate_serial(self, individuals: list, population_id: int = None):
+        job = Job(self.problem)
+        for individual in individuals:
+            if not individual.is_evaluated:
+                individual.costs = job.evaluate(individual.vector, population_id)
+
+    def evaluate_parallel(self, individuals: list, population_id: int):
+        manager = Manager()
+        shared_list = manager.list([])
+        queue = Queue()
+        job = Job(self.problem, shared_list, queue)
+        processes = []
+
+        i = 0
+        j = 0
+        for individual in individuals:
+            if not individual.is_evaluated:
+                p = Process(target=job.evaluate, args=(individual.vector, population_id))
+                processes.append(p)
+                p.start()
+                shared_list.append([p.pid, individual])
+                i += 1
+                j += 1
+
+            if ((i % self.problem.options['max_processes']) == 0) or (j >= len(individuals)):
+                for process in processes:
+                    process.join()
+                    processes = []
+
+        # collect the results
+        individuals = []
+        for item in range(queue.qsize()):
+            result = queue.get()
+            print(result)
+            individuals.append(result)
+        queue.close()
+        queue.join_thread()
+
+        return individuals
 
 
 class Sensitivity(Algorithm):
@@ -48,7 +97,7 @@ class Sensitivity(Algorithm):
                 index += 1
 
             individuals = []
-            for i in range(self.problem.max_population_size):
+            for i in range(self.problem.options['max_population_size']):
                 value = Individual.gen_number(selected_parameter[1]['bounds'], selected_parameter[1]['precision'],
                                               'normal')
                 parameters[index] = value
@@ -64,3 +113,13 @@ class Sensitivity(Algorithm):
                 costs.append(individual.costs)
 
             self.problem.populations.append(population)
+
+
+class EvalAll(Algorithm):
+
+    def __init__(self, problem, individuals: list, name='Sensitivity analysis'):
+        self.individuals = individuals
+        super().__init__(problem, name)
+
+    def run(self):
+        self.evaluate_serial(self.individuals)
