@@ -2,6 +2,7 @@ from .problem import Problem
 from .population import Population
 from .individual import Individual
 from .utils import ConfigDictionary
+from .utils import VectorAndNumbers
 from .job import Job
 
 from multiprocessing import Process, Manager, Queue
@@ -24,6 +25,9 @@ class Algorithm(metaclass=ABCMeta):
     @abstractmethod
     def run(self):
         pass
+
+    def evaluate_population(self, population: Population):
+        population.individuals = self.evaluate(population.individuals)
 
     def evaluate(self, individuals: list, population_id: int = None):
         if self.problem.options["max_processes"] > 1:
@@ -97,7 +101,7 @@ class Sensitivity(Algorithm):
 
             individuals = []
             for i in range(self.problem.options['max_population_size']):
-                value = Individual.gen_number(selected_parameter[1]['bounds'], selected_parameter[1]['precision'],
+                value = VectorAndNumbers.gen_number(selected_parameter[1]['bounds'], selected_parameter[1]['precision'],
                                               'normal')
                 parameters[index] = value
                 parameter_values.append(value)
@@ -115,6 +119,9 @@ class Sensitivity(Algorithm):
 
 
 class EvalAll(Algorithm):
+    """
+    Dummy class for testing
+    """
 
     def __init__(self, problem, individuals: list, name='Sensitivity analysis'):
         self.individuals = individuals
@@ -122,3 +129,57 @@ class EvalAll(Algorithm):
 
     def run(self):
         self.evaluate_serial(self.individuals)
+
+    # def evaluate_gradient(self):
+    #     self.gradient = self.problem.evaluate_gradient(self)
+    #     if self.problem.options['max_processes'] > 1:
+    #         if Individual.gradients is not None:
+    #             Individual.gradients.put([self.number, self.gradient])
+    #
+    #     return self.gradient
+
+    # def evaluate(self, x, population: Population):
+    #     if population is None:
+    #         population = Population()
+    #     individual = Individual(x, self, population)
+    #
+    #     # check the constraints
+    #     constraints = self.problem.evaluate_constraints(individual.vector)
+    #
+    #     if constraints:
+    #         individual.feasible = sum(map(abs, constraints))
+    #
+    #     # problem cost function evaluate only in that case when the problem is fits the constraints
+    #
+    #     # TODO: find better solution for surrogate
+    #     if self.problem.surrogate:
+    #         costs = self.problem.evaluate_surrogate(individual.vector)
+    #     else:
+    #         # increase counter
+    #         self.problem.eval_counter += 1
+    #         # eval
+    #         costs = self.problem.evaluate(individual.vector)
+    #
+    #     individual.costs = costs
+    #
+    #     # scipy uses the result number, the genetic algorithms using the property value
+    #
+    #     individual.is_evaluated = True
+    #     if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
+    #         self.problem.data_store.write_individual(individual.to_list())
+    #
+    #     if self.problem.options['max_processes'] > 1:
+    #         if self.queue is not None:
+    #             self.queue.put([individual.id, costs, individual.feasible])
+    #
+    #     population.individuals.append(individual)
+    #     self.problem.populations.append(population)
+    #     return costs
+
+    # def evaluate_gradient(self):
+    #     self.gradient = self.problem.evaluate_gradient(self)
+    #     if self.problem.options['max_processes'] > 1:
+    #         if Individual.gradients is not None:
+    #             Individual.gradients.put([self.number, self.gradient])
+    #
+    #     return self.gradient
