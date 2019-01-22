@@ -30,9 +30,9 @@ class TestJob(unittest.TestCase):
         i1 = Individual([1, 2, 2])
         i2 = Individual([3, 3, 2])
         algorithm = EvalAll(problem, [i1, i2])
-        algorithm.evaluate(individuals=[i1, i2])
-        self.assertEqual(i1.costs, [9])
-        self.assertEqual(i2.costs, [22])
+        individuals = algorithm.evaluate(individuals=[i1, i2])
+        self.assertEqual(individuals[0].costs, [9])
+        self.assertEqual(individuals[1].costs, [22])
 
     def test_evaluate_parallel(self):
         problem = TestProblem("Test_Job")
