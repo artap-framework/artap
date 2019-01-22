@@ -193,7 +193,7 @@ class Problem(ProblemBase):
             table.append([parameter[2], parameter[3]])
         return table
 
-    def evaluate_individual(self, x, population=0):
+    def evaluate_individual(self, x, population_id=0):
         """
 
         :param x:
@@ -201,13 +201,13 @@ class Problem(ProblemBase):
         :return: cost which is calculated
         """
 
-        individual = Individual(x, self, population)
+        individual = Individual(x, self, population_id)
         cost = individual.evaluate()
-        self.populations[population].individuals.append(individual)
+        self.populations[population_id].individuals.append(individual)
 
         return cost
 
-    def evaluate_individual_scalar(self, x, population=0):
+    def evaluate_individual_scalar(self, x, population_id=0):
         """
 
         :param x:
@@ -215,7 +215,7 @@ class Problem(ProblemBase):
         :return: cost which is calculated
         """
 
-        cost = self.evaluate_individual(x, population)
+        cost = self.evaluate_individual(x, population_id)
         return cost[0]
 
     def evaluate_gradient_richardson(self, individual):
