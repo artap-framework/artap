@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import os
 
-x = np.linspace(0, 5, 50)
+x = np.linspace(0, 5, 500)
 y = np.sin(x)
 
 
@@ -48,7 +48,7 @@ app.layout = dashHtml.Div([
 @app.callback(Output('live-update-graph', 'figure'),
               [Input('interval-component', 'n_intervals')])
 def update_graph_live(n):
-    x = np.linspace(0, 5, 50)
+    x = np.linspace(0, 5, 500)
     y = np.sin(x * n) / n
     print(n)
     dummy_data = pd.read_csv('testdata.csv')
