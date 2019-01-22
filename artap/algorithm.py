@@ -29,7 +29,7 @@ class Algorithm(metaclass=ABCMeta):
         if self.problem.options["max_processes"] > 1:
             individuals = self.evaluate_parallel(individuals, population_id)
         else:
-            self.evaluate_serial(individuals, population_id)
+            individuals = self.evaluate_serial(individuals, population_id)
 
         return individuals
 
@@ -38,6 +38,7 @@ class Algorithm(metaclass=ABCMeta):
         for individual in individuals:
             if not individual.is_evaluated:
                 individual.costs = job.evaluate(individual.vector, population_id)
+        return individuals
 
     def evaluate_parallel(self, individuals: list, population_id: int):
         manager = Manager()
@@ -65,9 +66,7 @@ class Algorithm(metaclass=ABCMeta):
         # collect the results
         individuals = []
         for item in range(queue.qsize()):
-            result = queue.get()
-            print(result)
-            individuals.append(result)
+            individuals.append(queue.get())
         queue.close()
         queue.join_thread()
 
