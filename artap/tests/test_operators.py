@@ -12,8 +12,10 @@ class TestSensitivity(unittest.TestCase):
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         i1 = Individual([1, 2, 2])
         i2 = Individual([3, 2, 1])
+        parents = [i1, i2]
         sbx = SimulatedBinaryCrossover(parameters, 10)
-        print(sbx.run([i1, i2]))
+        offsprings = sbx.run(parents)
+        self.assertEqual(len(offsprings), 2)
 
 
 if __name__ == '__main__':
