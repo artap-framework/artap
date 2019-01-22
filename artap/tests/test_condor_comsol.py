@@ -59,8 +59,8 @@ class TestCondor(TestCase):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Comsol Problem")
         population = Population(problem)
-        # population.gen_random_population(15, len(problem.parameters),
-        #                                  problem.parameters)
+        # population.gen_random_population(15, len(problem.vector),
+        #                                  problem.vector)
 
         table = [[10, 10], [11, 11]]
         population.gen_population_from_table(table)
