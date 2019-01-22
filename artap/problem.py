@@ -11,10 +11,10 @@ import multiprocessing
 import logging
 
 # surrogate
-from sklearn import linear_model
+# from sklearn import linear_model
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
-from sklearn.neural_network import MLPClassifier
+# from sklearn.neural_network import MLPClassifier
 
 """
  Module is dedicated to describe optimization problem. 
@@ -74,7 +74,7 @@ class ProblemBase(ABC):
 
 
 class Problem(ProblemBase):
-    """ Is a main class which collects information about optimization task """
+    """ The Class Problem Is a main class which collects information about optimization task """
 
     MINIMIZE = -1
     MAXIMIZE = 1
