@@ -24,13 +24,13 @@ _surr_name = ["sGaussianProcess", "sGaussianProcessML", "sGaussianProcessNormal"
 # The objective module should inherit this one and override evaluateSample.
 class BayesOptContinuous(object):
 
-    ## Let's define the parameters.
+    ## Let's define the vector.
     #
-    # For different options: see parameters.h and parameters.cpp .
+    # For different options: see vector.h and vector.cpp .
     # If a parameter is not defined, it will be automatically set
     # to a default value.
     def __init__(self, n_dim):
-        ## Library parameters
+        ## Library vector
         self.params = {}
         ## n dimensions
         self.n_dim = n_dim
