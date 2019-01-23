@@ -2,6 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .enviroment import Enviroment
+from .job import Job
 
 import time
 
@@ -552,7 +553,9 @@ class NLopt(Algorithm):
         #    grad[1] = 0.5 / np.sqrt(x[1])
         #return np.sqrt(x[1])
 
-        val = self.problem.evaluate_individual_scalar(x)
+        job = Job(self.problem)
+        population_id = len(self.problem.populations) - 1
+        val = job.evaluate_scalar(x, population_id=0)
         # print(x, val)
         return val
 
@@ -564,7 +567,7 @@ class NLopt(Algorithm):
         return 0
 
     def run(self):
-        population = Population(self.problem)
+        population = Population()
         self.problem.populations.append(population)
 
         # Figure out bounds vectors.
