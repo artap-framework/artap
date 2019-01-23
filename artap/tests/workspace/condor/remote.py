@@ -1,6 +1,6 @@
 def eval():      
     """ Generate the input file for the external code. """    
-    with open("vector.txt") as input_file:
+    with open("parameters.txt") as input_file:
         data = input_file.read().split()
         x = []
         y = 0
