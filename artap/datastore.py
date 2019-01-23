@@ -261,7 +261,7 @@ class SqliteDataStore(DataStore):
         problem.name = problem_table[0][1]
 
         # vector
-        exec_cmd_params = "SELECT * FROM vector"
+        exec_cmd_params = "SELECT * FROM parameters"
 
         columns = []
         for row in cursor.execute(exec_cmd_params):
@@ -283,7 +283,7 @@ class SqliteDataStore(DataStore):
 
         data = cursor.execute(exec_cmd_data)
 
-        population = Population(problem)
+        population = Population()
         table = list()
         for row in data:
             table.append(row)
@@ -297,7 +297,7 @@ class SqliteDataStore(DataStore):
         for row in table:
             if row[1] == current_population:
                 population.number = current_population
-                individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
+                individual = Individual(row[2:2 + len(problem.parameters)], row[1])
                 l = 2 + len(problem.parameters) + len(problem.costs)
                 individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
                 individual.front_number = row[l]
@@ -308,7 +308,7 @@ class SqliteDataStore(DataStore):
                 population.individuals.append(individual)
             else:
                 problem.populations.append(population)
-                population = Population(problem)
+                population = Population()
                 current_population = row[1]
 
         problem.populations.append(population)
