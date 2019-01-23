@@ -7,7 +7,7 @@
 # from artap.datastore import DummyDataStore
 # from artap.enviroment import Enviroment
 # from artap.population import Population
-#
+# from artap.algorithm import EvalAll
 #
 # class TestProblem(Problem):
 #     """ Describe simple one objective optimization problem. """
@@ -58,13 +58,14 @@
 #     def test_condor_run(self):
 #         """ Tests one calculation of goal function."""
 #         problem = TestProblem("Condor Comsol Problem")
-#         population = Population(problem)
+#         population = Population()
 #         # population.gen_random_population(15, len(problem.vector),
 #         #                                  problem.vector)
 #
 #         table = [[10, 10], [11, 11]]
 #         population.gen_population_from_table(table)
-#         population.evaluate()
+#         evaluator = EvalAll(problem, population.individuals)
+#         population.individuals = evaluator.run()
 #         # population.evaluate_gradients()
 #         population.save()
 #
