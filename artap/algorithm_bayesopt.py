@@ -2,6 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .enviroment import Enviroment
+from .job import Job
 
 import time
 import numpy as np
@@ -13,7 +14,7 @@ sys.path.append(Enviroment.artap_root + os.sep + "lib" + os.sep)
 import bayesopt
 
 from multiprocessing import Process, Pipe, Manager
-from multiprocessing.managers import BaseManager
+# from multiprocessing.managers import BaseManager
 
 _l_type = ['L_FIXED', 'L_EMPIRICAL', 'L_DISCRETE', 'L_MCMC', 'L_ERROR']
 _sc_type = ['SC_MTL', 'SC_ML', 'SC_MAP', 'SC_LOOCV', 'SC_ERROR']
@@ -24,7 +25,7 @@ _surr_name = ["sGaussianProcess", "sGaussianProcessML", "sGaussianProcessNormal"
 # The objective module should inherit this one and override evaluateSample.
 class BayesOptContinuous(object):
 
-    ## Let's define the vector.
+    # Let's define the vector.
     #
     # For different options: see vector.h and vector.cpp .
     # If a parameter is not defined, it will be automatically set
@@ -113,7 +114,9 @@ class BayesOptClassSerial(BayesOptContinuous):
         self.params = {}
 
     def evaluateSample(self, x):
-        return self.problem.evaluate_individual_scalar(x)
+        job = Job(self.problem)
+        population_id = len(self.problem.populations) - 1
+        return job.evaluate_scalar(x, population_id)
 
 
 class BayesOptSerial(BayesOpt):
@@ -125,7 +128,7 @@ class BayesOptSerial(BayesOpt):
         self.bo = BayesOptClassSerial(len(self.problem.parameters), problem)
 
     def run(self):
-        population = Population(self.problem)
+        population = Population()
         self.problem.populations.append(population)
 
         # Figure out bounds vectors.
@@ -210,7 +213,8 @@ def worker(pipe, problem):
         if str(x) == 'STOP':
             break
 
-        result = problem.evaluate_individual_scalar(x)
+        job = Job(problem)
+        result = job.evaluate_scalar(x, len(problem.populations)-1)
         pipe.send(result)
 
 
