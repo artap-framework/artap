@@ -4,6 +4,7 @@ from .population import Population
 from .enviroment import Enviroment
 from .job import Job
 
+from multiprocessing import Queue
 import time
 
 import sys
@@ -533,7 +534,7 @@ class NLopt(Algorithm):
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
         self.problem = problem
-
+        self.job = None
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
         self.options.declare(name='n_iterations', default=50, lower=1,
@@ -553,22 +554,21 @@ class NLopt(Algorithm):
         #    grad[1] = 0.5 / np.sqrt(x[1])
         #return np.sqrt(x[1])
 
-        job = Job(self.problem)
-        population_id = len(self.problem.populations) - 1
-        val = job.evaluate_scalar(x, population_id=0)
+        val = self.job.evaluate_scalar(x)
         # print(x, val)
         return val
 
     def _constraint(x, grad, a, b):
-        #if grad.size > 0:
-        #    grad[0] = 3 * a * (a * x[0] + b) ** 2
-        #    grad[1] = -1.0
-        #return (a * x[0] + b) ** 3 - x[1]
+        # if grad.size > 0:
+        #     grad[0] = 3 * a * (a * x[0] + b) ** 2
+        #     grad[1] = -1.0
+        # return (a * x[0] + b) ** 3 - x[1]
         return 0
 
     def run(self):
-        population = Population()
-        self.problem.populations.append(population)
+        queue = Queue()
+        self.job = Job(self.problem, queue=queue)
+
 
         # Figure out bounds vectors.
         lb = []
@@ -590,8 +590,8 @@ class NLopt(Algorithm):
         op.set_maxeval(self.options['n_iterations'])
 
         # constraint
-        #op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, 2, 0), 1e-8)
-        #op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, -1, 1), 1e-8)
+        # op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, 2, 0), 1e-8)
+        # op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, -1, 1), 1e-8)
 
         try:
             t_s = time.time()
@@ -630,3 +630,12 @@ class NLopt(Algorithm):
         """
         if self.options['verbose_level'] >= 1:
             print('result code = ', op.last_optimize_result())
+
+        individuals = []
+        for item in range(queue.qsize()):
+            individuals.append(queue.get())
+        population = Population()
+        population.individuals = individuals
+        self.problem.populations.append(population)
+        queue.close()
+        queue.join_thread()
