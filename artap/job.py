@@ -1,5 +1,4 @@
 from .individual import Individual
-from .population import Population
 from copy import deepcopy
 from multiprocessing import Queue
 import os
@@ -12,17 +11,14 @@ class Job:
         self.shared_list = shared_list
         self.queue = queue
 
-    def evaluate(self, x, population_id: int = None):
+    def evaluate(self, x):
+        global individual
         if self.shared_list is not None:
             for item in self.shared_list:
                 if item[0] == os.getpid():
                     individual = deepcopy(item[1])
         else:
-            individual = Individual(x, population_id)
-        if population_id is None:
-            population = Population()
-        else:
-            population = self.problem.populations[population_id]
+            individual = Individual(x)
 
         # check the constraints
         constraints = self.problem.evaluate_constraints(individual.vector)
@@ -49,14 +45,11 @@ class Job:
         if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
             self.problem.data_store.write_individual(individual.to_list())
 
-        population.individuals.append(individual)
-        self.problem.populations.append(population)
-
         if self.queue is not None:
             self.queue.put(individual)
 
         return costs
 
-    def evaluate_scalar(self, x, population_id: int = None):
-        costs = self.evaluate(x, population_id)
+    def evaluate_scalar(self, x):
+        costs = self.evaluate(x)
         return costs[0]
