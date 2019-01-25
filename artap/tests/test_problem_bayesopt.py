@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from artap.problem import Problem
@@ -12,8 +11,8 @@ from artap.benchmark_functions import Booth
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-30, 30], 'precision': 1e-1},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-30, 30], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10], 'precision': 1e-3},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10], 'precision': 1e-3}}
         costs = ['F']
 
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
@@ -41,7 +40,7 @@ class TestBayesOptOptimization(unittest.TestCase):
     def test_local_problem_bayesopt_serial(self):
         problem = MyProblem("TestBayesOptSerial")
         algorithm = BayesOptSerial(problem)
-        algorithm.options['verbose_level'] = 0
+        algorithm.options['verbose_level'] = 1
         algorithm.options['n_iterations'] = 200
         algorithm.run()
 

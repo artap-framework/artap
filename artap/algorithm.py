@@ -21,6 +21,8 @@ class Algorithm(metaclass=ABCMeta):
                              desc='Verbose level')
         self.options.declare(name='calculate_gradients', default=False,
                              desc='Enable calculating of gradients')
+        self.options.declare(name='max_population_size', default=1,
+                             desc='Maximal number of individuals in population')
 
     @abstractmethod
     def run(self):
@@ -29,22 +31,24 @@ class Algorithm(metaclass=ABCMeta):
     def evaluate_population(self, population: Population):
         population.individuals = self.evaluate(population.individuals)
 
-    def evaluate(self, individuals: list, population_id: int = None):
+    def evaluate(self, individuals: list):
         if self.problem.options["max_processes"] > 1:
-            individuals = self.evaluate_parallel(individuals, population_id)
+            individuals = self.evaluate_parallel(individuals)
         else:
-            individuals = self.evaluate_serial(individuals, population_id)
+            individuals = self.evaluate_serial(individuals)
 
         return individuals
 
-    def evaluate_serial(self, individuals: list, population_id: int = None):
+    def evaluate_serial(self, individuals: list):
         job = Job(self.problem)
         for individual in individuals:
             if not individual.is_evaluated:
-                individual.costs = job.evaluate(individual.vector, population_id)
+                individual.costs = job.evaluate(individual.vector)
+
+        # collect the results
         return individuals
 
-    def evaluate_parallel(self, individuals: list, population_id: int):
+    def evaluate_parallel(self, individuals: list):
         manager = Manager()
         shared_list = manager.list([])
         queue = Queue()
@@ -55,7 +59,7 @@ class Algorithm(metaclass=ABCMeta):
         j = 0
         for individual in individuals:
             if not individual.is_evaluated:
-                p = Process(target=job.evaluate, args=(individual.vector, population_id))
+                p = Process(target=job.evaluate, args=(individual.vector,))
                 processes.append(p)
                 p.start()
                 shared_list.append([p.pid, individual])
@@ -89,7 +93,7 @@ class Sensitivity(Algorithm):
 
         for parameter_name in self.parameters:
             parameter_values = []
-            population = Population(self.problem)
+            population = Population()
 
             index = 0
             selected_parameter = None
@@ -100,16 +104,16 @@ class Sensitivity(Algorithm):
                 index += 1
 
             individuals = []
-            for i in range(self.problem.options['max_population_size']):
+            for i in range(self.options['max_population_size']):
                 value = VectorAndNumbers.gen_number(selected_parameter[1]['bounds'], selected_parameter[1]['precision'],
                                               'normal')
                 parameters[index] = value
                 parameter_values.append(value)
-                individual = Individual(parameters.copy(), self.problem)
+                individual = Individual(parameters.copy())
                 individuals.append(individual)
 
             population.individuals = individuals
-            population.evaluate()
+            self.evaluate_population(population)
             costs = []
             # TODO: Make also for multi-objective
             for individual in population.individuals:
@@ -128,7 +132,7 @@ class EvalAll(Algorithm):
         super().__init__(problem, name)
 
     def run(self):
-        self.evaluate_serial(self.individuals)
+        pass
 
     # def evaluate_gradient(self):
     #     self.gradient = self.problem.evaluate_gradient(self)
