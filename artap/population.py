@@ -3,12 +3,9 @@ from .individual import Individual
 
 class Population:
 
-    id = 0
+    def __init__(self, individuals: list = None):
 
-    def __init__(self, individuals=None):
-
-        self.id = Population.id
-        Population.id += 1
+        self.id = None
 
         if individuals is None:
             self.individuals = []
@@ -17,7 +14,6 @@ class Population:
             self.individuals = individuals.copy()
             for individual in self.individuals:
                 individual.population_id = self.id
-                individual.set_id()
 
         self.pareto_vectors: list = []
         self.pareto_costs: list = []
@@ -35,12 +31,12 @@ class Population:
         self.individuals.append(new_individuals)
 
     def gen_random_population(self, population_size, vector_length, parameters):
-        self.individuals = Individual.gen_individuals(population_size, self.id)
+        self.individuals = Individual.gen_individuals(population_size, parameters)
         return self.individuals
 
     def gen_population_from_table(self, table):
         for parameters in table:
-            individual = Individual(parameters, self.id)
+            individual = Individual(parameters)
             self.individuals.append(individual)
 
     # def gen_uniform_population(self, values_per_range):

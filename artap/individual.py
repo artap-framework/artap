@@ -7,20 +7,17 @@ class Individual(metaclass=ABCMeta):
     """
        Collects information about one point in design space.
     """
-    id = 0
-    results = None
-    gradients = None
 
-    def __init__(self, vector, population_id=0):
+    def __init__(self, vector: list):
         # self.vector = design_parameters.copy()
+        self.id = None
+        self.population_id = None
         self.vector = vector
         self.costs = []
-        self.id = Individual.id
         self.gradient = []
-        Individual.id += 1
 
         self.feasible = 0.0  # the distance from the feasibility region in min norm
-        self.population_id = population_id
+        self.population_id = None
         self.is_evaluated = False
         self.dominate = set()
         self.domination_counter = 0
@@ -55,7 +52,7 @@ class Individual(metaclass=ABCMeta):
         return string
 
     def to_list(self):
-        params = [[self.id], [self.population_id], self.vector, self.costs]
+        params = [self.vector, self.costs]
         # flatten list
         out = [val for sublist in params for val in sublist]
         out.append(self.front_number)
@@ -69,23 +66,19 @@ class Individual(metaclass=ABCMeta):
             out.append(self.feasible)
         dominates = []
         for individual in self.dominate:
-            dominates.append(individual.number)
+            dominates.append(individual.id)
         out.append(dominates)
         out.append(self.gradient)
         return out
 
-    def set_id(self):
-        self.id = Individual.id
-        Individual.id += 1
-
     @classmethod
-    def gen_individuals(cls, number, population_id):
+    def gen_individuals(cls, number, parameters):
         individuals = []
         for i in range(number):
-            individuals.append(cls.gen_individual(population_id))
+            individuals.append(cls.gen_individual(parameters))
         return individuals
 
     @classmethod
-    def gen_individual(cls, parameters: dict, population_id=0):
-        parameters_vector = VectorAndNumbers.gen_vector(cls, parameters)
-        return cls(parameters_vector, population_id)
+    def gen_individual(cls, parameters: dict = None):
+        parameters_vector = VectorAndNumbers.gen_vector(parameters)
+        return cls(parameters_vector)
