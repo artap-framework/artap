@@ -2,11 +2,12 @@ from random import random, randint
 from .problem import Problem
 from .population import Population
 from .individual import Individual
-from .algorithm_genetic import NSGA_II
+from .algorithm_genetic import NSGAII
 
 import time
 
-class PSO(NSGA_II):
+
+class PSO(NSGAII):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
@@ -21,7 +22,7 @@ class PSO(NSGA_II):
     def gen_initial_population(self):
         super().gen_initial_population()
         population = self.problem.populations[-1]
-        population.evaluate()
+        self.evaluate_population(population)
         for individual in population.individuals:
             self.evaluate_pso(individual)
 
@@ -36,60 +37,59 @@ class PSO(NSGA_II):
 
         # check to see if the current position is an individual best
         if dominates:
-            individual.best_parameters = individual.parameters
+            individual.best_vector = individual.vector
             individual.best_costs = individual.costs
 
     # update new particle velocity
     def update_velocity(self, individual):
 
-        for i in range(0, len(individual.parameters)):
+        for i in range(0, len(individual.vector)):
             r1 = random()
             r2 = random()
 
-            vel_cognitive = self.c1 * r1 * (individual.best_parameters[i] - individual.parameters[i])
-            vel_social = self.c2 * r2 * (self.pos_best_g[i] - individual.parameters[i])
+            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_social = self.c2 * r2 * (self.pos_best_g[i] - individual.vector[i])
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
     # update the particle position based off new velocity updates
     def update_position(self, individual, bounds):
-        for i in range(0, len(individual.parameters)):
-            individual.parameters[i] = individual.parameters[i] + individual.velocity_i[i]
+        for i in range(0, len(individual.vector)):
+            individual.vector[i] = individual.vector[i] + individual.velocity_i[i]
 
             # adjust maximum position if necessary
-            if individual.parameters[i] > bounds[i][1]:
-                individual.parameters[i] = bounds[i][1]
+            if individual.vector[i] > bounds[i][1]:
+                individual.vector[i] = bounds[i][1]
 
             # adjust minimum position if necessary
-            if individual.parameters[i] < bounds[i][0]:
-                individual.parameters[i] = bounds[i][0]
+            if individual.vector[i] < bounds[i][0]:
+                individual.vector[i] = bounds[i][0]
 
     def run(self):
         self.gen_initial_population()
         self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
-        self.problem.populations[-1].save()
+        self.problem.data_store.write_population(self.problem.populations[-1].to_list())
 
         t_s = time.time()
-        self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'], self.options['max_population_size']))
+        self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
+                                                     self.options['max_population_size']))
 
         i = 0
         while i < self.options['max_population_number']:
-            #print(i, self.err_best_g)
-            #print(i, self.pos_best_g)
-            population = Population(self.problem)
+            population = Population()
 
             pareto_front = []
             for j in range(self.options['max_population_size']):
                 if self.problem.populations[-1].individuals[j].front_number == 1:
                     pareto_front.append(self.problem.populations[-1].individuals[j])
-                individual = Individual(self.problem.populations[-1].individuals[j].parameters.copy(), self.problem)
-                individual.best_parameters = self.problem.populations[-1].individuals[j].best_parameters
+                individual = Individual(self.problem.populations[-1].individuals[j].vector.copy())
+                individual.best_vector = self.problem.populations[-1].individuals[j].best_vector
                 individual.best_costs = self.problem.populations[-1].individuals[j].best_costs
                 individual.costs = self.problem.populations[-1].individuals[j].costs
                 population.individuals.append(individual)
 
             index = randint(0, len(pareto_front)-1)  # takes random individual from Pareto front
             individual = pareto_front[index]
-            self.pos_best_g = list(individual.parameters)
+            self.pos_best_g = list(individual.vector)
             self.err_best_g = individual.costs
 
             for individual in population.individuals:
@@ -103,12 +103,12 @@ class PSO(NSGA_II):
                 # print(individual.vector)
                 # print("---------------------")
 
-            population.evaluate()
+            self.evaluate_population(population)
             for individual in population.individuals:
                 self.evaluate_pso(individual)
             self.fast_non_dominated_sort(population.individuals)
             self.problem.add_population(population)
-            population.save()
+            self.problem.data_store.write_population(population.to_list())
             i += 1
 
         t = time.time() - t_s
