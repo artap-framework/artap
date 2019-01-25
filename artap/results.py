@@ -90,7 +90,7 @@ class GraphicalResults(Results):
     def plot_all_individuals(self, filename=None):
         for population in self.problem.populations:
             for individual in population.individuals:
-                pl.plot(individual.id, individual.vector[0], 'x')
+                pl.plot(individual.vector[0], 'x')
 
         if filename is not None:
             pl.savefig(filename)
