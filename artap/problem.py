@@ -2,6 +2,7 @@ from .datastore import SqliteDataStore, SqliteHandler
 from .individual import Individual
 from .utils import flatten
 from .utils import ConfigDictionary
+from .job import Job
 import collections
 from abc import ABC, abstractmethod
 
@@ -192,44 +193,6 @@ class Problem(ProblemBase):
         for parameter in self.get_parameters_list():
             table.append([parameter[2], parameter[3]])
         return table
-
-    def evaluate_gradient_richardson(self, individual):
-        n = len(self.parameters)
-        gradient = [0] * n
-        x0 = individual.parameters
-        h = 1e-6
-        y = self.evaluate_individual_scalar(x0)
-        for i in range(len(self.parameters)):
-            x = x0.copy()
-            x[i] += h
-            y_h = self.evaluate_individual_scalar(x)
-            d_0_h = gradient[i] = (y_h - y) / h
-            x[i] += h
-            y_2h = self.evaluate_individual_scalar(x)
-            d_0_2h = (y_2h - y) / 2 / h
-            gradient[i] = (4*d_0_h - d_0_2h) / 3
-
-        return gradient
-
-    def evaluate_gradient(self, individual):
-        n = len(self.parameters)
-        gradient = [0]*n
-        x0 = individual.parameters
-        y = self.evaluate(x0)
-        h = 1e-6
-        for i in range(len(self.parameters)):
-            x = x0.copy()
-            x[i] += h
-            y_h = self.evaluate(x)
-            if isinstance(y_h, collections.Iterable):
-                m = len(y_h)
-                gradient[i] = []
-                for j in range(m):
-                    gradient[i].append((y_h[j] - y[j]) / h)
-            else:
-                gradient[i] = (y_h - y) / h
-
-        return gradient
 
     def evaluate_surrogate(self, x: list):
         evaluate = True

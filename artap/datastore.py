@@ -93,6 +93,7 @@ class DataStore:
     def get_id(self):
         return 0
 
+
 class SqliteDataStore(DataStore):
 
     def __init__(self, problem=None, database_file=None, working_dir=None, create_database=False):
@@ -116,7 +117,7 @@ class SqliteDataStore(DataStore):
             else:
                 parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite")
                 parameters_file.close()
-                self.database_name = parameters_file.name()
+                self.database_name = parameters_file.name
 
     def __del__(self):
         super().__del__()
@@ -297,7 +298,7 @@ class SqliteDataStore(DataStore):
         for row in table:
             if row[1] == current_population:
                 population.number = current_population
-                individual = Individual(row[2:2 + len(problem.parameters)], row[1])
+                individual = Individual(row[2:2 + len(problem.parameters)])
                 l = 2 + len(problem.parameters) + len(problem.costs)
                 individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
                 individual.front_number = row[l]

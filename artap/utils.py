@@ -1,5 +1,6 @@
 import collections
 from numpy.random import normal
+from random import random
 
 
 def flatten(l):
@@ -241,7 +242,7 @@ class VectorAndNumbers:
 
         return number
 
-    @staticmethod
+    @classmethod
     def gen_vector(cls, design_parameters: dict):
 
         parameters_vector = []
