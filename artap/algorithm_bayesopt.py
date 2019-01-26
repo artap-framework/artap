@@ -13,7 +13,7 @@ import sys
 sys.path.append(Enviroment.artap_root + os.sep + "lib" + os.sep)
 import bayesopt
 
-from multiprocessing import Process, Pipe, Manager
+from multiprocessing import Process, Pipe, Queue, Manager
 # from multiprocessing.managers import BaseManager
 
 _l_type = ['L_FIXED', 'L_EMPIRICAL', 'L_DISCRETE', 'L_MCMC', 'L_ERROR']
@@ -72,8 +72,8 @@ class BayesOptContinuous(object):
     ## Main function. Starts the optimization process.
     def optimize(self):
         min_val, x_out, error = bayesopt.optimize(self.evaluateSample, self.n_dim,
-                                            self.lb, self.ub,
-                                            self.params)
+                                                  self.lb, self.ub,
+                                                  self.params)
 
         return min_val, x_out, error
 
@@ -113,10 +113,11 @@ class BayesOptClassSerial(BayesOptContinuous):
         self.ub = np.empty((n,))
         self.params = {}
 
+        self.queue = Queue()
+        self.job = Job(self.problem, queue=self.queue)
+
     def evaluateSample(self, x):
-        job = Job(self.problem)
-        population_id = len(self.problem.populations) - 1
-        return job.evaluate_scalar(x, population_id)
+        return self.job.evaluate_scalar(x)
 
 
 class BayesOptSerial(BayesOpt):
@@ -128,9 +129,6 @@ class BayesOptSerial(BayesOpt):
         self.bo = BayesOptClassSerial(len(self.problem.parameters), problem)
 
     def run(self):
-        population = Population()
-        self.problem.populations.append(population)
-
         # Figure out bounds vectors.
         i = 0
         for id in self.problem.parameters:
@@ -162,7 +160,17 @@ class BayesOptSerial(BayesOpt):
             print('Optimization FAILED.')
             print("Error", error)
             print('-' * 35)
-        #else:
+        else:
+            individuals = []
+            for item in range(self.bo.queue.qsize()):
+                individuals.append(self.bo.queue.get())
+
+            population = Population()
+            population.individuals = individuals
+            self.problem.populations.append(population)
+            self.bo.queue.close()
+            self.bo.queue.join_thread()
+
         #    print('Optimization Complete, %f seconds' % (clock() - start))
         #    print("Result", x_out, mvalue)
         #    print('-' * 35)
