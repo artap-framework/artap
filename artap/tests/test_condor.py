@@ -7,6 +7,7 @@ from artap.problem import Problem
 from artap.enviroment import Enviroment
 from artap.population import Population
 from artap.job import Job
+from artap.datastore import DummyDataStore
 
 
 class TestProblem(Problem):
@@ -19,7 +20,7 @@ class TestProblem(Problem):
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir)
+        super().__init__(name, parameters, costs, working_dir=working_dir, data_store=DummyDataStore(self))
         self.options['max_processes'] = 10
 
         supplementary_files = ["remote.job", "remote.py"]
