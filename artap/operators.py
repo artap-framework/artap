@@ -1,4 +1,4 @@
-from _ast3 import Dict
+from _ast import Dict
 from abc import abstractmethod, ABC
 from copy import deepcopy
 import sys
