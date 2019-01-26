@@ -57,7 +57,6 @@ class ComsolExecutor(Executor):
         if (len(x)) > 1:
             run_string = run_string[:-1]
 
-        # print(run_string)
         os.system(run_string)
 
     def eval(self, x):

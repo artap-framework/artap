@@ -549,14 +549,7 @@ class NLopt(Algorithm):
                              desc='ftol_abs')
 
     def _function(self, x, grad):
-        #if grad.size > 0:
-        #    grad[0] = 0.0
-        #    grad[1] = 0.5 / np.sqrt(x[1])
-        #return np.sqrt(x[1])
-
-        val = self.job.evaluate_scalar(x)
-        # print(x, val)
-        return val
+        return self.job.evaluate_scalar(x)
 
     def _constraint(x, grad, a, b):
         # if grad.size > 0:
@@ -568,7 +561,6 @@ class NLopt(Algorithm):
     def run(self):
         queue = Queue()
         self.job = Job(self.problem, queue=queue)
-
 
         # Figure out bounds vectors.
         lb = []

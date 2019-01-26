@@ -6,7 +6,7 @@ import os
 
 class Job:
 
-    def __init__(self, problem, shared_list=None, queue: Queue = None):
+    def __init__(self, problem, shared_list=None, queue: Queue=None):
         self.problem = problem
         self.shared_list = shared_list
         self.queue = queue
