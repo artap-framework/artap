@@ -30,7 +30,7 @@ class TestProblem(Problem):
 
 
 class TestSimpleComsolOptimization(unittest.TestCase):
-    def test_upper(self):
+    def cluster_disabled_test_upper(self):
         problem = TestProblem("LocalComsolProblem")
         job = Job(problem)
         result = job.evaluate([1, 1])
