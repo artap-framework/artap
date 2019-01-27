@@ -6,7 +6,7 @@ from artap.executor import CondorPythonJobExecutor
 from artap.problem import Problem
 from artap.enviroment import Enviroment
 from artap.population import Population
-from artap.job import Job
+from artap.job import JobSimple
 from artap.datastore import DummyDataStore
 
 
@@ -54,7 +54,7 @@ class TestCondor(TestCase):
     def test_condor_run(self):
         """ Tests one calculation of goal function."""
         problem = TestProblem("Condor Problem")
-        job = Job(problem)
+        job = JobSimple(problem)
         result = job.evaluate([1, 1])
         self.assertAlmostEqual(result[0], 2)
 

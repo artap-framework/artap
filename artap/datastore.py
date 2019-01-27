@@ -66,13 +66,20 @@ class SqliteHandler(logging.Handler):
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
 
-    def __init__(self):
+    def __init__(self, problem):
+        self.problem = problem
+
         # create the new loop and worker thread
         self.worker_loop = asyncio.new_event_loop()
         worker = Thread(target=self._start_worker, args=(self.worker_loop,))
         worker.daemon = True
         # Start the thread
         worker.start()
+
+        # populations
+        self.populations = []
+        # individuals ???
+        self.individuals = []
 
     def __del__(self):
         # print("DataStore:def __del__(self):")
@@ -81,6 +88,10 @@ class DataStore:
     def _start_worker(self, loop):
         asyncio.set_event_loop(loop)
         loop.run_forever()
+
+    @abstractmethod
+    def create_structure(self):
+        pass
 
     @abstractmethod
     def write_individual(self, params):
@@ -95,16 +106,15 @@ class DataStore:
 
 
 class SqliteDataStore(DataStore):
-
     def __init__(self, problem=None, database_file=None, working_dir=None, create_database=False):
-        super().__init__()
+        super().__init__(problem)
 
         if working_dir is None:
             self.working_dir = ""
         else:
             self.working_dir = working_dir
 
-        if problem is not None:
+        if self.problem is not None:
             problem.data_store = self
 
         if create_database:
@@ -147,6 +157,12 @@ class SqliteDataStore(DataStore):
 
     def save_problem(self, problem):
         pass
+
+    def create_structure(self):
+        self.create_structure_task()
+        self.create_structure_individual(self.problem.parameters, self.problem.costs)
+        self.create_structure_parameters(self.problem.get_parameters_list())
+        self.create_structure_costs(self.problem.costs)
 
     def create_structure_log(self):
         exec_cmd = 'CREATE TABLE IF NOT EXISTS log(' \
@@ -213,30 +229,34 @@ class SqliteDataStore(DataStore):
             exec_cmd = "INSERT INTO costs(name) values('%s');" % cost
             self._execute_command(exec_cmd)
 
-    def write_individual(self, params):
-        exec_cmd = "INSERT INTO data VALUES ("
-        """
-        for i in range(len(params) - 1):
-            exec_cmd += " " + str(params[i]) + ","
-        exec_cmd += " " + str(params[i]) + ")"
-        """
+    def write_individual(self, individual):
+        # add individual
+        self.individuals.append(individual)
 
-        for i in range(len(params) - 1):
+        # add to database
+        if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
+            params = individual.to_list()
+
+            exec_cmd = "INSERT INTO data VALUES ("
+
+            for i in range(len(params) - 1):
+                if type(params[i]) == list:
+                    par = "'" + str(params[i]) + "'"
+                else:
+                    par = str(params[i])
+                exec_cmd += " " + par + ","
+
             if type(params[i]) == list:
                 par = "'" + str(params[i]) + "'"
             else:
                 par = str(params[i])
-            exec_cmd += " " + par + ","
+            exec_cmd += " " + par + ")"
 
-        if type(params[i]) == list:
-            par = "'" + str(params[i]) + "'"
-        else:
-            par = str(params[i])
-        exec_cmd += " " + par + ")"
+            self._execute_command(exec_cmd)
 
-        self._execute_command(exec_cmd)
-
-    def write_population(self, table):
+    def write_population(self, population):
+        self.populations.append(population)
+        """
         connection = sqlite3.connect(self.database_name)
 
         for params in table:
@@ -250,6 +270,7 @@ class SqliteDataStore(DataStore):
             cursor.close()
         connection.commit()
         connection.close()
+        """
 
     def read_problem(self, problem):
         connection = sqlite3.connect(self.database_name)
@@ -280,11 +301,15 @@ class SqliteDataStore(DataStore):
         problem.costs = {cost: 0.0 for cost in costs}
 
         exec_cmd_data = "SELECT * FROM data"
-        problem.populations = []
-
         data = cursor.execute(exec_cmd_data)
 
+        # clear populations and individuals
+        self.individuals = []
+        self.populations = []
+        # new population
         population = Population()
+        self.populations.append(population)
+
         table = list()
         for row in data:
             table.append(row)
@@ -297,7 +322,6 @@ class SqliteDataStore(DataStore):
         current_population = table[0][1]
         for row in table:
             if row[1] == current_population:
-                population.number = current_population
                 individual = Individual(row[2:2 + len(problem.parameters)])
                 l = 2 + len(problem.parameters) + len(problem.costs)
                 individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
@@ -306,27 +330,30 @@ class SqliteDataStore(DataStore):
                 individual.feasible = row[l+2]
                 individual.dominate = json.loads(row[l+3])
                 individual.gradient = json.loads(row[l+4])
+
+                # add individual
+                self.individuals.append(individual)
+                # add to population
                 population.individuals.append(individual)
             else:
-                problem.populations.append(population)
+                # increase population
+                self.populations.append(population)
                 population = Population()
                 current_population = row[1]
-
-        problem.populations.append(population)
-
 
 class DummyDataStore(DataStore):
 
     def __init__(self, problem=None):
-        super().__init__()
-
-        problem.data_store = self
+        super().__init__(problem)
 
     def __del__(self):
         super().__del__()
 
-    def write_individual(self, params):
+    def create_structure(self):
         pass
 
-    def write_population(self, table):
-        pass
+    def write_individual(self, individual):
+        self.individuals.append(individual)
+
+    def write_population(self, population):
+        self.populations.append(population)

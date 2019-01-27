@@ -9,15 +9,12 @@ class Individual(metaclass=ABCMeta):
     """
 
     def __init__(self, vector: list):
-        # self.vector = design_parameters.copy()
         self.id = None
-        self.population_id = None
         self.vector = vector
         self.costs = []
         self.gradient = []
 
         self.feasible = 0.0  # the distance from the feasibility region in min norm
-        self.population_id = None
         self.is_evaluated = False
         self.dominate = set()
         self.domination_counter = 0

@@ -38,7 +38,6 @@ class ProblemBase(ABC):
     def __init__(self):
         self.name: str = None
         self.description = ""
-        self.populations: list = None
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: SqliteDataStore = None
@@ -134,16 +133,13 @@ class Problem(ProblemBase):
 
         if data_store is None:
             self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
-            self.data_store.create_structure_task(self)
-            self.data_store.create_structure_individual(self.parameters, self.costs)
-            self.data_store.create_structure_parameters(self.get_parameters_list())
-            self.data_store.create_structure_costs(self.costs)
+            self.data_store.create_structure(self)
 
         else:
             self.data_store = data_store
+            self.data_store.problem = self
         
         self.id = self.data_store.get_id()
-        self.populations = []
         self.eval_counter = 0
 
         # working dir must be set
@@ -180,9 +176,6 @@ class Problem(ProblemBase):
         kernel = 1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-5, 1e5), nu=1.5)
         self.surrogate = GaussianProcessRegressor(kernel=kernel)
         # self.surrogate = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-
-    def add_population(self, population):
-        self.populations.append(population)
 
     def parameters_len(self):
         return len(self.parameters)
