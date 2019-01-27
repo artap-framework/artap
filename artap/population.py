@@ -2,14 +2,12 @@ from .individual import Individual
 
 
 class Population:
-
     def __init__(self, individuals: list = None):
 
         self.id = None
 
         if individuals is None:
             self.individuals = []
-
         else:
             self.individuals = individuals.copy()
             for individual in self.individuals:
