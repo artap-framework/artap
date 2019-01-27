@@ -246,7 +246,7 @@ class NSGAII(GeneticAlgorithm):
         self.gen_initial_population()
         self.problem.data_store.write_population(self.population)
 
-        offsprings = self.populations[0].individuals
+        offsprings = self.population.individuals
 
         t_s = time.time()
         self.problem.logger.info("NSGA_II: {}/{}".format(self.options['max_population_number'],
@@ -255,8 +255,6 @@ class NSGAII(GeneticAlgorithm):
         # optimization
         for it in range(self.options['max_population_number']):
             self.population = Population(offsprings)
-            self.populations.append(self.population)
-
             self.evaluate_population()  # evaluate the offsprings
 
             # non-dominated truncate on the guys
@@ -264,13 +262,13 @@ class NSGAII(GeneticAlgorithm):
             self.calculate_crowd_dis(offsprings)
 
             self.problem.data_store.write_population(self.population)
-            offsprings.extend(self.populations[it].individuals)  # add the parents to the offsprings
+            offsprings.extend(self.problem.data_store.populations[it].individuals)  # add the parents to the offsprings
             parents = sorted(offsprings, key=lambda x: x.front_number)
 
             # truncate
-            self.populations[it].individuals = parents[:self.options['max_population_size']]
+            self.problem.data_store.populations[it].individuals = parents[:self.options['max_population_size']]
 
-            offsprings = self.generate(self.populations[it].individuals)
+            offsprings = self.generate(self.problem.data_store.populations[it].individuals)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))

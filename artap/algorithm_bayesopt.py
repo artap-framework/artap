@@ -229,9 +229,6 @@ class BayesOptParallel(BayesOpt):
         self.bo = BayesOptClassParallel(self.pipe_child, len(self.problem.parameters), problem)
 
     def run(self):
-        population = Population()
-        self.populations.append(population)
-
         # Figure out bounds vectors.
         i = 0
         for id in self.problem.parameters:

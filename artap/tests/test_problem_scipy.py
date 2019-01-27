@@ -16,7 +16,6 @@ class MyProblem(Problem):
 
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
-        self.options['save_level'] = 'individual'
 
     def evaluate(self, x):
         result = 0
