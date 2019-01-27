@@ -96,9 +96,8 @@ class Sensitivity(Algorithm):
 
         for parameter_name in self.parameters:
             parameter_values = []
-            if len(self.populations) > 1:
+            if len(self.problem.data_store.populations) > 1:
                 self.population = Population()
-                self.populations.append(self.population)
 
             index = 0
             selected_parameter = None
@@ -118,7 +117,7 @@ class Sensitivity(Algorithm):
                 individuals.append(individual)
 
             self.population.individuals = individuals
-            self.evaluate_population(self.population)
+            self.evaluate_population()
             costs = []
             # TODO: Make also for multi-objective
             for individual in self.population.individuals:
