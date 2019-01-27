@@ -2,7 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .enviroment import Enviroment
-from .job import Job
+from .job import JobSimple
 
 import time
 import numpy as np
@@ -104,17 +104,19 @@ class BayesOpt(Algorithm):
 
 
 class BayesOptClassSerial(BayesOptContinuous):
-    def __init__(self, n, problem: Problem):
+    def __init__(self, algorithm):
+        n = len(algorithm.problem.parameters)
         super().__init__(n)
-        self.problem = problem
+
+        # algorithm
+        self.algorithm = algorithm
 
         # Size design variables.
         self.lb = np.empty((n,))
         self.ub = np.empty((n,))
         self.params = {}
 
-        self.queue = Queue()
-        self.job = Job(self.problem, queue=self.queue)
+        self.job = JobSimple(self.algorithm.problem, self.algorithm.population)
 
     def evaluateSample(self, x):
         return self.job.evaluate_scalar(x)
@@ -126,7 +128,7 @@ class BayesOptSerial(BayesOpt):
     def __init__(self, problem: Problem, name="BayesOpt"):
         super().__init__(problem, name)
 
-        self.bo = BayesOptClassSerial(len(self.problem.parameters), problem)
+        self.bo = BayesOptClassSerial(self)
 
     def run(self):
         # Figure out bounds vectors.
@@ -161,19 +163,10 @@ class BayesOptSerial(BayesOpt):
             print("Error", error)
             print('-' * 35)
         else:
-            individuals = []
-            for item in range(self.bo.queue.qsize()):
-                individuals.append(self.bo.queue.get())
-
-            population = Population()
-            population.individuals = individuals
-            self.problem.populations.append(population)
-            self.bo.queue.close()
-            self.bo.queue.join_thread()
-
-        #    print('Optimization Complete, %f seconds' % (clock() - start))
-        #    print("Result", x_out, mvalue)
-        #    print('-' * 35)
+            pass
+            # print('Optimization Complete, %f seconds' % (clock() - start))
+            # print("Result", x_out, mvalue)
+            # print('-' * 35)
 
 
 class BayesOptClassParallel(Process, BayesOptContinuous):
@@ -221,8 +214,8 @@ def worker(pipe, problem):
         if str(x) == 'STOP':
             break
 
-        job = Job(problem)
-        result = job.evaluate_scalar(x, len(problem.populations)-1)
+        job = JobSimple(problem)
+        result = job.evaluate_scalar(x)
         pipe.send(result)
 
 
@@ -236,8 +229,8 @@ class BayesOptParallel(BayesOpt):
         self.bo = BayesOptClassParallel(self.pipe_child, len(self.problem.parameters), problem)
 
     def run(self):
-        population = Population(self.problem)
-        self.problem.populations.append(population)
+        population = Population()
+        self.populations.append(population)
 
         # Figure out bounds vectors.
         i = 0

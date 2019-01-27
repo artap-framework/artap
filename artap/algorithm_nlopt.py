@@ -2,7 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .enviroment import Enviroment
-from .job import Job
+from .job import JobSimple
 
 from multiprocessing import Queue
 import time
@@ -534,7 +534,7 @@ class NLopt(Algorithm):
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
         self.problem = problem
-        self.job = None
+        self.job = JobSimple(self.problem, self.population)
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
         self.options.declare(name='n_iterations', default=50, lower=1,
@@ -559,9 +559,6 @@ class NLopt(Algorithm):
         return 0
 
     def run(self):
-        queue = Queue()
-        self.job = Job(self.problem, queue=queue)
-
         # Figure out bounds vectors.
         lb = []
         ub = []
@@ -622,12 +619,3 @@ class NLopt(Algorithm):
         """
         if self.options['verbose_level'] >= 1:
             print('result code = ', op.last_optimize_result())
-
-        individuals = []
-        for item in range(queue.qsize()):
-            individuals.append(queue.get())
-        population = Population()
-        population.individuals = individuals
-        self.problem.populations.append(population)
-        queue.close()
-        queue.join_thread()
