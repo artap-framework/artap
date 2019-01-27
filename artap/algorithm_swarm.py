@@ -21,9 +21,8 @@ class PSO(NSGAII):
     # TODO: Almost the same code as for genetic algorithm. Reuse.
     def gen_initial_population(self):
         super().gen_initial_population()
-        population = self.problem.populations[-1]
-        self.evaluate_population(population)
-        for individual in population.individuals:
+        self.evaluate_population()
+        for individual in self.population.individuals:
             self.evaluate_pso(individual)
 
     # evaluate current fitness
@@ -66,8 +65,8 @@ class PSO(NSGAII):
 
     def run(self):
         self.gen_initial_population()
-        self.fast_non_dominated_sort(self.problem.populations[-1].individuals)
-        self.problem.data_store.write_population(self.problem.populations[-1].to_list())
+        self.fast_non_dominated_sort(self.population.individuals)
+        self.problem.data_store.write_population(self.population)
 
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
@@ -76,23 +75,26 @@ class PSO(NSGAII):
         i = 0
         while i < self.options['max_population_number']:
             population = Population()
+            self.populations.append(population)
 
             pareto_front = []
             for j in range(self.options['max_population_size']):
-                if self.problem.populations[-1].individuals[j].front_number == 1:
-                    pareto_front.append(self.problem.populations[-1].individuals[j])
-                individual = Individual(self.problem.populations[-1].individuals[j].vector.copy())
-                individual.best_vector = self.problem.populations[-1].individuals[j].best_vector
-                individual.best_costs = self.problem.populations[-1].individuals[j].best_costs
-                individual.costs = self.problem.populations[-1].individuals[j].costs
+                if self.population.individuals[j].front_number == 1:
+                    pareto_front.append(self.population.individuals[j])
+                individual = Individual(self.population.individuals[j].vector.copy())
+                individual.best_vector = self.population.individuals[j].best_vector
+                individual.best_costs = self.population.individuals[j].best_costs
+                individual.costs = self.population.individuals[j].costs
+
                 population.individuals.append(individual)
+            self.population = population
 
             index = randint(0, len(pareto_front)-1)  # takes random individual from Pareto front
             individual = pareto_front[index]
             self.pos_best_g = list(individual.vector)
             self.err_best_g = individual.costs
 
-            for individual in population.individuals:
+            for individual in self.population.individuals:
                 individual.costs = []
                 # print(individual.velocity_i)
                 self.update_velocity(individual)
@@ -103,12 +105,12 @@ class PSO(NSGAII):
                 # print(individual.vector)
                 # print("---------------------")
 
-            self.evaluate_population(population)
-            for individual in population.individuals:
+            self.evaluate_population()
+            for individual in self.population.individuals:
                 self.evaluate_pso(individual)
-            self.fast_non_dominated_sort(population.individuals)
-            self.problem.add_population(population)
-            self.problem.data_store.write_population(population.to_list())
+            self.fast_non_dominated_sort(self.population.individuals)
+            self.problem.data_store.write_population(self.population)
+
             i += 1
 
         t = time.time() - t_s

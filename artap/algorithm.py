@@ -3,7 +3,7 @@ from .population import Population
 from .individual import Individual
 from .utils import ConfigDictionary
 from .utils import VectorAndNumbers
-from .job import Job
+from .job import JobSimple, JobQueue
 
 from multiprocessing import Process, Manager, Queue
 from abc import ABCMeta, abstractmethod
@@ -17,6 +17,12 @@ class Algorithm(metaclass=ABCMeta):
         self.problem = problem
         self.options = ConfigDictionary()
 
+        # current population
+        self.population = Population()
+        # populations
+        self.populations = []
+        self.populations.append(self.population)
+
         self.options.declare(name='verbose_level', default=1, lower=0,
                              desc='Verbose level')
         self.options.declare(name='calculate_gradients', default=False,
@@ -28,8 +34,8 @@ class Algorithm(metaclass=ABCMeta):
     def run(self):
         pass
 
-    def evaluate_population(self, population: Population):
-        population.individuals = self.evaluate(population.individuals)
+    def evaluate_population(self):
+        self.population.individuals = self.evaluate(self.population.individuals)
 
     def evaluate(self, individuals: list):
         if self.problem.options["max_processes"] > 1:
@@ -40,7 +46,7 @@ class Algorithm(metaclass=ABCMeta):
         return individuals
 
     def evaluate_serial(self, individuals: list):
-        job = Job(self.problem)
+        job = JobSimple(self.problem)
         for individual in individuals:
             if not individual.is_evaluated:
                 individual.costs = job.evaluate(individual.vector)
@@ -52,7 +58,7 @@ class Algorithm(metaclass=ABCMeta):
         manager = Manager()
         shared_list = manager.list([])
         queue = Queue()
-        job = Job(self.problem, shared_list, queue)
+        job = JobQueue(self.problem, shared_list, queue)
         processes = []
 
         i = 0
@@ -93,7 +99,9 @@ class Sensitivity(Algorithm):
 
         for parameter_name in self.parameters:
             parameter_values = []
-            population = Population()
+            if len(self.populations) > 1:
+                self.population = Population()
+                self.populations.append(self.population)
 
             index = 0
             selected_parameter = None
@@ -112,14 +120,12 @@ class Sensitivity(Algorithm):
                 individual = Individual(parameters.copy())
                 individuals.append(individual)
 
-            population.individuals = individuals
-            self.evaluate_population(population)
+            self.population.individuals = individuals
+            self.evaluate_population(self.population)
             costs = []
             # TODO: Make also for multi-objective
-            for individual in population.individuals:
+            for individual in self.population.individuals:
                 costs.append(individual.costs)
-
-            self.problem.populations.append(population)
 
 
 class EvalAll(Algorithm):

@@ -81,11 +81,9 @@ class NSGAII(GeneticAlgorithm):
                              desc='prob_mutation')
 
     def gen_initial_population(self):
-        population = Population()
-        population.gen_random_population(self.options['max_population_size'],
-                                         self.parameters_length,
-                                         self.problem.parameters)
-        self.problem.populations.append(population)
+        self.population.gen_random_population(self.options['max_population_size'],
+                                              self.parameters_length,
+                                              self.problem.parameters)
 
     def is_dominate(self, p, q):
         """
@@ -246,7 +244,9 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         self.gen_initial_population()
-        offsprings = self.problem.populations[0].individuals
+        self.problem.data_store.write_population(self.population)
+
+        offsprings = self.populations[0].individuals
 
         t_s = time.time()
         self.problem.logger.info("NSGA_II: {}/{}".format(self.options['max_population_number'],
@@ -254,23 +254,23 @@ class NSGAII(GeneticAlgorithm):
 
         # optimization
         for it in range(self.options['max_population_number']):
-            population = Population(offsprings)
+            self.population = Population(offsprings)
+            self.populations.append(self.population)
 
-            self.evaluate_population(population)  # evaluate the offsprings
+            self.evaluate_population()  # evaluate the offsprings
 
             # non-dominated truncate on the guys
-            self.fast_non_dominated_sort(population.individuals)
+            self.fast_non_dominated_sort(self.population.individuals)
             self.calculate_crowd_dis(offsprings)
 
-            self.problem.data_store.write_population(population.to_list())
-            offsprings.extend(self.problem.populations[it].individuals)  # add the parents to the offsprings
+            self.problem.data_store.write_population(self.population)
+            offsprings.extend(self.populations[it].individuals)  # add the parents to the offsprings
             parents = sorted(offsprings, key=lambda x: x.front_number)
 
             # truncate
-            self.problem.populations[it].individuals = parents[:self.options['max_population_size']]
-            self.problem.add_population(population)
+            self.populations[it].individuals = parents[:self.options['max_population_size']]
 
-            offsprings = self.generate(self.problem.populations[it].individuals)
+            offsprings = self.generate(self.populations[it].individuals)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
@@ -527,7 +527,7 @@ class EpsilonDominance(Dominance):
 #         population.gen_random_population(self.options['max_population_size'],
 #                                          self.parameters_length,
 #                                          self.problem.parameters)
-#         self.problem.populations.append(population)
+#         self.populations.append(population)
 #
 #     def pop_select(self, population):
 #         """
@@ -820,8 +820,8 @@ class EpsilonDominance(Dominance):
 #     def run(self):
 #         # initialize the first population
 #         self.gen_initial_population()
-#         self.problem.populations[0].evaluate()
-#         curr_population = self.problem.populations[0].individuals
+#         self.populations[0].evaluate()
+#         curr_population = self.populations[0].individuals
 #
 #         # pareto values after the first iteration
 #         archive = self.pareto_front(curr_population)
@@ -845,11 +845,11 @@ class EpsilonDominance(Dominance):
 #             # #self.fast_non_dominated_sort(population.individuals)
 #             # #self.calculate_crowd_dis(offsprings)
 #             #
-#             # offsprings.extend(self.problem.populations[it].individuals)  # add the parents to the offsprings
+#             # offsprings.extend(self.populations[it].individuals)  # add the parents to the offsprings
 #             # parents = sorted(offsprings, key=lambda x: x.front_number)
 #             # random.shuffle(parents)
 #             # # truncate
-#             # self.problem.populations[it].individuals = parents[:self.options['max_population_size']]
+#             # self.populations[it].individuals = parents[:self.options['max_population_size']]
 #             # self.problem.add_population(population)
 #             #
-#             # offsprings = self.generate(self.problem.populations[it].individuals)
+#             # offsprings = self.generate(self.populations[it].individuals)

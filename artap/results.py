@@ -31,10 +31,11 @@ class Results:
             index = int(self.problem.costs.get(name))
 
         min_l = []
-        for population in self.problem.populations:
-            min_l.append(min(population.individuals, key=lambda x: x.costs[index]))
-            opt = min(min_l, key=lambda x: x.costs[index])
-            opt = opt.costs[index]
+        # for population in self.problem.data_store.populations:
+
+        min_l.append(min(self.problem.data_store.individuals, key=lambda x: x.costs[index]))
+        opt = min(min_l, key=lambda x: x.costs[index])
+        opt = opt.costs[index]
 
         return opt
 
@@ -46,11 +47,11 @@ class Results:
 
         pareto_front_x = []
         pareto_front_y = []
-        for population1 in self.problem.populations:
+        for population1 in self.problem.data_store.populations:
             for individual1 in population1.individuals:
                 is_pareto = True
 
-                for population2 in self.problem.populations:
+                for population2 in self.problem.data_store.populations:
                     for individual2 in population2.individuals:
                         # TODO: MINIMIZE and MAXIMIZE
                         if individual1.costs[index1] > individual2.costs[index1] \
@@ -68,7 +69,8 @@ class Results:
         :return: a list of lists which contains the optimal values of the cost function:
                 l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
         """
-        population = self.problem.populations[-1]
+
+        population = self.problem.data_store.populations[-1]
         l_sol = []
         if len(population.individuals) > 1:
             for individual in population.individuals:
@@ -88,7 +90,7 @@ class GraphicalResults(Results):
         self.tick_size = 12
 
     def plot_all_individuals(self, filename=None):
-        for population in self.problem.populations:
+        for population in self.problem.data_store.populations:
             for individual in population.individuals:
                 pl.plot(individual.vector[0], 'x')
 
@@ -98,8 +100,9 @@ class GraphicalResults(Results):
             pl.savefig(self.problem.working_dir + "all_individuals.pdf")
 
     def plot_populations(self):
-        for population in self.problem.populations:
-            figure_name = self.problem.working_dir + "pareto_" + str(population.number) + ".pdf"
+        for population in self.problem.data_store.populations:
+            figure_name = self.problem.working_dir + "pareto_" + \
+                          str(self.problem.data_store.populations.index(population)) + ".pdf"
             if len(population.individuals) > 1:
                 figure = Figure()
                 FigureCanvas(figure)
@@ -127,7 +130,7 @@ class GraphicalResults(Results):
                 figure.savefig(figure_name)
 
     def plot_gradients(self):
-        population = self.problem.populations[-1]  # Last population
+        population = self.problem.data_store.populations[-1]  # Last population
         figure_name = self.problem.working_dir + "gradients_" + str(population.number) + ".pdf"
         if len(population.individuals) > 1:
             figure = Figure()

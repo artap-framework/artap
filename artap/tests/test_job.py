@@ -2,7 +2,8 @@ import unittest
 from artap.problem import Problem
 from artap.datastore import DummyDataStore
 from artap.individual import Individual
-from artap.job import Job
+from artap.population import Population
+from artap.job import JobSimple
 
 
 class TestProblem(Problem):
@@ -31,7 +32,7 @@ class TestJob(unittest.TestCase):
     def test_individual_evaluation(self):
         problem = TestProblem("Test_Job")
         individual = Individual([1, 2, 2])
-        job = Job(problem)
+        job = JobSimple(problem)
         result = job.evaluate(individual.vector)
         self.assertEqual(result, [9])
 
