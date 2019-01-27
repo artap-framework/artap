@@ -9,7 +9,6 @@ class Individual(metaclass=ABCMeta):
     """
 
     def __init__(self, vector: list):
-        self.id = None
         self.vector = vector
         self.costs = []
         self.gradient = []
