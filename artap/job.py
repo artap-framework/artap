@@ -88,12 +88,8 @@ class JobQueue(Job):
             costs = self.problem.evaluate(individual.vector)
 
         individual.costs = costs
-
-        # scipy uses the result number, the genetic algorithms using the property value
-
         individual.is_evaluated = True
-        if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
-            self.problem.data_store.write_individual(individual)
+        self.problem.data_store.write_individual(individual)
 
         if self.queue is not None:
             self.queue.put(individual)

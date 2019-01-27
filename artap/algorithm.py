@@ -19,9 +19,6 @@ class Algorithm(metaclass=ABCMeta):
 
         # current population
         self.population = Population()
-        # populations
-        self.populations = []
-        self.populations.append(self.population)
 
         self.options.declare(name='verbose_level', default=1, lower=0,
                              desc='Verbose level')

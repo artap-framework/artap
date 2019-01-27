@@ -25,9 +25,6 @@ class MyProblemCoil(Problem):
 
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
-        self.options['save_level'] = "individual"
-
-        # self.init_surrogate_model()
 
     def intl22(self, R2, R, dZ, phi):
         return math.sqrt(R2 ** 2 + R ** 2 - 2.0 * R2 * R * math.cos(phi) + dZ ** 2)
@@ -216,7 +213,6 @@ class MyProblemBooth(Problem):
 
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
-        self.options['save_level'] = "population"
 
         self.init_surrogate_model()
 
