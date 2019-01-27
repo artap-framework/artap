@@ -3,23 +3,18 @@ from .individual import Individual
 
 class Population:
     def __init__(self, individuals: list = None):
-
-        self.id = None
-
         if individuals is None:
             self.individuals = []
         else:
             self.individuals = individuals.copy()
-            for individual in self.individuals:
-                individual.population_id = self.id
+            #for individual in self.individuals:
+            #    individual.population_id = self.id
 
         self.pareto_vectors: list = []
         self.pareto_costs: list = []
 
     def __repr__(self):
-
-        string = "population number: " + str(self.id) + " \n"
-
+        string = "Population: "
         for individual in self.individuals:
             string += individual.to_string() + ", "
 
