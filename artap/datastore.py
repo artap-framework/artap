@@ -155,14 +155,59 @@ class SqliteDataStore(DataStore):
         except sqlite3.Error as e:
             print("SqliteDataStore: execute: error occurred:", e.args[0])
 
-    def save_problem(self, problem):
-        pass
+    def _create_structure_task(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (INTEGER PRIMARY KEY, ' \
+                   'name TEXT, ' \
+                   'description TEXT,' \
+                   'algorithm TEXT,' \
+                   'calculation_time NUMBER,' \
+                   'state TEXT)'
+        self._execute_command(exec_cmd)
+
+        exec_cmd = "INSERT INTO problem(name, description, state) " \
+                   "values('%s', '%s', '%s');" % (self.problem.name, self.problem.description, "running")
+        self._execute_command(exec_cmd)
+
+    def _create_structure_individual(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS data (id INTEGER, population_id INTEGER, '
+
+        for parameter in self.problem.parameters.keys():
+            exec_cmd += parameter + " NUMBER, "
+
+        for cost in self.problem.costs:
+            exec_cmd += cost + " NUMBER,"
+
+        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
+        exec_cmd += ");"
+
+        self._execute_command(exec_cmd)
+
+    def _create_structure_parameters(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS vector (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
+                   'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
+        self._execute_command(exec_cmd)
+
+        for parameter in self.problem.get_parameters_list():
+            parameter_arg = [0] * 5
+            length = len(parameter)
+            parameter_arg[0:length] = parameter
+            exec_cmd = 'INSERT INTO vector(name, initial_value, low_boundary, high_boundary, precision) ' \
+                       "VALUES( '%s', %f, %f, %f, %f);" % tuple(parameter_arg)
+            self._execute_command(exec_cmd)
+
+    def _create_structure_costs(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS costs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);'
+        self._execute_command(exec_cmd)
+
+        for cost in self.problem.costs:
+            exec_cmd = "INSERT INTO costs(name) values('%s');" % cost
+            self._execute_command(exec_cmd)
 
     def create_structure(self):
-        self.create_structure_task()
-        self.create_structure_individual(self.problem.parameters, self.problem.costs)
-        self.create_structure_parameters(self.problem.get_parameters_list())
-        self.create_structure_costs(self.problem.costs)
+        self._create_structure_task()
+        self._create_structure_individual()
+        self._create_structure_parameters()
+        self._create_structure_costs()
 
     def create_structure_log(self):
         exec_cmd = 'CREATE TABLE IF NOT EXISTS log(' \
@@ -181,54 +226,6 @@ class SqliteDataStore(DataStore):
 
         self._execute_command(exec_cmd)
 
-    def create_structure_task(self, problem):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (INTEGER PRIMARY KEY, ' \
-                   'name TEXT, ' \
-                   'description TEXT,' \
-                   'algorithm TEXT,' \
-                   'calculation_time NUMBER,' \
-                   'state TEXT)'
-        self._execute_command(exec_cmd)
-
-        exec_cmd = "INSERT INTO problem(name, description, state) " \
-                   "values('%s', '%s', '%s');" % (problem.name, problem.description, "running")
-        self._execute_command(exec_cmd)
-
-    def create_structure_individual(self, parameters, costs):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS data (id INTEGER, population_id INTEGER, '
-
-        for parameter in parameters.keys():
-            exec_cmd += parameter + " NUMBER, "
-
-        for cost in costs:
-            exec_cmd += cost + " NUMBER,"
-
-        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
-        exec_cmd += ");"
-
-        self._execute_command(exec_cmd)
-
-    def create_structure_parameters(self, parameters_list):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS vector (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
-                   'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
-        self._execute_command(exec_cmd)
-
-        for parameter in parameters_list:
-            parameter_arg = [0] * 5
-            length = len(parameter)
-            parameter_arg[0:length] = parameter
-            exec_cmd = 'INSERT INTO vector(name, initial_value, low_boundary, high_boundary, precision) ' \
-                       "VALUES( '%s', %f, %f, %f, %f);" % tuple(parameter_arg)
-            self._execute_command(exec_cmd)
-
-    def create_structure_costs(self, costs):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS costs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);'
-        self._execute_command(exec_cmd)
-
-        for cost in costs:
-            exec_cmd = "INSERT INTO costs(name) values('%s');" % cost
-            self._execute_command(exec_cmd)
-
     def write_individual(self, individual):
         # add individual
         self.individuals.append(individual)
@@ -236,6 +233,10 @@ class SqliteDataStore(DataStore):
         # add to database
         if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
             params = individual.to_list()
+            # individual index
+            params.insert(0, self.individuals.index(individual) + 1)
+            # population index
+            params.insert(1, len(self.populations) + 1)
 
             exec_cmd = "INSERT INTO data VALUES ("
 

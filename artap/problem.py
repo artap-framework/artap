@@ -47,7 +47,7 @@ class ProblemBase(ABC):
 
         self.options.declare(name='calculate_gradients', default=False,
                              desc='calculate gradient for individuals')
-        self.options.declare(name='save_level', default="problem",
+        self.options.declare(name='save_level', default="individual",
                              desc='Save level')
         self.options.declare(name='log_level', default=logging.DEBUG, values=_log_level,
                              desc='Log level')
@@ -133,7 +133,7 @@ class Problem(ProblemBase):
 
         if data_store is None:
             self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
-            self.data_store.create_structure(self)
+            self.data_store.create_structure()
 
         else:
             self.data_store = data_store
@@ -261,9 +261,7 @@ class ProblemDataStore(ProblemBase):
         self.data_store = data_store
         self.data_store.read_problem(self)
 
-        if working_dir is None:
-            self.working_dir = tempfile.mkdtemp()
-        else:
+        if working_dir is not None:
             self.working_dir = working_dir + self.name
 
     def to_table(self):
@@ -274,7 +272,7 @@ class ProblemDataStore(ProblemBase):
         for cost in self.costs:
             line.append(cost)
         table.append(line)
-        for population in self.populations:
+        for population in self.data_store.populations:
             for individual in population.individuals:
                 line = [individual.population_id]
                 for parameter in individual.parameters:

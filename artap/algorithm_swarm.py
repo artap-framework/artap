@@ -75,7 +75,6 @@ class PSO(NSGAII):
         i = 0
         while i < self.options['max_population_number']:
             population = Population()
-            self.populations.append(population)
 
             pareto_front = []
             for j in range(self.options['max_population_size']):
