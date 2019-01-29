@@ -9,6 +9,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
 
+import os
 
 class Results:
     MINIMIZE = -1
@@ -95,7 +96,7 @@ class GraphicalResults(Results):
         if filename is not None:
             pl.savefig(filename)
         else:
-            pl.savefig(self.problem.working_dir + "all_individuals.pdf")
+            pl.savefig(self.problem.working_dir + os.sep + "all_individuals.pdf")
 
     def plot_populations(self):
         for population in self.problem.populations:
