@@ -5,6 +5,7 @@ import sys
 import random
 
 from .individual import Individual
+from .utils import VectorAndNumbers
 
 EPSILON = sys.float_info.epsilon
 
@@ -24,8 +25,22 @@ class Generation(Operator):
     def __init__(self):
         super().__init__()
 
-    def run(self):
+    @abstractmethod
+    def generate(self, number, parameters):
         pass
+
+
+class RandomGeneration(Generation):
+
+    def __init__(self):
+        super().__init__()
+
+    def generate(self, number, parameters):
+        individuals = []
+        for i in range(number):
+            vector = VectorAndNumbers.gen_vector(parameters)
+            individuals.append(Individual(vector))
+        return individuals
 
 
 class Mutation(Operator):
@@ -34,32 +49,34 @@ class Mutation(Operator):
         super().__init__()
 
     @abstractmethod
-    def run(self, x, lb, ub):
+    def mutate(self, parameters, p):
         pass
 
-    @staticmethod
-    def clip(value, min_value, max_value):
-        return max(min_value, min(value, max_value))
 
-
-class Selection(Operator):
-
-    def __init__(self):
+class SimpleMutation(Mutation):
+    def __init__(self, prob_mutation):
         super().__init__()
+        self.prob_mutation = prob_mutation
 
-    @abstractmethod
-    def run(self):
-        pass
+    def mutate(self, parameters, p):
+        """ uniform random mutation """
+        mutation_space = 0.1
+        vector = []
 
+        for i, parameter in enumerate(parameters.items()):
+            if random.uniform(0, 1) < self.prob_mutation:
 
-class Crossover(Operator):
+                l_b = parameter[1]['bounds'][0]
+                u_b = parameter[1]['bounds'][1]
 
-    def __init__(self):
-        super().__init__()
+                para_range = mutation_space * (u_b - l_b)
+                mutation = random.uniform(-para_range, para_range)
+                vector.append(self.clip(p.vector[i] + mutation, l_b, u_b))
+            else:
+                vector.append(p.vector[i])
 
-    @abstractmethod
-    def run(self, individuals):
-        pass
+        p_new = Individual(vector)
+        return p_new
 
 
 class PmMutation(Mutation):
@@ -85,6 +102,69 @@ class PmMutation(Mutation):
         x = PmMutation.clip(x, lb, ub)
 
         return x
+
+
+class Selection(Operator):
+
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def select(self, parents, part_num=2):
+        pass
+
+
+class TournamentSelection(Selection):
+
+    def __init__(self):
+        super().__init__()
+
+    def select(self, parents, part_num=2):
+        """
+        Binary tournament selection:
+        An individual is selected in the rank is lesser than the other or if crowding distance is greater than the other
+        """
+
+        participants = random.sample(parents, part_num)
+        return min(participants, key=lambda x: (x.front_number, -x.crowding_distance))
+
+
+class Crossover(Operator):
+
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def cross(self, parameters, p1, p2):
+        pass
+
+
+class SimpleCrossover(Crossover):
+
+    def __init__(self, prob_cross):
+        super().__init__()
+        self.prob_cross = prob_cross
+
+    def cross(self, parameters, p1, p2):
+        """ the random linear operator """
+        if random.uniform(0, 1) >= self.prob_cross:
+            return p1, p2
+
+        parameter1, parameter2 = [], []
+        linear_range = 2
+
+        alpha = random.uniform(0, linear_range)
+
+        for i, param in enumerate(parameters.items()):
+            l_b = param[1]['bounds'][0]
+            u_b = param[1]['bounds'][1]
+
+            parameter1.append(self.clip(alpha * p1.vector[i] + (1 - alpha) * p2.vector[i], l_b, u_b))
+            parameter2.append(self.clip((1 - alpha) * p1.vector[i] + alpha * p2.vector[i], l_b, u_b))
+
+        c1 = Individual(parameter1)
+        c2 = Individual(parameter2)
+        return c1, c2
 
 
 class SimulatedBinaryCrossover(Crossover):
@@ -138,6 +218,9 @@ class SimulatedBinaryCrossover(Crossover):
             x2 = self.clip(x2, lb, ub)
 
         return x1, x2
+
+    def cross(self, p1, p2):
+        pass
 
     def run(self, individuals):
         """Create an offspring using simulated binary crossover.
