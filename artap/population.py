@@ -13,7 +13,7 @@ class Population:
         self.pareto_vectors: list = []
         self.pareto_costs: list = []
 
-    def __repr__(self):
+    def __str__(self):
         string = "Population: "
         for individual in self.individuals:
             string += individual.to_string() + ", "
@@ -22,10 +22,6 @@ class Population:
 
     def extend(self, new_individuals):
         self.individuals.append(new_individuals)
-
-    def gen_random_population(self, population_size, vector_length, parameters):
-        self.individuals = Individual.gen_individuals(population_size, parameters)
-        return self.individuals
 
     def gen_population_from_table(self, table):
         for parameters in table:

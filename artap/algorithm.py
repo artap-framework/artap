@@ -31,9 +31,6 @@ class Algorithm(metaclass=ABCMeta):
     def run(self):
         pass
 
-    def evaluate_population(self):
-        self.population.individuals = self.evaluate(self.population.individuals)
-
     def evaluate(self, individuals: list):
         if self.problem.options["max_processes"] > 1:
             individuals = self.evaluate_parallel(individuals)
