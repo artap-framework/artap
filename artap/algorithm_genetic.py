@@ -2,6 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
+from .operators import RandomGeneration, SimpleCrossover, SimpleMutation, TournamentSelection
 # from copy import copy, deepcopy
 from abc import ABCMeta
 import random
@@ -21,92 +22,21 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         super().__init__(problem, name)
         self.problem = problem
 
+        self.generator = RandomGeneration()
+        self.selector = None
+        self.mutator = None
+        self.crossover = None
+
     def gen_initial_population(self):
         pass
 
     def select(self):
         pass
 
-    def form_new_population(self):
-        pass
-
     def run(self):
         pass
 
-
-class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
-
-    def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
-        super().__init__(problem, name)
-        self.parameters_length = len(self.problem.parameters)
-        self.current_population = 0
-
-        self.options.declare(name='n_iterations', default=50, lower=1,
-                             desc='Maximum evaluations')
-        self.options.declare(name='max_population_number', default=10, lower=1,
-                             desc='max_population_number')
-        self.options.declare(name='max_population_size', default=100, lower=1,
-                             desc='max_population_size')
-
-    def gen_initial_population(self):
-        population = Population()
-
-        population.gen_random_population(self.options['max_population_size'], self.parameters_length,
-                                         self.problem.parameters)
-        self.evaluate_population(population)
-
-        self.problem.add_population(population)
-
-        self.current_population += 1
-        return population
-
-    def select(self):
-        pass
-
-    def form_new_population(self):
-        pass
-
-    def run(self):
-        pass
-
-
-class NSGAII(GeneticAlgorithm):
-
-    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
-        super().__init__(problem, name)
-
-        self.options.declare(name='prob_cross', default=0.9, lower=0,
-                             desc='prob_cross')
-        self.options.declare(name='prob_mutation', default=0.05, lower=0,
-                             desc='prob_mutation')
-
-    def gen_initial_population(self):
-        self.population.gen_random_population(self.options['max_population_size'],
-                                              self.parameters_length,
-                                              self.problem.parameters)
-
-    def is_dominate(self, p, q):
-        """
-        :param p: current solution
-        :param q: candidate
-        :return: True if the candidate is better than the current solution
-        """
-        dominate = False
-
-        # The cost function can be a float or a list of floats
-        for i in range(0, len(self.problem.costs)):
-            if p.costs[i] > q.costs[i]:
-                return False
-            if p.costs[i] < q.costs[i]:
-                dominate = True
-        return dominate
-
-    def crossover(self):
-        pass
-
-    def mutate(self):
-        pass
-
+    # TODO: rename or move somewhere?
     def fast_non_dominated_sort(self, population):
         pareto_front = []
         front_number = 1
@@ -135,12 +65,14 @@ class NSGAII(GeneticAlgorithm):
                         temp_set.append(q)
             pareto_front = temp_set
 
+    # TODO: rename or move somewhere?
     @staticmethod
     def sort_by_coordinate(population, dim):
 
         population.sort(key=lambda x: x.vector[dim])
         return population
 
+    # TODO: rename or move somewhere?
     def calculate_crowd_dis(self, population):
         infinite = float("inf")
 
@@ -160,90 +92,88 @@ class NSGAII(GeneticAlgorithm):
         for p in population:
             p.crowding_distance = p.crowding_distance / len(self.problem.parameters)
 
-    @staticmethod
-    def tournament_select(parents, part_num=2):
+    # TODO: rename or move somewhere?
+    def is_dominate(self, p, q):
         """
-        Binary tournament selection:
-        An individual is selected in the rank is lesser than the other or if crowding distance is greater than the other
+        :param p: current solution
+        :param q: candidate
+        :return: True if the candidate is better than the current solution
         """
+        dominate = False
 
-        participants = random.sample(parents, part_num)
-        return min(participants, key=lambda x: (x.front_number, -x.crowding_distance))
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(self.problem.costs)):
+            if p.costs[i] > q.costs[i]:
+                return False
+            if p.costs[i] < q.costs[i]:
+                dominate = True
+        return dominate
+
+
+class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
+
+    def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
+        super().__init__(problem, name)
+        self.parameters_length = len(self.problem.parameters)
+
+        self.options.declare(name='n_iterations', default=50, lower=1,
+                             desc='Maximum evaluations')
+        self.options.declare(name='max_population_number', default=10, lower=1,
+                             desc='max_population_number')
+        self.options.declare(name='max_population_size', default=100, lower=1,
+                             desc='max_population_size')
+
+    def gen_initial_population(self):
+        individuals = self.generator.generate(self.options['max_population_size'], self.problem.parameters)
+        self.evaluate(individuals)
+
+        population = Population(individuals)
+        return population
+
+    def select(self):
+        pass
+
+    def run(self):
+        pass
+
+
+class NSGAII(GeneticAlgorithm):
+
+    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
+        super().__init__(problem, name)
+
+        self.options.declare(name='prob_cross', default=0.9, lower=0,
+                             desc='prob_cross')
+        self.options.declare(name='prob_mutation', default=0.05, lower=0,
+                             desc='prob_mutation')
 
     def generate(self, parents):
         """ generate two children from two different parents """
+
         children = []
         while len(children) < self.options['max_population_size']:
-
-            parent1 = self.tournament_select(parents)
-            parent2 = self.tournament_select(parents)
+            parent1 = self.selector.select(parents)
+            parent2 = self.selector.select(parents)
 
             while parent1 == parent2:
-                parent2 = self.tournament_select(parents)
+                parent2 = self.selector.select(parents)
 
-            child1, child2 = self.cross(parent1, parent2)
-            child1 = self.mutation(child1)
-            child2 = self.mutation(child2)
+            child1, child2 = self.crossover.cross(self.problem.parameters, parent1, parent2)
+            child1 = self.mutator.mutate(self.problem.parameters, child1)
+            child2 = self.mutator.mutate(self.problem.parameters, child2)
 
             children.append(child1)
             children.append(child2)
 
         return children.copy()
 
-    def cross(self, p1, p2):
-        """ the random linear operator """
-        if random.uniform(0, 1) >= self.options['prob_cross']:
-            return p1, p2
-
-        parameter1, parameter2 = [], []
-        linear_range = 2
-
-        alpha = random.uniform(0, linear_range)
-
-        for i, param in enumerate(self.problem.parameters.items()):
-
-            l_b = param[1]['bounds'][0]
-            u_b = param[1]['bounds'][1]
-
-            parameter1.append(self.clip(alpha*p1.vector[i]+(1-alpha)*p2.vector[i], l_b, u_b))
-            parameter2.append(self.clip((1 - alpha)*p1.vector[i]+alpha*p2.vector[i], l_b, u_b))
-
-        c1 = Individual(parameter1)
-        c2 = Individual(parameter2)
-        return c1, c2
-
-    @staticmethod
-    def clip(value, min_value, max_value):
-        return max(min_value, min(value, max_value))
-
-    def mutation(self, p):
-        """ uniform random mutation """
-        mutation_space = 0.1
-        vector = []
-
-        for i, parameter in enumerate(self.problem.parameters.items()):
-            if random.uniform(0, 1) < self.options['prob_mutation']:
-
-                l_b = parameter[1]['bounds'][0]
-                u_b = parameter[1]['bounds'][1]
-
-                para_range = mutation_space * (u_b - l_b)
-                mutation = random.uniform(-para_range, para_range)
-                vector.append(self.clip(p.vector[i] + mutation, l_b, u_b))
-            else:
-                vector.append(p.vector[i])
-
-        p_new = Individual(vector)
-        return p_new
-
-    def select(self):
-        pass
-
-    def form_new_population(self):
-        pass
-
     def run(self):
-        self.gen_initial_population()
+        # set class
+        self.crossover = SimpleCrossover(self.options['prob_cross'])
+        self.mutator = SimpleMutation(self.options['prob_mutation'])
+        self.selector = TournamentSelection()
+
+        self.population = self.gen_initial_population()
         self.problem.data_store.write_population(self.population)
 
         offsprings = self.population.individuals
@@ -255,7 +185,7 @@ class NSGAII(GeneticAlgorithm):
         # optimization
         for it in range(self.options['max_population_number']):
             self.population = Population(offsprings)
-            self.evaluate_population()  # evaluate the offsprings
+            self.population.individuals = self.evaluate(self.population.individuals)
 
             # non-dominated truncate on the guys
             self.fast_non_dominated_sort(self.population.individuals)
@@ -274,134 +204,134 @@ class NSGAII(GeneticAlgorithm):
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
 
 
-class Dominance(object):
-    __metaclass__ = ABCMeta
-
-    def __init__(self):
-        super(Dominance, self).__init__()
-
-    def __call__(self, solution1, solution2):
-        return self.compare(solution1, solution2)
-
-    def compare(self, solution1, solution2):
-        raise NotImplementedError("method not implemented")
-
-
-class EpsilonDominance(Dominance):
-
-    def __init__(self, epsilons):
-        super(EpsilonDominance, self).__init__()
-
-        if hasattr(epsilons, "__getitem__"):
-            self.epsilons = epsilons
-        else:
-            self.epsilons = [epsilons]
-
-    def same_box(self, ind1, ind2):
-
-        # first check constraint violation
-        if ind1.feasible != ind2.feasible:
-            if ind1.feasible == 0:
-                return False
-            elif ind2.feasible == 0:
-                return False
-            elif ind1.feasible < ind2.feasible:
-                return False
-            elif ind2.feasible < ind1.feasible:
-                return False
-
-        # then use epsilon dominance on the objectives
-        dominate1 = False
-        dominate2 = False
-
-        for i in range(len(ind1.costs)):
-            o1 = ind1.costs[i]
-            o2 = ind2.costs[i]
-
-            # in artap we cannot change the direction of the optimization in this way
-            # if problem.directions[i] == Problem.MAXIMIZE:
-            #    o1 = -o1
-            #    o2 = -o2
-
-            epsilon = float(self.epsilons[i % len(self.epsilons)])
-            i1 = math.floor(o1 / epsilon)
-            i2 = math.floor(o2 / epsilon)
-
-            if i1 < i2:
-                dominate1 = True
-
-                if dominate2:
-                    return False
-            elif i1 > i2:
-                dominate2 = True
-
-                if dominate1:
-                    return False
-
-        if not dominate1 and not dominate2:
-            return True
-        else:
-            return False
-
-    def compare(self, ind1, ind2):
-
-        # first check constraint violation
-        if ind1.feasible != ind2.feasible:
-            if ind1.feasible == 0:
-                return 2
-            elif ind2.feasible == 0:
-                return 1
-            elif ind1.feasible < ind2.feasible:
-                return 2
-            elif ind2.feasible < ind1.feasible:
-                return 1
-
-        # then use epsilon dominance on the objectives
-        dominate1 = False
-        dominate2 = False
-
-        for i in range(len(ind1.costs)):
-            o1 = ind1.costs[i]
-            o2 = ind2.costs[i]
-
-            epsilon = float(self.epsilons[i % len(self.epsilons)])
-            i1 = math.floor(o1 / epsilon)
-            i2 = math.floor(o2 / epsilon)
-
-            if i1 < i2:
-                dominate1 = True
-
-                if dominate2:
-                    return 0
-            elif i1 > i2:
-                dominate2 = True
-
-                if dominate1:
-                    return 0
-
-        if not dominate1 and not dominate2:
-            dist1 = 0.0
-            dist2 = 0.0
-
-            for i in range(len(ind1.costs)):
-                o1 = ind1.objectives[i]
-                o2 = ind2.objectives[i]
-
-                epsilon = float(self.epsilons[i % len(self.epsilons)])
-                i1 = math.floor(o1 / epsilon)
-                i2 = math.floor(o2 / epsilon)
-
-                dist1 += math.pow(o1 - i1 * epsilon, 2.0)
-                dist2 += math.pow(o2 - i2 * epsilon, 2.0)
-
-            if dist1 < dist2:
-                return -1
-            else:
-                return 1
-        elif dominate1:
-            return -1
-        else:
-            return 1
+# class Dominance(object):
+#     __metaclass__ = ABCMeta
+#
+#     def __init__(self):
+#         super(Dominance, self).__init__()
+#
+#     def __call__(self, solution1, solution2):
+#         return self.compare(solution1, solution2)
+#
+#     def compare(self, solution1, solution2):
+#         raise NotImplementedError("method not implemented")
+#
+#
+# class EpsilonDominance(Dominance):
+#
+#     def __init__(self, epsilons):
+#         super(EpsilonDominance, self).__init__()
+#
+#         if hasattr(epsilons, "__getitem__"):
+#             self.epsilons = epsilons
+#         else:
+#             self.epsilons = [epsilons]
+#
+#     def same_box(self, ind1, ind2):
+#
+#         # first check constraint violation
+#         if ind1.feasible != ind2.feasible:
+#             if ind1.feasible == 0:
+#                 return False
+#             elif ind2.feasible == 0:
+#                 return False
+#             elif ind1.feasible < ind2.feasible:
+#                 return False
+#             elif ind2.feasible < ind1.feasible:
+#                 return False
+#
+#         # then use epsilon dominance on the objectives
+#         dominate1 = False
+#         dominate2 = False
+#
+#         for i in range(len(ind1.costs)):
+#             o1 = ind1.costs[i]
+#             o2 = ind2.costs[i]
+#
+#             # in artap we cannot change the direction of the optimization in this way
+#             # if problem.directions[i] == Problem.MAXIMIZE:
+#             #    o1 = -o1
+#             #    o2 = -o2
+#
+#             epsilon = float(self.epsilons[i % len(self.epsilons)])
+#             i1 = math.floor(o1 / epsilon)
+#             i2 = math.floor(o2 / epsilon)
+#
+#             if i1 < i2:
+#                 dominate1 = True
+#
+#                 if dominate2:
+#                     return False
+#             elif i1 > i2:
+#                 dominate2 = True
+#
+#                 if dominate1:
+#                     return False
+#
+#         if not dominate1 and not dominate2:
+#             return True
+#         else:
+#             return False
+#
+#     def compare(self, ind1, ind2):
+#
+#         # first check constraint violation
+#         if ind1.feasible != ind2.feasible:
+#             if ind1.feasible == 0:
+#                 return 2
+#             elif ind2.feasible == 0:
+#                 return 1
+#             elif ind1.feasible < ind2.feasible:
+#                 return 2
+#             elif ind2.feasible < ind1.feasible:
+#                 return 1
+#
+#         # then use epsilon dominance on the objectives
+#         dominate1 = False
+#         dominate2 = False
+#
+#         for i in range(len(ind1.costs)):
+#             o1 = ind1.costs[i]
+#             o2 = ind2.costs[i]
+#
+#             epsilon = float(self.epsilons[i % len(self.epsilons)])
+#             i1 = math.floor(o1 / epsilon)
+#             i2 = math.floor(o2 / epsilon)
+#
+#             if i1 < i2:
+#                 dominate1 = True
+#
+#                 if dominate2:
+#                     return 0
+#             elif i1 > i2:
+#                 dominate2 = True
+#
+#                 if dominate1:
+#                     return 0
+#
+#         if not dominate1 and not dominate2:
+#             dist1 = 0.0
+#             dist2 = 0.0
+#
+#             for i in range(len(ind1.costs)):
+#                 o1 = ind1.objectives[i]
+#                 o2 = ind2.objectives[i]
+#
+#                 epsilon = float(self.epsilons[i % len(self.epsilons)])
+#                 i1 = math.floor(o1 / epsilon)
+#                 i2 = math.floor(o2 / epsilon)
+#
+#                 dist1 += math.pow(o1 - i1 * epsilon, 2.0)
+#                 dist2 += math.pow(o2 - i2 * epsilon, 2.0)
+#
+#             if dist1 < dist2:
+#                 return -1
+#             else:
+#                 return 1
+#         elif dominate1:
+#             return -1
+#         else:
+#             return 1
 
 
 # class ParetoDominance(Dominance):

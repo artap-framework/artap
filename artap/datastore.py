@@ -94,12 +94,12 @@ class DataStore:
         pass
 
     @abstractmethod
-    def write_individual(self, params):
-        pass
+    def write_individual(self, individual):
+        self.individuals.append(individual)
 
     @abstractmethod
-    def write_population(self, table):
-        pass
+    def write_population(self, population):
+        self.populations.append(population)
 
     def get_id(self):
         return 0
@@ -228,7 +228,7 @@ class SqliteDataStore(DataStore):
 
     def write_individual(self, individual):
         # add individual
-        self.individuals.append(individual)
+        super().write_individual(individual)
 
         # add to database
         if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
@@ -256,7 +256,7 @@ class SqliteDataStore(DataStore):
             self._execute_command(exec_cmd)
 
     def write_population(self, population):
-        self.populations.append(population)
+        super().write_population(population)
         """
         connection = sqlite3.connect(self.database_name)
 
@@ -342,6 +342,7 @@ class SqliteDataStore(DataStore):
                 population = Population()
                 current_population = row[1]
 
+
 class DummyDataStore(DataStore):
 
     def __init__(self, problem=None):
@@ -354,7 +355,7 @@ class DummyDataStore(DataStore):
         pass
 
     def write_individual(self, individual):
-        self.individuals.append(individual)
+        super().write_individual(individual)
 
     def write_population(self, population):
-        self.populations.append(population)
+        super().write_population(population)
