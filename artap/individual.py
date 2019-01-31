@@ -1,6 +1,5 @@
 from random import uniform
 from abc import *
-from .utils import VectorAndNumbers
 
 
 class Individual(metaclass=ABCMeta):
@@ -66,15 +65,3 @@ class Individual(metaclass=ABCMeta):
         out.append(dominates)
         out.append(self.gradient)
         return out
-
-    @classmethod
-    def gen_individuals(cls, number, parameters):
-        individuals = []
-        for i in range(number):
-            individuals.append(cls.gen_individual(parameters))
-        return individuals
-
-    @classmethod
-    def gen_individual(cls, parameters: dict = None):
-        parameters_vector = VectorAndNumbers.gen_vector(parameters)
-        return cls(parameters_vector)
