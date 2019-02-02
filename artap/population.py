@@ -16,7 +16,7 @@ class Population:
     def __str__(self):
         string = "Population: "
         for individual in self.individuals:
-            string += individual.to_string() + ", "
+            string += individual.__str__() + ", "
 
         return string
 
