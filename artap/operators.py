@@ -142,15 +142,10 @@ class Crossover(Operator):
 
 class SimpleCrossover(Crossover):
 
-    def __init__(self, prob_cross):
+    def __init__(self):
         super().__init__()
-        self.prob_cross = prob_cross
 
     def cross(self, parameters, p1, p2):
-        """ the random linear operator """
-        if random.uniform(0, 1) >= self.prob_cross:
-            return p1, p2
-
         parameter1, parameter2 = [], []
         linear_range = 2
 
@@ -170,10 +165,9 @@ class SimpleCrossover(Crossover):
 
 class SimulatedBinaryCrossover(Crossover):
 
-    def __init__(self, parameters: Dict,  distribution_index=5):
+    def __init__(self, distribution_index=5):
         super().__init__()
         self.distribution_index = distribution_index
-        self.parameters = parameters
 
     def sbx(self, x1, x2, lb, ub):
         dx = x2 - x1
@@ -221,20 +215,17 @@ class SimulatedBinaryCrossover(Crossover):
         return x1, x2
 
     def cross(self, parameters, p1, p2):
-        pass
-
-    def run(self, individuals):
         """Create an offspring using simulated binary crossover.
 
-        :parameter individuals: - list of individuals from the population, each a vector of genes.
+        :parameters parameters: - list of parameters
         :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        parent_a = deepcopy(individuals[0].vector)
-        parent_b = deepcopy(individuals[1].vector)
+        parent_a = deepcopy(p1.vector)
+        parent_b = deepcopy(p2.vector)
 
         if random.uniform(0.0, 1.0) <= self.distribution_index:
-            for i, param in enumerate(self.parameters.items()):
+            for i, param in enumerate(parameters.items()):
                 x1 = parent_a[i]
                 x2 = parent_b[i]
 
@@ -249,7 +240,7 @@ class SimulatedBinaryCrossover(Crossover):
         offspring_a = Individual(parent_a)
         offspring_b = Individual(parent_b)
 
-        return [offspring_a, offspring_b]
+        return offspring_a, offspring_b
 
 
 class Dominance(ABC):

@@ -2,7 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
-from .operators import RandomGeneration, SimpleCrossover, SimpleMutation, TournamentSelection
+from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, TournamentSelection
 # from copy import copy, deepcopy
 from abc import ABCMeta
 import random
@@ -156,7 +156,13 @@ class NSGAII(GeneticAlgorithm):
             while parent1 == parent2:
                 parent2 = self.selector.select(parents)
 
-            child1, child2 = self.crossover.cross(self.problem.parameters, parent1, parent2)
+            """ the random linear operator """
+            if random.uniform(0, 1) < self.options['prob_cross']:
+                child1, child2 = self.crossover.cross(self.problem.parameters, parent1, parent2)
+            else:
+                child1 = parent1
+                child2 = parent2
+
             child1 = self.mutator.mutate(self.problem.parameters, child1)
             child2 = self.mutator.mutate(self.problem.parameters, child2)
 
@@ -167,7 +173,8 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set class
-        self.crossover = SimpleCrossover(self.options['prob_cross'])
+        # self.crossover = SimpleCrossover()
+        self.crossover = SimulatedBinaryCrossover()
         self.mutator = SimpleMutation(self.options['prob_mutation'])
         self.selector = TournamentSelection()
 

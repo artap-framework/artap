@@ -1,7 +1,7 @@
 import unittest
 
 from artap.problem import Problem
-from artap.algorithm import Sensitivity
+from artap.algorithm_sensitivity import Sensitivity
 from artap.datastore import DummyDataStore
 
 
