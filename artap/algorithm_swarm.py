@@ -65,7 +65,7 @@ class PSO(NSGAII):
 
     def run(self):
         self.gen_initial_population()
-        self.fast_non_dominated_sort(self.population.individuals)
+        self.nondominated_sort(self.population.individuals)
         self.problem.data_store.write_population(self.population)
 
         t_s = time.time()
@@ -107,7 +107,7 @@ class PSO(NSGAII):
             self.evaluate_population()
             for individual in self.population.individuals:
                 self.evaluate_pso(individual)
-            self.fast_non_dominated_sort(self.population.individuals)
+            self.nondominated_sort(self.population.individuals)
             self.problem.data_store.write_population(self.population)
 
             i += 1
