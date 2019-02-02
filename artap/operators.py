@@ -3,6 +3,7 @@ from abc import abstractmethod, ABC
 from copy import deepcopy
 import sys
 import random
+import math
 
 from .individual import Individual
 from .utils import VectorAndNumbers
@@ -219,7 +220,7 @@ class SimulatedBinaryCrossover(Crossover):
 
         return x1, x2
 
-    def cross(self, p1, p2):
+    def cross(self, parameters, p1, p2):
         pass
 
     def run(self, individuals):
@@ -249,3 +250,183 @@ class SimulatedBinaryCrossover(Crossover):
         offspring_b = Individual(parent_b)
 
         return [offspring_a, offspring_b]
+
+
+class Dominance(ABC):
+    def __init__(self):
+        pass
+
+    def __call__(self, solution1, solution2):
+        return self.compare(solution1, solution2)
+
+    def compare(self, solution1, solution2):
+        raise NotImplementedError("method not implemented")
+
+
+class EpsilonDominance(Dominance):
+
+    def __init__(self, epsilons):
+        super(EpsilonDominance, self).__init__()
+
+        if hasattr(epsilons, "__getitem__"):
+            self.epsilons = epsilons
+        else:
+            self.epsilons = [epsilons]
+
+    def same_box(self, ind1, ind2):
+
+        # first check constraint violation
+        if ind1.feasible != ind2.feasible:
+            if ind1.feasible == 0:
+                return False
+            elif ind2.feasible == 0:
+                return False
+            elif ind1.feasible < ind2.feasible:
+                return False
+            elif ind2.feasible < ind1.feasible:
+                return False
+
+        # then use epsilon dominance on the objectives
+        dominate1 = False
+        dominate2 = False
+
+        for i in range(len(ind1.costs)):
+            o1 = ind1.costs[i]
+            o2 = ind2.costs[i]
+
+            # in artap we cannot change the direction of the optimization in this way
+            # if problem.directions[i] == Problem.MAXIMIZE:
+            #    o1 = -o1
+            #    o2 = -o2
+
+            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            i1 = math.floor(o1 / epsilon)
+            i2 = math.floor(o2 / epsilon)
+
+            if i1 < i2:
+                dominate1 = True
+
+                if dominate2:
+                    return False
+            elif i1 > i2:
+                dominate2 = True
+
+                if dominate1:
+                    return False
+
+        if not dominate1 and not dominate2:
+            return True
+        else:
+            return False
+
+    def compare(self, ind1, ind2):
+
+        # first check constraint violation
+        if ind1.feasible != ind2.feasible:
+            if ind1.feasible == 0:
+                return 2
+            elif ind2.feasible == 0:
+                return 1
+            elif ind1.feasible < ind2.feasible:
+                return 2
+            elif ind2.feasible < ind1.feasible:
+                return 1
+
+        # then use epsilon dominance on the objectives
+        dominate1 = False
+        dominate2 = False
+
+        for i in range(len(ind1.costs)):
+            o1 = ind1.costs[i]
+            o2 = ind2.costs[i]
+
+            epsilon = float(self.epsilons[i % len(self.epsilons)])
+            i1 = math.floor(o1 / epsilon)
+            i2 = math.floor(o2 / epsilon)
+
+            if i1 < i2:
+                dominate1 = True
+
+                if dominate2:
+                    return 0
+            elif i1 > i2:
+                dominate2 = True
+
+                if dominate1:
+                    return 0
+
+        if not dominate1 and not dominate2:
+            dist1 = 0.0
+            dist2 = 0.0
+
+            for i in range(len(ind1.costs)):
+                o1 = ind1.objectives[i]
+                o2 = ind2.objectives[i]
+
+                epsilon = float(self.epsilons[i % len(self.epsilons)])
+                i1 = math.floor(o1 / epsilon)
+                i2 = math.floor(o2 / epsilon)
+
+                dist1 += math.pow(o1 - i1 * epsilon, 2.0)
+                dist2 += math.pow(o2 - i2 * epsilon, 2.0)
+
+            if dist1 < dist2:
+                return -1
+            else:
+                return 1
+        elif dominate1:
+            return -1
+        else:
+            return 1
+
+
+class ParetoDominance(Dominance):
+    # from platypus core
+    """Pareto dominance with constraints.
+
+    If either solution violates constraints, then the solution with a smaller
+    constraint violation is preferred.  If both solutions are feasible, then
+    Pareto dominance is used to select the preferred solution.
+    """
+
+    def __init__(self):
+        super(ParetoDominance, self).__init__()
+
+    def compare(self, p, q):
+        # First check the constraint violations
+        if p.feasible != 0.0:
+            if q.feasible != 0.0:
+                if abs(p.feasible) < abs(q.feasible):
+                    return 1
+                else:
+                    return 2
+            else:
+                return 2
+        else:
+            if q.feasible != 0.0:
+                return 1
+
+        # Then the pareto dominance
+
+        dominate_p = False
+        dominate_q = False
+
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(p.costs)):
+            if p.costs[i] > q.costs[i]:
+                dominate_q = True
+
+                if dominate_p:
+                    return 0
+            if p.costs[i] < q.costs[i]:
+                dominate_p = True
+
+                if dominate_q:
+                    return 0
+
+        if dominate_q == dominate_p:
+            return 0
+        elif dominate_p:
+            return 1
+        else:
+            return 2
