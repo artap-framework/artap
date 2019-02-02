@@ -17,7 +17,7 @@ class Individual(metaclass=ABCMeta):
         self.dominate = set()
         self.domination_counter = 0
         self.front_number = 0
-        self.crowding_distance = 0
+        self.crowding_distance = 0 # TODO: deprecated?
 
         # For particle swarm optimization
         self.velocity_i = []  # particle velocity
@@ -27,7 +27,7 @@ class Individual(metaclass=ABCMeta):
         for i in range(0, len(self.vector)):
             self.velocity_i.append(uniform(-1, 1))
 
-    def __repr__(self):
+    def __str__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
         string = "vector: ["
 

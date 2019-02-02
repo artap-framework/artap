@@ -193,8 +193,8 @@ class NSGAII(GeneticAlgorithm):
             self.population.individuals = self.evaluate(self.population.individuals)
 
             # non-dominated truncate on the guys
-            self.nondominated_sort(self.population.individuals)
-            self.crowding_distance(offsprings)
+            self.nondominated_sort(self.population.individuals) # TODO: remove?
+            self.crowding_distance(offsprings) # TODO: remove?
 
             self.problem.data_store.write_population(self.population)
             offsprings.extend(self.problem.data_store.populations[it].individuals)  # add the parents to the offsprings
