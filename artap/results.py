@@ -18,6 +18,23 @@ class Results:
     def __init__(self, problem):
         self.problem = problem
 
+    def value(self, individual, name):
+        # TODO: check speed
+        val = 0
+
+        try:
+            # try costs
+            ind = list(self.problem.costs.keys()).index(name)
+            val = individual.costs[ind]
+        except ValueError:
+            # try parameters
+            ind = list(self.problem.parameters.keys()).index(name)
+            val = individual.vector[ind]
+        except ValueError:
+            self.problem.logger.error("Value '{}' not found".format(name))
+
+        return val
+
     def find_minimum(self, name=None):
         """
         Search the optimal value for the given (by name parameter) single objective .
@@ -39,12 +56,7 @@ class Results:
 
         return opt
 
-    def find_pareto(self, costs=[]):
-
-        keys = list(costs.keys())
-        index1 = 0  # int(self.problem.costs.get(keys[0]))
-        index2 = 1  # int(self.problem.costs.get(keys[1]))
-
+    def find_pareto(self, name1, name2):
         pareto_front_x = []
         pareto_front_y = []
         for population1 in self.problem.data_store.populations:
@@ -54,13 +66,13 @@ class Results:
                 for population2 in self.problem.data_store.populations:
                     for individual2 in population2.individuals:
                         # TODO: MINIMIZE and MAXIMIZE
-                        if individual1.costs[index1] > individual2.costs[index1] \
-                                and individual1.costs[index2] > individual2.costs[index2]:
+                        if self.value(individual1, name1) > self.value(individual2, name1) \
+                                and self.value(individual1, name2) > self.value(individual2, name2):
                             is_pareto = False
 
                 if is_pareto:
-                    pareto_front_x.append(individual1.costs[index1])
-                    pareto_front_y.append(individual1.costs[index2])
+                    pareto_front_x.append(self.value(individual1, name1))
+                    pareto_front_y.append(self.value(individual1, name2))
 
         return pareto_front_x, pareto_front_y
 
@@ -88,6 +100,53 @@ class GraphicalResults(Results):
         rc('text', usetex=True)
         self.labels_size = 16
         self.tick_size = 12
+
+    def plot_scatter(self, name1, name2, filename=None):
+        figure = Figure()
+        figure.clf()
+
+        # all individuals
+        for population in self.problem.data_store.populations:
+            values1 = []
+            values2 = []
+            for individual in population.individuals:
+                values1.append(self.value(individual, name1))
+                values2.append(self.value(individual, name2))
+            pl.scatter(values1, values2)
+
+        # labels
+        pl.grid()
+        pl.xlabel("${}$".format(name1))
+        pl.ylabel("${}$".format(name2))
+
+        if filename is not None:
+            pl.savefig(filename)
+        else:
+            pl.savefig(self.problem.working_dir + "scatter.pdf")
+        pl.close()
+
+    def plot_individuals(self, name, filename=None):
+        # all individuals
+        n = 1
+        for population in self.problem.data_store.populations:
+            ind = []
+            values = []
+            for individual in population.individuals:
+                ind.append(n + len(ind))
+                values.append(self.value(individual, name))
+            n += len(ind)
+            pl.scatter(ind, values)
+
+        # labels
+        pl.grid()
+        pl.xlabel("$N$")
+        pl.ylabel("${}$".format(name))
+
+        if filename is not None:
+            pl.savefig(filename)
+        else:
+            pl.savefig(self.problem.working_dir + "individuals.pdf")
+        pl.close()
 
     def plot_all_individuals(self, filename=None):
         for population in self.problem.data_store.populations:
