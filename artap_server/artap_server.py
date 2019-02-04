@@ -8,6 +8,8 @@ import webbrowser
 import socket
 from threading import Thread
 
+from artap.enviroment import Enviroment
+
 import numpy as np
 import pandas as pd
 
@@ -18,7 +20,7 @@ class ArtapServer(Thread):
         Thread.__init__(self)
 
         if local_host:
-            self.url = '127.0.0.1'
+            self.url = Enviroment.loopback_ip
         else:
             self.url = self.get_host_ip()
 
@@ -101,7 +103,7 @@ class ArtapServer(Thread):
                       [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in
                         [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) + ["no IP found"])[0])
         except:
-            return '127.0.0.1'
+            return Enviroment.loopback_ip
 
     def run(self):
         self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
@@ -116,10 +118,10 @@ class ArtapServer(Thread):
 
 if __name__ == '__main__':
     # for debug testing only
-    artap_server = ArtapServer(local_host=False, port=8050, debug_mode=False)
+    artap_server = ArtapServer(local_host=True, port=8050, debug_mode=False)
     artap_server.run_server()
 
-    artap_server_2 = ArtapServer(local_host=False, port=8051, debug_mode=False)
+    artap_server_2 = ArtapServer(local_host=True, port=8051, debug_mode=False)
     artap_server_2.run_server()
 
     input("Press Enter to STOP application...")
