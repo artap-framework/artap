@@ -23,48 +23,50 @@ class Operator(ABC):
 
 class Generation(Operator):
 
-    def __init__(self):
+    def __init__(self, parameters):
         super().__init__()
+        self.parameters = parameters
 
     @abstractmethod
-    def generate(self, number, parameters):
+    def generate(self, number):
         pass
 
 
 class RandomGeneration(Generation):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
-    def generate(self, number, parameters):
+    def generate(self, number):
         individuals = []
         for i in range(number):
-            vector = VectorAndNumbers.gen_vector(parameters)
+            vector = VectorAndNumbers.gen_vector(self.parameters)
             individuals.append(Individual(vector))
         return individuals
 
 
 class Mutation(Operator):
 
-    def __init__(self):
+    def __init__(self, parameters):
         super().__init__()
+        self.parameters = parameters
 
     @abstractmethod
-    def mutate(self, parameters, p):
+    def mutate(self, p):
         pass
 
 
 class SimpleMutation(Mutation):
-    def __init__(self, prob_mutation):
-        super().__init__()
+    def __init__(self, parameters, prob_mutation):
+        super().__init__(parameters)
         self.prob_mutation = prob_mutation
 
-    def mutate(self, parameters, p):
+    def mutate(self, p):
         """ uniform random mutation """
         mutation_space = 0.1
         vector = []
 
-        for i, parameter in enumerate(parameters.items()):
+        for i, parameter in enumerate(self.parameters.items()):
             if random.uniform(0, 1) < self.prob_mutation:
 
                 l_b = parameter[1]['bounds'][0]
@@ -80,10 +82,11 @@ class SimpleMutation(Mutation):
         return p_new
 
 
+# TODO: fix
 class PmMutation(Mutation):
 
-    def __init__(self, mutation_index=5):
-        super().__init__()
+    def __init__(self, parameters, mutation_index=5):
+        super().__init__(parameters)
         self.mutation_index = mutation_index
 
     def run(self, x, lb, ub):
@@ -107,8 +110,9 @@ class PmMutation(Mutation):
 
 class Selection(Operator):
 
-    def __init__(self, part_num=2):
+    def __init__(self, parameters, part_num=2):
         super().__init__()
+        self.parameters = parameters
         self.part_num = part_num
 
     @abstractmethod
@@ -291,8 +295,8 @@ class ParetoDominance(Dominance):
 
 class TournamentSelection(Selection):
 
-    def __init__(self, dominance=ParetoDominance()):
-        super().__init__()
+    def __init__(self, parameters, dominance=ParetoDominance()):
+        super().__init__(parameters)
         self.dominance = dominance
         # self.dominance = EpsilonDominance([0.01])
 
@@ -319,26 +323,27 @@ class TournamentSelection(Selection):
 
 class Crossover(Operator):
 
-    def __init__(self):
+    def __init__(self, parameters):
         super().__init__()
+        self.parameters = parameters
 
     @abstractmethod
-    def cross(self, parameters, p1, p2):
+    def cross(self, p1, p2):
         pass
 
 
 class SimpleCrossover(Crossover):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
-    def cross(self, parameters, p1, p2):
+    def cross(self, p1, p2):
         parameter1, parameter2 = [], []
         linear_range = 2
 
         alpha = random.uniform(0, linear_range)
 
-        for i, param in enumerate(parameters.items()):
+        for i, param in enumerate(self.parameters.items()):
             l_b = param[1]['bounds'][0]
             u_b = param[1]['bounds'][1]
 
@@ -352,8 +357,8 @@ class SimpleCrossover(Crossover):
 
 class SimulatedBinaryCrossover(Crossover):
 
-    def __init__(self, distribution_index=5):
-        super().__init__()
+    def __init__(self, parameters, distribution_index=5):
+        super().__init__(parameters)
         self.distribution_index = distribution_index
 
     def sbx(self, x1, x2, lb, ub):
@@ -401,10 +406,9 @@ class SimulatedBinaryCrossover(Crossover):
 
         return x1, x2
 
-    def cross(self, parameters, p1, p2):
+    def cross(self, p1, p2):
         """Create an offspring using simulated binary crossover.
 
-        :parameters parameters: - list of parameters
         :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
@@ -412,7 +416,7 @@ class SimulatedBinaryCrossover(Crossover):
         parent_b = deepcopy(p2.vector)
 
         if random.uniform(0.0, 1.0) <= self.distribution_index:
-            for i, param in enumerate(parameters.items()):
+            for i, param in enumerate(self.parameters.items()):
                 x1 = parent_a[i]
                 x2 = parent_b[i]
 
