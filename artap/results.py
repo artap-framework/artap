@@ -4,6 +4,7 @@ import matplotlib
 
 matplotlib.use('Agg')
 
+import os
 import numpy as np
 import pylab as pl
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -122,7 +123,7 @@ class GraphicalResults(Results):
         if filename is not None:
             pl.savefig(filename)
         else:
-            pl.savefig(self.problem.working_dir + "scatter.pdf")
+            pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
         pl.close()
 
     def plot_individuals(self, name, filename=None):
@@ -145,7 +146,7 @@ class GraphicalResults(Results):
         if filename is not None:
             pl.savefig(filename)
         else:
-            pl.savefig(self.problem.working_dir + "individuals.pdf")
+            pl.savefig(self.problem.working_dir + os.sep + "individuals.pdf")
         pl.close()
 
     def plot_all_individuals(self, filename=None):
