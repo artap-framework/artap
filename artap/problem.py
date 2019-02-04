@@ -61,6 +61,22 @@ class ProblemBase(ABC):
         self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
                              desc='Max running processes')
 
+        # create logger
+        self.logger = logging.getLogger(self.name)
+        self.logger.setLevel(self.options['log_level'])
+        # create formatter
+        self.formatter = logging.Formatter('%(asctime)s (%(levelname)s): %(name)s - %(funcName)s (%(lineno)d) - %(message)s')
+
+        if self.options['log_console_handler']:
+            # create console handler and set level to debug
+            stream_handler = logging.StreamHandler()
+            stream_handler.setLevel(logging.DEBUG)
+            # add formatter to StreamHandler
+            stream_handler.setFormatter(self.formatter)
+            # add StreamHandler to logger
+            self.logger.addHandler(stream_handler)
+
+
     def get_parameters_list(self):
         parameters_list = []
         names = list(self.parameters.keys())
@@ -93,34 +109,6 @@ class Problem(ProblemBase):
         self.parameters = parameters
         self.costs = {cost: 0.0 for cost in costs}
 
-        # working dir
-        """
-        if working_dir is None:
-            self.working_dir = tempfile.mkdtemp()
-        else:
-            # time_stamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
-            time_stamp = ""
-
-            self.working_dir += time_stamp
-            if not os.path.isdir(self.working_dir):
-                os.mkdir(self.working_dir)
-        """
-
-        # create logger
-        self.logger = logging.getLogger(self.name)
-        self.logger.setLevel(self.options['log_level'])
-        # create formatter
-        formatter = logging.Formatter('%(asctime)s (%(levelname)s): %(name)s - %(funcName)s (%(lineno)d) - %(message)s')
-
-        if self.options['log_console_handler']:
-            # create console handler and set level to debug
-            stream_handler = logging.StreamHandler()
-            stream_handler.setLevel(logging.DEBUG)
-            # add formatter to StreamHandler
-            stream_handler.setFormatter(formatter)
-            # add StreamHandler to logger
-            self.logger.addHandler(stream_handler)
-
         # working dir must be set
         if self.options['log_file_handler'] and working_dir:
             # create file handler and set level to debug
@@ -148,7 +136,7 @@ class Problem(ProblemBase):
             file_handler = SqliteHandler(self.data_store)
             file_handler.setLevel(logging.DEBUG)
             # add formatter to SqliteHandler
-            file_handler.setFormatter(formatter)
+            file_handler.setFormatter(self.formatter)
             # add SqliteHandler to logger
             self.logger.addHandler(file_handler)
 
@@ -256,13 +244,11 @@ class Problem(ProblemBase):
 class ProblemDataStore(ProblemBase):
 
     def __init__(self, data_store, working_dir=None):
-
         super().__init__()
+        self.working_dir = working_dir
+
         self.data_store = data_store
         self.data_store.read_problem(self)
-
-        if working_dir is not None:
-            self.working_dir = working_dir + self.name
 
     def to_table(self):
         table = []
