@@ -9,14 +9,27 @@ import socket
 from threading import Thread
 
 from artap.enviroment import Enviroment
+from artap.problem import Problem
 
 import numpy as np
 import pandas as pd
 
+class NoneProblemDefined(Exception):
+    """Raised when no problem instance is given
+
+    Attributes:
+        message -- explanation of exception
+    """
+
+    def __init__(self, message):
+        self.message = message
 
 class ArtapServer(Thread):
 
-    def __init__(self, local_host=True, port=Enviroment.server_initial_port, debug_mode=False):
+    def __init__(self, problem=None, local_host=True, port=Enviroment.server_initial_port, debug_mode=False):
+        if problem is None:
+            raise NoneProblemDefined('No problem was given')
+
         Thread.__init__(self)
 
         if local_host:
@@ -119,11 +132,29 @@ class ArtapServer(Thread):
 
 if __name__ == '__main__':
     # for debug testing only
-    artap_server = ArtapServer(local_host=True, port=Enviroment.server_initial_port, debug_mode=False)
-    artap_server.run_server()
 
-    artap_server_2 = ArtapServer(local_host=True, port=Enviroment.server_initial_port+1, debug_mode=False)
-    artap_server_2.run_server()
+    from artap.tests.test_problem_scipy import AckleyN2Problem
+    problem = AckleyN2Problem('DummyProblem')
+    port = Enviroment.server_initial_port
+    try:
+        artap_server = ArtapServer(local_host=True, port=port, debug_mode=False)
+        artap_server.run_server()
+        port += 1
+    except NoneProblemDefined as ex:
+        print('Exception when start server 1: ', ex.message)
+
+    try:
+        artap_server_2 = ArtapServer(problem=problem, local_host=True, port=port, debug_mode=False)
+        artap_server_2.run_server()
+        port += 1
+    except NoneProblemDefined as ex:
+        print('Exception when start server 2: ', ex.message)
+
+    try:
+        artap_server_3 = ArtapServer(problem=problem, local_host=True, port=port, debug_mode=False)
+        artap_server_3.run_server()
+    except NoneProblemDefined as ex:
+        print('Exception when start server 3: ', ex.message)
 
     input("Press Enter to STOP application...")
 
