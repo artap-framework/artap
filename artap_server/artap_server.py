@@ -16,7 +16,7 @@ import pandas as pd
 
 class ArtapServer(Thread):
 
-    def __init__(self, local_host=True, port=8050, debug_mode=False):
+    def __init__(self, local_host=True, port=Enviroment.server_initial_port, debug_mode=False):
         Thread.__init__(self)
 
         if local_host:
@@ -113,15 +113,16 @@ class ArtapServer(Thread):
         self.start()
 
         if open_viewer:
-            webbrowser.open(self.url + ':' + str(self.port), new=2, autoraise=True)
+            # webbrowser.register('google-chrome', webbrowser.Chrome('google-chrome'))
+            webbrowser.open_new(self.url + ':' + str(self.port))
 
 
 if __name__ == '__main__':
     # for debug testing only
-    artap_server = ArtapServer(local_host=True, port=8050, debug_mode=False)
+    artap_server = ArtapServer(local_host=True, port=Enviroment.server_initial_port, debug_mode=False)
     artap_server.run_server()
 
-    artap_server_2 = ArtapServer(local_host=True, port=8051, debug_mode=False)
+    artap_server_2 = ArtapServer(local_host=True, port=Enviroment.server_initial_port+1, debug_mode=False)
     artap_server_2.run_server()
 
     input("Press Enter to STOP application...")

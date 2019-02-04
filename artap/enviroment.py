@@ -29,3 +29,4 @@ class Enviroment:
     comsol_path = enviroment["comsol_path"]
 
     loopback_ip = enviroment["loopback_ip"]
+    server_initial_port = enviroment["server_initial_port"]
