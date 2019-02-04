@@ -97,9 +97,11 @@ class ArtapServer(Thread):
 
     def get_host_ip(self):
         try:
-            return socket.gethostbyname(socket.gethostname())
+            return ((([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")] or
+                      [[(s.connect(("8.8.8.8", 53)), s.getsockname()[0], s.close()) for s in
+                        [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) + ["no IP found"])[0])
         except:
-            return None
+            return '127.0.0.1'
 
     def run(self):
         self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
@@ -114,10 +116,12 @@ class ArtapServer(Thread):
 
 if __name__ == '__main__':
     # for debug testing only
-    artap_server = ArtapServer(local_host=True, port=8050, debug_mode=False)
+    artap_server = ArtapServer(local_host=False, port=8050, debug_mode=False)
     artap_server.run_server()
 
-    artap_server_2 = ArtapServer(local_host=True, port=8051, debug_mode=False)
+    artap_server_2 = ArtapServer(local_host=False, port=8051, debug_mode=False)
     artap_server_2.run_server()
 
     input("Press Enter to STOP application...")
+
+
