@@ -6,7 +6,6 @@ import plotly.graph_objs as grObj
 
 import webbrowser
 import socket
-import threading
 from threading import Thread
 
 import numpy as np
@@ -56,9 +55,7 @@ class ArtapServer(Thread):
                       [Input('interval-component', 'n_intervals')])
         def update_graph_live(n):
             self.y = np.sin(self.x * n) / n
-            print(n)
             dummy_data = pd.read_csv('testdata.csv')
-            print(dummy_data)
 
             fig = {
                 'data': [grObj.Scatter(
@@ -107,23 +104,20 @@ class ArtapServer(Thread):
     def run(self):
         self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
 
-    def run_server(self):
+    def run_server(self, open_viewer=True):
         self.setDaemon(daemonic=True)
         self.start()
 
-        '''
         if open_viewer:
-            webbrowser.open(self.url, new=2, autoraise=True)
-        '''
+            webbrowser.open(self.url + ':' + str(self.port), new=2, autoraise=True)
 
 
 if __name__ == '__main__':
-    artap_server = ArtapServer(debug_mode=False)
+    # for debug testing only
+    artap_server = ArtapServer(local_host=True, port=8050, debug_mode=False)
+    artap_server.run_server()
 
-    artap_server.dash_app.run_server(debug=artap_server.debug_mode, host=artap_server.url, port=artap_server.port)
+    artap_server_2 = ArtapServer(local_host=True, port=8051, debug_mode=False)
+    artap_server_2.run_server()
 
-    #artap_server.run_server()
-    #artap_server.setDaemon(True)
-    #artap_server.start()
-
-    #webbrowser.open('127.0.0.1', new=2, autoraise=True)
+    input("Press Enter to STOP application...")
