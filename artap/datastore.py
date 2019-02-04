@@ -106,19 +106,14 @@ class DataStore:
 
 
 class SqliteDataStore(DataStore):
-    def __init__(self, problem=None, database_file=None, working_dir=None, create_database=False):
+    def __init__(self, problem=None, database_file=None, create_database=False):
         super().__init__(problem)
-
-        if working_dir is None:
-            self.working_dir = ""
-        else:
-            self.working_dir = working_dir
 
         if self.problem is not None:
             problem.data_store = self
 
         if create_database:
-            self.database_name = self.working_dir + os.sep + "data" + ".sqlite"
+            self.database_name = self.problem.working_dir + os.sep + "data" + ".sqlite"
             if os.path.exists(self.database_name):
                 os.remove(self.database_name)
         else:
