@@ -22,7 +22,7 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         super().__init__(problem, name)
         self.problem = problem
 
-        self.generator = RandomGeneration()
+        self.generator = RandomGeneration(self.problem.parameters)
         self.selector = None
         self.mutator = None
         self.crossover = None
@@ -122,7 +122,7 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
                              desc='max_population_size')
 
     def gen_initial_population(self):
-        individuals = self.generator.generate(self.options['max_population_size'], self.problem.parameters)
+        individuals = self.generator.generate(self.options['max_population_size'])
         self.evaluate(individuals)
 
         population = Population(individuals)
@@ -158,13 +158,13 @@ class NSGAII(GeneticAlgorithm):
 
             """ the random linear operator """
             if random.uniform(0, 1) < self.options['prob_cross']:
-                child1, child2 = self.crossover.cross(self.problem.parameters, parent1, parent2)
+                child1, child2 = self.crossover.cross(parent1, parent2)
             else:
                 child1 = parent1
                 child2 = parent2
 
-            child1 = self.mutator.mutate(self.problem.parameters, child1)
-            child2 = self.mutator.mutate(self.problem.parameters, child2)
+            child1 = self.mutator.mutate(child1)
+            child2 = self.mutator.mutate(child2)
 
             children.append(child1)
             children.append(child2)
@@ -173,10 +173,10 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set class
-        # self.crossover = SimpleCrossover()
-        self.crossover = SimulatedBinaryCrossover()
-        self.mutator = SimpleMutation(self.options['prob_mutation'])
-        self.selector = TournamentSelection()
+        # self.crossover = SimpleCrossover(self.problem.parameters)
+        self.crossover = SimulatedBinaryCrossover(self.problem.parameters)
+        self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
+        self.selector = TournamentSelection(self.problem.parameters)
 
         self.population = self.gen_initial_population()
         self.problem.data_store.write_population(self.population)
