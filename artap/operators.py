@@ -132,6 +132,77 @@ class Selection(Operator):
     def select(self, population):
         pass
 
+    @classmethod
+    def is_dominate(cls, p, q):
+        """
+        :param p: current solution
+        :param q: candidate
+        :return: True if the candidate is better than the current solution
+        """
+        dominate = False
+
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(p.costs)):
+            if p.costs[i] > q.costs[i]:
+                return False
+            if p.costs[i] < q.costs[i]:
+                dominate = True
+        return dominate
+
+    @classmethod
+    def non_dominated_sort(cls, population):
+        pareto_front = []
+        front_number = 1
+
+        for p in population:
+            for q in population:
+                if p is q:
+                    continue
+                if cls.is_dominate(p, q):
+                    p.dominate.add(q)
+                elif cls.is_dominate(q, p):
+                    p.domination_counter = p.domination_counter + 1
+
+            if p.domination_counter == 0:
+                p.front_number = front_number
+                pareto_front.append(p)
+
+        while not len(pareto_front) == 0:
+            front_number += 1
+            temp_set = []
+            for p in pareto_front:
+                for q in p.dominate:
+                    q.domination_counter -= 1
+                    if q.domination_counter == 0 and q.front_number == 0:
+                        q.front_number = front_number
+                        temp_set.append(q)
+            pareto_front = temp_set
+
+    @classmethod
+    def sort_by_coordinate(cls, population, dim):
+        population.sort(key=lambda x: x.vector[dim])
+        return population
+
+    @classmethod
+    def crowding_distance(cls, population):
+        infinite = float("inf")
+        n = len(population[0].vector)
+        for dim in range(0, n):
+            new_list = cls.sort_by_coordinate(population, dim)
+
+            new_list[0].crowding_distance += infinite
+            new_list[-1].crowding_distance += infinite
+            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
+            for i in range(1, len(new_list) - 1):
+                distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
+                if max_distance == 0:
+                    new_list[i].crowding_distance = 0
+                else:
+                    new_list[i].crowding_distance += distance / max_distance
+
+        for p in population:
+            p.crowding_distance = p.crowding_distance / n
+
 
 class Dominance(ABC):
     def __init__(self):
