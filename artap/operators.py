@@ -47,9 +47,10 @@ class RandomGeneration(Generation):
 
 class Mutation(Operator):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, probability):
         super().__init__()
         self.parameters = parameters
+        self.probability = probability
 
     @abstractmethod
     def mutate(self, p):
@@ -57,9 +58,8 @@ class Mutation(Operator):
 
 
 class SimpleMutation(Mutation):
-    def __init__(self, parameters, prob_mutation):
-        super().__init__(parameters)
-        self.prob_mutation = prob_mutation
+    def __init__(self, parameters, probability):
+        super().__init__(parameters, probability)
 
     def mutate(self, p):
         """ uniform random mutation """
@@ -67,8 +67,7 @@ class SimpleMutation(Mutation):
         vector = []
 
         for i, parameter in enumerate(self.parameters.items()):
-            if random.uniform(0, 1) < self.prob_mutation:
-
+            if random.uniform(0, 1) < self.probability:
                 l_b = parameter[1]['bounds'][0]
                 u_b = parameter[1]['bounds'][1]
 
@@ -82,28 +81,42 @@ class SimpleMutation(Mutation):
         return p_new
 
 
-# TODO: fix
 class PmMutation(Mutation):
 
-    def __init__(self, parameters, mutation_index=5):
-        super().__init__(parameters)
-        self.mutation_index = mutation_index
+    def __init__(self, parameters, probability, distribution_index=20):
+        super().__init__(parameters, probability)
+        self.distribution_index = distribution_index
 
-    def run(self, x, lb, ub):
+    def mutate(self, p):
+        vector = []
+
+        for i, parameter in enumerate(self.parameters.items()):
+            if random.uniform(0, 1) < self.probability:
+                l_b = parameter[1]['bounds'][0]
+                u_b = parameter[1]['bounds'][1]
+
+                vector.append(self.pm_mutation(p.vector[i], l_b, u_b))
+            else:
+                vector.append(p.vector[i])
+
+        p_new = Individual(vector)
+        return p_new
+
+    def pm_mutation(self, x, lb, ub):
         u = random.uniform(0, 1)
         dx = ub - lb
 
         if u < 0.5:
             bl = (x - lb) / dx
-            b = 2.0 * u + (1.0 - 2.0 * u) * pow(1.0 - bl,  self.mutation_index + 1.0)
-            delta = pow(b, 1.0 / (self.mutation_index + 1.0)) - 1.0
+            b = 2.0 * u + (1.0 - 2.0 * u) * pow(1.0 - bl, self.distribution_index + 1.0)
+            delta = pow(b, 1.0 / (self.distribution_index + 1.0)) - 1.0
         else:
             bu = (ub - x) / dx
-            b = 2.0 * (1.0 - u) + 2.0 * (u - 0.5) * pow(1.0 - bu, self.mutation_index + 1.0)
-            delta = 1.0 - pow(b, 1.0 / (self.mutation_index + 1.0))
+            b = 2.0 * (1.0 - u) + 2.0 * (u - 0.5) * pow(1.0 - bu, self.distribution_index + 1.0)
+            delta = 1.0 - pow(b, 1.0 / (self.distribution_index + 1.0))
 
         x = x + delta * dx
-        x = PmMutation.clip(x, lb, ub)
+        x = self.clip(x, lb, ub)
 
         return x
 
@@ -323,9 +336,10 @@ class TournamentSelection(Selection):
 
 class Crossover(Operator):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, probability):
         super().__init__()
         self.parameters = parameters
+        self.probability = probability
 
     @abstractmethod
     def cross(self, p1, p2):
@@ -334,31 +348,40 @@ class Crossover(Operator):
 
 class SimpleCrossover(Crossover):
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters, probability):
+        super().__init__(parameters, probability)
 
     def cross(self, p1, p2):
-        parameter1, parameter2 = [], []
-        linear_range = 2
+        parent_a = deepcopy(p1.vector)
+        parent_b = deepcopy(p2.vector)
 
-        alpha = random.uniform(0, linear_range)
+        if random.uniform(0.0, 1.0) <= self.probability:
+            parameter1 = []
+            parameter2 = []
+            linear_range = 2
 
-        for i, param in enumerate(self.parameters.items()):
-            l_b = param[1]['bounds'][0]
-            u_b = param[1]['bounds'][1]
+            alpha = random.uniform(0, linear_range)
 
-            parameter1.append(self.clip(alpha * p1.vector[i] + (1 - alpha) * p2.vector[i], l_b, u_b))
-            parameter2.append(self.clip((1 - alpha) * p1.vector[i] + alpha * p2.vector[i], l_b, u_b))
+            for i, param in enumerate(self.parameters.items()):
+                l_b = param[1]['bounds'][0]
+                u_b = param[1]['bounds'][1]
 
-        c1 = Individual(parameter1)
-        c2 = Individual(parameter2)
-        return c1, c2
+                parameter1.append(self.clip(alpha * p1.vector[i] + (1 - alpha) * p2.vector[i], l_b, u_b))
+                parameter2.append(self.clip((1 - alpha) * p1.vector[i] + alpha * p2.vector[i], l_b, u_b))
+
+            parent_a = parameter1
+            parent_b = parameter2
+
+        offspring_a = Individual(parent_a)
+        offspring_b = Individual(parent_b)
+
+        return offspring_a, offspring_b
 
 
 class SimulatedBinaryCrossover(Crossover):
 
-    def __init__(self, parameters, distribution_index=5):
-        super().__init__(parameters)
+    def __init__(self, parameters, probability, distribution_index=5):
+        super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
     def sbx(self, x1, x2, lb, ub):
@@ -415,7 +438,7 @@ class SimulatedBinaryCrossover(Crossover):
         parent_a = deepcopy(p1.vector)
         parent_b = deepcopy(p2.vector)
 
-        if random.uniform(0.0, 1.0) <= self.distribution_index:
+        if random.uniform(0.0, 1.0) <= self.probability:
             for i, param in enumerate(self.parameters.items()):
                 x1 = parent_a[i]
                 x2 = parent_b[i]

@@ -35,7 +35,7 @@ class TestCrossover(unittest.TestCase):
         self.assertEqual(len(offsprings), 2)
 
     def test_simple_crossover(self):
-        sbx = SimpleCrossover(self.parameters)
+        sbx = SimpleCrossover(self.parameters, 0.9)
         offsprings = sbx.cross(self.i1, self.i2)
         self.assertEqual(len(offsprings), 2)
 

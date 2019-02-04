@@ -2,7 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
-from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, TournamentSelection
+from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, PmMutation, TournamentSelection
 # from copy import copy, deepcopy
 from abc import ABCMeta
 import random
@@ -156,13 +156,10 @@ class NSGAII(GeneticAlgorithm):
             while parent1 == parent2:
                 parent2 = self.selector.select(parents)
 
-            """ the random linear operator """
-            if random.uniform(0, 1) < self.options['prob_cross']:
-                child1, child2 = self.crossover.cross(parent1, parent2)
-            else:
-                child1 = parent1
-                child2 = parent2
+            # crossover
+            child1, child2 = self.crossover.cross(parent1, parent2)
 
+            # mutation
             child1 = self.mutator.mutate(child1)
             child2 = self.mutator.mutate(child2)
 
@@ -173,9 +170,10 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set class
-        # self.crossover = SimpleCrossover(self.problem.parameters)
-        self.crossover = SimulatedBinaryCrossover(self.problem.parameters)
-        self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
+        # self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
+        self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
+        # self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
+        self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
         self.selector = TournamentSelection(self.problem.parameters)
 
         self.population = self.gen_initial_population()
