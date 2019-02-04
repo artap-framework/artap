@@ -11,6 +11,9 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
 
+import logging
+mpl_logger = logging.getLogger('matplotlib')
+mpl_logger.setLevel(logging.WARNING)
 
 class Results:
     MINIMIZE = -1
@@ -102,7 +105,7 @@ class GraphicalResults(Results):
         self.labels_size = 16
         self.tick_size = 12
 
-    def plot_scatter(self, name1, name2, filename=None):
+    def plot_scatter(self, name1, name2, filename=None, extension="pdf"):
         figure = Figure()
         figure.clf()
 
@@ -123,10 +126,10 @@ class GraphicalResults(Results):
         if filename is not None:
             pl.savefig(filename)
         else:
-            pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
+            pl.savefig(self.problem.working_dir + os.sep + "scatter." + extension)
         pl.close()
 
-    def plot_individuals(self, name, filename=None):
+    def plot_individuals(self, name, filename=None, extension="pdf"):
         # all individuals
         n = 1
         for population in self.problem.data_store.populations:
@@ -146,7 +149,7 @@ class GraphicalResults(Results):
         if filename is not None:
             pl.savefig(filename)
         else:
-            pl.savefig(self.problem.working_dir + os.sep + "individuals.pdf")
+            pl.savefig(self.problem.working_dir + os.sep + "individuals." + extension)
         pl.close()
 
     def plot_all_individuals(self, filename=None):
