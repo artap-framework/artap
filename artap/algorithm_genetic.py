@@ -1,16 +1,16 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
-from .individual import Individual
+# from .individual import Individual
 from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, PmMutation, TournamentSelection
 # from copy import copy, deepcopy
-from abc import ABCMeta
-import random
+# from abc import ABCMeta
+# import random
 import time
 # import itertools
 # from numpy.random import random_integers
 import sys
-import math
+# import math
 
 EPSILON = sys.float_info.epsilon
 
@@ -30,82 +30,8 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
     def gen_initial_population(self):
         pass
 
-    def select(self):
-        pass
-
     def run(self):
         pass
-
-    # TODO: rename or move somewhere?
-    def is_dominate(self, p, q):
-        """
-        :param p: current solution
-        :param q: candidate
-        :return: True if the candidate is better than the current solution
-        """
-        dominate = False
-
-        # The cost function can be a float or a list of floats
-        for i in range(0, len(self.problem.costs)):
-            if p.costs[i] > q.costs[i]:
-                return False
-            if p.costs[i] < q.costs[i]:
-                dominate = True
-        return dominate
-
-    def nondominated_sort(self, population):
-        pareto_front = []
-        front_number = 1
-
-        for p in population:
-            for q in population:
-                if p is q:
-                    continue
-                if self.is_dominate(p, q):
-                    p.dominate.add(q)
-                elif self.is_dominate(q, p):
-                    p.domination_counter = p.domination_counter + 1
-
-            if p.domination_counter == 0:
-                p.front_number = front_number
-                pareto_front.append(p)
-
-        while not len(pareto_front) == 0:
-            front_number += 1
-            temp_set = []
-            for p in pareto_front:
-                for q in p.dominate:
-                    q.domination_counter -= 1
-                    if q.domination_counter == 0 and q.front_number == 0:
-                        q.front_number = front_number
-                        temp_set.append(q)
-            pareto_front = temp_set
-
-    # TODO: rename or move somewhere?
-    @staticmethod
-    def sort_by_coordinate(population, dim):
-        population.sort(key=lambda x: x.vector[dim])
-        return population
-
-    # TODO: rename or move somewhere?
-    def crowding_distance(self, population):
-        infinite = float("inf")
-
-        for dim in range(0, len(self.problem.parameters)):
-            new_list = self.sort_by_coordinate(population, dim)
-
-            new_list[0].crowding_distance += infinite
-            new_list[-1].crowding_distance += infinite
-            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
-            for i in range(1, len(new_list) - 1):
-                distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
-                if max_distance == 0:
-                    new_list[i].crowding_distance = 0
-                else:
-                    new_list[i].crowding_distance += distance / max_distance
-
-        for p in population:
-            p.crowding_distance = p.crowding_distance / len(self.problem.parameters)
 
 
 class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
@@ -127,9 +53,6 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
         population = Population(individuals)
         return population
-
-    def select(self):
-        pass
 
     def run(self):
         pass
@@ -190,9 +113,9 @@ class NSGAII(GeneticAlgorithm):
             self.population = Population(offsprings)
             self.population.individuals = self.evaluate(self.population.individuals)
 
-            # non-dominated truncate on the guys
-            self.nondominated_sort(self.population.individuals) # TODO: remove?
-            self.crowding_distance(offsprings) # TODO: remove?
+            # non-dominated sort of individuals
+            TournamentSelection.non_dominated_sort(self.population.individuals)
+            TournamentSelection.crowding_distance(offsprings)
 
             self.problem.data_store.write_population(self.population)
             offsprings.extend(self.problem.data_store.populations[it].individuals)  # add the parents to the offsprings
