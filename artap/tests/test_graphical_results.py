@@ -6,6 +6,8 @@ from artap.problem import ProblemDataStore
 from artap.datastore import SqliteDataStore
 from artap.results import GraphicalResults
 
+from skimage.io import imread
+from skimage.measure import compare_mse as mse
 
 class TestDataStore(unittest.TestCase):
     def setUp(self):
@@ -20,12 +22,25 @@ class TestDataStore(unittest.TestCase):
 
     def tearDown(self):
         rmtree(self.working_dir)
+        pass
 
     def test_scatter(self):
-        self.results.plot_scatter('F_1', 'F_2')
+        self.results.plot_scatter('F_1', 'F_2', extension="png")
+
+        original = imread("." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "scatter.png")
+        picture = imread(self.working_dir + os.sep + "scatter.png")
+
+        mssim = mse(original, picture)
+        self.assertLess(mssim, 10)
 
     def test_individuals(self):
-        self.results.plot_individuals('F_1')
+        self.results.plot_individuals('F_1', extension="png")
+
+        original = imread("." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "individuals.png")
+        picture = imread(self.working_dir + os.sep + "individuals.png")
+
+        mssim = mse(original, picture)
+        self.assertLess(mssim, 10)
 
 if __name__ == '__main__':
     unittest.main()
