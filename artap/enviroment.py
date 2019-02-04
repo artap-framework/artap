@@ -27,3 +27,5 @@ class Enviroment:
     ssh_login = enviroment["ssh_login"]
 
     comsol_path = enviroment["comsol_path"]
+
+    loopback_ip = enviroment["loopback_ip"]

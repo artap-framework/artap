@@ -5,5 +5,7 @@
     "available_ssh_servers" : ["localhost"],
     "ssh_login" : "",
 
-    "comsol_path" : ""
+    "comsol_path" : "",
+
+    "loopback_ip" : "127.0.0.1"
 }
