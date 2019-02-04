@@ -10,6 +10,7 @@ from threading import Thread
 
 from artap.enviroment import Enviroment
 from artap.problem import Problem
+from artap.results import Results
 
 import numpy as np
 import pandas as pd
