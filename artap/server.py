@@ -46,6 +46,8 @@ class ArtapServer(Thread):
 
         self.x = []
         self.y = []
+        self.data = []
+        self.last_population = 0
 
         self.dash_app = dash.Dash(__name__)
         self.dash_app.layout = dashHtml.Div([
@@ -74,31 +76,38 @@ class ArtapServer(Thread):
         def update_graph_live(n):
             print('self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
 
-            self.x = []
-            self.y = []
-            population = self.problem.data_store.populations[-1]
-            for individual in population.individuals:
-                # self.x.append(len(self.x))
-                self.x.append(individual.costs[0])
-                self.y.append(individual.costs[1])
+            if self.last_population != len(self.problem.data_store.populations):
+                self.x = []
+                self.y = []
+                population = self.problem.data_store.populations[-1]
+                for individual in population.individuals:
+                    # self.x.append(len(self.x))
+                    if individual.front_number == 1:
+                        self.x.append(individual.costs[0])
+                        self.y.append(individual.costs[1])
 
-            # print(self.x)
-            # print(self.y)
+                # print(self.x)
+                # print(self.y)
 
+                trace = grObj.Scatter(
+                        {
+                            'x': self.x,
+                            'y': self.y,
+                            'mode': 'markers',
+                            'opacity': 0.7,
+                            'marker': {
+                                'size': len(self.problem.data_store.populations) * 2,
+                                'line': {'width': 0.5, 'color': 'white'},
+                                'color': len(self.problem.data_store.populations)
+                            },
+                            'name': 'Pareto {}'.format(len(self.problem.data_store.populations))
+                        }
+                    )
+
+                self.data.append(trace)
+                self.last_population = len(self.problem.data_store.populations)
             fig = {
-                'data': [grObj.Scatter(
-                    {
-                        'x': self.x,
-                        'y': self.y,
-                        'mode': 'markers',
-                        'opacity': 0.7,
-                        'marker': {
-                            'size': 15,
-                            'line': {'width': 0.5, 'color': 'white'}
-                        },
-                        'name': 'Trace 1'
-                    }
-                )],
+                'data': self.data,
                 'layout': grObj.Layout(
                     xaxis={'title': str(problem.eval_counter)},
                     yaxis={'title': str(problem.costs)}
