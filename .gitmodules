@@ -1,6 +1,3 @@
-[submodule "3rdparty/platypus"]
-	path = 3rdparty/platypus
-	url = git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/platypus.git
 [submodule "3rdparty/nlopt2"]
 	path = 3rdparty/nlopt2
 	url = git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/nlopt2.git

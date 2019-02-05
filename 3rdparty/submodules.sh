@@ -3,7 +3,6 @@
 DIR=$PWD
 
 # git submodule add git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/nlopt2.git 3rdparty/nlopt2
-# git submodule add git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/platypus.git 3rdparty/platypus
 # git submodule add git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/bayesopt.git 3rdparty/bayesopt
 
 # update
@@ -26,7 +25,6 @@ cmake ..
 make -j4
 cp $DIR/bayesopt/build/lib/bayesopt.so $DIR/../artap/lib/
 strip $DIR/../artap/lib/bayesopt.so
-
 
 # go back
 cd $DIR
