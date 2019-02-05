@@ -33,8 +33,8 @@ class MyProblem(Problem):
 if __name__ == '__main__':
     problem = MyProblem("NSGA2Optimization")
     algorithm = NSGAII(problem)
-    algorithm.options['max_population_number'] = 20
-    algorithm.options['max_population_size'] = 20
+    algorithm.options['max_population_number'] = 2
+    algorithm.options['max_population_size'] = 200
     # algorithm.options['calculate_gradients'] = True
     algorithm.run()
 
