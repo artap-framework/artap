@@ -24,7 +24,7 @@ class NoneProblemDefined(Exception):
 
 class ArtapServer(Thread):
 
-    def __init__(self, problem=None, local_host=True, port=Enviroment.server_initial_port, debug_mode=False):
+    def __init__(self, problem=None, local_host=True, port=Enviroment.server_initial_port, graph_update_interval=100, debug_mode=False):
         if problem is None:
             raise NoneProblemDefined('No problem was given')
         Thread.__init__(self)
@@ -65,10 +65,22 @@ class ArtapServer(Thread):
             ),
             dashComp.Interval(
                 id='interval-component',
-                interval=1 * 100,  # in milliseconds
+                interval=graph_update_interval,  # in milliseconds
                 n_intervals=0
-            )
+            ),
+            dashHtml.Button('Stop Server', id='stop-button'),
+            dashHtml.Div(id='output-button-container')
         ])
+
+        '''
+        @self.dash_app.callback(Output('output-button-container', 'children'),
+                                [Input('stop-button', 'name')])
+        def cancel_server(button_name):
+            print('Cancel button pressed')
+            return dashHtml.Div([
+                dashHtml.Div('Cancel button pressed')
+            ])
+        '''
 
         # Multiple components can update everytime interval gets fired.
         @self.dash_app.callback(Output('live-update-graph', 'figure'),
