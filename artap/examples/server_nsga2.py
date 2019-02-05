@@ -7,7 +7,7 @@ from artap.datastore import DummyDataStore
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
 # from artap.results import Results
-from artap.results import  GraphicalResults
+from artap.results import GraphicalResults
 
 
 class MyProblem(Problem):
@@ -20,7 +20,7 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-        self.run_server(daemon=False)
+        # self.run_server(daemon=False)
 
     def evaluate(self, x):
         function = BinhAndKorn()
@@ -33,12 +33,12 @@ class MyProblem(Problem):
 if __name__ == '__main__':
     problem = MyProblem("NSGA2Optimization")
     algorithm = NSGAII(problem)
-    algorithm.options['max_population_number'] = 10
-    algorithm.options['max_population_size'] = 50
+    algorithm.options['max_population_number'] = 20
+    algorithm.options['max_population_size'] = 20
     # algorithm.options['calculate_gradients'] = True
     algorithm.run()
 
     results = GraphicalResults(problem)
-    results.plot_scatter('F_1', 'F_2')
+    results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf")
     # results.plot_scatter('x_1', 'x_2')
     # results.plot_individuals('F_1')

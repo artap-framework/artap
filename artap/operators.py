@@ -386,6 +386,9 @@ class TournamentSelection(Selection):
         An individual is selected in the rank is lesser than the other or if crowding distance is greater than the other
         """
 
+        # participants = random.sample(population, 2)
+        # return min(participants, key=lambda x: (x.front_number, -x.crowding_distance))
+
         winner = random.choice(population)
 
         for _ in range(self.part_num - 1):
