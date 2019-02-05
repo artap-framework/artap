@@ -25,8 +25,8 @@ class ScipyOpt(Algorithm):
 
         self.save_all = True
 
-    def run(self):            
-        job = JobSimple(self.problem, self.population)
+    def run(self):
+        job = JobSimple(self.problem)
 
         # initial vector
         x0 = np.array(self.problem.get_initial_values())
