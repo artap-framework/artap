@@ -22,7 +22,7 @@ class TestDataStore(unittest.TestCase):
         self.results = GraphicalResults(problem)
 
     def tearDown(self):
-        # rmtree(self.working_dir)
+        rmtree(self.working_dir)
         pass
 
     def test_scatter(self):
@@ -31,9 +31,8 @@ class TestDataStore(unittest.TestCase):
         original = imread("." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "scatter.png")
         picture = imread(self.working_dir + os.sep + "scatter.png")
 
-        mssim = mse(original, picture)
-        # print("scatter: {}".format(mssim))
-        self.assertLess(mssim, 2)
+        mmse = mse(original, picture)
+        self.assertLess(mmse, 100)
 
     def test_individuals(self):
         self.results.plot_individuals('F_1', filename=self.working_dir + os.sep + "individuals.png")
@@ -41,9 +40,9 @@ class TestDataStore(unittest.TestCase):
         original = imread("." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "individuals.png")
         picture = imread(self.working_dir + os.sep + "individuals.png")
 
-        mssim = mse(original, picture)
-        # print("individuals: {}".format(mssim))
-        self.assertLess(mssim, 2)
+        mmse = mse(original, picture)
+        self.assertLess(mmse, 100)
+
 
 if __name__ == '__main__':
     unittest.main()
