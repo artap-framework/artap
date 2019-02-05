@@ -7,8 +7,6 @@ class Population:
             self.individuals = []
         else:
             self.individuals = individuals.copy()
-            #for individual in self.individuals:
-            #    individual.population_id = self.id
 
         self.pareto_vectors: list = []
         self.pareto_costs: list = []
