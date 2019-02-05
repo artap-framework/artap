@@ -1,14 +1,10 @@
 from .datastore import SqliteDataStore, SqliteHandler
-from .individual import Individual
 from .utils import flatten
 from .utils import ConfigDictionary
-from .job import Job
-import collections
 from abc import ABC, abstractmethod
-from artap_server.artap_server import ArtapServer
+# from artap_server.artap_server import ArtapServer
 
 import os
-import tempfile
 import multiprocessing
 import logging
 
@@ -50,7 +46,7 @@ class ProblemBase(ABC):
                              desc='calculate gradient for individuals')
         self.options.declare(name='save_level', default="individual",
                              desc='Save level')
-        self.options.declare(name='log_level', default=logging.DEBUG, values=_log_level,
+        self.options.declare(name='log_level', default=logging.INFO, values=_log_level,
                              desc='Log level')
         self.options.declare(name='log_file_handler', default=False,
                              desc='Enable file handler')
