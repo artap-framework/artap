@@ -1,11 +1,11 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
-# from .individual import Individual
+from .individual import Individual
 from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, PmMutation, TournamentSelection, Selection
 # from copy import copy, deepcopy
 # from abc import ABCMeta
-# import random
+import random
 import time
 # import itertools
 # from numpy.random import random_integers
@@ -63,9 +63,9 @@ class NSGAII(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
 
-        self.options.declare(name='prob_cross', default=0.9, lower=0,
+        self.options.declare(name='prob_cross', default=0.6, lower=0,
                              desc='prob_cross')
-        self.options.declare(name='prob_mutation', default=0.05, lower=0,
+        self.options.declare(name='prob_mutation', default=0.2, lower=0,
                              desc='prob_mutation')
 
     def generate(self, parents):
@@ -92,61 +92,84 @@ class NSGAII(GeneticAlgorithm):
         return children.copy()
 
     def run(self):
-        """
         # set class
         self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
+        # TODO: SBX is broken ????
         # self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
-        self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
-        # self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
-        self.selector = TournamentSelection(self.problem.parameters)
-
-        self.population = self.gen_initial_population()
-        self.problem.data_store.write_population(self.population)
-
-        offsprings = self.population.individuals
-
-        t_s = time.time()
-        self.problem.logger.info("NSGA_II: {}/{}".format(self.options['max_population_number'],
-                                                         self.options['max_population_size']))
-
-        # optimization
-        for it in range(self.options['max_population_number']):
-            self.population = Population(offsprings)
-            self.population.individuals = self.evaluate(self.population.individuals)
-
-            # non-dominated sort of individuals
-            self.selector.non_dominated_sort(self.population.individuals)
-            self.selector.crowding_distance(offsprings)
-
-            self.problem.data_store.write_population(self.population)
-            offsprings.extend(self.problem.data_store.populations[it].individuals)  # add the parents to the offsprings
-            parents = sorted(offsprings, key=lambda x: x.front_number)
-
-            # truncate
-            self.problem.data_store.populations[it].individuals = parents[:self.options['max_population_size']]
-
-            offsprings = self.generate(self.problem.data_store.populations[it].individuals)
-
-            # time.sleep(1)
-
-        t = time.time() - t_s
-        self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
-        """
-
-        # set class
-        self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
-        # self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
-        self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
-        # self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
+        # self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
+        self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
         self.selector = TournamentSelection(self.problem.parameters)
 
         # create initial population and evaluate individuals
-        self.population = self.gen_initial_population()
+        population = self.gen_initial_population()
         # non-dominated sort of individuals
-        self.selector.non_dominated_sort(self.population.individuals)
-        self.selector.crowding_distance(self.population.individuals)
+        self.selector.non_dominated_sort(population.individuals)
+        self.selector.crowding_distance(population.individuals)
+        # write to data store
+        self.problem.data_store.write_population(population)
+
+        t_s = time.time()
+        self.problem.logger.info(
+            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.options['max_population_size']))
+
+        # optimization
+        for it in range(self.options['max_population_number']):
+            """
+            population = Population(offsprings)
+
+            # if (self.options['calculate_gradients'] is True) and population.number > 20:
+            #     population.evaluate_gradients()
+
+            # non-dominated truncate on the guys
+            self.selector.non_dominated_sort(offsprings)
+            self.selector.crowding_distance(offsprings)
+
+            offsprings.extend(population.individuals)  # add the parents to the offsprings
+            parents = sorted(offsprings, key=lambda x: x.front_number)
+
+            # truncate
+            population.individuals = parents[:self.options['max_population_size']]
+            self.problem.data_store.write_population(population)
+
+            offsprings = self.generate(population.individuals)
+            # evaluate the offsprings
+            offsprings = self.evaluate(offsprings)
+            """
+
+            # generate new offsprings
+            offsprings = self.generate(population.individuals)
+            # evaluate the offsprings
+            offsprings = self.evaluate(offsprings)
+
+            # if (self.options['calculate_gradients'] is True) and population.number > 20:
+            #     population.evaluate_gradients()
+
+            # non-dominated truncate on the guys
+            self.selector.non_dominated_sort(offsprings)
+            self.selector.crowding_distance(offsprings)
+
+            # add the parents to the offsprings
+            offsprings.extend(population.individuals)
+            parents = sorted(offsprings, key=lambda x: x.front_number)
+
+            # truncate
+            offsprings = parents[:self.options['max_population_size']]
+
+            # write population
+            population = Population(offsprings)
+            self.problem.data_store.write_population(population)
+
+        t = time.time() - t_s
+        self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
+
+        """
+        # create initial population and evaluate individuals
+        population = self.gen_initial_population()
+        # non-dominated sort of individuals
+        self.selector.non_dominated_sort(population.individuals)
+        self.selector.crowding_distance(population.individuals)
         # write to datastore
-        self.problem.data_store.write_population(self.population)
+        self.problem.data_store.write_population(population)
 
         t_s = time.time()
         self.problem.logger.info("NSGA_II: {}/{}".format(self.options['max_population_number'],
@@ -155,12 +178,12 @@ class NSGAII(GeneticAlgorithm):
         # optimization
         for it in range(self.options['max_population_number']):
             # generate offsprings
-            offsprings = self.generate(self.population.individuals)
+            offsprings = self.generate(population.individuals)
             # evaluate offsprings
             offsprings = self.evaluate(offsprings) # TODO: fix return
 
             # add the parents to the offsprings
-            offsprings.extend(self.population.individuals)
+            offsprings.extend(population.individuals)
 
             # non-dominated sort of individuals
             self.selector.non_dominated_sort(offsprings)
@@ -173,14 +196,15 @@ class NSGAII(GeneticAlgorithm):
             offsprings = offsprings[:self.options['max_population_size']]
 
             # create new population
-            self.population = Population(offsprings)
+            population = Population(offsprings)
             # write to datastore
-            self.problem.data_store.write_population(self.population)
+            self.problem.data_store.write_population(population)
 
             # time.sleep(3)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
+        """
 
 # class Archive(object):
 #     """An archive only containing non-dominated solutions."""
