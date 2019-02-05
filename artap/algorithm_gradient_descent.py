@@ -22,12 +22,12 @@ class GradientDescent(Algorithm):
         self.options.declare(name='h', default=0.1,
                              desc='step')
 
-    def evaluate_gradient_richardson(self, individual):
+    def evaluate_gradient_richardson(self, population, individual):
         x0 = individual.vector
         gradient = [0] * len(x0)
 
         h = 1e-6
-        job = JobSimple(self.problem, self.population)
+        job = JobSimple(self.problem, population)
         y = job.evaluate_scalar(x0)
         for i in range(len(x0)):
             x = x0.copy()
@@ -62,6 +62,8 @@ class GradientDescent(Algorithm):
         return gradient
 
     def run(self):
+        population = Population()
+
         # TODO: add adaptive step size
         n = self.options["n_iterations"]
         x = [] * n
@@ -73,7 +75,7 @@ class GradientDescent(Algorithm):
             x.append([])
             dx.append([])
             individual = Individual(x[i-1])
-            gradient = self.evaluate_gradient_richardson(individual)
+            gradient = self.evaluate_gradient_richardson(population, individual)
             dx[i] = gradient
 
             for j in range(len(x[i-1])):
@@ -86,6 +88,7 @@ class GradientDescent(Algorithm):
                     n += (dx[i][j] - dx[i-1][j]) * (x[i][j] - x[i-1][j])
                     d += (dx[i][j] - dx[i-1][j])**2
                 h = n / d
-            self.population.individuals.append(individual)
+            population.individuals.append(individual)
 
-        return x
+        # write to datastore
+        self.problem.data_store.write_population(population)

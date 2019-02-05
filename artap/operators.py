@@ -450,7 +450,7 @@ class SimpleCrossover(Crossover):
 
 class SimulatedBinaryCrossover(Crossover):
 
-    def __init__(self, parameters, probability, distribution_index=5):
+    def __init__(self, parameters, probability, distribution_index=15):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
@@ -510,16 +510,17 @@ class SimulatedBinaryCrossover(Crossover):
 
         if random.uniform(0.0, 1.0) <= self.probability:
             for i, param in enumerate(self.parameters.items()):
-                x1 = parent_a[i]
-                x2 = parent_b[i]
+                if random.uniform(0.0, 1.0) <= 0.5:
+                    x1 = parent_a[i]
+                    x2 = parent_b[i]
 
-                lb = param[1]['bounds'][0]
-                ub = param[1]['bounds'][1]
+                    lb = param[1]['bounds'][0]
+                    ub = param[1]['bounds'][1]
 
-                x1, x2 = self.sbx(x1, x2, lb, ub)
+                    x1, x2 = self.sbx(x1, x2, lb, ub)
 
-                parent_a[i] = x1
-                parent_b[i] = x2
+                    parent_a[i] = x1
+                    parent_b[i] = x2
 
         offspring_a = Individual(parent_a)
         offspring_b = Individual(parent_b)
