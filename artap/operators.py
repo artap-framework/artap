@@ -132,8 +132,7 @@ class Selection(Operator):
     def select(self, population):
         pass
 
-    @classmethod
-    def is_dominate(cls, p, q):
+    def is_dominate(self, p, q):
         """
         :param p: current solution
         :param q: candidate
@@ -149,8 +148,7 @@ class Selection(Operator):
                 dominate = True
         return dominate
 
-    @classmethod
-    def non_dominated_sort(cls, population):
+    def non_dominated_sort(self, population):
         pareto_front = []
         front_number = 1
 
@@ -158,9 +156,9 @@ class Selection(Operator):
             for q in population:
                 if p is q:
                     continue
-                if cls.is_dominate(p, q):
+                if self.is_dominate(p, q):
                     p.dominate.add(q)
-                elif cls.is_dominate(q, p):
+                elif self.is_dominate(q, p):
                     p.domination_counter = p.domination_counter + 1
 
             if p.domination_counter == 0:
@@ -178,17 +176,15 @@ class Selection(Operator):
                         temp_set.append(q)
             pareto_front = temp_set
 
-    @classmethod
-    def sort_by_coordinate(cls, population, dim):
+    def sort_by_coordinate(self, population, dim):
         population.sort(key=lambda x: x.vector[dim])
         return population
 
-    @classmethod
-    def crowding_distance(cls, population):
+    def crowding_distance(self, population):
         infinite = float("inf")
         n = len(population[0].vector)
         for dim in range(0, n):
-            new_list = cls.sort_by_coordinate(population, dim)
+            new_list = self.sort_by_coordinate(population, dim)
 
             new_list[0].crowding_distance += infinite
             new_list[-1].crowding_distance += infinite

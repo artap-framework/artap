@@ -17,7 +17,7 @@ class MyProblem(Problem):
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         costs = ['F_1', 'F_2']
 
-        super().__init__(name, parameters, costs, working_dir="/tmp/xxx/", data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
     def evaluate(self, x):
@@ -75,7 +75,7 @@ class AckleyN2Test(Problem):
 class TestAckleyN2(unittest.TestCase):
     """ Tests that the NSGA II algorithm can find the global optimum of a function."""
 
-    def disabled_test_local_problem(self):
+    def test_local_problem(self):
         problem = AckleyN2Test("TestAckleyN2")
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
