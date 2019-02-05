@@ -5,6 +5,7 @@ from .utils import ConfigDictionary
 from .job import Job
 import collections
 from abc import ABC, abstractmethod
+from artap_server.artap_server import ArtapServer
 
 import os
 import tempfile
@@ -95,7 +96,7 @@ class Problem(ProblemBase):
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, run_server=False):
 
         super().__init__()
         self.name = name
@@ -154,6 +155,11 @@ class Problem(ProblemBase):
 
         self.surrogate_x_data = []
         self.surrogate_y_data = []
+
+        # testing - Artap Server
+        if run_server:
+            self.server = ArtapServer(problem=self)
+            self.server.run_server(open_viewer=True, daemon=False)
 
     def __del__(self):
         pass
