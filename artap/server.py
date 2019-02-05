@@ -74,7 +74,7 @@ class ArtapServer(Thread):
         @self.dash_app.callback(Output('live-update-graph', 'figure'),
                                 [Input('interval-component', 'n_intervals')])
         def update_graph_live(n):
-            print('self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
+            print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
 
             if self.last_population != len(self.problem.data_store.populations):
                 self.x = []
