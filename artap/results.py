@@ -15,6 +15,7 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 mpl_logger.setLevel(logging.WARNING)
 
+
 class Results:
     MINIMIZE = -1
     MAXIMIZE = 1
