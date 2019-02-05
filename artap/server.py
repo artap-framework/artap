@@ -8,12 +8,8 @@ import webbrowser
 import socket
 from threading import Thread
 
-import os
-
 from artap.enviroment import Enviroment
-
-import numpy as np
-import pandas as pd
+from .individual import Individual
 
 class NoneProblemDefined(Exception):
     """Raised when no problem instance is given
@@ -31,8 +27,9 @@ class ArtapServer(Thread):
     def __init__(self, problem=None, local_host=True, port=Enviroment.server_initial_port, debug_mode=False):
         if problem is None:
             raise NoneProblemDefined('No problem was given')
-
         Thread.__init__(self)
+
+        self.problem = problem
 
         if local_host:
             self.url = Enviroment.loopback_ip
@@ -47,12 +44,11 @@ class ArtapServer(Thread):
         print(problem.eval_counter)
         # -----
 
-        self.__x = np.linspace(0, 5, 500)
-        self.__y = np.sin(self.__x)
+        self.x = []
+        self.y = []
 
-        self.__dash_app = dash.Dash(__name__)
-
-        self.__dash_app.layout = dashHtml.Div([
+        self.dash_app = dash.Dash(__name__)
+        self.dash_app.layout = dashHtml.Div([
             dashComp.Graph(
                 id='live-update-graph',
                 figure={
@@ -74,20 +70,32 @@ class ArtapServer(Thread):
 
         # Multiple components can update everytime interval gets fired.
         @self.dash_app.callback(Output('live-update-graph', 'figure'),
-                      [Input('interval-component', 'n_intervals')])
+                                [Input('interval-component', 'n_intervals')])
         def update_graph_live(n):
-            # DEBUG
-            print(problem.costs)
-            print(problem.eval_counter)
-            # -----
+            print('self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
 
-            self.y = np.sin(self.x * n) / n
-            # dummy_data = pd.read_csv('testdata.csv')
+            self.x = []
+            self.y = []
+            population = self.problem.data_store.populations[-1]
+            for individual in population.individuals:
+                # self.x.append(len(self.x))
+                self.x.append(individual.costs[0])
+                self.y.append(individual.costs[1])
+
+            # print(self.x)
+            # print(self.y)
+
             fig = {
                 'data': [grObj.Scatter(
                     {
                         'x': self.x,
                         'y': self.y,
+                        'mode': 'markers',
+                        'opacity': 0.7,
+                        'marker': {
+                            'size': 15,
+                            'line': {'width': 0.5, 'color': 'white'}
+                        },
                         'name': 'Trace 1'
                     }
                 )],
@@ -97,29 +105,6 @@ class ArtapServer(Thread):
                 )
             }
             return fig
-
-    @property
-    def x(self):
-        """ 'x' property."""
-        return self.__x
-
-    @x.setter
-    def x(self, value):
-        self.__x = value
-
-    @property
-    def y(self):
-        """ 'y' property."""
-        return self.__y
-
-    @y.setter
-    def y(self, value):
-        self.__y = value
-
-    @property
-    def dash_app(self):
-        """ 'dash_app' property."""
-        return self.__dash_app
 
     def get_host_ip(self):
         try:

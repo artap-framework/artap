@@ -18,7 +18,7 @@ class MyProblem(Problem):
         self.options['max_processes'] = 1
 
         # run server
-        self.run_server()
+        # self.run_server()
 
     def evaluate(self, x):
         result = 0
