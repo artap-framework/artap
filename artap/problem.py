@@ -2,7 +2,7 @@ from .datastore import SqliteDataStore, SqliteHandler
 from .utils import flatten
 from .utils import ConfigDictionary
 from abc import ABC, abstractmethod
-# from artap_server.artap_server import ArtapServer
+from artap_server.artap_server import ArtapServer
 
 import os
 import multiprocessing
@@ -112,7 +112,7 @@ class Problem(ProblemBase):
             file_handler = logging.FileHandler(self.working_dir + "/data.log")
             file_handler.setLevel(logging.DEBUG)
             # add formatter to FileHandler
-            file_handler.setFormatter(formatter)
+            file_handler.setFormatter(self.formatter)
             # add FileHandler to logger
             self.logger.addHandler(file_handler)
 
