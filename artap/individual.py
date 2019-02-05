@@ -27,7 +27,7 @@ class Individual(metaclass=ABCMeta):
         for i in range(0, len(self.vector)):
             self.velocity_i.append(uniform(-1, 1))
 
-    def __str__(self):
+    def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
         string = "vector: ["
 

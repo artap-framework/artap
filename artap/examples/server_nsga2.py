@@ -6,7 +6,7 @@ from artap.problem import Problem
 from artap.datastore import DummyDataStore
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results
+# from artap.results import Results
 from artap.results import  GraphicalResults
 
 
@@ -33,7 +33,7 @@ class MyProblem(Problem):
 if __name__ == '__main__':
     problem = MyProblem("NSGA2Optimization")
     algorithm = NSGAII(problem)
-    algorithm.options['max_population_number'] = 1000
+    algorithm.options['max_population_number'] = 10
     algorithm.options['max_population_size'] = 50
     # algorithm.options['calculate_gradients'] = True
     algorithm.run()

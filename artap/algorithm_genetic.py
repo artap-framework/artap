@@ -126,7 +126,7 @@ class NSGAII(GeneticAlgorithm):
 
             offsprings = self.generate(self.problem.data_store.populations[it].individuals)
 
-            # time.sleep(1)
+            time.sleep(1)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
