@@ -116,7 +116,7 @@ class BayesOptClassSerial(BayesOptContinuous):
         self.ub = np.empty((n,))
         self.params = {}
 
-        self.job = JobSimple(self.algorithm.problem, self.algorithm.population)
+        self.job = JobSimple(self.algorithm.problem)
 
     def evaluateSample(self, x):
         return self.job.evaluate_scalar(x)
