@@ -16,7 +16,7 @@ class Individual(metaclass=ABCMeta):
         self.is_evaluated = False
         self.dominate = set()
         self.domination_counter = 0
-        self.front_number = 0
+        self.front_number = 999
         self.crowding_distance = 0 # TODO: deprecated?
 
         # For particle swarm optimization
@@ -44,6 +44,7 @@ class Individual(metaclass=ABCMeta):
             if i < len(self.costs)-1:
                 string += ", "
         string += "]\n"
+        string += " front number: {}".format(self.front_number)
         return string
 
     def to_list(self):

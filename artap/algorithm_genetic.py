@@ -184,6 +184,7 @@ class NSGAII(GeneticAlgorithm):
 
             # add the parents to the offsprings
             offsprings.extend(population.individuals)
+            offsprings.extend(self.population.individuals.copy())
 
             # non-dominated sort of individuals
             self.selector.non_dominated_sort(offsprings)
