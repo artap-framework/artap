@@ -160,7 +160,7 @@ class NSGAII(GeneticAlgorithm):
             offsprings = self.evaluate(offsprings) # TODO: fix return
 
             # add the parents to the offsprings
-            offsprings.extend(self.population.individuals)
+            offsprings.extend(self.population.individuals.copy())
 
             # non-dominated sort of individuals
             self.selector.non_dominated_sort(offsprings)
