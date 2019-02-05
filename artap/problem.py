@@ -1,8 +1,8 @@
 from .datastore import SqliteDataStore, SqliteHandler
 from .utils import flatten
 from .utils import ConfigDictionary
+from .server import ArtapServer
 from abc import ABC, abstractmethod
-from artap_server.artap_server import ArtapServer
 
 import os
 import multiprocessing
@@ -38,6 +38,7 @@ class ProblemBase(ABC):
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: SqliteDataStore = None
+        self.server = None
 
         # options
         self.options = ConfigDictionary()
@@ -73,6 +74,10 @@ class ProblemBase(ABC):
             # add StreamHandler to logger
             self.logger.addHandler(stream_handler)
 
+    def run_server(self, open_viewer=False, daemon=True):
+        # testing - Artap Server
+        self.server = ArtapServer(problem=self)
+        self.server.run_server(open_viewer, daemon)
 
     def get_parameters_list(self):
         parameters_list = []
@@ -92,7 +97,7 @@ class Problem(ProblemBase):
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None, run_server=False):
+    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
 
         super().__init__()
         self.name = name
@@ -151,11 +156,6 @@ class Problem(ProblemBase):
 
         self.surrogate_x_data = []
         self.surrogate_y_data = []
-
-        # testing - Artap Server
-        if run_server:
-            self.server = ArtapServer(problem=self)
-            self.server.run_server(open_viewer=True, daemon=False)
 
     def __del__(self):
         pass
