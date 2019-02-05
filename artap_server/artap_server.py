@@ -8,9 +8,9 @@ import webbrowser
 import socket
 from threading import Thread
 
+import os
+
 from artap.enviroment import Enviroment
-from artap.problem import Problem
-from artap.results import Results
 
 import numpy as np
 import pandas as pd
@@ -24,6 +24,7 @@ class NoneProblemDefined(Exception):
 
     def __init__(self, message):
         self.message = message
+
 
 class ArtapServer(Thread):
 
@@ -40,6 +41,11 @@ class ArtapServer(Thread):
 
         self.port = port
         self.debug_mode = debug_mode
+
+        # DEBUG
+        print(problem.costs)
+        print(problem.eval_counter)
+        # -----
 
         self.__x = np.linspace(0, 5, 500)
         self.__y = np.sin(self.__x)
@@ -61,7 +67,7 @@ class ArtapServer(Thread):
             ),
             dashComp.Interval(
                 id='interval-component',
-                interval=1 * 1000,  # in milliseconds
+                interval=1 * 100,  # in milliseconds
                 n_intervals=0
             )
         ])
@@ -70,9 +76,13 @@ class ArtapServer(Thread):
         @self.dash_app.callback(Output('live-update-graph', 'figure'),
                       [Input('interval-component', 'n_intervals')])
         def update_graph_live(n):
-            self.y = np.sin(self.x * n) / n
-            dummy_data = pd.read_csv('testdata.csv')
+            # DEBUG
+            print(problem.costs)
+            print(problem.eval_counter)
+            # -----
 
+            self.y = np.sin(self.x * n) / n
+            # dummy_data = pd.read_csv('testdata.csv')
             fig = {
                 'data': [grObj.Scatter(
                     {
@@ -82,8 +92,8 @@ class ArtapServer(Thread):
                     }
                 )],
                 'layout': grObj.Layout(
-                    xaxis={'title': dummy_data.to_string()},
-                    yaxis={'title': dummy_data.to_string()}
+                    xaxis={'title': str(problem.eval_counter)},
+                    yaxis={'title': str(problem.costs)}
                 )
             }
             return fig
@@ -119,11 +129,19 @@ class ArtapServer(Thread):
         except:
             return Enviroment.loopback_ip
 
+    # need to be tested, if it is correct
+    def pick_unused_port(self, ip_addr=Enviroment.loopback_ip):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((ip_addr, 0))
+        addr, port = s.getsockname()
+        s.close()
+        return port
+
     def run(self):
         self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
 
-    def run_server(self, open_viewer=True):
-        self.setDaemon(daemonic=True)
+    def run_server(self, open_viewer=True, daemon=True):
+        self.setDaemon(daemonic=daemon)
         self.start()
 
         if open_viewer:
@@ -133,7 +151,6 @@ class ArtapServer(Thread):
 
 if __name__ == '__main__':
     # for debug testing only
-
     from artap.tests.test_problem_scipy import AckleyN2Problem
     problem = AckleyN2Problem('DummyProblem')
     port = Enviroment.server_initial_port
@@ -158,5 +175,3 @@ if __name__ == '__main__':
         print('Exception when start server 3: ', ex.message)
 
     input("Press Enter to STOP application...")
-
-
