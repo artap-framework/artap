@@ -99,13 +99,13 @@ class GraphicalResults(Results):
     def __init__(self, problem):
         super().__init__(problem)
         self.name = ""
-        rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+        # rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
         # pl.rcParams['figure.figsize'] = 6, 4
         rc('text', usetex=True)
         self.labels_size = 16
         self.tick_size = 12
 
-    def plot_scatter(self, name1, name2, filename=None, extension="pdf"):
+    def plot_scatter(self, name1, name2, filename=None):
         figure = Figure()
         figure.clf()
 
@@ -126,10 +126,10 @@ class GraphicalResults(Results):
         if filename is not None:
             pl.savefig(filename)
         else:
-            pl.savefig(self.problem.working_dir + os.sep + "scatter." + extension)
+            pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
         pl.close()
 
-    def plot_individuals(self, name, filename=None, extension="pdf"):
+    def plot_individuals(self, name, filename=None):
         # all individuals
         n = 1
         for population in self.problem.data_store.populations:
@@ -149,7 +149,7 @@ class GraphicalResults(Results):
         if filename is not None:
             pl.savefig(filename)
         else:
-            pl.savefig(self.problem.working_dir + os.sep + "individuals." + extension)
+            pl.savefig(self.problem.working_dir + os.sep + "individuals.pdf")
         pl.close()
 
     def plot_all_individuals(self, filename=None):
