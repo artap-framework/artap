@@ -42,6 +42,7 @@ class Algorithm(metaclass=ABCMeta):
         for individual in individuals:
             if not individual.is_evaluated:
                 individual.costs = job.evaluate(individual.vector)
+                individual.is_evaluated = True
 
         # collect the results
         return individuals
