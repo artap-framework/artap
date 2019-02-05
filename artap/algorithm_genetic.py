@@ -2,7 +2,7 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 # from .individual import Individual
-from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, PmMutation, TournamentSelection
+from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, PmMutation, TournamentSelection, Selection
 # from copy import copy, deepcopy
 # from abc import ABCMeta
 # import random
@@ -114,8 +114,8 @@ class NSGAII(GeneticAlgorithm):
             self.population.individuals = self.evaluate(self.population.individuals)
 
             # non-dominated sort of individuals
-            TournamentSelection.non_dominated_sort(self.population.individuals)
-            TournamentSelection.crowding_distance(offsprings)
+            self.selector.non_dominated_sort(self.population.individuals)
+            self.selector.crowding_distance(offsprings)
 
             self.problem.data_store.write_population(self.population)
             offsprings.extend(self.problem.data_store.populations[it].individuals)  # add the parents to the offsprings
@@ -125,6 +125,8 @@ class NSGAII(GeneticAlgorithm):
             self.problem.data_store.populations[it].individuals = parents[:self.options['max_population_size']]
 
             offsprings = self.generate(self.problem.data_store.populations[it].individuals)
+
+            # time.sleep(1)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))

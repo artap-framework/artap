@@ -60,8 +60,8 @@ class Individual(metaclass=ABCMeta):
         else:
             out.append(self.feasible)
         dominates = []
-        for individual in self.dominate:
-            dominates.append(individual.id)
+        #for individual in self.dominate:
+        #    dominates.append(individual.id)
         out.append(dominates)
         out.append(self.gradient)
         return out
