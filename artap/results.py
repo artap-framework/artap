@@ -119,6 +119,14 @@ class GraphicalResults(Results):
                 values2.append(self.value(individual, name2))
             pl.scatter(values1, values2)
 
+        # pareto front
+        population = self.problem.data_store.populations[-1]
+        for individual in population.individuals:
+            # if individual.front_number == 1:
+            values1.append(self.value(individual, name1))
+            values2.append(self.value(individual, name2))
+        pl.scatter(values1, values2, c='k')
+
         # labels
         pl.grid()
         pl.xlabel("${}$".format(name1))
