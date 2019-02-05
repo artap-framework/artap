@@ -100,6 +100,7 @@ class DataStore:
     @abstractmethod
     def write_population(self, population):
         self.populations.append(population)
+        print("write_population: {}".format(len(self.populations)))
 
     def get_id(self):
         return 0
