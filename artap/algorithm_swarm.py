@@ -21,9 +21,11 @@ class PSO(NSGAII):
     # TODO: Almost the same code as for genetic algorithm. Reuse.
     def gen_initial_population(self):
         super().gen_initial_population()
-        self.evaluate_population()
-        for individual in self.population.individuals:
+        population = self.evaluate_population()
+        for individual in population.individuals:
             self.evaluate_pso(individual)
+
+        return population
 
     # evaluate current fitness
     def evaluate_pso(self, individual):
@@ -64,9 +66,9 @@ class PSO(NSGAII):
                 individual.vector[i] = bounds[i][0]
 
     def run(self):
-        self.gen_initial_population()
-        self.nondominated_sort(self.population.individuals)
-        self.problem.data_store.write_population(self.population)
+        population = self.gen_initial_population()
+        self.nondominated_sort(population.individuals)
+        self.problem.data_store.write_population(population)
 
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
@@ -78,7 +80,7 @@ class PSO(NSGAII):
 
             pareto_front = []
             for j in range(self.options['max_population_size']):
-                if self.population.individuals[j].front_number == 1:
+                if population.individuals[j].front_number == 1:
                     pareto_front.append(self.population.individuals[j])
                 individual = Individual(self.population.individuals[j].vector.copy())
                 individual.best_vector = self.population.individuals[j].best_vector
@@ -86,14 +88,13 @@ class PSO(NSGAII):
                 individual.costs = self.population.individuals[j].costs
 
                 population.individuals.append(individual)
-            self.population = population
 
             index = randint(0, len(pareto_front)-1)  # takes random individual from Pareto front
             individual = pareto_front[index]
             self.pos_best_g = list(individual.vector)
             self.err_best_g = individual.costs
 
-            for individual in self.population.individuals:
+            for individual in population.individuals:
                 individual.costs = []
                 # print(individual.velocity_i)
                 self.update_velocity(individual)
@@ -105,10 +106,10 @@ class PSO(NSGAII):
                 # print("---------------------")
 
             self.evaluate_population()
-            for individual in self.population.individuals:
+            for individual in population.individuals:
                 self.evaluate_pso(individual)
-            self.nondominated_sort(self.population.individuals)
-            self.problem.data_store.write_population(self.population)
+            self.nondominated_sort(population.individuals)
+            self.problem.data_store.write_population(population)
 
             i += 1
 

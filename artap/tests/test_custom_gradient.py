@@ -28,7 +28,7 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.options["x0"] = [10, 10]
         algorithm.options["n_iterations"] = 8
         algorithm.options["h"] = 0.1
-        print(algorithm.run()[-1])
+        algorithm.run()
 
 
 if __name__ == '__main__':

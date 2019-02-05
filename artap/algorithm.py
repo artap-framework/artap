@@ -15,9 +15,6 @@ class Algorithm(metaclass=ABCMeta):
         self.problem = problem
         self.options = ConfigDictionary()
 
-        # current population
-        self.population = Population()
-
         self.options.declare(name='verbose_level', default=1, lower=0,
                              desc='Verbose level')
         self.options.declare(name='calculate_gradients', default=False,
