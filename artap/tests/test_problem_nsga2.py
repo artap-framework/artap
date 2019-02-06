@@ -10,7 +10,7 @@ from artap.results import Results
 # from artap.results import  GraphicalResults
 
 
-class MyProblem(Problem):
+class BinhAndKornProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
@@ -33,7 +33,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
     def test_local_problem_nsga2(self):
 
-        problem = MyProblem("TestNSGA2Optimization")
+        problem = BinhAndKornProblem("TestNSGA2Optimization")
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 50
