@@ -49,8 +49,22 @@ class ArtapServer(Thread):
         self.data = []
         self.last_population = 0
 
-        self.dash_app = dash.Dash(__name__)
-        self.dash_app.layout = dashHtml.Div([
+        external_stylesheets = ['mainstyle.css']
+        self.dash_app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+        # local css
+        html_colors = {
+            'background': '#000099',
+            'text': '#e6f9ff'
+        }
+        self.dash_app.layout = dashHtml.Div(style={'backgroundColor': html_colors['background']}, children=[
+            dashHtml.H1(
+                children='Artap Server',
+                style={
+                    'textAlign': 'center',
+                    'color': html_colors['text']
+                }
+            ),
             dashComp.Graph(
                 id='live-update-graph',
                 figure={
@@ -58,9 +72,20 @@ class ArtapServer(Thread):
                         {
                             'x': self.x,
                             'y': self.y,
-                            'name': 'Trace 1',
+                            'mode': 'markers',
+                            'opacity': 0.7,
+                            'marker': {
+                                'size': len(self.problem.data_store.populations) * 2,
+                                'line': {'width': 0.5, 'color': 'white'},
+                                'color': len(self.problem.data_store.populations)
+                            },
+                            'name': 'Pareto {}'.format(len(self.problem.data_store.populations))
                         }
-                    )]
+                    )],
+                    'layout': grObj.Layout(
+                        xaxis={'title': str(self.problem.eval_counter)},
+                        yaxis={'title': str(self.problem.costs)}
+                    )
                 }
             ),
             dashComp.Interval(
@@ -121,8 +146,8 @@ class ArtapServer(Thread):
             fig = {
                 'data': self.data,
                 'layout': grObj.Layout(
-                    xaxis={'title': str(problem.eval_counter)},
-                    yaxis={'title': str(problem.costs)}
+                    xaxis={'title': str(self.problem.eval_counter)},
+                    yaxis={'title': str(self.problem.costs)}
                 )
             }
             return fig
