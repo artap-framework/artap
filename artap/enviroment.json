@@ -8,5 +8,6 @@
     "comsol_path" : "",
 
     "loopback_ip" : "127.0.0.1",
-    "server_initial_port" : 8050
+    "server_initial_port" : 8050,
+    "server_keep_live_delay" : 1
 }
