@@ -7,6 +7,7 @@ import plotly.graph_objs as grObj
 import webbrowser
 import socket
 from threading import Thread
+import time
 
 from artap.enviroment import Enviroment
 from .individual import Individual
@@ -24,11 +25,15 @@ class NoneProblemDefined(Exception):
 
 class RunDashThread(Thread):
 
-    def __init__(self, dash_app):
+    def __init__(self, dash_app, debug_mode, url, port):
+        Thread.__init__(self)
         self.dash_app = dash_app
+        self.debug_mode = debug_mode
+        self.url = url
+        self.port = port
 
     def run(self):
-        self.dash_app.run_server(debug=self.dash_app.debug_mode, host=self.dash_app.url, port=self.dash_app.port)
+        self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
 
 
 class ArtapServer(Thread):
@@ -48,10 +53,7 @@ class ArtapServer(Thread):
         self.port = port
         self.debug_mode = debug_mode
 
-        # DEBUG
-        print(problem.costs)
-        print(problem.eval_counter)
-        # -----
+        self.keep_server_live = True
 
         self.x = []
         self.y = []
@@ -68,7 +70,16 @@ class ArtapServer(Thread):
         }
         self.dash_app.layout = dashHtml.Div(style={'backgroundColor': html_colors['background']}, children=[
             dashHtml.H1(
+                id='page_title',
                 children='Artap Server',
+                style={
+                    'textAlign': 'center',
+                    'color': html_colors['text']
+                }
+            ),
+            dashHtml.H2(
+                id='stop_info',
+                children='',
                 style={
                     'textAlign': 'center',
                     'color': html_colors['text']
@@ -106,15 +117,14 @@ class ArtapServer(Thread):
             dashHtml.Div(id='output-button-container')
         ])
 
-        '''
-        @self.dash_app.callback(Output('output-button-container', 'children'),
-                                [Input('stop-button', 'name')])
-        def cancel_server(button_name):
-            print('Cancel button pressed')
-            return dashHtml.Div([
-                dashHtml.Div('Cancel button pressed')
-            ])
-        '''
+        @self.dash_app.callback(Output('stop_info', 'children'),
+                                [Input('stop-button', 'n_clicks')])
+        def cancel_server(number_of_clicks):
+            if number_of_clicks is not None:
+                self.keep_server_live = False
+                return dashHtml.Div([
+                    dashHtml.Div('Artap Server was STOPPED'),
+                ])
 
         # Multiple components can update everytime interval gets fired.
         @self.dash_app.callback(Output('live-update-graph', 'figure'),
@@ -178,8 +188,13 @@ class ArtapServer(Thread):
         return port
 
     def run(self):
-        self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
+        # self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
+        run_dash = RunDashThread(self.dash_app, self.debug_mode, self.url, self.port)
+        run_dash.setDaemon(daemonic=True)
+        run_dash.start()
 
+        while self.keep_server_live:
+            time.sleep(Enviroment.server_keep_live_delay)
 
     def run_server(self, open_viewer=True, daemon=True):
         self.setDaemon(daemonic=daemon)
@@ -188,6 +203,8 @@ class ArtapServer(Thread):
         if open_viewer:
             # webbrowser.register('google-chrome', webbrowser.Chrome('google-chrome'))
             webbrowser.open_new(self.url + ':' + str(self.port))
+
+
 
 
 if __name__ == '__main__':
