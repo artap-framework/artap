@@ -1,11 +1,11 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
-from .individual import Individual
+# from .individual import Individual
 from .operators import RandomGeneration, SimpleCrossover, SimulatedBinaryCrossover, SimpleMutation, PmMutation, TournamentSelection, Selection
 # from copy import copy, deepcopy
 # from abc import ABCMeta
-import random
+# import random
 import time
 # import itertools
 # from numpy.random import random_integers
@@ -93,9 +93,9 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set class
-        self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
+        # self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
         # TODO: SBX is broken ????
-        # self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
+        self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
         # self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
         self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
         self.selector = TournamentSelection(self.problem.parameters)
@@ -150,7 +150,10 @@ class NSGAII(GeneticAlgorithm):
 
             # add the parents to the offsprings
             offsprings.extend(population.individuals)
-            parents = sorted(offsprings, key=lambda x: x.front_number)
+            self.selector.non_dominated_sort(offsprings)
+            self.selector.crowding_distance(offsprings)
+
+            parents = sorted(offsprings, key=lambda x: (x.front_number, -x.crowding_distance))
 
             # truncate
             offsprings = parents[:self.options['max_population_size']]

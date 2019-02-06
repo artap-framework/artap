@@ -16,8 +16,8 @@ class Individual(metaclass=ABCMeta):
         self.is_evaluated = False
         self.dominate = set()
         self.domination_counter = 0
-        self.front_number = 999
-        self.crowding_distance = 0 # TODO: deprecated?
+        self.front_number = None  # TODO: make better
+        self.crowding_distance = 0  # TODO: deprecated? --
 
         # For particle swarm optimization
         self.velocity_i = []  # particle velocity
@@ -33,18 +33,20 @@ class Individual(metaclass=ABCMeta):
 
         for i, number in enumerate(self.vector):
             string += str(number)
-            if i < len(self.costs)-1:
+            if i < len(self.vector)-1:
                 string += ", "
 
         string = string[:len(string) - 1]
         string += "]"
         string += "; costs:["
+
         for i, number in enumerate(self.costs):
             string += str(number)
             if i < len(self.costs)-1:
                 string += ", "
-        string += "]\n"
+        string += "],"
         string += " front number: {}".format(self.front_number)
+        string += " crowding distance: {}".format(self.crowding_distance)
         return string
 
     def to_list(self):

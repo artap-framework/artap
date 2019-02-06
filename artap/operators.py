@@ -1,4 +1,4 @@
-from _ast import Dict
+# from _ast import Dict
 from abc import abstractmethod, ABC
 from copy import deepcopy
 import sys
@@ -73,7 +73,8 @@ class SimpleMutation(Mutation):
 
                 para_range = mutation_space * (u_b - l_b)
                 mutation = random.uniform(-para_range, para_range)
-                vector.append(self.clip(p.vector[i] + mutation, l_b, u_b))
+                # vector.append(self.clip(p.vector[i] + mutation, l_b, u_b))
+                vector.append(p.vector[i] + mutation)
             else:
                 vector.append(p.vector[i])
 
@@ -144,7 +145,7 @@ class Selection(Operator):
         for i in range(0, len(p.costs)):
             if p.costs[i] > q.costs[i]:
                 return False
-            if p.costs[i] < q.costs[i]:
+            if p.costs[i] <= q.costs[i]:
                 dominate = True
         return dominate
 
@@ -153,6 +154,10 @@ class Selection(Operator):
         front_number = 1
 
         for p in population:
+            p.domination_counter = 0
+            p.front_number = None
+            p.dominate = set()
+
             for q in population:
                 if p is q:
                     continue
@@ -171,18 +176,18 @@ class Selection(Operator):
             for p in pareto_front:
                 for q in p.dominate:
                     q.domination_counter -= 1
-                    if q.domination_counter == 0 and q.front_number == 0:
+                    if q.domination_counter == 0 and q.front_number is None:
                         q.front_number = front_number
                         temp_set.append(q)
             pareto_front = temp_set
 
     def sort_by_coordinate(self, population, dim):
-        population.sort(key=lambda x: x.vector[dim])
+        population.sort(key=lambda x: x.costs[dim])
         return population
 
     def crowding_distance(self, population):
         infinite = float("inf")
-        n = len(population[0].vector)
+        n = len(population[0].costs)
         for dim in range(0, n):
             new_list = self.sort_by_coordinate(population, dim)
 
@@ -393,7 +398,7 @@ class TournamentSelection(Selection):
 
         for _ in range(self.part_num - 1):
             candidate = random.choice(population)
-            flag = self.dominance.compare(winner, candidate)
+            flag = self.is_dominate(winner, candidate)
 
             if flag > 0:
                 winner = candidate
