@@ -49,7 +49,8 @@ class ArtapServer(Thread):
         self.data = []
         self.last_population = 0
 
-        self.dash_app = dash.Dash(__name__)
+        external_stylesheets = ['mainstyle.css']
+        self.dash_app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
         self.dash_app.layout = dashHtml.Div([
             dashComp.Graph(
                 id='live-update-graph',
