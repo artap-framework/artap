@@ -17,8 +17,10 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
         self.options['max_processes'] = 1
 
-        # run server
+        # run server as daemon
         # self.run_server()
+        # run server (NO daemon)
+        # self.run_server(daemon=False)
 
     def evaluate(self, x):
         result = 0
