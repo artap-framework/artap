@@ -11,7 +11,7 @@ from .utils import VectorAndNumbers
 EPSILON = sys.float_info.epsilon
 
 
-class Operator(ABC):
+class Operation(ABC):
 
     def __init__(self):
         pass
@@ -21,7 +21,7 @@ class Operator(ABC):
         return max(min_value, min(value, max_value))
 
 
-class Generation(Operator):
+class Generation(Operation):
 
     def __init__(self, parameters):
         super().__init__()
@@ -45,7 +45,7 @@ class RandomGeneration(Generation):
         return individuals
 
 
-class Mutation(Operator):
+class Mutation(Operation):
 
     def __init__(self, parameters, probability):
         super().__init__()
@@ -122,7 +122,7 @@ class PmMutation(Mutation):
         return x
 
 
-class Selection(Operator):
+class Selection(Operation):
 
     def __init__(self, parameters, part_num=2):
         super().__init__()
@@ -409,7 +409,7 @@ class TournamentSelection(Selection):
         # return min(participants, key=lambda x: (x.front_number, -x.crowding_distance))
 
 
-class Crossover(Operator):
+class Crossover(Operation):
 
     def __init__(self, parameters, probability):
         super().__init__()
