@@ -22,6 +22,15 @@ class NoneProblemDefined(Exception):
         self.message = message
 
 
+class RunDashThread(Thread):
+
+    def __init__(self, dash_app):
+        self.dash_app = dash_app
+
+    def run(self):
+        self.dash_app.run_server(debug=self.dash_app.debug_mode, host=self.dash_app.url, port=self.dash_app.port)
+
+
 class ArtapServer(Thread):
 
     def __init__(self, problem=None, local_host=True, port=Enviroment.server_initial_port, graph_update_interval=100, debug_mode=False):
@@ -170,6 +179,7 @@ class ArtapServer(Thread):
 
     def run(self):
         self.dash_app.run_server(debug=self.debug_mode, host=self.url, port=self.port)
+
 
     def run_server(self, open_viewer=True, daemon=True):
         self.setDaemon(daemonic=daemon)
