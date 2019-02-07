@@ -1,5 +1,5 @@
 from .problem import Problem
-from .population import Population
+# from .population import Population
 from .utils import ConfigDictionary
 from .job import JobSimple, JobQueue
 

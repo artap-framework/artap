@@ -131,7 +131,5 @@ class NSGAII(GeneticAlgorithm):
             population = Population(offsprings)
             self.problem.data_store.write_population(population)
 
-            time.sleep(1)
-
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
