@@ -9,9 +9,9 @@ with open(dir_path + os.sep + "enviroment.json", 'r') as f:
     enviroment_global = json.load(f)
 
 #  local enviroment
-enviroment_local = []
-if os.path.exists(dir_path + os.sep + "enviroment_local.json"):
-    with open(dir_path + os.sep + "enviroment_local.json", 'r') as f:
+enviroment_local = dict()
+if os.path.exists(dir_path + os.sep + "enviroment_localx.json"):
+    with open(dir_path + os.sep + "enviroment_localx.json", 'r') as f:
         enviroment_local = json.load(f)
 
 # update dicts
