@@ -6,6 +6,7 @@ import random
 import math
 
 from .individual import Individual
+from .population import Population
 from .utils import VectorAndNumbers
 
 EPSILON = sys.float_info.epsilon
@@ -122,6 +123,65 @@ class PmMutation(Mutation):
         return x
 
 
+class SwarmMutation(Mutation):
+
+    def __init__(self, parameters, probability=1):
+        super().__init__(parameters, probability)
+        self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
+        self.c1 = 2  # cognitive constant
+        self.c2 = 1  # social constant
+        self.best_individual = None
+        self.bounds = []
+
+    # evaluate current fitness
+    def evaluate_pso(self, individual):
+
+        dominates = True
+
+        for i in range(len(individual.best_costs)):
+            if individual.costs[i] > individual.best_costs[i]:
+                dominates = False
+
+        # check to see if the current position is an individual best
+        if dominates:
+            individual.best_vector = individual.vector
+            individual.best_costs = individual.costs
+
+    # update new particle velocity
+    def update_velocity(self, individual):
+
+        for i in range(0, len(individual.vector)):
+
+            r1 = 0.1 * random.random()
+            r2 = 0.1 * random.random()
+
+            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+            individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
+
+    # update the particle position based off new velocity updates
+    def update_position(self, individual, bounds):
+        for i in range(0, len(individual.vector)):
+            individual.vector[i] = individual.vector[i] + individual.velocity_i[i]
+
+            # adjust maximum position if necessary
+            if individual.vector[i] > bounds[i][1]:
+                individual.vector[i] = bounds[i][1]
+
+            # adjust minimum position if necessary
+            if individual.vector[i] < bounds[i][0]:
+                individual.vector[i] = bounds[i][0]
+
+    def update(self, bounds, best_individual):
+        self.best_individual = best_individual
+        self.bounds = bounds
+
+    def mutate(self, p):
+        self.update_velocity(p)
+        self.update_position(p, self.bounds)
+        return p
+
+
 class Selection(Operation):
 
     def __init__(self, parameters, part_num=2):
@@ -203,6 +263,25 @@ class Selection(Operation):
 
         for p in population:
             p.crowding_distance = p.crowding_distance / n
+
+
+class DummySelection(Selection):
+
+    def __init__(self, parameters, part_num=2):
+        super().__init__(parameters, part_num)
+
+    def select(self, individuals):
+        selection = []
+        for individual in individuals:
+
+            candidate = Individual(individual.vector)
+            candidate.costs = individual.costs
+            candidate.front_number = individual.front_number
+            candidate.best_vector = individual.best_vector
+            candidate.best_costs = individual.best_costs
+
+            selection.append(candidate)
+        return selection
 
 
 class Dominance(ABC):
