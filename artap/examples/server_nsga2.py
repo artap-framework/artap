@@ -17,7 +17,7 @@ class MyProblem(Problem):
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
-        self.run_server(daemon=False)
+        # self.run_server(daemon=False)
 
     def evaluate(self, x):
         function = BinhAndKorn()
