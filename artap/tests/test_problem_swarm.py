@@ -33,7 +33,7 @@ class TestPSOptimization(unittest.TestCase):
         algorithm.run()
         # results = GraphicalResults(problem)
         # results.plot_scatter_vectors('x_1', 'x_2', filename="/tmp/scatter.pdf", population_number=10)
-        # results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf", population_number=2)
+        # results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf", population_number=None)
 
 
 if __name__ == '__main__':
