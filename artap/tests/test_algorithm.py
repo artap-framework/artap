@@ -11,7 +11,7 @@ class TestProblem(Problem):
         parameters = {'x_1': {'initial_value': 10}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def evaluate(self, x):

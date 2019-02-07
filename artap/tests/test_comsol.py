@@ -16,7 +16,7 @@ class TestProblem(Problem):
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs, working_dir=working_dir)
 
         curr_dir = os.path.abspath(os.curdir)
         output_file = curr_dir + os.sep + "workspace" + os.sep + "comsol" + os.sep + "max.txt"

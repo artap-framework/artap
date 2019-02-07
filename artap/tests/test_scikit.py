@@ -23,7 +23,7 @@ class MyProblemCoil(Problem):
                       'x9': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       'x10': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]}}
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def intl22(self, R2, R, dZ, phi):
@@ -211,7 +211,7 @@ class MyProblemBooth(Problem):
         # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
         self.init_surrogate_model()
