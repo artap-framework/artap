@@ -12,7 +12,7 @@ class GradientProblem(Problem):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def evaluate(self, x):

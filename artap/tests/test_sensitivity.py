@@ -15,7 +15,7 @@ class MyProblem(Problem):
                       'x_3': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         result = 0
