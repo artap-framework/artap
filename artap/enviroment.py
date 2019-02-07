@@ -30,3 +30,4 @@ class Enviroment:
 
     loopback_ip = enviroment["loopback_ip"]
     server_initial_port = enviroment["server_initial_port"]
+    server_keep_live_delay = enviroment["server_keep_live_delay"]
