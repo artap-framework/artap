@@ -17,7 +17,7 @@ class TestProblem(Problem):
                       'x_2': {'initial_value': 10}}
         costs = ['F1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
 
         if Enviroment.ssh_login == "":
             user = getpass.getuser()

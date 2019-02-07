@@ -1,4 +1,4 @@
-from .datastore import SqliteDataStore, SqliteHandler
+from .datastore import DataStore, SqliteDataStore, SqliteHandler, DummyDataStore
 from .utils import flatten
 from .utils import ConfigDictionary
 from .server import ArtapServer
@@ -37,7 +37,7 @@ class ProblemBase(ABC):
         self.description = ""
         self.parameters: dict = None
         self.costs: list = None
-        self.data_store: SqliteDataStore = None
+        self.data_store: DataStore = None
         self.server = None
 
         # options
@@ -122,7 +122,8 @@ class Problem(ProblemBase):
             self.logger.addHandler(file_handler)
 
         if data_store is None:
-            self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
+            # self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
+            self.data_store = DummyDataStore(self)
             self.data_store.create_structure()
 
         else:

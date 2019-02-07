@@ -27,7 +27,7 @@ class MyProblem(Problem):
                       'x_2': {'initial_value': 1.5, 'bounds': [-10, 10], 'precision': 1e-1}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def evaluate(self, x):

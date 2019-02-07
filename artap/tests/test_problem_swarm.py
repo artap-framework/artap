@@ -13,7 +13,7 @@ class PSORosenbrock(Problem):
                       'x_2': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-7}}
         costs = ['F_1', 'F_2']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def evaluate(self, x: list):
