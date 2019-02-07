@@ -13,8 +13,8 @@ from artap.results import Results
 class BinhAndKornProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
-                      'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [0, 3]}}
         costs = ['F_1', 'F_2']
 
         super().__init__(name, parameters, costs)
@@ -60,8 +60,8 @@ class AckleyN2Test(Problem):
     """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1},
-                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-9},
+                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-9}}
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)

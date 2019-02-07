@@ -106,19 +106,68 @@ class GraphicalResults(Results):
         self.labels_size = 16
         self.tick_size = 12
 
-    def plot_scatter(self, name1, name2, filename=None):
+    def plot_scatter(self, name1, name2, filename=None, population_number=None):
         figure = Figure()
         figure.clf()
 
         # all individuals
-        for population in self.problem.data_store.populations:
+        if population_number is None:
+            populations = self.problem.data_store.populations
+        else:
+            populations = [self.problem.data_store.populations[population_number]]
+
+        for population in populations:
             values1 = []
             values2 = []
             for individual in population.individuals:
                 values1.append(self.value(individual, name1))
                 values2.append(self.value(individual, name2))
-            pl.scatter(values1, values2)
 
+            pl.scatter(values1, values2)
+        # pareto front
+        values1 = []
+        values2 = []
+        population = self.problem.data_store.populations[-1]
+        for individual in population.individuals:
+            if individual.front_number == 1:
+                values1.append(self.value(individual, name1))
+                values2.append(self.value(individual, name2))
+        pl.scatter(values1, values2, c='k')
+
+        # labels
+        pl.grid()
+        pl.xlabel("${}$".format(name1))
+        pl.ylabel("${}$".format(name2))
+
+        if filename is not None:
+            pl.savefig(filename)
+        else:
+            pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
+        pl.close()
+
+    def plot_scatter_vectors(self, name1, name2, filename=None, population_number=None):
+        figure = Figure()
+        figure.clf()
+
+        # all individuals
+        if population_number is None:
+            populations = self.problem.data_store.populations
+        else:
+            populations = [self.problem.data_store.populations[population_number]]
+
+        for population in populations:
+            values1 = []
+            values2 = []
+            vector_x = []
+            vector_y = []
+            for individual in population.individuals:
+                values1.append(individual.vector[0])
+                values2.append(individual.vector[1])
+                vector_x.append(individual.velocity_i[0])
+                vector_y.append(individual.velocity_i[1])
+
+            pl.scatter(values1, values2)
+            pl.quiver(values1, values2, vector_x, vector_y)
         # pareto front
         values1 = []
         values2 = []
