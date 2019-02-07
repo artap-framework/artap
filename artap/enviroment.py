@@ -4,13 +4,18 @@ import json
 path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)
 
-if os.path.exists(dir_path + os.sep + "enviroment_local.json"):
-    file_name = dir_path + os.sep + "enviroment_local.json"
-else:   
-    file_name = dir_path + os.sep + "enviroment.json"
+#  global enviroment
+with open(dir_path + os.sep + "enviroment.json", 'r') as f:
+    enviroment_global = json.load(f)
 
-with open(file_name, 'r') as f:
-    enviroment = json.load(f)
+#  local enviroment
+enviroment_local = []
+if os.path.exists(dir_path + os.sep + "enviroment_local.json"):
+    with open(dir_path + os.sep + "enviroment_local.json", 'r') as f:
+        enviroment_local = json.load(f)
+
+# update dicts
+enviroment = {**enviroment_global, **enviroment_local}
 
 
 class Enviroment:
