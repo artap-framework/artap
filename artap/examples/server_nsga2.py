@@ -1,7 +1,6 @@
 import unittest
 
 from artap.problem import Problem
-from artap.datastore import DummyDataStore
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
 # from artap.results import Results
@@ -15,7 +14,7 @@ class MyProblem(Problem):
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-9}}
         costs = ['F_1', 'F_2']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
         self.run_server(daemon=False)

@@ -17,7 +17,7 @@ class BinhAndKornProblem(Problem):
                       'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
         costs = ['F_1', 'F_2']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def evaluate(self, x):
@@ -64,7 +64,7 @@ class AckleyN2Test(Problem):
                       'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
 
     def evaluate(self, x):
