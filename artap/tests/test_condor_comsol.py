@@ -20,7 +20,7 @@ class TestProblem(Problem):
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
 
-        super().__init__(name, parameters, costs, working_dir=working_dir, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs, working_dir=working_dir)
         self.options['max_processes'] = 10
 
         output_files = ["out.txt"]
