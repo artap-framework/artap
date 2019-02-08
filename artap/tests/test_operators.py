@@ -1,5 +1,5 @@
 from artap.operators import RandomGeneration, SimpleMutation, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelection
+    TournamentSelection, ParetoDominance
 from artap.individual import Individual
 from artap.results import GraphicalResults
 
@@ -42,16 +42,16 @@ class TestCrossover(unittest.TestCase):
         self.assertEqual(len(offsprings), 2)
 
     def test_dominates(self):
+        dominance = ParetoDominance()
         i1 = Individual([0, 0])
         i1.costs = [0, 1]
         i2 = Individual([2, 2])
         i2.costs = [2, 2]
-        selector = TournamentSelection(self.parameters)
-        result = selector.is_dominate(i1, i2)
-        self.assertEqual(result, True)
+        result = dominance.compare(i1, i2)
+        self.assertEqual(result, 1)
 
-        result = selector.is_dominate(i2, i1)
-        self.assertEqual(result, False)
+        result = dominance.compare(i2, i1)
+        self.assertEqual(result, 2)
 
     def test_pareto(self):
         individuals = []

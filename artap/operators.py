@@ -6,7 +6,7 @@ import random
 import math
 
 from .individual import Individual
-from .population import Population
+# from .population import Population
 from .utils import VectorAndNumbers
 
 EPSILON = sys.float_info.epsilon
@@ -188,6 +188,7 @@ class Selection(Operation):
         super().__init__()
         self.parameters = parameters
         self.part_num = part_num
+        self.comparator = ParetoDominance()
 
     @abstractmethod
     def select(self, population):
@@ -221,9 +222,9 @@ class Selection(Operation):
             for q in population:
                 if p is q:
                     continue
-                if self.is_dominate(p, q):
+                if self.comparator.compare(p, q) == 1:          # TODO: simplify
                     p.dominate.add(q)
-                elif self.is_dominate(q, p):
+                elif self.comparator.compare(q, p) == 1:
                     p.domination_counter = p.domination_counter + 1
 
             if p.domination_counter == 0:
@@ -477,7 +478,7 @@ class TournamentSelection(Selection):
 
         for _ in range(self.part_num - 1):
             candidate = random.choice(population)
-            flag = self.is_dominate(winner, candidate)
+            flag = self.dominance.compare(winner, candidate)
 
             if flag > 0:
                 winner = candidate
