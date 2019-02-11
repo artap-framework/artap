@@ -1,5 +1,8 @@
 import unittest
 
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
+
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
 from artap.benchmark_functions import AckleyN2
@@ -29,6 +32,19 @@ class MyProblem(Problem):
 
         return [result]
 
+    # prepared for testing if server work and the should be shutdowned - not finished
+    def test_server_works(self):
+        req = Request("http://127.0.0.1:8050")
+        try:
+            response = urlopen(req)
+        except HTTPError as e:
+            print('The server couldn\'t fulfill the request.')
+            print('Error code: ', e.code)
+        except URLError as e:
+            print('We failed to reach a server.')
+            print('Reason: ', e.reason)
+        else:
+            print('Website is working fine')
 
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
