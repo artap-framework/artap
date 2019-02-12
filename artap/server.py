@@ -62,6 +62,7 @@ class ArtapServer(Thread):
         self.y = []
         self.data = []
         self.last_population = 0
+        self.last_x_len = 0
 
         external_stylesheets = ['mainstyle.css']
         self.dash_app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -135,6 +136,7 @@ class ArtapServer(Thread):
         def update_graph_live(n):
             print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
 
+            '''
             if self.last_population != len(self.problem.data_store.populations):
                 self.x = []
                 self.y = []
@@ -147,7 +149,9 @@ class ArtapServer(Thread):
 
                 # print(self.x)
                 # print(self.y)
-
+            '''
+            if self.last_x_len != len(self.x):
+                self.last_x_len = len(self.x)
                 trace = grObj.Scatter(
                         {
                             'x': self.x,
@@ -200,6 +204,19 @@ class ArtapServer(Thread):
         run_dash.start()
 
         while self.keep_server_live:
+            print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
+            print('x = ' + str(self.x))
+            print('y = ' + str(self.y))
+            if self.last_population != len(self.problem.data_store.populations):
+                #self.x = []
+                #self.y = []
+                population = self.problem.data_store.populations[-1]
+                for individual in population.individuals:
+                    # self.x.append(len(self.x))
+                    if individual.front_number == 1:
+                        self.x.append(individual.costs[0])
+                        self.y.append(individual.costs[1])
+
             time.sleep(Enviroment.server_keep_live_delay)
 
     def run_server(self, open_viewer=True, daemon=True):
