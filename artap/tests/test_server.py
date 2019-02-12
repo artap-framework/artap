@@ -1,4 +1,5 @@
 import unittest
+import time
 
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
@@ -23,7 +24,7 @@ class MyProblem(Problem):
         # run server as daemon
         # self.run_server()
         # run server (NO daemon)
-        #self.run_server(daemon=False)
+        self.run_server(daemon=False)
 
     def evaluate(self, x):
         result = 0
@@ -33,8 +34,9 @@ class MyProblem(Problem):
         return [result]
 
     # prepared for testing if server work and the should be shutdowned - not finished
-    def test_server_works(self):
-        req = Request("http://127.0.0.1:8050")
+    def test_server_works(self, adr):
+
+        req = Request(adr)
         try:
             response = urlopen(req)
         except HTTPError as e:
@@ -57,10 +59,11 @@ class TestSimpleOptimization(unittest.TestCase):
         #algorithm = ScipyOpt(problem)
         #algorithm.options['algorithm'] = 'Nelder-Mead'
         #algorithm.options['tol'] = 1e-4
-        #web_server_works = problem.test_server_works()
+        #time.sleep(3)
+        web_server_works = problem.test_server_works(problem.server.get_server_url())
         #algorithm.run()
-        #problem.server.stop_server()
-        web_server_works = True
+        problem.server.stop_server()
+        # web_server_works = True
         self.assertTrue(web_server_works, 'Web Server doesn\'t work.')
 
 
