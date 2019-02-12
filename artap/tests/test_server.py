@@ -21,9 +21,9 @@ class MyProblem(Problem):
         self.options['max_processes'] = 1
 
         # run server as daemon
-        self.run_server()
+        # self.run_server()
         # run server (NO daemon)
-        # self.run_server(daemon=False)
+        self.run_server(daemon=False)
 
     def evaluate(self, x):
         result = 0
@@ -59,6 +59,7 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm.options['tol'] = 1e-4
         web_server_works = problem.test_server_works()
         algorithm.run()
+        problem.server.stop_server()
         # results = Results(problem)
         # optimum = results.find_minimum('F_1')
         self.assertTrue(web_server_works, 'Web Server doesn\'t work.')
