@@ -74,9 +74,9 @@ class ProblemBase(ABC):
             # add StreamHandler to logger
             self.logger.addHandler(stream_handler)
 
-    def run_server(self, open_viewer=False, daemon=True):
+    def run_server(self, open_viewer=False, daemon=True, local_host=True):
         # testing - Artap Server
-        self.server = ArtapServer(problem=self)
+        self.server = ArtapServer(problem=self, local_host=local_host)
         self.server.run_server(open_viewer, daemon)
 
     def get_parameters_list(self):
