@@ -9,7 +9,7 @@ import socket
 from threading import Thread
 import time
 
-from jedi._compatibility import pickle_dump
+# from jedi._compatibility import pickle_dump
 
 from artap.enviroment import Enviroment
 # from .individual import Individual
