@@ -21,7 +21,7 @@ class MyProblem(Problem):
         self.options['max_processes'] = 1
 
         # run server as daemon
-        # self.run_server()
+        self.run_server()
         # run server (NO daemon)
         # self.run_server(daemon=False)
 
@@ -38,13 +38,16 @@ class MyProblem(Problem):
         try:
             response = urlopen(req)
         except HTTPError as e:
-            print('The server couldn\'t fulfill the request.')
-            print('Error code: ', e.code)
+            # print('The server couldn\'t fulfill the request.')
+            # print('Error code: ', e.code)
+            return False
         except URLError as e:
-            print('We failed to reach a server.')
-            print('Reason: ', e.reason)
+            # print('We failed to reach a server.')
+            # print('Reason: ', e.reason)
+            return False
         else:
-            print('Website is working fine')
+            # print('Website is working fine')
+            return True
 
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
@@ -54,11 +57,11 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4
+        web_server_works = problem.test_server_works()
         algorithm.run()
-
-        results = Results(problem)
-        optimum = results.find_minimum('F_1')
-        self.assertAlmostEqual(optimum, 0)
+        # results = Results(problem)
+        # optimum = results.find_minimum('F_1')
+        self.assertTrue(web_server_works, 'Web Server doesn\'t work.')
 
 
 if __name__ == '__main__':
