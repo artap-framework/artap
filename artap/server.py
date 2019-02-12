@@ -134,7 +134,7 @@ class ArtapServer(Thread):
         @self.dash_app.callback(Output('live-update-graph', 'figure'),
                                 [Input('interval-component', 'n_intervals')])
         def update_graph_live(n):
-            print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
+            #print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
 
             '''
             if self.last_population != len(self.problem.data_store.populations):
@@ -204,9 +204,9 @@ class ArtapServer(Thread):
         run_dash.start()
 
         while self.keep_server_live:
-            print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
-            print('x = ' + str(self.x))
-            print('y = ' + str(self.y))
+            #print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
+            #print('x = ' + str(self.x))
+            #print('y = ' + str(self.y))
             if self.last_population != len(self.problem.data_store.populations):
                 #self.x = []
                 #self.y = []
