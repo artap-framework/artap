@@ -52,7 +52,8 @@ class ArtapServer(Thread):
         else:
             self.url = self.get_host_ip()
 
-        self.port = port
+        self.port = self.pick_unused_port()
+
         self.debug_mode = debug_mode
 
         self.keep_server_live = True
@@ -173,6 +174,9 @@ class ArtapServer(Thread):
             }
             return fig
 
+    def get_server_url(self):
+        return 'http://' + str(self.url) + ':' + str(self.port) + '/'
+
     def get_host_ip(self):
         try:
             return ((([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")] or
@@ -233,6 +237,7 @@ if __name__ == '__main__':
     try:
         artap_server_3 = ArtapServer(problem=problem, local_host=True, port=port, debug_mode=False)
         artap_server_3.run_server()
+        print(artap_server_3.get_server_url())
     except NoneProblemDefined as ex:
         print('Exception when start server 3: ', ex.message)
 
