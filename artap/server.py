@@ -9,8 +9,10 @@ import socket
 from threading import Thread
 import time
 
+from jedi._compatibility import pickle_dump
+
 from artap.enviroment import Enviroment
-from .individual import Individual
+# from .individual import Individual
 
 class NoneProblemDefined(Exception):
     """Raised when no problem instance is given
@@ -121,7 +123,7 @@ class ArtapServer(Thread):
                                 [Input('stop-button', 'n_clicks')])
         def cancel_server(number_of_clicks):
             if number_of_clicks is not None:
-                self.keep_server_live = False
+                self.stop_server()
                 return dashHtml.Div([
                     dashHtml.Div('Artap Server was STOPPED'),
                 ])
@@ -204,7 +206,8 @@ class ArtapServer(Thread):
             # webbrowser.register('google-chrome', webbrowser.Chrome('google-chrome'))
             webbrowser.open_new(self.url + ':' + str(self.port))
 
-
+    def stop_server(self):
+        self.keep_server_live = False
 
 
 if __name__ == '__main__':
@@ -212,6 +215,7 @@ if __name__ == '__main__':
     from artap.tests.test_problem_scipy import AckleyN2Problem
     problem = AckleyN2Problem('DummyProblem')
     port = Enviroment.server_initial_port
+
     try:
         artap_server = ArtapServer(local_host=True, port=port, debug_mode=False)
         artap_server.run_server()
