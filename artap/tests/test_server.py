@@ -24,7 +24,7 @@ class MyProblem(Problem):
         # run server as daemon
         # self.run_server()
         # run server (NO daemon)
-        self.run_server(daemon=False)
+        self.run_server(daemon=False, local_host=False)
 
     def evaluate(self, x):
         result = 0
