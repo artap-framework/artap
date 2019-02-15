@@ -210,7 +210,8 @@ class ArtapServer(Thread):
             if self.last_population != len(self.problem.data_store.populations):
                 #self.x = []
                 #self.y = []
-                population = self.problem.data_store.populations[-1]
+                self.last_population = len(self.problem.data_store.populations)
+				population = self.problem.data_store.populations[-1]
                 for individual in population.individuals:
                     # self.x.append(len(self.x))
                     if individual.front_number == 1:
