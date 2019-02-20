@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dashComp
 import dash_html_components as dashHtml
+import dash_table
 from dash.dependencies import Input, Output
 import plotly.graph_objs as grObj
 
@@ -118,7 +119,21 @@ class ArtapServer(Thread):
                 n_intervals=0
             ),
             dashHtml.Button('Stop Server', id='stop-button'),
-            dashHtml.Div(id='output-button-container')
+            dashHtml.Div(id='output-button-container'),
+            dash_table.DataTable(
+                id='datatable-interactivity',
+                columns=[
+                    {"name": str(self.problem.eval_counter), "id": str(self.problem.costs), "deletable": True}
+                ],
+                data=([self.x], [self.y]),
+                editable=True,
+                filtering=True,
+                sorting=True,
+                sorting_type="multi",
+                row_selectable="multi",
+                row_deletable=True,
+                selected_rows=[],
+            )
         ])
 
         @self.dash_app.callback(Output('stop_info', 'children'),
