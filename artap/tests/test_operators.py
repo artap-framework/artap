@@ -10,8 +10,8 @@ class TestCrossover(unittest.TestCase):
     """ Tests crossover."""
 
     def setUp(self):
-        self.parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
-                           'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
+        self.parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5]},
+                           'x_2': {'initial_value': 1.5, 'bounds': [0, 3]}}
 
         self.i1 = Individual([1, 2, 2])
         self.i2 = Individual([3, 2, 1])

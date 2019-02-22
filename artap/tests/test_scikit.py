@@ -205,8 +205,8 @@ class MyProblemCoilMultiThree(MyProblemCoil):
 class MyProblemBooth(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10], 'precision': 1e-1},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
 
         # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
         costs = ['F']
