@@ -11,8 +11,8 @@ from artap.benchmark_functions import Booth
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10], 'precision': 1e-3},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10], 'precision': 1e-3}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
         costs = ['F']
 
         super().__init__(name, parameters, costs)
