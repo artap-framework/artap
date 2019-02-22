@@ -41,10 +41,10 @@ class MyProblemBooth(Problem):
 class TestSurrogate(unittest.TestCase):
 
     def check_one(self, problem):
-        problem.surrogate.options['train_step'] = 6
+        problem.surrogate.options['train_step'] = 7
 
         # train
-        for val in [1., 3., 5., 6., 7., 8.]:
+        for val in [1., 2., 3., 5., 6., 7., 8.]:
             problem.surrogate.evaluate([val])
 
         x_ref = [4.9]
@@ -74,6 +74,9 @@ class TestSurrogate(unittest.TestCase):
     def test_gaussian_process_one(self):
         problem = MyProblemSin("MyProblemSin")
         problem.surrogate = SurrogateModelGaussianProcess(problem)
+        # default kernel
+        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-6, 3e2))
+        problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=6)
         problem.surrogate.options['sigma_threshold'] = 0.05
 
         self.check_one(problem)
