@@ -8,11 +8,13 @@ from string import Template
 from xml.dom import minidom
 from artap.enviroment import Enviroment
 
+from abc import ABCMeta, abstractmethod
+
 from logging import NullHandler, getLogger
 getLogger('paramiko.transport').addHandler(NullHandler())
 
 
-class Executor():
+class Executor(metaclass=ABCMeta):
     """
     Function is a class representing objective or cost function for
     optimization problems.
@@ -168,7 +170,6 @@ class RemoteExecutor(Executor):
         return output
 
     def eval(self, x):
-
         client = paramiko.SSHClient()
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -271,12 +272,12 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
     """ Allows submit goal function calculation as a HT Condor job """
 
     def __init__(self, parameters, model_name, output_filenames, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, supplementary_files=None, time_out=None):
+                 username=None, password=None, port=22, working_dir=None, time_out=None):
 
         super().__init__(hostname, username, password, port, working_dir=working_dir)
 
         self.parameters = parameters
-        self.output_file_names = output_filenames
+        self.output_filenames = output_filenames
         self.model_name = model_name
         self.time_out = time_out
 
@@ -322,19 +323,20 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
                 output_files = ""
 
-                for i in range(len(self.output_file_names)):
-                    output_filename = os.path.basename(self.output_file_names[i])
-                    output_files += "{0}{1}{2}, ".format(os.path.splitext(output_filename)[0], ts,
-                                                                                  os.path.splitext(output_filename)[1])
+                for i in range(len(self.output_filenames)):
+                    output_filename = os.path.basename(self.output_filenames[i])
+                    output_files += "{0}_{1}{2}, ".format(os.path.splitext(output_filename)[0],
+                                                         ts,
+                                                         os.path.splitext(output_filename)[1])
 
                 output_files = output_files[:-2]  # remove last coma
                 job_file = job_file.substitute(model_name=os.path.basename(self.model_name),
                                                output_file=output_files,
-                                               log_file="comsol%s.log" % ts, run_file="run%s.sh" % ts,
+                                               log_file="comsol_{}.log".format(ts), run_file="run_{}.sh".format(ts),
                                                param_names=param_names_string,
                                                param_values=param_values_string)
 
-                job_config_file = self.create_file_on_remote("remote%s.job" % ts, client)
+                job_config_file = self.create_file_on_remote("remote_{}.job".format(ts), client)
                 job_config_file.write(job_file)
                 job_config_file.close()
 
@@ -343,28 +345,29 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
 
                 substitute = ""
 
-                for i in range(len(self.output_file_names)):
-                    output_filename = self.output_file_names[i]
-                    substitute_tmp = "mv {0} {1} \n".format(self.output_file_names[i],
-                                                           os.path.splitext(output_filename)[0] + ts +
-                                                           os.path.splitext(output_filename)[1])
+                for i in range(len(self.output_filenames)):
+                    output_filename = self.output_filenames[i]
+                    substitute_tmp = "mv {0} {1} \n".format(self.output_filenames[i],
+                                                            "{}_{}{}".format(os.path.splitext(output_filename)[0],
+                                                                             ts,
+                                                                             os.path.splitext(output_filename)[1]))
                     substitute += substitute_tmp
 
                 run_file += substitute
 
-                job_run_file = self.create_file_on_remote("run%s.sh" % ts, client)
+                job_run_file = self.create_file_on_remote("run_%s.sh" % ts, client)
                 job_run_file.write(run_file)
                 job_run_file.close()
 
                 # run
-                output = self.run_command_on_remote("condor_submit remote%s.job" % ts, client=client)
+                output = self.run_command_on_remote("condor_submit remote_{}.job".format(ts), client=client)
 
                 process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
                 event = ""
 
                 while (event != "Completed") and (event != "Held"):
-                    content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
+                    content = self.read_file_from_remote("{}.condor_log".format(process_id), client=client)
                     state = RemoteCondorExecutor.parse_condor_log(content)
                     time.sleep(0.1)
                     if state[1] != event:
@@ -372,7 +375,7 @@ class CondorComsolJobExecutor(RemoteCondorExecutor):
                         event = state[1]
 
                 if event == "Completed":
-                    content = self.read_file_from_remote("." + os.sep + "out%s.txt" % ts, client=client)
+                    content = self.read_file_from_remote("." + os.sep + "out_{}.txt".format(ts), client=client)
                     success = True
                     result = self.parse_results(content, x)
                 else:
@@ -424,7 +427,7 @@ class CondorPythonJobExecutor(RemoteCondorExecutor):
 
                 event = ""
                 while event != "Completed":  # If the job is complete it disappears from que
-                    content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
+                    content = self.read_file_from_remote("{}.condor_log".format(process_id), client=client)
                     state = RemoteCondorExecutor.parse_condor_log(content)
 
                     if state[1] != event:

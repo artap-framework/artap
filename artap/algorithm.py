@@ -1,5 +1,5 @@
 from .problem import Problem
-# from .population import Population
+from .population import Population
 from .utils import ConfigDictionary
 from .job import JobSimple, JobQueue
 
@@ -82,8 +82,7 @@ class EvalAll(Algorithm):
     Dummy class for testing
     """
 
-    def __init__(self, problem, individuals: list, name='Sensitivity analysis'):
-        self.individuals = individuals
+    def __init__(self, problem, name='EvalAll'):
         super().__init__(problem, name)
 
     def run(self):

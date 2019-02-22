@@ -63,10 +63,10 @@ class TestNLoptOptimization(unittest.TestCase):
         self.run_test(GN_MLSL, 500)
 
     def test_local_problem_nlopt_GN_CRS2_LM(self):
-        self.run_test(GN_CRS2_LM, 4000)
+        self.run_test(GN_CRS2_LM, 8000)
 
     def test_local_problem_nlopt_GN_ISRES(self):
-        self.run_test(GN_ISRES, 4000)
+        self.run_test(GN_ISRES, 6000)
 
     # def test_local_problem_nlopt_GN_ESCH(self):
     #     self.run_test(GN_ESCH, 5000)

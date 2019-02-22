@@ -8,12 +8,7 @@ from abc import ABC, abstractmethod
 import os
 import multiprocessing
 import logging
-
-# surrogate
-# from sklearn import linear_model
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern, ConstantKernel as C
-# from sklearn.neural_network import MLPClassifier
+import datetime
 
 """
  Module is dedicated to describe optimization problem. 
@@ -60,9 +55,16 @@ class ProblemBase(ABC):
         self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
                              desc='Max running processes')
 
+        # tmp name
+        d = datetime.datetime.now()
+        ts = d.strftime("{}-%f".format(self.__class__.__name__))
         # create logger
-        self.logger = logging.getLogger(self.name)
+        self.logger = logging.getLogger(ts)
         self.logger.setLevel(self.options['log_level'])
+
+        for h in list(self.logger.handlers):
+            print(h)
+
         # create formatter
         self.formatter = logging.Formatter('%(asctime)s (%(levelname)s): %(name)s - %(funcName)s (%(lineno)d) - %(message)s')
 
@@ -74,6 +76,12 @@ class ProblemBase(ABC):
             stream_handler.setFormatter(self.formatter)
             # add StreamHandler to logger
             self.logger.addHandler(stream_handler)
+
+    def __del__(self):
+        print(self.id, 'died')
+
+        for h in list(self.logger.handlers):
+            print(h)
 
     def run_server(self, open_viewer=False, daemon=True, local_host=True):
         # testing - Artap Server
@@ -99,7 +107,6 @@ class Problem(ProblemBase):
     MAXIMIZE = 1
 
     def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
-
         super().__init__()
         self.name = name
         self.working_dir = working_dir
@@ -152,7 +159,7 @@ class Problem(ProblemBase):
         self.surrogate = SurrogateModelEval(self)
 
     def __del__(self):
-        pass
+        super().__del__()
 
     def parameters_len(self):
         return len(self.parameters)
