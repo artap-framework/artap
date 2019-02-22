@@ -2,6 +2,7 @@ from .datastore import DataStore, SqliteDataStore, SqliteHandler, DummyDataStore
 from .utils import flatten
 from .utils import ConfigDictionary
 from .server import ArtapServer
+from .surrogate import SurrogateModelEval
 from abc import ABC, abstractmethod
 
 import os
@@ -131,7 +132,6 @@ class Problem(ProblemBase):
             self.data_store.problem = self
         
         self.id = self.data_store.get_id()
-        self.eval_counter = 0
 
         # working dir must be set
         if self.options['log_db_handler'] and isinstance(self.data_store, SqliteDataStore):
@@ -148,25 +148,11 @@ class Problem(ProblemBase):
         # self.logger.info('So should this')
         # self.logger.warning('And this, too')
 
-        # surrogate model
-        self.surrogate = None
-
-        self.surrogate_prepared = False
-        self.surrogate_predict_counter = 0
-        self.surrogate_counter_step = 30
-
-        self.surrogate_x_data = []
-        self.surrogate_y_data = []
+        # surrogate model (default - only simple eval)
+        self.surrogate = SurrogateModelEval(self)
 
     def __del__(self):
         pass
-
-    def init_surrogate_model(self):
-        # surrogate model
-        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-6, 3e2))
-        kernel = 1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-5, 1e5), nu=1.5)
-        self.surrogate = GaussianProcessRegressor(kernel=kernel)
-        # self.surrogate = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 
     def parameters_len(self):
         return len(self.parameters)
@@ -177,53 +163,6 @@ class Problem(ProblemBase):
         for parameter in self.get_parameters_list():
             table.append([parameter[2], parameter[3]])
         return table
-
-    def evaluate_surrogate(self, x: list):
-        evaluate = True
-        if self.surrogate_prepared:
-            # predict
-            p, sigma = self.surrogate.predict([x], return_std=True)
-            # p = self.surrogate.predict([x])
-
-            self.logger.debug("Surrogate: predict: x: {}, prediction: {}, sigma: {}".format(x, p[0], sigma))
-            # sigma = 0
-            # if p[0][0] > 0 and p[0][1] > 0 and sigma < 0.01:
-            if sigma < 3:
-                # set predicted value
-                value = p[0].tolist()
-                self.surrogate_predict_counter += 1
-                evaluate = False
-
-        if evaluate:
-            value = self.evaluate(x)
-
-            # store surrogate
-            self.surrogate_x_data.append(x)
-            self.surrogate_y_data.append(value)
-
-            # increase counter
-            self.eval_counter += 1
-
-            if self.eval_counter % self.surrogate_counter_step == 0:
-                # surrogate model
-                counter_eff = 100.0 * self.surrogate_predict_counter / (self.eval_counter + self.surrogate_predict_counter)
-                # speed up
-                if counter_eff > 30:
-                    self.surrogate_counter_step = int(self.surrogate_counter_step * 1.3)
-                self.logger.debug("Surrogate: learning: {}, predict eff: {}, counter_step: {}"
-                                  .format(self.surrogate_predict_counter, counter_eff, self.surrogate_counter_step))
-
-                # clf = linear_model.SGDRegressor()
-                # clf = linear_model.SGDRegrBayesianRidgeessor()
-                # clf = linear_model.LassoLars()
-                # clf = linear_model.TheilSenRegressor()
-                # clf = linear_model.LinearRegression()
-
-                # fit model
-                self.surrogate.fit(self.surrogate_x_data, self.surrogate_y_data)
-                self.surrogate_prepared = True
-
-        return value
 
     def get_initial_values(self):
         values = []
