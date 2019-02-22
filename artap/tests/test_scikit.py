@@ -7,7 +7,7 @@ from artap.problem import Problem
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.benchmark_functions import Booth
 from artap.results import Results
-from artap.datastore import  DummyDataStore
+from artap.surrogate import SurrogateModelGaussianProcess
 
 
 class MyProblemCoil(Problem):
@@ -213,8 +213,7 @@ class MyProblemBooth(Problem):
 
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
-
-        self.init_surrogate_model()
+        self.surrogate = SurrogateModelGaussianProcess(self)
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -231,14 +230,14 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm.options['n_iterations'] = 200
         algorithm.run()
 
-        # print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
-        # print("surrogate_eval_counter: ", problem.eval_counter)
+        problem.logger.info("surrogate.predict_counter: {}".format(problem.surrogate.predict_counter))
+        problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
 
         results = Results(problem)
         optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum, 1e-6, 3)
 
-    def test_local_problem_coil_one(self):
+    def xtest_local_problem_coil_one(self):
         problem = MyProblemCoilOne("MyProblemCoilOne")
 
         algorithm = NLopt(problem)
@@ -246,8 +245,8 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm.options['n_iterations'] = 50
         algorithm.run()
 
-        #print("surrogate_predict_counter: ", problem.surrogate_predict_counter)
-        #print("surrogate_eval_counter: ", problem.eval_counter)
+        problem.logger.info("surrogate.predict_counter: {}".format(problem.surrogate.predict_counter))
+        problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
 
         results = Results(problem)
         optimum = results.find_minimum('F1')
