@@ -29,7 +29,7 @@ class TestJob(unittest.TestCase):
         problem = TestProblem("Test_Job")
         i1 = Individual([1, 2, 2])
         i2 = Individual([3, 3, 2])
-        algorithm = EvalAll(problem, [i1, i2])
+        algorithm = EvalAll(problem)
         individuals = algorithm.evaluate(individuals=[i1, i2])
         self.assertEqual(individuals[0].costs, [9])
         self.assertEqual(individuals[1].costs, [22])
@@ -39,7 +39,7 @@ class TestJob(unittest.TestCase):
         problem.options['max_processes'] = 4
         i1 = Individual([1, 2, 2])
         i2 = Individual([3, 3, 2])
-        algorithm = EvalAll(problem, [i1, i2])
+        algorithm = EvalAll(problem)
         individuals = algorithm.evaluate(individuals=[i1, i2])
         self.assertEqual(individuals[0].costs, [9])
         self.assertEqual(individuals[1].costs, [22])

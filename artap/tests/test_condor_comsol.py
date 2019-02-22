@@ -15,13 +15,13 @@ class TestProblem(Problem):
 
     def __init__(self, name):
 
-        parameters = {'a': {'initial_value': 10, 'bounds': [1, 5]},
-                      'b': {'initial_value': 10, 'bounds': [10, 15]}}
+        parameters = {'a': {'initial_value': 10, 'bounds': [0, 20]},
+                      'b': {'initial_value': 10, 'bounds': [5, 15]}}
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
 
         super().__init__(name, parameters, costs, working_dir=working_dir)
-        self.options['max_processes'] = 10
+        self.options['max_processes'] = 1
 
         output_files = ["out.txt"]
         model_file = "elstat.mph"
@@ -64,9 +64,11 @@ class TestCondor(TestCase):
         #                                  problem.vector)
         table = [[10, 10], [11, 11]]
         population.gen_population_from_table(table)
-        evaluator = EvalAll(problem, population.individuals)
-        population.individuals = evaluator.run()
-        # population.evaluate_gradients()
+        evaluator = EvalAll(problem)
+        population.individuals = evaluator.evaluate(population.individuals)
+
+        self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0][0])
+        self.assertAlmostEqual(124.23499735221547, population.individuals[1].costs[0][0])
 
 
 if __name__ == '__main__':

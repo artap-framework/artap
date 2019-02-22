@@ -80,4 +80,4 @@ class JobQueue(Job):
         # add to population
         self.population.individuals.append(individual)
 
-        return costs
+        return individual.costs
