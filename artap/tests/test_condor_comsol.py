@@ -15,8 +15,8 @@ class TestProblem(Problem):
 
     def __init__(self, name):
 
-        parameters = {'a': {'initial_value': 10, 'bounds': [1, 5], 'precision': 1e-1},
-                      'b': {'initial_value': 10, 'bounds': [10, 15], 'precision': 1e-1}}
+        parameters = {'a': {'initial_value': 10, 'bounds': [1, 5]},
+                      'b': {'initial_value': 10, 'bounds': [10, 15]}}
         costs = ['F1']
         working_dir = "." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep
 

@@ -60,8 +60,8 @@ class AckleyN2Test(Problem):
     """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-9},
-                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-9}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32]},
+                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32]}}
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
