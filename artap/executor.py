@@ -78,7 +78,7 @@ class ComsolExecutor(Executor):
         print(run_string)
         os.system(run_string)
 
-        with open(self.output_file) as file:
+        with open(self.problem.working_dir + self.output_file) as file:
             content = file.read()
             result = self.parse_results(content)
 
