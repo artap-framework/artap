@@ -222,7 +222,7 @@ class MyProblemBooth(Problem):
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests optimization problem."""
 
-    def test_local_problem_booth(self):
+    def xtest_local_problem_booth(self):
         problem = MyProblemBooth("MyProblemBooth")
 
         algorithm = NLopt(problem)
