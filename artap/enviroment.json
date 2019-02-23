@@ -1,8 +1,8 @@
 {
-    "condor_host_ip" : "localhost",
-    "condor_host_login" : "",
+    "condor_host" : "localhost",
+    "condor_login" : "",
     
-    "available_ssh_servers" : ["localhost"],
+    "ssh_host" : "localhost",
     "ssh_login" : "",
 
     "comsol_path" : "",
