@@ -59,7 +59,7 @@ class TestSurrogate(unittest.TestCase):
         self.assertTrue(problem.surrogate.predict_counter > 0)
         self.assertLess(math.fabs(value_problem - value_surrogate), 0.025)
 
-    def xtest_eval(self):
+    def test_eval(self):
         problem = MyProblemBooth("MyProblemBooth")
         problem.surrogate = SurrogateModelEval(problem)
 
@@ -71,12 +71,12 @@ class TestSurrogate(unittest.TestCase):
 
         self.assertLess(math.fabs(value_problem - value_surrogate), 1e-8)
 
-    def xtest_gaussian_process_one(self):
+    def test_gaussian_process_one(self):
         problem = MyProblemSin("MyProblemSin")
         problem.surrogate = SurrogateModelGaussianProcess(problem)
         # default kernel
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-6, 3e2))
-        problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=6)
+        problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
         problem.surrogate.options['sigma_threshold'] = 0.05
 
         self.check_one(problem)
@@ -88,9 +88,6 @@ class TestSurrogate(unittest.TestCase):
         # kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-6, 3e2))
         kernel = 1.0 * RBF(length_scale=100.0, length_scale_bounds=(1e-2, 1e3))
         problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel, alpha=0.0)
-        # set threshold
-        problem.surrogate.options['sigma_threshold'] = 2.0
-        problem.surrogate.options['train_step'] = 8
 
         # train
         problem.surrogate.evaluate([1.0, 3.1])
@@ -104,8 +101,13 @@ class TestSurrogate(unittest.TestCase):
         problem.surrogate.evaluate([0.95, 3.03])
         problem.surrogate.evaluate([0.98, 2.96])
         problem.surrogate.evaluate([1.02, 2.98])
+        problem.surrogate.evaluate([1.01, 2.99])
 
-        x_ref = [1.01, 3.03]
+        # set threshold
+        problem.surrogate.options['sigma_threshold'] = 2.0
+        problem.surrogate.options['train_step'] = 12
+
+        x_ref = [1.01, 3.02]
         # eval reference
         value_problem = problem.evaluate(x_ref)[0]
         # eval surrogate
@@ -115,7 +117,7 @@ class TestSurrogate(unittest.TestCase):
         problem.logger.info("surrogate.value: evaluation = {}, prediction = {}, difference = {}".format(value_problem, value_surrogate, math.fabs( value_problem - value_surrogate)))
 
         self.assertTrue(problem.surrogate.predict_counter > 0)
-        self.assertLess(math.fabs(value_problem - value_surrogate), 0.025)
+        self.assertLess(math.fabs(value_problem - value_surrogate), 0.03)
 
 
 if __name__ == '__main__':
