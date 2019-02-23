@@ -78,10 +78,9 @@ class ProblemBase(ABC):
             self.logger.addHandler(stream_handler)
 
     def __del__(self):
-        print(self.id, 'died')
-
-        for h in list(self.logger.handlers):
-            print(h)
+        # for h in list(self.logger.handlers):
+        #    print(h)
+        pass
 
     def run_server(self, open_viewer=False, daemon=True, local_host=True):
         # testing - Artap Server
