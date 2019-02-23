@@ -71,9 +71,10 @@ class TestRemoteSSHExecutor(unittest.TestCase):
                                              input_file="input.txt",  # file is created in eval with specific parameters
                                              output_file="output.txt")
 
-        result = problem.evaluate([1, 2])
+        result = problem.evaluate([])
 
         self.assertAlmostEqual(result[0], 5.0)
+
 
 if __name__ == '__main__':
     unittest.main()
