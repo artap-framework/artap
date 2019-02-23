@@ -1,3 +1,4 @@
+import os
 import re
 import paramiko
 import tempfile
@@ -59,39 +60,25 @@ class Executor(metaclass=ABCMeta):
 # TODO: not working
 class ComsolExecutor(Executor):
 
-    def __init__(self, problem, model_name, output_filename):
+    def __init__(self, problem, model_file, output_file):
         super().__init__(problem)
 
-        self.output_filename = output_filename
-        self.model_name = model_name
+        self.model_file = model_file
+        self.output_file = output_file
 
     def eval(self, x):
         super().eval(x)
 
-        import os
-        run_string = Enviroment.comsol_path + "comsol batch -inputfile " + self.model_name + " -nosave -pname "
+        param_names_string = Executor._join_parameters(self.problem.parameters)
+        param_values_string = Executor._join_parameters(x)
 
-        # add vector
-        for parameter in self.problem.parameters:
-            run_string += parameter + ", "
+        run_string = "{} comsol batch -inputfile {} -nosave -pname {} -plist {}"\
+            .format(Enviroment.comsol_path, self.model_file, param_names_string, param_values_string)
 
-        # remove last comma
-        if (len(self.problem.parameters)) > 1:
-            run_string = run_string[:-1]
-
-        run_string += " -plist "
-
-        # add values
-        for val in x:
-            run_string += str(val) + ","
-
-        # remove last comma
-        if (len(x)) > 1:
-            run_string = run_string[:-1]
-
+        print(run_string)
         os.system(run_string)
 
-        with open(self.output_filename) as file:
+        with open(self.output_file) as file:
             content = file.read()
             result = self.parse_results(content)
 
