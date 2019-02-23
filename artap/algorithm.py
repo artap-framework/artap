@@ -1,5 +1,4 @@
 from .problem import Problem
-from .population import Population
 from .utils import ConfigDictionary
 from .job import JobSimple, JobQueue
 
@@ -77,12 +76,12 @@ class Algorithm(metaclass=ABCMeta):
         return individuals
 
 
-class EvalAll(Algorithm):
+class DummyAlgorithm(Algorithm):
     """
     Dummy class for testing
     """
 
-    def __init__(self, problem, name='EvalAll'):
+    def __init__(self, problem, name='DummyAlgorithm'):
         super().__init__(problem, name)
 
     def run(self):
