@@ -23,8 +23,6 @@ class CondorComsolProblem(Problem):
                                           model_file="elstat.mph",
                                           output_file="out.txt")
 
-        # command="python3",
-
     def evaluate(self, x):
         return self.executor.eval(x)
 
