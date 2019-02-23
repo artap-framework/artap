@@ -59,7 +59,7 @@ class TestSurrogate(unittest.TestCase):
         self.assertTrue(problem.surrogate.predict_counter > 0)
         self.assertLess(math.fabs(value_problem - value_surrogate), 0.025)
 
-    def test_eval(self):
+    def xtest_eval(self):
         problem = MyProblemBooth("MyProblemBooth")
         problem.surrogate = SurrogateModelEval(problem)
 
@@ -71,7 +71,7 @@ class TestSurrogate(unittest.TestCase):
 
         self.assertLess(math.fabs(value_problem - value_surrogate), 1e-8)
 
-    def test_gaussian_process_one(self):
+    def xtest_gaussian_process_one(self):
         problem = MyProblemSin("MyProblemSin")
         problem.surrogate = SurrogateModelGaussianProcess(problem)
         # default kernel
@@ -81,7 +81,7 @@ class TestSurrogate(unittest.TestCase):
 
         self.check_one(problem)
 
-    def test_gaussian_process_two(self):
+    def xtest_gaussian_process_two(self):
         problem = MyProblemBooth("MyProblemBooth")
         problem.surrogate = SurrogateModelGaussianProcess(problem)
         # set custom regressor

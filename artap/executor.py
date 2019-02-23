@@ -73,7 +73,7 @@ class ComsolExecutor(Executor):
         param_values_string = Executor._join_parameters(x)
 
         run_string = "{} comsol batch -inputfile {} -nosave -pname {} -plist {}"\
-            .format(Enviroment.comsol_path, self.model_file, param_names_string, param_values_string)
+            .format(Enviroment.comsol_path, self.problem.working_dir + self.model_file, param_names_string, param_values_string)
 
         print(run_string)
         os.system(run_string)
