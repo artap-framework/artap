@@ -1,7 +1,5 @@
-import os
 import re
 import paramiko
-import tempfile
 import os
 import datetime
 import time
@@ -75,7 +73,7 @@ class ComsolExecutor(Executor):
         run_string = "{} comsol batch -inputfile {} -nosave -pname {} -plist {}"\
             .format(Enviroment.comsol_path, self.problem.working_dir + self.model_file, param_names_string, param_values_string)
 
-        print(run_string)
+        # run command
         os.system(run_string)
 
         with open(self.problem.working_dir + self.output_file) as file:
@@ -145,8 +143,8 @@ class RemoteExecutor(Executor):
         Allows distributing of calculation of objective functions.
         """
 
-    def __init__(self, problem,
-                 model_file, output_file, input_file=None, supplementary_files=None, command=None):
+    def __init__(self, problem, command,
+                 model_file, output_file, input_file=None, supplementary_files=None):
         super().__init__(problem)
 
         if problem.working_dir is None:
@@ -161,7 +159,7 @@ class RemoteExecutor(Executor):
         self.options.declare(name='password', default='',
                              desc='Password')
 
-        self.remote_dir = ''
+        self.remote_dir = ""
 
         # command
         self.command = command
@@ -171,11 +169,6 @@ class RemoteExecutor(Executor):
         self.input_file = input_file
         self.output_file = output_file
         self.supplementary_files = supplementary_files
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # remove remote dir
-        self._remove_remote_dir()
-        # pass
 
     @abstractmethod
     def eval(self, x):
@@ -253,19 +246,29 @@ class RemoteExecutor(Executor):
 
     def _run_command_on_remote(self, command, client, suppress_stdout=True, suppress_stderr=False):
         # Run ssh command
-        output = ""
         if self.remote_dir == "":
             stdin, stdout, stderr = client.exec_command(command)
         else:
             stdin, stdout, stderr = client.exec_command("cd " + self.remote_dir + "; " + command)
 
+        # output
+        output = ""
         for line in stdout:
-            if not suppress_stdout:
-                self.problem.logger.info(line.strip('\n'))
             output += line.strip('\n')
-        for line in stderr:
-            if not suppress_stderr:
-                self.problem.logger.error(line.strip('\n'))
+
+        if not suppress_stdout:
+            lines = ""
+            for line in stdout:
+                lines += line + '\n'
+            self.problem.logger.info(lines)
+
+        if not suppress_stderr:
+            lines = ""
+            for line in stdout:
+                lines += line + '\n'
+            if len(lines) > 0:
+                self.problem.logger.error(lines)
+
         return output
 
     def _transfer_files_to_remote(self, client):
@@ -290,16 +293,20 @@ class RemoteSSHExecutor(RemoteExecutor):
     """
 
     def __init__(self, problem, command, model_file, output_file, input_file=None, supplementary_files=None):
-        super().__init__(problem, model_file, output_file, input_file, supplementary_files, command)
+        super().__init__(problem, command, model_file, output_file, input_file, supplementary_files)
 
         # set default host
         self.options["hostname"] = Enviroment.ssh_host
 
-        # init remote
-        self._init_remote(directory="remote")
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # remove remote dir
+        self._remove_remote_dir()
 
     def eval(self, x):
         super().eval(x)
+
+        # init remote
+        self._init_remote(directory="remote")
 
         # create client
         client = self._create_client()
@@ -335,17 +342,14 @@ class CondorJobExecutor(RemoteExecutor):
     Allows distributing of calculation of objective functions.
     """
 
-    def __init__(self, problem,
+    def __init__(self, problem, command,
                  model_file, output_file, input_file=None, supplementary_files=None):
-        super().__init__(problem, model_file, output_file, input_file, supplementary_files)
+        super().__init__(problem, command, model_file, output_file, input_file, supplementary_files)
 
         # set default host
         self.options["hostname"] = Enviroment.condor_host
 
-        # init remote
-        self._init_remote(directory="htcondor")
-
-    def _create_job_file(self, ts, x, client):
+    def _create_job_file(self, x, client):
         # create job file
         with open(self.problem.working_dir + os.sep + "remote.tp", 'r') as job_file:
             job_file = Template(job_file.read())
@@ -355,34 +359,27 @@ class CondorJobExecutor(RemoteExecutor):
         param_values_string = Executor._join_parameters(x)
         # file
         job_file = job_file.substitute(model_name=os.path.basename(self.model_file),
-                                       output_file="{}_{}".format(ts, self.output_file),
-                                       log_file="{}.log".format(ts),
-                                       run_file="{}_run.sh".format(ts),
+                                       run_file=self.command,
+                                       input_file=self.input_file,
+                                       output_file=self.output_file,
+                                       log_file="{}.log".format(self.output_file),
                                        param_names=param_names_string,
                                        param_values=param_values_string)
 
-        self._create_file_on_remote("{}_remote.job".format(ts), job_file, client)
+        self._create_file_on_remote("remote.job", job_file, client)
 
         # create input file with parameters
         if self.input_file:
             # parameters
             param_values_string = Executor._join_parameters(x, "\n")
             # create remote file
-            self._create_file_on_remote("{}_{}".format(ts, self.input_file), param_values_string, client=client)
-
-    def _create_run_file(self, ts, client):
-        with open(self.problem.working_dir + os.sep + "run.tp", 'r') as run_file:
-            run_file = run_file.read()
-
-        # add move command
-        substitute = "mv {0} {1} \n".format(self.output_file,
-                                            "{}_{}".format(ts, self.output_file))
-        run_file += substitute
-
-        self._create_file_on_remote("{}_run.sh".format(ts), run_file, client)
+            self._create_file_on_remote(self.input_file, param_values_string, client=client)
 
     def eval(self, x):
         super().eval(x)
+
+        # init remote
+        self._init_remote(directory="htcondor")
 
         success = False
         while not success:
@@ -393,17 +390,11 @@ class CondorJobExecutor(RemoteExecutor):
                 # transfer supplementary files, input and model file
                 self._transfer_files_to_remote(client)
 
-                d = datetime.datetime.now()
-                ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
-
                 # apply template for remote.job
-                self._create_job_file(ts, x, client)
-
-                # apply template for run.sh
-                self._create_run_file(ts, client)
+                self._create_job_file(x, client)
 
                 # submit job
-                output = self._run_command_on_remote("condor_submit {}_remote.job".format(ts), client=client)
+                output = self._run_command_on_remote("condor_submit remote.job", client=client)
 
                 # process id
                 process_id = re.search('cluster \d+', output).group().split(" ")[1]
@@ -423,16 +414,18 @@ class CondorJobExecutor(RemoteExecutor):
 
                     if event == "Held":
                         self.problem.logger.error("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
-                        # TODO: remove job?
+                        # read log
+                        content_log = self._read_file_from_remote("{}.log".format(self.output_file), client=client)
+                        self.problem.logger.error(content_log)
+                        # remove job
+                        self._run_command_on_remote("condor_rm {}".format(process_id), client=client)
                         # TODO: abort computation - no success?
+                        assert 0
 
                     time.sleep(1.0)
 
                 if event == "Completed":
-                    out_file = "{}_{}{}".format(ts,
-                                           os.path.splitext(self.output_file)[0],
-                                           os.path.splitext(self.output_file)[1])
-                    content = self._read_file_from_remote("." + os.sep + out_file, client=client)
+                    content = self._read_file_from_remote(self.output_file, client=client)
                     success = True
                     result = self.parse_results(content)
                 else:
@@ -444,5 +437,5 @@ class CondorJobExecutor(RemoteExecutor):
 
             except Exception as e:
                 print(e)
-                time.sleep(1)
+                time.sleep(1.0)
                 continue

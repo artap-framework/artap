@@ -14,7 +14,7 @@ request_memory = 10 GB
 log_xml = true
 should_transfer_files = yes
 when_to_transfer_output = ON_EXIT
-transfer_input_files = $run_file, $model_name
+transfer_input_files = $model_name, $input_file
 transfer_output_files = $output_file
 transfer_executable = true
 queue
