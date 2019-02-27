@@ -1,8 +1,7 @@
 # from .problem import Problem
 
 import matplotlib
-
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 
 import os
 import numpy as np
