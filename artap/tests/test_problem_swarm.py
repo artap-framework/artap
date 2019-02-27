@@ -25,7 +25,7 @@ class PSORosenbrock(Problem):
 class TestPSOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-    def test_local_problem_pso(self):
+    def xtest_local_problem_pso(self):
         problem = PSORosenbrock("PSORosenbrock")
         algorithm = PSO(problem)
         algorithm.options['max_population_number'] = 10
