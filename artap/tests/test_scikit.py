@@ -7,8 +7,18 @@ from artap.problem import Problem
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.benchmark_functions import Booth
 from artap.results import Results
-from artap.surrogate import SurrogateModelGaussianProcess
+from artap.surrogate import SurrogateModelRegressor
 
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
+from sklearn.linear_model import BayesianRidge
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, WhiteKernel, ConstantKernel, RationalQuadratic, ExpSineSquared
 
 class MyProblemCoil(Problem):
     def __init__(self, name, costs):
@@ -25,6 +35,8 @@ class MyProblemCoil(Problem):
 
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
+
+        self.surrogate = SurrogateModelRegressor(self)
 
     def intl22(self, R2, R, dZ, phi):
         return math.sqrt(R2 ** 2 + R ** 2 - 2.0 * R2 * R * math.cos(phi) + dZ ** 2)
@@ -213,7 +225,9 @@ class MyProblemBooth(Problem):
 
         super().__init__(name, parameters, costs)
         self.options['max_processes'] = 1
-        self.surrogate = SurrogateModelGaussianProcess(self)
+
+        # enable surrogate
+        self.surrogate = SurrogateModelRegressor(self)
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -225,6 +239,17 @@ class TestSimpleOptimization(unittest.TestCase):
     def xtest_local_problem_booth(self):
         problem = MyProblemBooth("MyProblemBooth")
 
+
+        #kernel = 1.0 * RationalQuadratic(length_scale=1.0, alpha=0.1)
+        #problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel)
+        #problem.surrogate.has_epsilon = True
+
+        problem.surrogate.regressor = ExtraTreesRegressor(n_estimators=10)
+        # problem.surrogate.regressor = DecisionTreeRegressor()
+
+        problem.surrogate.train_step = 10
+        problem.surrogate.score_threshold = 0.0
+
         algorithm = NLopt(problem)
         algorithm.options['algorithm'] = LN_BOBYQA
         algorithm.options['n_iterations'] = 200
@@ -233,12 +258,46 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.logger.info("surrogate.predict_counter: {}".format(problem.surrogate.predict_counter))
         problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
 
+        print(problem.surrogate.x_data)
+        print(problem.surrogate.y_data)
+
         results = Results(problem)
         optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum, 1e-6, 3)
+        """
+        kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
+                   1.0 * RationalQuadratic(length_scale=1.0, alpha=0.1),
+                   1.0 * ExpSineSquared(length_scale=1.0, periodicity=3.0,
+                                        length_scale_bounds=(0.1, 10.0),
+                                        periodicity_bounds=(1.0, 10.0)),
+                   ConstantKernel(0.1, (0.01, 10.0))
+                   * (DotProduct(sigma_0=1.0, sigma_0_bounds=(0.1, 10.0)) ** 2),
+                   1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-5, 1e5), nu=1.5)]
+        
+        for kernel in kernels:
+            print(kernel)
+
+            problem.surrogate = SurrogateModelRegressor(problem)
+            # problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel)
+            # set threshold
+            problem.surrogate.sigma_threshold = 0.1
+            problem.surrogate.train_step = 10
+
+            algorithm = NLopt(problem)
+            algorithm.options['algorithm'] = LN_BOBYQA
+            algorithm.options['n_iterations'] = 200
+            algorithm.run()
+
+            problem.logger.info("surrogate.predict_counter: {}".format(problem.surrogate.predict_counter))
+            problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
+        """
 
     def xtest_local_problem_coil_one(self):
         problem = MyProblemCoilOne("MyProblemCoilOne")
+
+        problem.surrogate.regressor = DecisionTreeRegressor()
+        problem.surrogate.train_step = 10
+        problem.surrogate.score_threshold = 0.0
 
         algorithm = NLopt(problem)
         algorithm.options['algorithm'] = LN_BOBYQA

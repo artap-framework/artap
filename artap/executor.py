@@ -38,7 +38,7 @@ class Executor(metaclass=ABCMeta):
     @abstractmethod
     def eval(self, x):
         # set default parse method from problem (can be overriden)
-        if not self.parse_results and "parse_results" in dir(self.problem):
+        if self.parse_results is not None and "parse_results" in dir(self.problem):
             self.parse_results = self.problem.parse_results
 
     @staticmethod
