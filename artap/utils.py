@@ -5,12 +5,15 @@ from random import random
 
 def flatten(l):
     output = []
-    for item in l:
-        if isinstance(item, collections.Iterable):
-            for subitem in item:
-                output.append(subitem)
-        else:
-            output.append(item)
+    if isinstance(l, collections.Iterable):
+        for item in l:
+            if isinstance(item, collections.Iterable):
+                output.append(flatten(item))
+            else:
+                output.append(item)
+    else:
+        output.append(l)
+
     return output
 
 

@@ -25,15 +25,14 @@ class MyProblem(Problem):
         return BinhAndKorn.constraints(x)
 
 
-if __name__ == '__main__':
-    problem = MyProblem("NSGA2Optimization")
-    algorithm = NSGAII(problem)
-    algorithm.options['max_population_number'] = 30
-    algorithm.options['max_population_size'] = 100
-    # algorithm.options['calculate_gradients'] = True
-    algorithm.run()
+problem = MyProblem("NSGA2Optimization")
+algorithm = NSGAII(problem)
+algorithm.options['max_population_number'] = 30
+algorithm.options['max_population_size'] = 100
+# algorithm.options['calculate_gradients'] = True
+algorithm.run()
 
-    results = GraphicalResults(problem)
-    results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf")
-    # results.plot_scatter('x_1', 'x_2')
-    # results.plot_individuals('F_1')
+results = GraphicalResults(problem)
+results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf")
+# results.plot_scatter('x_1', 'x_2')
+# results.plot_individuals('F_1')
