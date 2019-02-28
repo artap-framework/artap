@@ -1,7 +1,6 @@
 from artap.operators import RandomGeneration, SimpleMutation, SimulatedBinaryCrossover, SimpleCrossover, \
     TournamentSelection, ParetoDominance
 from artap.individual import Individual
-from artap.results import GraphicalResults
 
 import unittest
 
