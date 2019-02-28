@@ -6,8 +6,8 @@ import random
 import math
 
 from .individual import Individual
-# from .population import Population
 from .utils import VectorAndNumbers
+from .doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
 
 EPSILON = sys.float_info.epsilon
 
@@ -42,6 +42,119 @@ class RandomGeneration(Generation):
         individuals = []
         for i in range(number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class FullFactorGeneration(Generation):
+    """
+    Create a general full-factorial design
+    Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def generate(self, center=False):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+
+            if center:
+                dict_vars[name] = [l_b, (l_b + u_b) / 2.0, u_b]
+            else:
+                dict_vars[name] = [l_b, u_b]
+
+        df = build_full_fact(dict_vars)
+        # print(df)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class PlackettBurmanGeneration(Generation):
+    """
+    Create a general full-factorial design
+    Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def generate(self):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+            dict_vars[name] = [l_b, u_b]
+
+        df = build_plackett_burman(dict_vars)
+        # print(df)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class BoxBehnkenGeneration(Generation):
+    """
+    Create a general full-factorial design
+    # 3 params = 13 experiments
+    # 4 params = 25 experiments
+    # 5 params = 41 experiments
+    # 6 params = 49 experiments
+    # 7 params = 57 experiments
+    # 8 params = 113 experiments
+    https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def generate(self):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+            dict_vars[name] = [l_b, u_b]
+
+        df = build_box_behnken(dict_vars)
+        # print(df)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class LHSGeneration(Generation):
+    """
+    Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def generate(self, number):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+            dict_vars[name] = [l_b, u_b]
+
+        df = build_lhs(dict_vars, num_samples=number)
+        # print(df)
+
+        individuals = []
+        for vector in df:
             individuals.append(Individual(vector))
         return individuals
 
