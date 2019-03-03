@@ -33,9 +33,9 @@ class TestBayesOptOptimization(unittest.TestCase):
         algorithm.run()
         # TODO - multiprocess test
 
-        # results = Results(problem)
-        # optimum = results.find_minimum(name='F')
-        # self.assertAlmostEqual(optimum, 0, places=2)
+        results = Results(problem)
+        optimum = results.find_minimum(name='F')
+        self.assertAlmostEqual(optimum, 0, places=2)
 
     def test_local_problem_bayesopt_serial(self):
         problem = MyProblem("TestBayesOptSerial")

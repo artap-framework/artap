@@ -533,7 +533,7 @@ class NLopt(Algorithm):
 
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
-        self.problem = problem
+
         self.job = JobSimple(self.problem)
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
