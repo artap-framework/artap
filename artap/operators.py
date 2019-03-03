@@ -269,7 +269,6 @@ class SwarmMutation(Mutation):
         self.c1 = 2  # cognitive constant
         self.c2 = 1  # social constant
         self.best_individual = None
-        self.bounds = []
 
     # evaluate current fitness
     def evaluate_pso(self, individual):
@@ -298,25 +297,25 @@ class SwarmMutation(Mutation):
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
     # update the particle position based off new velocity updates
-    def update_position(self, individual, bounds):
-        for i in range(0, len(individual.vector)):
+    def update_position(self, individual):
+
+        for parameter, i in zip(self.parameters.items(), range(len(individual.vector))):
             individual.vector[i] = individual.vector[i] + individual.velocity_i[i]
 
             # adjust maximum position if necessary
-            if individual.vector[i] > bounds[i][1]:
-                individual.vector[i] = bounds[i][1]
+            if individual.vector[i] > parameter[1]['bounds'][1]:
+                individual.vector[i] = parameter[1]['bounds'][1]
 
             # adjust minimum position if necessary
-            if individual.vector[i] < bounds[i][0]:
-                individual.vector[i] = bounds[i][0]
+            if individual.vector[i] < parameter[1]['bounds'][0]:
+                individual.vector[i] = parameter[1]['bounds'][0]
 
-    def update(self, bounds, best_individual):
+    def update(self, best_individual):
         self.best_individual = best_individual
-        self.bounds = bounds
 
     def mutate(self, p):
         self.update_velocity(p)
-        self.update_position(p, self.bounds)
+        self.update_position(p)
         return p
 
 

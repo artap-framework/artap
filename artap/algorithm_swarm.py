@@ -3,7 +3,7 @@ from .problem import Problem
 from .population import Population
 # from .individual import Individual
 from .algorithm_genetic import GeneticAlgorithm
-from .operators import SwarmMutation, DummySelection
+from .operators import SwarmMutation, DummySelection, RandomGeneration
 
 import time
 
@@ -17,6 +17,10 @@ class PSO(GeneticAlgorithm):
         self.selector = DummySelection(self.problem.parameters)
 
     def run(self):
+        # set random generator
+        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator.init(self.options['max_population_size'])
+
         population = self.gen_initial_population()
 
         for individual in population.individuals:
@@ -42,7 +46,7 @@ class PSO(GeneticAlgorithm):
                 index = randint(0, len(pareto_front) - 1)  # takes random individual from Pareto front
                 best_individual = pareto_front[index]
                 if best_individual is not individual:
-                    self.mutator.update(self.problem.get_bounds(), best_individual)
+                    self.mutator.update(best_individual)
                     self.mutator.mutate(individual)
 
             offsprings = self.evaluate(offsprings)
