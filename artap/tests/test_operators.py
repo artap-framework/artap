@@ -15,14 +15,6 @@ class TestCrossover(unittest.TestCase):
         self.i1 = Individual([1, 2, 2])
         self.i2 = Individual([3, 2, 1])
 
-    def test_random_generator(self):
-        gen = RandomGeneration(self.parameters)
-        individuals = gen.generate(2)
-        self.assertTrue(self.parameters['x_1']['bounds'][0] <= individuals[0].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[0].vector[1] <= self.parameters['x_2']['bounds'][1] and
-                        self.parameters['x_1']['bounds'][0] <= individuals[1].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[1].vector[1] <= self.parameters['x_2']['bounds'][1])
-
     def test_simple_mutation(self):
         sbx = SimpleMutation(self.parameters, 0.7)
         individual = sbx.mutate(self.i1)

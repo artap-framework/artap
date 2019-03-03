@@ -39,9 +39,10 @@ class JobSimple(Job):
 
         # add to population
         self.population.individuals.append(individual)
+        # write to datastore
+        self.problem.data_store.write_individual(individual)
 
         individual.is_evaluated = True
-        self.problem.data_store.write_individual(individual)
 
         return individual.costs
 
@@ -72,7 +73,8 @@ class JobQueue(Job):
         individual.costs = self.problem.surrogate.evaluate(individual.vector)
 
         individual.is_evaluated = True
-        self.problem.data_store.write_individual(individual)
+        # write to datastore - not working parallel
+        # self.problem.data_store.write_individual(individuals[-1])
 
         if self.queue is not None:
             self.queue.put(individual)

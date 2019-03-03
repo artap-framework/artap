@@ -29,18 +29,38 @@ class Generation(Operation):
         self.parameters = parameters
 
     @abstractmethod
-    def generate(self, number):
+    def generate(self):
         pass
+
+
+class CustomGeneration(Generation):
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.vectors = []
+
+    def init(self, vectors):
+        self.vectors = vectors
+
+    def generate(self):
+        individuals = []
+        for vector in self.vectors:
+            individuals.append(Individual(vector))
+        return individuals
 
 
 class RandomGeneration(Generation):
 
     def __init__(self, parameters):
         super().__init__(parameters)
+        self.number = 0
 
-    def generate(self, number):
+    def init(self, number):
+        self.number = number
+
+    def generate(self):
         individuals = []
-        for i in range(number):
+        for i in range(self.number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
             individuals.append(Individual(vector))
         return individuals
@@ -54,15 +74,19 @@ class FullFactorGeneration(Generation):
 
     def __init__(self, parameters):
         super().__init__(parameters)
+        self.center = False
 
-    def generate(self, center=False):
+    def init(self, center):
+        self.center = center
+
+    def generate(self):
         dict_vars = {}
         for parameter in self.parameters.items():
             name = parameter[0]
             l_b = parameter[1]['bounds'][0]
             u_b = parameter[1]['bounds'][1]
 
-            if center:
+            if self.center:
                 dict_vars[name] = [l_b, (l_b + u_b) / 2.0, u_b]
             else:
                 dict_vars[name] = [l_b, u_b]
@@ -114,9 +138,6 @@ class BoxBehnkenGeneration(Generation):
     https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
-
     def generate(self):
         dict_vars = {}
         for parameter in self.parameters.items():
@@ -141,8 +162,12 @@ class LHSGeneration(Generation):
 
     def __init__(self, parameters):
         super().__init__(parameters)
+        self.number = 0
 
-    def generate(self, number):
+    def init(self, number):
+        self.number = number
+
+    def generate(self):
         dict_vars = {}
         for parameter in self.parameters.items():
             name = parameter[0]
@@ -150,7 +175,7 @@ class LHSGeneration(Generation):
             u_b = parameter[1]['bounds'][1]
             dict_vars[name] = [l_b, u_b]
 
-        df = build_lhs(dict_vars, num_samples=number)
+        df = build_lhs(dict_vars, num_samples=self.number)
         # print(df)
 
         individuals = []
