@@ -16,7 +16,6 @@ class MyProblem(Problem):
         costs = ['F']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         return [Booth.eval(x)]

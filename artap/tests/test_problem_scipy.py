@@ -15,7 +15,6 @@ class MyProblem(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         result = 0
@@ -48,7 +47,6 @@ class AckleyN2Problem(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         function = AckleyN2()

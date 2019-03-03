@@ -17,7 +17,6 @@ class CondorMatlabProblem(Problem):
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "workspace" + os.sep + "condor_matlab" + os.sep)
-        self.options['max_processes'] = 1
 
         self.executor = CondorJobExecutor(self,
                                           command="run.sh",
@@ -43,7 +42,6 @@ class CondorComsolProblem(Problem):
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep)
-        self.options['max_processes'] = 1
 
         self.executor = CondorJobExecutor(self,
                                           command="run.sh",
@@ -70,7 +68,6 @@ class TestPythonExecProblem(Problem):
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "workspace" + os.sep + "condor_python_exec" + os.sep)
-        self.options['max_processes'] = 1
 
         self.executor = CondorJobExecutor(self,
                                           command="/usr/bin/python3",
@@ -93,7 +90,6 @@ class TestPythonInputProblem(Problem):
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "workspace" + os.sep + "condor_python_input" + os.sep)
-        self.options['max_processes'] = 1
 
         self.executor = CondorJobExecutor(self,
                                           command="/usr/bin/python3",
