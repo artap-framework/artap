@@ -1,9 +1,6 @@
 import unittest
 
-# from pygments.lexer import words
-# from artap.algorithm_nlopt import opt
 from artap.problem import Problem
-from artap.datastore import DummyDataStore
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results

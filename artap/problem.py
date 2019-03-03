@@ -158,13 +158,6 @@ class Problem(ProblemBase):
     def parameters_len(self):
         return len(self.parameters)
 
-    # TODO: FIX table.append([parameter[2], parameter[3]])
-    def get_bounds(self):
-        table = []
-        for parameter in self.get_parameters_list():
-            table.append([parameter[2], parameter[3]])
-        return table
-
     def get_initial_values(self):
         values = []
         for parameter in self.parameters.items():
