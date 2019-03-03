@@ -589,7 +589,6 @@ class NLopt(Algorithm):
             t = time.time() - t_s
             self.problem.logger.info("NLopt: elapsed time: {} s".format(t))
 
-
             """
             if self.options['verbose_level'] >= 1:
                 print('method: ', op.get_algorithm_name())

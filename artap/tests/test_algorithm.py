@@ -13,7 +13,6 @@ class TestProblem(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         result = 0
@@ -28,12 +27,12 @@ class TestJob(unittest.TestCase):
 
     def test_sweep_evaluate_parallel(self):
         problem = TestProblem("Test_Job")
-        problem.options['max_processes'] = 2
 
         gen = LHSGeneration(problem.parameters)
         gen.init(4)
 
         algorithm = SweepAlgorithm(problem, generator=gen)
+        algorithm.options['max_processes'] = 2
         algorithm.run()
 
         individuals = problem.data_store.individuals
@@ -71,12 +70,12 @@ class TestJob(unittest.TestCase):
 
     def test_dummy_evaluate_parallel(self):
         problem = TestProblem("Test_Job")
-        problem.options['max_processes'] = 4
 
         i1 = Individual([1, 2, 2])
         i2 = Individual([3, 3, 2])
 
         algorithm = DummyAlgorithm(problem)
+        algorithm.options['max_processes'] = 2
 
         individuals = algorithm.evaluate(individuals=[i1, i2])
         self.assertEqual(individuals[0].costs, [9])
