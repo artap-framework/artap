@@ -16,13 +16,10 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         super().__init__(problem, name)
         self.problem = problem
 
-        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator = None
         self.selector = None
         self.mutator = None
         self.crossover = None
-
-    def gen_initial_population(self):
-        pass
 
     def run(self):
         pass
@@ -39,20 +36,13 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         self.options.declare(name='max_population_number', default=10, lower=1,
                              desc='max_population_number')
         self.options.declare(name='max_population_size', default=100, lower=1,
-                             desc='max_population_size')
-
-    def gen_initial_population(self):
-        individuals = self.generator.generate(self.options['max_population_size'])
-        individuals = self.evaluate(individuals)
-
-        population = Population(individuals)
-        return population
+                             desc='Maximal number of individuals in population')
 
     def generate(self, parents):
         """ generate two children from two different parents """
 
         children = []
-        while len(children) < self.options['max_population_size']:
+        while len(children) < self.population_size:
             parent1 = self.selector.select(parents)
             parent2 = self.selector.select(parents)
 
@@ -86,11 +76,19 @@ class NSGAII(GeneticAlgorithm):
                              desc='prob_mutation')
 
     def run(self):
-        # set class
+        # set random generator
+        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator.init(self.options['max_population_size'])
+
+        # set crossover
         # self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
+
+        # set mutator
         # self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
         self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
+
+        # set selector
         self.selector = TournamentSelection(self.problem.parameters)
 
         # create initial population and evaluate individuals
@@ -103,7 +101,7 @@ class NSGAII(GeneticAlgorithm):
 
         t_s = time.time()
         self.problem.logger.info(
-            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.options['max_population_size']))
+            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.population_size))
 
         # optimization
         for it in range(self.options['max_population_number']):
@@ -126,7 +124,7 @@ class NSGAII(GeneticAlgorithm):
             parents = sorted(offsprings, key=lambda x: (x.front_number, -x.crowding_distance))
 
             # truncate
-            offsprings = parents[:self.options['max_population_size']]
+            offsprings = parents[:self.population_size]
 
             # write population
             population = Population(offsprings)
@@ -147,11 +145,19 @@ class EpsMOEA(GeneticAlgorithm):
                              desc='prob_mutation')
 
     def run(self):
-        # set class
+        # set random generator
+        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator.init(self.options['max_population_size'])
+
+        # set crossover
         # self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
+
+        # set mutator
         # self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
         self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
+
+        # set selector
         self.selector = TournamentSelection(self.problem.parameters)
 
         # create initial population and evaluate individuals
@@ -164,7 +170,7 @@ class EpsMOEA(GeneticAlgorithm):
 
         t_s = time.time()
         self.problem.logger.info(
-            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.options['max_population_size']))
+            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.population_size))
 
         # optimization
         for it in range(self.options['max_population_number']):
@@ -187,7 +193,7 @@ class EpsMOEA(GeneticAlgorithm):
             parents = sorted(offsprings, key=lambda x: (x.front_number, -x.crowding_distance))
 
             # truncate
-            offsprings = parents[:self.options['max_population_size']]
+            offsprings = parents[:self.population_size]
 
             # write population
             population = Population(offsprings)
