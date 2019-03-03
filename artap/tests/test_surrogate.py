@@ -4,6 +4,8 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import Booth
 from artap.surrogate import SurrogateModelEval, SurrogateModelRegressor
+from artap.operators import CustomGeneration, LHSGeneration
+from artap.algorithm_sweep import SweepAlgorithm
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, WhiteKernel, ConstantKernel, RationalQuadratic, ExpSineSquared
@@ -20,7 +22,6 @@ class MyProblemSin(Problem):
         costs = ['F']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         return [x[0] * math.sin(x[0])]
@@ -29,13 +30,12 @@ class MyProblemSin(Problem):
 class MyProblemBooth(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-5, 5]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-5, 5]}}
 
         costs = ['F']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -84,7 +84,6 @@ class TestSurrogate(unittest.TestCase):
         value_problem = problem.evaluate(x_ref)[0]
         # eval surrogate
         value_surrogate = problem.surrogate.predict(x_ref)[0]
-
 
         problem.logger.info("{}: surrogate.value: evaluation = {}, prediction = {}, difference = {}".format(problem.name, value_problem, value_surrogate,
                                                                                                         math.fabs(value_problem - value_surrogate)))
@@ -149,6 +148,35 @@ class TestSurrogate(unittest.TestCase):
         problem.surrogate.evaluate([1.01, 2.99])
 
         x_ref = [1.01, 3.01]
+        # eval reference
+        value_problem = problem.evaluate(x_ref)[0]
+        # eval surrogate
+        value_surrogate = problem.surrogate.predict(x_ref)[0]
+
+        percent = 100.0 * math.fabs(value_problem - value_surrogate) / math.fabs(value_problem)
+        problem.logger.info("{}: surrogate.value: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem, value_surrogate,
+                                                                                                 math.fabs(value_problem - value_surrogate), percent))
+
+        self.assertLess(percent, 5.0)
+
+    def test_gaussian_process_lhs_two(self):
+        problem = MyProblemBooth("MyProblemBooth")
+        problem.surrogate = SurrogateModelRegressor(problem)
+        # set custom regressor
+        kernel = 1.0 * RationalQuadratic(length_scale=1.0)
+        problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel)
+        #problem.surrogate.regressor = GradientBoostingRegressor()
+        # set threshold
+        problem.surrogate.sigma_threshold = 0.01
+        problem.surrogate.train_step = 100
+
+        # sweep analysis (for training)
+        gen = LHSGeneration(problem.parameters)
+        gen.init(problem.surrogate.train_step)
+        algorithm_sweep = SweepAlgorithm(problem, generator=gen)
+        algorithm_sweep.run()
+
+        x_ref = [2.00, -2.00]
         # eval reference
         value_problem = problem.evaluate(x_ref)[0]
         # eval surrogate

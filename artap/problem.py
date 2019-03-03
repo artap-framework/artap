@@ -6,7 +6,6 @@ from .surrogate import SurrogateModelEval
 from abc import ABC, abstractmethod
 
 import os
-import multiprocessing
 import logging
 import datetime
 
@@ -51,9 +50,6 @@ class ProblemBase(ABC):
                              desc='Enable DB handler')
         self.options.declare(name='log_console_handler', default=True,
                              desc='Enable console handler')
-        # TODO: move to Algorithm class
-        self.options.declare(name='max_processes', default=max(int(2 / 3 * multiprocessing.cpu_count()), 1),
-                             desc='Max running processes')
 
         # tmp name
         d = datetime.datetime.now()

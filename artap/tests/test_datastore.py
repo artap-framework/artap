@@ -21,7 +21,6 @@ class MyProblem(Problem):
         costs = ['F']
 
         super().__init__(name, parameters, costs, working_dir=tempfile.mkdtemp())
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         return [Booth.eval(x)]
