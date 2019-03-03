@@ -8,8 +8,6 @@ from artap.datastore import DummyDataStore
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        self.max_population_number = 1
-        self.max_population_size = 10
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
                       'x_2': {'initial_value': 2.5, 'bounds': [2.2, 2.4], 'precision': 1e-1},
                       'x_3': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}}
