@@ -3,7 +3,7 @@ from .utils import ConfigDictionary
 from .job import JobSimple, JobQueue
 from .population import Population
 
-from multiprocessing import Process, Manager, Queue
+from multiprocessing import Process, Manager, Queue, cpu_count
 from abc import ABCMeta, abstractmethod
 
 
@@ -19,6 +19,9 @@ class Algorithm(metaclass=ABCMeta):
                              desc='Verbose level')
         self.options.declare(name='calculate_gradients', default=False,
                              desc='Enable calculating of gradients')
+        # max(int(2 / 3 * cpu_count(), 1)
+        self.options.declare(name='max_processes', default=1,
+                             desc='Max running processes')
 
         # initial population size
         self.population_size = 0
@@ -38,7 +41,7 @@ class Algorithm(metaclass=ABCMeta):
         return population
 
     def evaluate(self, individuals: list):
-        if self.problem.options["max_processes"] > 1:
+        if self.options["max_processes"] > 1:
             individuals = self.evaluate_parallel(individuals)
         else:
             individuals = self.evaluate_serial(individuals)
@@ -73,7 +76,7 @@ class Algorithm(metaclass=ABCMeta):
                 i += 1
                 j += 1
 
-            if ((i % self.problem.options['max_processes']) == 0) or (j >= len(individuals)):
+            if ((i % self.options['max_processes']) == 0) or (j >= len(individuals)):
                 for process in processes:
                     process.join()
                     processes = []

@@ -13,7 +13,6 @@ class MyProblem(Problem):
         costs = ['F_1', 'F_2']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
         # self.run_server(daemon=False)
 
