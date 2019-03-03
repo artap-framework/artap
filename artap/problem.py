@@ -129,7 +129,6 @@ class Problem(ProblemBase):
             self.logger.addHandler(file_handler)
 
         if data_store is None:
-            # self.data_store = SqliteDataStore(problem=self, working_dir=self.working_dir, create_database=True)
             self.data_store = DummyDataStore(self)
             self.data_store.create_structure()
 
