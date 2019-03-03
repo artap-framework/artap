@@ -9,7 +9,12 @@ class Sensitivity(Algorithm):
         self.parameters = parameters
         super().__init__(problem, name)
 
+        self.options.declare(name='max_population_size', default=100, lower=1,
+                             desc='Maximal number of individuals in population')
+
     def run(self):
+        self.population_size = self.options['max_population_size']
+
         parameters = []
         for parameter in self.problem.parameters.items():
             parameters.append(float(parameter[1]['initial_value']))
