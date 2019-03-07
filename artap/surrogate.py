@@ -1,5 +1,6 @@
 from .utils import flatten
 
+import warnings
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
@@ -96,10 +97,14 @@ class SurrogateModelRegressor(SurrogateModel):
         self.has_epsilon = True
 
     def train(self):
-        # print(self.x_data, self.y_data)
-        # self.regressor.fit(self.x_data, self.y_data)
-        self.regressor.fit(self.x_data, np.ravel(self.y_data, order='C'))
-        # self.trained = True
+        # disable sklearn warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            # print(self.x_data, self.y_data)
+            # self.regressor.fit(self.x_data, self.y_data)
+            self.regressor.fit(self.x_data, np.ravel(self.y_data, order='C'))
+            # self.trained = True
 
         if self.eval_stats:
             # score
@@ -117,11 +122,15 @@ class SurrogateModelRegressor(SurrogateModel):
         evaluate = True
 
         if self.trained:
-            if self.has_epsilon:
-                p, sigma = self.predict(x)
-            else:
-                p = self.predict(x)
-                sigma = 0
+            # disable sklearn warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+
+                if self.has_epsilon:
+                    p, sigma = self.predict(x)
+                else:
+                    p = self.predict(x)
+                    sigma = 0
 
             # compute minimal parameter distance
             if self.distance_metric is not None:
