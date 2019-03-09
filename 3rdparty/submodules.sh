@@ -51,9 +51,8 @@ strip libs/*.so
 strip agros
 strip agros_solver
 strip pythonlab
-
 # link ~/.local
-ln -s $DIR/agros ~/.local/lib/python3.6/site-packages/agrossuite
+ln -sfn $DIR/agros ~/.local/lib/python3.6/site-packages/agrossuite
 
 # go back
 cd $DIR
