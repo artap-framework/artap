@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dashComp
 import dash_html_components as dashHtml
+import dash_table
 from dash.dependencies import Input, Output
 import plotly.graph_objs as grObj
 
@@ -9,8 +10,10 @@ import socket
 from threading import Thread
 import time
 
+# from jedi._compatibility import pickle_dump
+
 from artap.enviroment import Enviroment
-from .individual import Individual
+# from .individual import Individual
 
 class NoneProblemDefined(Exception):
     """Raised when no problem instance is given
@@ -50,7 +53,8 @@ class ArtapServer(Thread):
         else:
             self.url = self.get_host_ip()
 
-        self.port = port
+        self.port = self.pick_unused_port()
+
         self.debug_mode = debug_mode
 
         self.keep_server_live = True
@@ -59,6 +63,7 @@ class ArtapServer(Thread):
         self.y = []
         self.data = []
         self.last_population = 0
+        self.last_x_len = 0
 
         external_stylesheets = ['mainstyle.css']
         self.dash_app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -114,14 +119,28 @@ class ArtapServer(Thread):
                 n_intervals=0
             ),
             dashHtml.Button('Stop Server', id='stop-button'),
-            dashHtml.Div(id='output-button-container')
+            dashHtml.Div(id='output-button-container'),
+            dash_table.DataTable(
+                id='datatable-interactivity',
+                columns=[
+                    {"name": str(self.problem.eval_counter), "id": str(self.problem.costs), "deletable": True}
+                ],
+                data=([self.x], [self.y]),
+                editable=True,
+                filtering=True,
+                sorting=True,
+                sorting_type="multi",
+                row_selectable="multi",
+                row_deletable=True,
+                selected_rows=[],
+            )
         ])
 
         @self.dash_app.callback(Output('stop_info', 'children'),
                                 [Input('stop-button', 'n_clicks')])
         def cancel_server(number_of_clicks):
             if number_of_clicks is not None:
-                self.keep_server_live = False
+                self.stop_server()
                 return dashHtml.Div([
                     dashHtml.Div('Artap Server was STOPPED'),
                 ])
@@ -130,8 +149,9 @@ class ArtapServer(Thread):
         @self.dash_app.callback(Output('live-update-graph', 'figure'),
                                 [Input('interval-component', 'n_intervals')])
         def update_graph_live(n):
-            print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
+            #print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
 
+            '''
             if self.last_population != len(self.problem.data_store.populations):
                 self.x = []
                 self.y = []
@@ -144,7 +164,9 @@ class ArtapServer(Thread):
 
                 # print(self.x)
                 # print(self.y)
-
+            '''
+            if self.last_x_len != len(self.x):
+                self.last_x_len = len(self.x)
                 trace = grObj.Scatter(
                         {
                             'x': self.x,
@@ -171,6 +193,9 @@ class ArtapServer(Thread):
             }
             return fig
 
+    def get_server_url(self):
+        return 'http://' + str(self.url) + ':' + str(self.port) + '/'
+
     def get_host_ip(self):
         try:
             return ((([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")] or
@@ -194,6 +219,20 @@ class ArtapServer(Thread):
         run_dash.start()
 
         while self.keep_server_live:
+            #print('update_graph_live - self.problem.data_store.populations: {}'.format(len(self.problem.data_store.populations)))
+            #print('x = ' + str(self.x))
+            #print('y = ' + str(self.y))
+            if self.last_population != len(self.problem.data_store.populations):
+                #self.x = []
+                #self.y = []
+                self.last_population = len(self.problem.data_store.populations)
+                population = self.problem.data_store.populations[-1]
+                for individual in population.individuals:
+                    # self.x.append(len(self.x))
+                    if individual.front_number == 1:
+                        self.x.append(individual.costs[0])
+                        self.y.append(individual.costs[1])
+
             time.sleep(Enviroment.server_keep_live_delay)
 
     def run_server(self, open_viewer=True, daemon=True):
@@ -204,7 +243,8 @@ class ArtapServer(Thread):
             # webbrowser.register('google-chrome', webbrowser.Chrome('google-chrome'))
             webbrowser.open_new(self.url + ':' + str(self.port))
 
-
+    def stop_server(self):
+        self.keep_server_live = False
 
 
 if __name__ == '__main__':
@@ -212,6 +252,7 @@ if __name__ == '__main__':
     from artap.tests.test_problem_scipy import AckleyN2Problem
     problem = AckleyN2Problem('DummyProblem')
     port = Enviroment.server_initial_port
+
     try:
         artap_server = ArtapServer(local_host=True, port=port, debug_mode=False)
         artap_server.run_server()
@@ -229,6 +270,7 @@ if __name__ == '__main__':
     try:
         artap_server_3 = ArtapServer(problem=problem, local_host=True, port=port, debug_mode=False)
         artap_server_3.run_server()
+        print(artap_server_3.get_server_url())
     except NoneProblemDefined as ex:
         print('Exception when start server 3: ', ex.message)
 

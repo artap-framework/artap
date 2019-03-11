@@ -23,12 +23,11 @@ from artap.benchmark_functions import Booth
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10], 'precision': 1e-1},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
         costs = ['F']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -63,10 +62,10 @@ class TestNLoptOptimization(unittest.TestCase):
         self.run_test(GN_MLSL, 500)
 
     def test_local_problem_nlopt_GN_CRS2_LM(self):
-        self.run_test(GN_CRS2_LM, 4000)
+        self.run_test(GN_CRS2_LM, 8000)
 
     def test_local_problem_nlopt_GN_ISRES(self):
-        self.run_test(GN_ISRES, 4000)
+        self.run_test(GN_ISRES, 6000)
 
     # def test_local_problem_nlopt_GN_ESCH(self):
     #     self.run_test(GN_ESCH, 5000)

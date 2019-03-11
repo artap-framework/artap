@@ -13,7 +13,6 @@ class GradientProblem(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         return [(x[0]-1)**2 + x[1]**2]
