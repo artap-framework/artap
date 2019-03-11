@@ -53,18 +53,25 @@ class Individual(metaclass=ABCMeta):
         params = [self.vector, self.costs]
         # flatten list
         out = [val for sublist in params for val in sublist]
-        out.append(self.front_number)
-        if self.crowding_distance == float('inf'):
+        # front_number
+        if self.front_number is None:
+            out.append(0)
+        else:
+            out.append(self.front_number)
+        # crowding_distance
+        if self.crowding_distance is None:
             out.append(0)
         else:
             out.append(self.crowding_distance)
-        if self.feasible == float('inf'):
+        # feasible
+        if self.feasible is None:
             out.append(0)
         else:
             out.append(self.feasible)
+        # dominates
         dominates = []
-        #for individual in self.dominate:
-        #    dominates.append(individual.id)
         out.append(dominates)
+        # gradient
         out.append(self.gradient)
+
         return out
