@@ -1,60 +1,79 @@
 import os
 import unittest
-import getpass
 
-from artap.executor import RemoteExecutor
+from artap.executor import RemoteSSHExecutor
 from artap.problem import Problem
-from artap.enviroment import Enviroment
-from artap.datastore import DummyDataStore
 
 
 class TestProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        self.max_population_number = 1
-        self.max_population_size = 1
         parameters = {'x_1': {'initial_value': 10},
                       'x_2': {'initial_value': 10}}
         costs = ['F1']
 
-        super().__init__(name, parameters, costs)
-
-        if Enviroment.ssh_login == "":
-            user = getpass.getuser()
-        else:
-            user = Enviroment.ssh_login
-
-        host = Enviroment.available_ssh_servers[0]
-        self.executor = RemoteExecutor(username=user, hostname=host,
-                                       working_dir="." + os.sep + "workspace" + os.sep + "remote",
-                                       supplementary_files=["remote.py"])
-        self.executor.script = Enviroment.tests_root + os.sep + "remote.py"
+        super().__init__(name, parameters, costs,
+                         working_dir="." + os.sep + "workspace" + os.sep + "remote")
 
     def evaluate(self, x):
-        result = self.executor.eval(x)
-        return [result]
+        return self.executor.eval(x)
+
+    def parse_results(self, content):
+        return [float(content)]
 
 
-class TestRemoteOptimization(unittest.TestCase):
+class TestRemoteSSHExecutor(unittest.TestCase):
     """ Tests simple optimization problem where calculation of
         goal function is performed on remote machine.
     """
-    def test_remote_run(self):
-        """ Tests one calculation of goal function."""
-        problem = TestProblem("RemotePythonProblem")
+    def test_remote_python_exec(self):
+        problem = TestProblem("TestPythonProblem")
+        problem.executor = RemoteSSHExecutor(problem,
+                                             command="python3",
+                                             model_file="run_exec.py",
+                                             output_file="output.txt")
+
         result = problem.evaluate([1, 2])
 
         self.assertAlmostEqual(result[0], 5.0)
 
-    # def test_remote_optimization(self):
-    #     """ Tests simple optimization problem. """
-    #     problem = TestProblem("RemotePythonProblem")
-    #     algorithm = ScipyNelderMead(problem)
-    #     algorithm.run()
-    #     problem.read_from_database()
-    #     optimum = problem.data[-1][-1] # Takes last individual
+    def test_remote_python_input(self):
+        problem = TestProblem("TestPythonProblem")
+        problem.executor = RemoteSSHExecutor(problem,
+                                             command="python3",
+                                             model_file="run_input.py",
+                                             input_file="input.txt",  # file is created in eval with specific parameters
+                                             output_file="output.txt")
 
-    #     self.assertAlmostEqual(optimum, 0)
+        result = problem.evaluate([1, 2])
+
+        self.assertAlmostEqual(result[0], 5.0)
+
+    def test_remote_octave_exec(self):
+        problem = TestProblem("TestOctaveProblem")
+        problem.executor = RemoteSSHExecutor(problem,
+                                             command="octave --no-gui",
+                                             model_file="run_input.m",
+                                             input_file="input.txt", # file is created in eval with specific parameters
+                                             output_file="output.txt")
+
+        result = problem.evaluate([1, 2])
+
+        self.assertAlmostEqual(result[0], 5.0)
+
+    def xtest_remote_matlab_run(self):
+        problem = TestProblem("TestMatlabProblem")
+
+        # TODO: for matlab it must be without .m extension
+        problem.executor = RemoteSSHExecutor(problem,
+                                             command="/opt/matlab-R2018b/bin/matlab -nodisplay -nosplash -nodesktop -r",
+                                             model_file="run_input.m",
+                                             input_file="input.txt",  # file is created in eval with specific parameters
+                                             output_file="output.txt")
+
+        result = problem.evaluate([])
+
+        self.assertAlmostEqual(result[0], 5.0)
 
 
 if __name__ == '__main__':

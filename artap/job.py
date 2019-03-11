@@ -35,21 +35,14 @@ class JobSimple(Job):
             individual.feasible = sum(map(abs, constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
-
-        # TODO: find better solution for surrogate
-        if self.problem.surrogate:
-            individual.costs = self.problem.evaluate_surrogate(individual.vector)
-        else:
-            # increase counter
-            self.problem.eval_counter += 1
-            # eval
-            individual.costs = self.problem.evaluate(individual.vector)
+        individual.costs = self.problem.surrogate.evaluate(individual.vector)
 
         # add to population
         self.population.individuals.append(individual)
+        # write to datastore
+        self.problem.data_store.write_individual(individual)
 
         individual.is_evaluated = True
-        self.problem.data_store.write_individual(individual)
 
         return individual.costs
 
@@ -77,19 +70,11 @@ class JobQueue(Job):
             individual.feasible = sum(map(abs, constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
+        individual.costs = self.problem.surrogate.evaluate(individual.vector)
 
-        # TODO: find better solution for surrogate
-        if self.problem.surrogate:
-            costs = self.problem.evaluate_surrogate(individual.vector)
-        else:
-            # increase counter
-            self.problem.eval_counter += 1
-            # eval
-            costs = self.problem.evaluate(individual.vector)
-
-        individual.costs = costs
         individual.is_evaluated = True
-        self.problem.data_store.write_individual(individual)
+        # write to datastore - not working parallel
+        # self.problem.data_store.write_individual(individuals[-1])
 
         if self.queue is not None:
             self.queue.put(individual)
@@ -97,4 +82,4 @@ class JobQueue(Job):
         # add to population
         self.population.individuals.append(individual)
 
-        return costs
+        return individual.costs

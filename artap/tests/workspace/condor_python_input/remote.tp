@@ -1,7 +1,7 @@
 universe = vanilla
 initialdir = ./
 executable = $run_file
-arguments = batch -inputfile $model_name -nosave -pname $param_names -plist $param_values
+arguments = $model_name 
 requirements = (OpSys == "LINUX" && Arch == "X86_64")
 
 input = $model_name
@@ -14,7 +14,7 @@ request_memory = 10 GB
 log_xml = true
 should_transfer_files = yes
 when_to_transfer_output = ON_EXIT
-transfer_input_files = $model_name, $run_file
+transfer_input_files = $model_name, $input_file
 transfer_output_files = $output_file
 transfer_executable = true
 queue

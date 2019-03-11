@@ -15,7 +15,6 @@ class MyProblem(Problem):
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
-        self.options['max_processes'] = 1
 
     def evaluate(self, x):
         result = 0
@@ -47,8 +46,7 @@ class AckleyN2Problem(Problem):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=SqliteDataStore(self))
-        self.options['max_processes'] = 1
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         function = AckleyN2()

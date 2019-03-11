@@ -1,73 +1,32 @@
-from random import random, randint
+from random import randint
 from .problem import Problem
 from .population import Population
-from .individual import Individual
-from .algorithm_genetic import NSGAII
+# from .individual import Individual
+from .algorithm_genetic import GeneticAlgorithm
+from .operators import SwarmMutation, DummySelection, RandomGeneration
 
 import time
 
 
-class PSO(NSGAII):
+class PSO(GeneticAlgorithm):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
-        self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
-        self.c1 = 2  # cognitive constant
-        self.c2 = 1   # social constant
         self.n = self.options['max_population_size']
-        self.err_best_g = [-1]  # best error for group
-        self.pos_best_g = []  # best position for group
-
-    # TODO: Almost the same code as for genetic algorithm. Reuse.
-    def gen_initial_population(self):
-        super().gen_initial_population()
-        population = self.evaluate_population()
-        for individual in population.individuals:
-            self.evaluate_pso(individual)
-
-        return population
-
-    # evaluate current fitness
-    def evaluate_pso(self, individual):
-
-        dominates = True
-
-        for i in range(len(individual.best_costs)):
-            if individual.costs[i] > individual.best_costs[i]:
-                dominates = False
-
-        # check to see if the current position is an individual best
-        if dominates:
-            individual.best_vector = individual.vector
-            individual.best_costs = individual.costs
-
-    # update new particle velocity
-    def update_velocity(self, individual):
-
-        for i in range(0, len(individual.vector)):
-            r1 = random()
-            r2 = random()
-
-            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
-            vel_social = self.c2 * r2 * (self.pos_best_g[i] - individual.vector[i])
-            individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
-
-    # update the particle position based off new velocity updates
-    def update_position(self, individual, bounds):
-        for i in range(0, len(individual.vector)):
-            individual.vector[i] = individual.vector[i] + individual.velocity_i[i]
-
-            # adjust maximum position if necessary
-            if individual.vector[i] > bounds[i][1]:
-                individual.vector[i] = bounds[i][1]
-
-            # adjust minimum position if necessary
-            if individual.vector[i] < bounds[i][0]:
-                individual.vector[i] = bounds[i][0]
+        self.mutator = SwarmMutation(self.problem.parameters)
+        self.selector = DummySelection(self.problem.parameters)
 
     def run(self):
+        # set random generator
+        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator.init(self.options['max_population_size'])
+
         population = self.gen_initial_population()
-        self.nondominated_sort(population.individuals)
+
+        for individual in population.individuals:
+            self.mutator.evaluate_pso(individual)
+
+        self.selector.non_dominated_sort(population.individuals)
         self.problem.data_store.write_population(population)
 
         t_s = time.time()
@@ -76,39 +35,27 @@ class PSO(NSGAII):
 
         i = 0
         while i < self.options['max_population_number']:
-            population = Population()
+            offsprings = self.selector.select(population.individuals)
 
             pareto_front = []
-            for j in range(self.options['max_population_size']):
-                if population.individuals[j].front_number == 1:
-                    pareto_front.append(self.population.individuals[j])
-                individual = Individual(self.population.individuals[j].vector.copy())
-                individual.best_vector = self.population.individuals[j].best_vector
-                individual.best_costs = self.population.individuals[j].best_costs
-                individual.costs = self.population.individuals[j].costs
+            for individual in offsprings:
+                if individual.front_number == 1:
+                    pareto_front.append(individual)
 
-                population.individuals.append(individual)
+            for individual in offsprings:
+                index = randint(0, len(pareto_front) - 1)  # takes random individual from Pareto front
+                best_individual = pareto_front[index]
+                if best_individual is not individual:
+                    self.mutator.update(best_individual)
+                    self.mutator.mutate(individual)
 
-            index = randint(0, len(pareto_front)-1)  # takes random individual from Pareto front
-            individual = pareto_front[index]
-            self.pos_best_g = list(individual.vector)
-            self.err_best_g = individual.costs
+            offsprings = self.evaluate(offsprings)
 
-            for individual in population.individuals:
-                individual.costs = []
-                # print(individual.velocity_i)
-                self.update_velocity(individual)
-                # print(individual.velocity_i)
-                # print("---------------------")
-                # print(individual.vector)
-                self.update_position(individual, self.problem.get_bounds())
-                # print(individual.vector)
-                # print("---------------------")
+            for individual in offsprings:
+                self.mutator.evaluate_pso(individual)
 
-            self.evaluate_population()
-            for individual in population.individuals:
-                self.evaluate_pso(individual)
-            self.nondominated_sort(population.individuals)
+            self.selector.non_dominated_sort(offsprings)
+            population = Population(offsprings)
             self.problem.data_store.write_population(population)
 
             i += 1
