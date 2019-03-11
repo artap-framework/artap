@@ -28,9 +28,8 @@ class MyProblem(Problem):
 
 class TestDataStore(unittest.TestCase):
     def test_read_data_store(self):
-        database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
-        data_store = SqliteDataStore(database_file=database_file)
-        problem = ProblemDataStore(data_store)
+        database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
+        problem = ProblemDataStore(database_name=database_name)
 
         results = Results(problem)
         optimum = results.find_minimum('F_1')

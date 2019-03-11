@@ -101,14 +101,15 @@ class SurrogateModelRegressor(SurrogateModel):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
 
-            # print(self.x_data, self.y_data)
-            # self.regressor.fit(self.x_data, self.y_data)
-            self.regressor.fit(self.x_data, np.ravel(self.y_data, order='C'))
+            print(len(self.x_data), len(self.y_data))
+            print(self.x_data, self.y_data)
+            self.regressor.fit(self.x_data, self.y_data)
+            # self.regressor.fit(self.x_data, np.ravel(self.y_data, order='C'))
             # self.trained = True
 
         if self.eval_stats:
             # score
-            self.score = self.regressor.score(self.x_data, np.ravel(self.y_data, order='C'))
+            self.score = self.regressor.score(self.x_data, self.y_data)
             # print("self.score = {} : {}".format(len(self.x_data), self.score))
             # lml (Gaussian regressor)
             if "log_marginal_likelihood" in dir(self.regressor):
@@ -164,7 +165,8 @@ class SurrogateModelRegressor(SurrogateModel):
             # increase counter
             self.eval_counter += 1
             # add training date to surrogate model
-            self.add_data(np.array(x), np.array(value))
+            # self.add_data(np.array(x), np.array(value))
+            self.add_data(x, value)
 
             if self.eval_counter % self.train_step == 0:
                 # init default regressor
