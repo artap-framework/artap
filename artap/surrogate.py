@@ -101,8 +101,8 @@ class SurrogateModelRegressor(SurrogateModel):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
 
-            print(len(self.x_data), len(self.y_data))
-            print(self.x_data, self.y_data)
+            # print(len(self.x_data), len(self.y_data))
+            # print(self.x_data, self.y_data)
             self.regressor.fit(self.x_data, self.y_data)
             # self.regressor.fit(self.x_data, np.ravel(self.y_data, order='C'))
             # self.trained = True
