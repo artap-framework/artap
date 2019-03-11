@@ -7,6 +7,7 @@ import math
 
 from .individual import Individual
 from .utils import VectorAndNumbers
+from .doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
 
 EPSILON = sys.float_info.epsilon
 
@@ -28,19 +29,157 @@ class Generation(Operation):
         self.parameters = parameters
 
     @abstractmethod
-    def generate(self, number):
+    def generate(self):
         pass
+
+
+class CustomGeneration(Generation):
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.vectors = []
+
+    def init(self, vectors):
+        self.vectors = vectors
+
+    def generate(self):
+        individuals = []
+        for vector in self.vectors:
+            individuals.append(Individual(vector))
+        return individuals
 
 
 class RandomGeneration(Generation):
 
     def __init__(self, parameters):
         super().__init__(parameters)
+        self.number = 0
 
-    def generate(self, number):
+    def init(self, number):
+        self.number = number
+
+    def generate(self):
         individuals = []
-        for i in range(number):
+        for i in range(self.number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class FullFactorGeneration(Generation):
+    """
+    Create a general full-factorial design
+    Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.center = False
+
+    def init(self, center):
+        self.center = center
+
+    def generate(self):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+
+            if self.center:
+                dict_vars[name] = [l_b, (l_b + u_b) / 2.0, u_b]
+            else:
+                dict_vars[name] = [l_b, u_b]
+
+        df = build_full_fact(dict_vars)
+        # print(df)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class PlackettBurmanGeneration(Generation):
+    """
+    Create a general full-factorial design
+    Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+    def generate(self):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+            dict_vars[name] = [l_b, u_b]
+
+        df = build_plackett_burman(dict_vars)
+        # print(df)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class BoxBehnkenGeneration(Generation):
+    """
+    Create a general full-factorial design
+    # 3 params = 13 experiments
+    # 4 params = 25 experiments
+    # 5 params = 41 experiments
+    # 6 params = 49 experiments
+    # 7 params = 57 experiments
+    # 8 params = 113 experiments
+    https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
+    """
+
+    def generate(self):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+            dict_vars[name] = [l_b, u_b]
+
+        df = build_box_behnken(dict_vars)
+        # print(df)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector))
+        return individuals
+
+
+class LHSGeneration(Generation):
+    """
+    Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
+    """
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.number = 0
+
+    def init(self, number):
+        self.number = number
+
+    def generate(self):
+        dict_vars = {}
+        for parameter in self.parameters.items():
+            name = parameter[0]
+            l_b = parameter[1]['bounds'][0]
+            u_b = parameter[1]['bounds'][1]
+            dict_vars[name] = [l_b, u_b]
+
+        df = build_lhs(dict_vars, num_samples=self.number)
+        # print(df)
+
+        individuals = []
+        for vector in df:
             individuals.append(Individual(vector))
         return individuals
 
@@ -122,12 +261,71 @@ class PmMutation(Mutation):
         return x
 
 
+class SwarmMutation(Mutation):
+
+    def __init__(self, parameters, probability=1):
+        super().__init__(parameters, probability)
+        self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
+        self.c1 = 2  # cognitive constant
+        self.c2 = 1  # social constant
+        self.best_individual = None
+
+    # evaluate current fitness
+    def evaluate_pso(self, individual):
+
+        dominates = True
+
+        for i in range(len(individual.best_costs)):
+            if individual.costs[i] > individual.best_costs[i]:
+                dominates = False
+
+        # check to see if the current position is an individual best
+        if dominates:
+            individual.best_vector = individual.vector
+            individual.best_costs = individual.costs
+
+    # update new particle velocity
+    def update_velocity(self, individual):
+
+        for i in range(0, len(individual.vector)):
+
+            r1 = 0.1 * random.random()
+            r2 = 0.1 * random.random()
+
+            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+            individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
+
+    # update the particle position based off new velocity updates
+    def update_position(self, individual):
+
+        for parameter, i in zip(self.parameters.items(), range(len(individual.vector))):
+            individual.vector[i] = individual.vector[i] + individual.velocity_i[i]
+
+            # adjust maximum position if necessary
+            if individual.vector[i] > parameter[1]['bounds'][1]:
+                individual.vector[i] = parameter[1]['bounds'][1]
+
+            # adjust minimum position if necessary
+            if individual.vector[i] < parameter[1]['bounds'][0]:
+                individual.vector[i] = parameter[1]['bounds'][0]
+
+    def update(self, best_individual):
+        self.best_individual = best_individual
+
+    def mutate(self, p):
+        self.update_velocity(p)
+        self.update_position(p)
+        return p
+
+
 class Selection(Operation):
 
     def __init__(self, parameters, part_num=2):
         super().__init__()
         self.parameters = parameters
         self.part_num = part_num
+        self.comparator = ParetoDominance()
 
     @abstractmethod
     def select(self, population):
@@ -161,9 +359,9 @@ class Selection(Operation):
             for q in population:
                 if p is q:
                     continue
-                if self.is_dominate(p, q):
+                if self.comparator.compare(p, q) == 1:          # TODO: simplify
                     p.dominate.add(q)
-                elif self.is_dominate(q, p):
+                elif self.comparator.compare(q, p) == 1:
                     p.domination_counter = p.domination_counter + 1
 
             if p.domination_counter == 0:
@@ -203,6 +401,25 @@ class Selection(Operation):
 
         for p in population:
             p.crowding_distance = p.crowding_distance / n
+
+
+class DummySelection(Selection):
+
+    def __init__(self, parameters, part_num=2):
+        super().__init__(parameters, part_num)
+
+    def select(self, individuals):
+        selection = []
+        for individual in individuals:
+
+            candidate = Individual(individual.vector)
+            candidate.costs = individual.costs
+            candidate.front_number = individual.front_number
+            candidate.best_vector = individual.best_vector
+            candidate.best_costs = individual.best_costs
+
+            selection.append(candidate)
+        return selection
 
 
 class Dominance(ABC):
@@ -398,7 +615,7 @@ class TournamentSelection(Selection):
 
         for _ in range(self.part_num - 1):
             candidate = random.choice(population)
-            flag = self.is_dominate(winner, candidate)
+            flag = self.dominance.compare(winner, candidate)
 
             if flag > 0:
                 winner = candidate

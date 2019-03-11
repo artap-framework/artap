@@ -20,7 +20,7 @@ class Individual(metaclass=ABCMeta):
         self.crowding_distance = 0  # TODO: deprecated? --
 
         # For particle swarm optimization
-        self.velocity_i = []  # particle velocity
+        self.velocity_i = [0]*len(vector)  # particle velocity
         self.best_parameters = []  # best position individual
         self.best_costs = []  # best error individual
 

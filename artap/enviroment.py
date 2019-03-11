@@ -25,10 +25,10 @@ class Enviroment:
     artap_root = path
     tests_root = os.path.abspath(path + "." + os.sep + "tests" + os.sep)
             
-    condor_host_ip = enviroment["condor_host_ip"]
-    condor_host_login = enviroment["condor_host_login"]
+    condor_host = enviroment["condor_host"]
+    condor_login = enviroment["condor_login"]
                 
-    available_ssh_servers = enviroment["available_ssh_servers"]
+    ssh_host = enviroment["ssh_host"]
     ssh_login = enviroment["ssh_login"]
 
     comsol_path = enviroment["comsol_path"]

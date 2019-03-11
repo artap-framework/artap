@@ -4,3 +4,6 @@
 [submodule "3rdparty/bayesopt"]
 	path = 3rdparty/bayesopt
 	url = git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/bayesopt.git
+[submodule "3rdparty/agros"]
+	path = 3rdparty/agros
+	url = git@edison.fel.zcu.cz:agros/agros2d.git
