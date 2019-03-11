@@ -11,7 +11,6 @@ from artap.algorithm_sweep import SweepAlgorithm
 from artap.benchmark_functions import Booth
 from artap.results import Results
 from artap.operators import CustomGeneration, LHSGeneration
-
 from artap.surrogate import SurrogateModelRegressor
 
 from sklearn.svm import SVR
