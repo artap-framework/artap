@@ -35,9 +35,15 @@ class TestDataStore(unittest.TestCase):
         optimum = results.find_minimum('F_1')
         self.assertLessEqual(abs(optimum), 5)
 
-    def xtest_write_data_store(self):
+    def test_write_data_store(self):
         # database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
         problem = MyProblem("NLopt_BOBYQA")
+
+        # set datastore
+        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        print(database_name)
+        problem.data_store = SqliteDataStore(problem, database_name=database_name)
+
         algorithm = NLopt(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['algorithm'] = LN_BOBYQA
@@ -49,7 +55,6 @@ class TestDataStore(unittest.TestCase):
         self.assertAlmostEqual(optimum, 1.854, 3)
 
         # check db
-        database_name = problem.working_dir + os.sep + "data" + ".sqlite"
         connection = sqlite3.connect(database_name)
         # connection.execute('pragma journal_mode=wal')
 
@@ -68,8 +73,9 @@ class TestDataStore(unittest.TestCase):
         cursor.close()
         connection.close()
 
-        # remove working_dir
-        shutil.rmtree(problem.working_dir)
+        # remove file
+        os.remove(database_name)
+
 
 if __name__ == '__main__':
     unittest.main()

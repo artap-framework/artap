@@ -232,7 +232,7 @@ class SqliteDataStore(DataStore):
         super().write_individual(individual)
 
         # add to database
-        if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
+        if self.problem.options['save_level'] == "individual":
             params = individual.to_list()
             # individual index
             params.insert(0, self.individuals.index(individual) + 1)
