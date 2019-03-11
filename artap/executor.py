@@ -1,215 +1,86 @@
 import re
 import paramiko
-import tempfile
 import os
 import datetime
 import time
+import getpass
+
 from string import Template
 from xml.dom import minidom
 from artap.enviroment import Enviroment
+
+from abc import ABCMeta, abstractmethod
+from .utils import ConfigDictionary
 
 from logging import NullHandler, getLogger
 getLogger('paramiko.transport').addHandler(NullHandler())
 
 
-class Executor():
+class Executor(metaclass=ABCMeta):
     """
     Function is a class representing objective or cost function for
     optimization problems.
     """
 
-    def __init__(self):
-        pass
+    NONE = 1
+    EXECUTED = 2
+    FINISHED = 3
+    FAILED = 4
 
-    def exec(self, x):
-        pass
+    def __init__(self, problem):
+        self.problem = problem
+        self.status = Executor.NONE
+
+        self.options = ConfigDictionary()
+        # parse method
+        self.parse_results = None
+
+    @abstractmethod
+    def eval(self, x):
+        # set default parse method from problem (can be overriden)
+        if self.parse_results is None and "parse_results" in dir(self.problem):
+            self.parse_results = self.problem.parse_results
+
+    @staticmethod
+    def _join_parameters(x, sep=","):
+        param_values_string = ""
+
+        for val in x:
+            param_values_string += str(val) + sep
+
+        # remove last sep
+        if (len(x)) > len(sep):
+            param_values_string = param_values_string[:-len(sep)]
+
+        return param_values_string
 
 
+# TODO: not working
 class ComsolExecutor(Executor):
 
-    def __init__(self, parameters, model_name, output_filename):
-        super().__init__()
-        self.parameters = parameters
-        self.output_filename = output_filename
-        self.model_name = model_name
+    def __init__(self, problem, model_file, output_file):
+        super().__init__(problem)
 
-    def run_comsol(self, x):
-        """ Function compile model_name.java file and run Comsol in a batch mode."""
-        import os
-        comsol_path = Enviroment.comsol_path
-        run_string = comsol_path + "comsol batch -inputfile " + self.model_name + " -nosave -pname "
+        self.model_file = model_file
+        self.output_file = output_file
 
-        # add vector
-        for parameter in self.parameters:
-            run_string += parameter + ", "
+    def eval(self, x):
+        super().eval(x)
 
-        # remove last comma
-        if (len(self.parameters)) > 1:
-            run_string = run_string[:-1]
+        param_names_string = Executor._join_parameters(self.problem.parameters)
+        param_values_string = Executor._join_parameters(x)
 
-        run_string += " -plist "
+        run_string = "{} comsol batch -inputfile {} -nosave -pname {} -plist {}"\
+            .format(Enviroment.comsol_path, self.problem.working_dir + self.model_file, param_names_string, param_values_string)
 
-        # add values
-        for val in x:
-            run_string += str(val) + ","
-
-        # remove last comma
-        if (len(x)) > 1:
-            run_string = run_string[:-1]
-
+        # run command
         os.system(run_string)
 
-    def eval(self, x):
-        # Parse the output file from the external code and set the value of y
-        self.run_comsol(x)
+        with open(self.problem.working_dir + self.output_file) as file:
+            content = file.read()
+            result = self.parse_results(content)
 
-        with open(self.output_filename) as file:
-            data = file.read()
-            lines = data.split("\n")
-            y = float(lines[5])
-        return y
-
-
-class RemoteExecutor(Executor):
-    """
-        Allows distributing of calculation of objective functions.
-        """
-
-    def __init__(self, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, supplementary_files=None):
-        super().__init__()
-        self.hostname = hostname
-        self.port = port
-        self.username = username
-        self.password = password
-        self.working_dir = working_dir
-        self.supplementary_files = supplementary_files
-        self.script = ""
-
-        try:
-            client = paramiko.SSHClient()
-            client.load_system_host_keys()
-            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            client.connect(hostname=self.hostname, username=self.username, password=self.password)
-
-            self.status = "None"
-            self.host = ""
-
-            self.remote_dir = self.create_remote_dir(client=client)
-
-            client.close()
-
-        except:
-            print("Exception in __init__")
-
-    def create_remote_dir(self, directory="htcondor", client=None):
-
-        d = datetime.datetime.now()
-        ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
-
-        # projects directory
-        client.exec_command("mkdir " + directory)
-        # working directory
-        wd = directory + os.sep + "artap-" + ts
-        client.exec_command("mkdir " + wd)
-
-        return wd
-
-    def transfer_files_to_remote(self, source_file, destination_file, client=None):
-        source = source_file
-        dest = self.remote_dir + os.sep + destination_file
-
-        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
-        sftp.put(source, dest)
-
-    def transfer_files_from_remote(self, source_file, destination_file, client=None):
-        dest = destination_file
-        source = self.remote_dir + os.sep + source_file
-        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
-        sftp.get(source, dest)
-
-    def read_file_from_remote(self, source_file, client):
-        source = self.remote_dir + os.sep + source_file
-        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
-        remote_file = sftp.open(source)
-        result = remote_file.read().decode("utf-8")
         return result
-
-    def create_file_on_remote(self, source_file, client):
-        source = self.remote_dir + os.sep + source_file
-        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
-        return sftp.open(source, 'w')
-
-    def remove_remote_dir(self, client):
-        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
-
-        files = sftp.listdir(path=self.remote_dir)
-        for f in files:
-            filepath = os.path.join(self.remote_dir, f)
-            sftp.remove(filepath)
-
-        sftp.rmdir(self.remote_dir)
-
-    def run_command_on_remote(self, command, suppress_stdout=True, suppress_stderr=False, client=None):
-        # Run ssh command
-        output = ""
-        if self.remote_dir == "":
-            stdin, stdout, stderr = client.exec_command(command)
-        else:
-            stdin, stdout, stderr = client.exec_command("cd " + self.remote_dir + "; " + command)
-
-        for line in stdout:
-            if not suppress_stdout:
-                print(line.strip('\n'))
-            output += line.strip('\n')
-        for line in stderr:
-            if not suppress_stderr:
-                print(line.strip('\n'))
-        return output
-
-    def eval(self, x):
-
-        client = paramiko.SSHClient()
-        client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(hostname=self.hostname, username=self.username, password=self.password)
-
-        for file in self.supplementary_files:
-            self.transfer_files_to_remote(self.working_dir + os.sep + file, "." + os.sep + file, client=client)
-
-        parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
-        parameters_file.write(str(x[0]) + " " + str(x[1]))
-        parameters_file.close()
-
-        output_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
-        output_file.close()
-
-        self.transfer_files_to_remote(parameters_file.name, 'parameters.txt', client=client)
-        self.run_command_on_remote("python3 remote.py", client=client)
-
-        self.transfer_files_from_remote('output.txt', output_file.name, client=client)
-        with open(output_file.name) as file:
-            y = float(file.read())
-
-        os.remove(parameters_file.name)
-        os.remove(output_file.name)
-        return y
-
-
-class RemoteCondorExecutor(RemoteExecutor):
-    """
-        Allows distributing of calculation of obejctive functions.
-        """
-
-    def __init__(self, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, supplementary_files=None):
-        super().__init__(hostname, username, password, port, working_dir=working_dir,
-                         supplementary_files=supplementary_files)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print("__exit__")
-        # remove remote dir
-        self.remove_remote_dir()
 
     @staticmethod
     def parse_condor_log(content):
@@ -267,180 +138,304 @@ class RemoteCondorExecutor(RemoteExecutor):
         return [event_time, state, cluster, execute_host]
 
 
-class CondorComsolJobExecutor(RemoteCondorExecutor):
-    """ Allows submit goal function calculation as a HT Condor job """
+class RemoteExecutor(Executor):
+    """
+        Allows distributing of calculation of objective functions.
+        """
 
-    def __init__(self, parameters, model_name, output_filenames, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, supplementary_files=None, time_out=None):
+    def __init__(self, problem, command,
+                 model_file, output_file, input_file=None, supplementary_files=None):
+        super().__init__(problem)
 
-        super().__init__(hostname, username, password, port, working_dir=working_dir)
+        if problem.working_dir is None:
+            raise Exception('RemoteExecutor: Problem working directory must be set.')
 
-        self.parameters = parameters
-        self.output_file_names = output_filenames
-        self.model_name = model_name
-        self.time_out = time_out
+        self.options.declare(name='hostname', default='',
+                             desc='Hostname')
+        self.options.declare(name='username', default=getpass.getuser(),
+                             desc='Username')
+        self.options.declare(name='port', default=22, lower=0,
+                             desc='Port')
+        self.options.declare(name='password', default='',
+                             desc='Password')
 
+        self.remote_dir = ""
+
+        # command
+        self.command = command
+
+        # files
+        self.model_file = model_file
+        self.input_file = input_file
+        self.output_file = output_file
+        self.supplementary_files = supplementary_files
+
+    @abstractmethod
+    def eval(self, x):
+        super().eval(x)
+
+    def _create_client(self):
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=self.options["hostname"],
+                       username=self.options["username"],
+                       password=self.options["password"])
+
+        return client
+
+    def _init_remote(self, directory):
         try:
-            client = paramiko.SSHClient()
-            client.load_system_host_keys()
-            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-            client.connect(hostname=self.hostname, username=self.username, password=self.password)
-            self.transfer_files_to_remote(self.working_dir + os.sep + self.model_name, "." + os.sep + self.model_name, client)
+            # create client
+            client = self._create_client()
+            self.remote_dir = self._create_dir_on_remote(directory=directory, client=client)
             client.close()
-
         except:
-            print("Exception in __init__")
+            self.problem.logger.error("Cannot create remote directory '{}' on ''".format(directory, self.options["hostname"]))
+
+    def _transfer_file_to_remote(self, source_file, destination_file, client):
+        source = source_file
+        dest = self.remote_dir + os.sep + destination_file
+
+        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
+        sftp.put(source, dest)
+
+    def _transfer_file_from_remote(self, source_file, destination_file, client):
+        dest = destination_file
+        source = self.remote_dir + os.sep + source_file
+        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
+        sftp.get(source, dest)
+
+    def _read_file_from_remote(self, source_file, client):
+        try:
+            source = self.remote_dir + os.sep + source_file
+            sftp = paramiko.SFTPClient.from_transport(client.get_transport())
+            remote_file = sftp.open(source)
+            result = remote_file.read().decode("utf-8")
+            return result
+        except IOError as e:
+            self.problem.logger.error("Remote file '{}' doesn't exists.".format(source_file))
+
+    def _create_dir_on_remote(self, directory, client):
+        d = datetime.datetime.now()
+        ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
+
+        # projects directory
+        client.exec_command("mkdir " + directory)
+        # working directory
+        wd = directory + os.sep + "artap-" + ts
+        client.exec_command("mkdir " + wd)
+
+        return wd
+
+    def _create_file_on_remote(self, source_file, content, client):
+        source = self.remote_dir + os.sep + source_file
+        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
+        with sftp.open(source, 'w') as file:
+            file.write(content)
+
+    def _remove_remote_dir(self, client):
+        sftp = paramiko.SFTPClient.from_transport(client.get_transport())
+
+        files = sftp.listdir(path=self.remote_dir)
+        for f in files:
+            filepath = os.path.join(self.remote_dir, f)
+            sftp.remove(filepath)
+
+        sftp.rmdir(self.remote_dir)
+
+    def _run_command_on_remote(self, command, client, suppress_stdout=True, suppress_stderr=False):
+        # Run ssh command
+        if self.remote_dir == "":
+            stdin, stdout, stderr = client.exec_command(command)
+        else:
+            stdin, stdout, stderr = client.exec_command("cd " + self.remote_dir + "; " + command)
+
+        # output
+        output = ""
+        for line in stdout:
+            output += line.strip('\n')
+
+        if not suppress_stdout:
+            lines = ""
+            for line in stdout:
+                lines += line + '\n'
+            self.problem.logger.info(lines)
+
+        if not suppress_stderr:
+            lines = ""
+            for line in stdout:
+                lines += line + '\n'
+            if len(lines) > 0:
+                self.problem.logger.error(lines)
+
+        return output
+
+    def _transfer_files_to_remote(self, client):
+        # transfer supplementary files
+        if self.supplementary_files:
+            for file in self.supplementary_files:
+                self._transfer_file_to_remote(self.problem.working_dir + os.sep + file, "." + os.sep + file,
+                                            client=client)
+
+        # transfer model file
+        if self.model_file:
+            self._transfer_file_to_remote(self.problem.working_dir + os.sep + self.model_file, self.model_file,
+                                        client=client)
+
+    def _transfer_files_from_remote(self, client):
+        pass
+
+
+class RemoteSSHExecutor(RemoteExecutor):
+    """
+    Allows distributing of calculation of objective functions.
+    """
+
+    def __init__(self, problem, command, model_file, output_file, input_file=None, supplementary_files=None):
+        super().__init__(problem, command, model_file, output_file, input_file, supplementary_files)
+
+        # set default host
+        self.options["hostname"] = Enviroment.ssh_host
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # remove remote dir
+        self._remove_remote_dir()
 
     def eval(self, x):
+        super().eval(x)
+
+        # init remote
+        self._init_remote(directory="remote")
+
+        # create client
+        client = self._create_client()
+
+        # transfer supplementary files, input and model file
+        self._transfer_files_to_remote(client)
+
+        #  run command on remote
+        if self.input_file:
+            # parameters
+            param_values_string = Executor._join_parameters(x, "\n")
+            # create remote file
+            self._create_file_on_remote(self.input_file, param_values_string, client=client)
+            # execute command on remote
+            self._run_command_on_remote("{} {}".format(self.command, self.model_file), client=client)
+        else:
+            # parameters
+            param_values_string = Executor._join_parameters(x)
+            # execute command on remote
+            self._run_command_on_remote("{} {} {}".format(self.command, self.model_file, param_values_string), client=client)
+
+        # read and parse output file
+        content = self._read_file_from_remote(self.output_file, client=client)
+        result = self.parse_results(content)
+
+        client.close()
+
+        return result
+
+
+class CondorJobExecutor(RemoteExecutor):
+    """
+    Allows distributing of calculation of objective functions.
+    """
+
+    def __init__(self, problem, command,
+                 model_file, output_file, input_file=None, supplementary_files=None):
+        super().__init__(problem, command, model_file, output_file, input_file, supplementary_files)
+
+        # set default host
+        self.options["hostname"] = Enviroment.condor_host
+
+    def _create_job_file(self, x, client):
+        # create job file
+        with open(self.problem.working_dir + os.sep + "remote.tp", 'r') as job_file:
+            job_file = Template(job_file.read())
+
+        # parameters
+        param_names_string = Executor._join_parameters(self.problem.parameters)
+        param_values_string = Executor._join_parameters(x)
+        # file
+        job_file = job_file.substitute(model_name=os.path.basename(self.model_file),
+                                       run_file=self.command,
+                                       input_file=self.input_file,
+                                       output_file=self.output_file,
+                                       log_file="{}.log".format(self.output_file),
+                                       param_names=param_names_string,
+                                       param_values=param_values_string)
+
+        self._create_file_on_remote("remote.job", job_file, client)
+
+        # create input file with parameters
+        if self.input_file:
+            # parameters
+            param_values_string = Executor._join_parameters(x, "\n")
+            # create remote file
+            self._create_file_on_remote(self.input_file, param_values_string, client=client)
+
+    def eval(self, x):
+        super().eval(x)
+
+        # init remote
+        self._init_remote(directory="htcondor")
+
         success = False
         while not success:
             try:
-                client = paramiko.SSHClient()
-                client.load_system_host_keys()
-                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                client.connect(hostname=self.hostname, username=self.username, password=self.password)
+                # create client
+                client = self._create_client()
 
-                param_names_string = ""
-                for parameter in self.parameters:
-                    param_names_string += parameter + ","
-                if (len(self.parameters)) > 1:
-                    param_names_string = param_names_string[:-1]
+                # transfer supplementary files, input and model file
+                self._transfer_files_to_remote(client)
 
-                param_values_string = ""
-                for val in x:
-                    param_values_string += str(val) + ","
-                # remove last comma
-                if (len(x)) > 1:
-                    param_values_string = param_values_string[:-1]
+                # apply template for remote.job
+                self._create_job_file(x, client)
 
-                with open(self.working_dir + os.sep + "remote.tp", 'r') as job_file:
-                    job_file = Template(job_file.read())
+                # submit job
+                output = self._run_command_on_remote("condor_submit remote.job", client=client)
 
-                d = datetime.datetime.now()
-                ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
-
-                output_files = ""
-
-                for i in range(len(self.output_file_names)):
-                    output_filename = os.path.basename(self.output_file_names[i])
-                    output_files += "{0}{1}{2}, ".format(os.path.splitext(output_filename)[0], ts,
-                                                                                  os.path.splitext(output_filename)[1])
-
-                output_files = output_files[:-2]  # remove last coma
-                job_file = job_file.substitute(model_name=os.path.basename(self.model_name),
-                                               output_file=output_files,
-                                               log_file="comsol%s.log" % ts, run_file="run%s.sh" % ts,
-                                               param_names=param_names_string,
-                                               param_values=param_values_string)
-
-                job_config_file = self.create_file_on_remote("remote%s.job" % ts, client)
-                job_config_file.write(job_file)
-                job_config_file.close()
-
-                with open(self.working_dir + os.sep + "run.tp", 'r') as run_file:
-                    run_file = run_file.read()
-
-                substitute = ""
-
-                for i in range(len(self.output_file_names)):
-                    output_filename = self.output_file_names[i]
-                    substitute_tmp = "mv {0} {1} \n".format(self.output_file_names[i],
-                                                           os.path.splitext(output_filename)[0] + ts +
-                                                           os.path.splitext(output_filename)[1])
-                    substitute += substitute_tmp
-
-                run_file += substitute
-
-                job_run_file = self.create_file_on_remote("run%s.sh" % ts, client)
-                job_run_file.write(run_file)
-                job_run_file.close()
-
-                # run
-                output = self.run_command_on_remote("condor_submit remote%s.job" % ts, client=client)
-
+                # process id
                 process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
                 event = ""
-
                 while (event != "Completed") and (event != "Held"):
-                    content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
-                    state = RemoteCondorExecutor.parse_condor_log(content)
-                    time.sleep(0.1)
+                    content = self._read_file_from_remote("{}.condor_log".format(process_id), client=client)
+                    state = ComsolExecutor.parse_condor_log(content)
+
                     if state[1] != event:
-                        print(state)
+                        self.problem.logger.info("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
                         event = state[1]
 
+                    if event == "Completed":
+                        # stop while cycle
+                        break
+
+                    if event == "Held":
+                        self.problem.logger.error("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
+                        # read log
+                        content_log = self._read_file_from_remote("{}.log".format(self.output_file), client=client)
+                        self.problem.logger.error(content_log)
+                        # remove job
+                        self._run_command_on_remote("condor_rm {}".format(process_id), client=client)
+                        # TODO: abort computation - no success?
+                        assert 0
+
+                    time.sleep(1.0)
+
                 if event == "Completed":
-                    content = self.read_file_from_remote("." + os.sep + "out%s.txt" % ts, client=client)
+                    content = self._read_file_from_remote(self.output_file, client=client)
                     success = True
-                    result = self.parse_results(content, x)
+                    result = self.parse_results(content)
                 else:
                     assert 0
 
                 client.close()
-
+                
                 return result
 
             except Exception as e:
                 print(e)
-                time.sleep(1)
-                continue
-
-
-class CondorPythonJobExecutor(RemoteCondorExecutor):
-    """ Allows submit goal function calculation as a HT Condor job """
-
-    def __init__(self, parameters, model_name, output_filename, hostname=None,
-                 username=None, password=None, port=22, working_dir=None, supplementary_files=None):
-
-        self.parameters = parameters
-        self.output_filename = output_filename
-        self.model_name = model_name
-
-        super().__init__(hostname, username, password, port, working_dir=working_dir,
-                         supplementary_files=supplementary_files)
-
-    def eval(self, x):
-
-        success = False
-        while not success:
-            try:
-                client = paramiko.SSHClient()
-                client.load_system_host_keys()
-                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                client.connect(hostname=self.hostname, username=self.username, password=self.password)
-
-                parameters_file = self.create_file_on_remote("parameters.txt", client)
-                parameters_file.write(str(x[0]) + " " + str(x[1]))
-                parameters_file.close()
-
-                for file in self.supplementary_files:
-                    self.transfer_files_to_remote(self.working_dir + os.sep + file, "." + os.sep + file, client=client)
-                output = self.run_command_on_remote("condor_submit ." + os.sep +"remote.job", client=client)
-                print("output:", output)
-
-                process_id = re.search('cluster \d+', output).group().split(" ")[1]
-
-                event = ""
-                while event != "Completed":  # If the job is complete it disappears from que
-                    content = self.read_file_from_remote("%s.condor_log" % process_id, client=client)
-                    state = RemoteCondorExecutor.parse_condor_log(content)
-
-                    if state[1] != event:
-                        print(state)
-                    event = state[1]
-
-                content = self.read_file_from_remote(self.output_filename, client=client)
-                result = float(content[0])
-
-                # remove remote dir
-                self.remove_remote_dir(client)
-                client.close()
-
-                return result
-
-            except Exception as e:
-                print(e)
-                time.sleep(1)
+                time.sleep(1.0)
                 continue

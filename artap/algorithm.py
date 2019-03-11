@@ -1,9 +1,9 @@
 from .problem import Problem
-from .population import Population
 from .utils import ConfigDictionary
 from .job import JobSimple, JobQueue
+from .population import Population
 
-from multiprocessing import Process, Manager, Queue
+from multiprocessing import Process, Manager, Queue, cpu_count
 from abc import ABCMeta, abstractmethod
 
 
@@ -19,15 +19,29 @@ class Algorithm(metaclass=ABCMeta):
                              desc='Verbose level')
         self.options.declare(name='calculate_gradients', default=False,
                              desc='Enable calculating of gradients')
-        self.options.declare(name='max_population_size', default=1,
-                             desc='Maximal number of individuals in population')
+        # max(int(2 / 3 * cpu_count(), 1)
+        self.options.declare(name='max_processes', default=1,
+                             desc='Max running processes')
+
+        # initial population size
+        self.population_size = 0
 
     @abstractmethod
     def run(self):
         pass
 
+    def gen_initial_population(self):
+        individuals = self.generator.generate()
+        # set current size
+        self.population_size = len(individuals)
+        # evaluate individuals
+        individuals = self.evaluate(individuals)
+
+        population = Population(individuals)
+        return population
+
     def evaluate(self, individuals: list):
-        if self.problem.options["max_processes"] > 1:
+        if self.options["max_processes"] > 1:
             individuals = self.evaluate_parallel(individuals)
         else:
             individuals = self.evaluate_serial(individuals)
@@ -62,7 +76,7 @@ class Algorithm(metaclass=ABCMeta):
                 i += 1
                 j += 1
 
-            if ((i % self.problem.options['max_processes']) == 0) or (j >= len(individuals)):
+            if ((i % self.options['max_processes']) == 0) or (j >= len(individuals)):
                 for process in processes:
                     process.join()
                     processes = []
@@ -71,74 +85,21 @@ class Algorithm(metaclass=ABCMeta):
         individuals = []
         for item in range(queue.qsize()):
             individuals.append(queue.get())
+            # write to datastore
+            self.problem.data_store.write_individual(individuals[-1])
         queue.close()
         queue.join_thread()
 
         return individuals
 
 
-class EvalAll(Algorithm):
+class DummyAlgorithm(Algorithm):
     """
     Dummy class for testing
     """
 
-    def __init__(self, problem, individuals: list, name='Sensitivity analysis'):
-        self.individuals = individuals
+    def __init__(self, problem, name='DummyAlgorithm'):
         super().__init__(problem, name)
 
     def run(self):
         pass
-
-    # def evaluate_gradient(self):
-    #     self.gradient = self.problem.evaluate_gradient(self)
-    #     if self.problem.options['max_processes'] > 1:
-    #         if Individual.gradients is not None:
-    #             Individual.gradients.put([self.number, self.gradient])
-    #
-    #     return self.gradient
-
-    # def evaluate(self, x, population: Population):
-    #     if population is None:
-    #         population = Population()
-    #     individual = Individual(x, self, population)
-    #
-    #     # check the constraints
-    #     constraints = self.problem.evaluate_constraints(individual.vector)
-    #
-    #     if constraints:
-    #         individual.feasible = sum(map(abs, constraints))
-    #
-    #     # problem cost function evaluate only in that case when the problem is fits the constraints
-    #
-    #     # TODO: find better solution for surrogate
-    #     if self.problem.surrogate:
-    #         costs = self.problem.evaluate_surrogate(individual.vector)
-    #     else:
-    #         # increase counter
-    #         self.problem.eval_counter += 1
-    #         # eval
-    #         costs = self.problem.evaluate(individual.vector)
-    #
-    #     individual.costs = costs
-    #
-    #     # scipy uses the result number, the genetic algorithms using the property value
-    #
-    #     individual.is_evaluated = True
-    #     if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
-    #         self.problem.data_store.write_individual(individual.to_list())
-    #
-    #     if self.problem.options['max_processes'] > 1:
-    #         if self.queue is not None:
-    #             self.queue.put([individual.id, costs, individual.feasible])
-    #
-    #     population.individuals.append(individual)
-    #     self.problem.populations.append(population)
-    #     return costs
-
-    # def evaluate_gradient(self):
-    #     self.gradient = self.problem.evaluate_gradient(self)
-    #     if self.problem.options['max_processes'] > 1:
-    #         if Individual.gradients is not None:
-    #             Individual.gradients.put([self.number, self.gradient])
-    #
-    #     return self.gradient

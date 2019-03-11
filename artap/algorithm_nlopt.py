@@ -533,7 +533,7 @@ class NLopt(Algorithm):
 
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
-        self.problem = problem
+
         self.job = JobSimple(self.problem)
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
@@ -588,7 +588,6 @@ class NLopt(Algorithm):
             x = op.optimize(self.problem.get_initial_values())
             t = time.time() - t_s
             self.problem.logger.info("NLopt: elapsed time: {} s".format(t))
-
 
             """
             if self.options['verbose_level'] >= 1:

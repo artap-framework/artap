@@ -1,13 +1,13 @@
 {
-    "condor_host_ip" : "localhost",
-    "condor_host_login" : "",
+    "condor_host" : "localhost",
+    "condor_login" : "",
     
-    "available_ssh_servers" : ["localhost"],
+    "ssh_host" : "localhost",
     "ssh_login" : "",
 
     "comsol_path" : "",
 
     "loopback_ip" : "127.0.0.1",
     "server_initial_port" : 8050,
-    "server_keep_live_delay" : 1
+    "server_keep_live_delay" : 0.1
 }
