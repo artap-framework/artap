@@ -150,14 +150,14 @@ class TestAgrosOptimization(unittest.TestCase):
     def test_agros_exec(self):
         problem = TestProblem("AgrosProblem")
         algorithm = NLopt(problem)
-        algorithm.options['n_iterations'] = 20
+        algorithm.options['n_iterations'] = 3
         algorithm.options['algorithm'] = LN_BOBYQA
         algorithm.options['verbose_level'] = 0
         algorithm.run()
 
         results = Results(problem)
         optimum = results.find_minimum('F')
-        self.assertLessEqual(optimum, 0.13)
+        self.assertLessEqual(optimum, 6.1)
 
 
 if __name__ == '__main__':
