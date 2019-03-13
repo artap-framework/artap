@@ -155,7 +155,7 @@ class BoxBehnkenGeneration(Generation):
         return individuals
 
 
-class LHSGeneration(Generation):
+class LHCGeneration(Generation):
     """
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
