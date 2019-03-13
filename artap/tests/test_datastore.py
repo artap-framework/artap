@@ -41,7 +41,6 @@ class TestDataStore(unittest.TestCase):
 
         # set datastore
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        print(database_name)
         problem.data_store = SqliteDataStore(problem, database_name=database_name)
 
         algorithm = NLopt(problem)
