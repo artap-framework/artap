@@ -1,7 +1,7 @@
 import unittest
 from artap.problem import Problem
 from artap.individual import Individual
-from artap.operators import CustomGeneration, LHSGeneration
+from artap.operators import CustomGeneration, LHCGeneration
 from artap.algorithm import DummyAlgorithm
 from artap.algorithm_sweep import SweepAlgorithm
 
@@ -28,7 +28,7 @@ class TestJob(unittest.TestCase):
     def test_sweep_evaluate_parallel(self):
         problem = TestProblem("Test_Job")
 
-        gen = LHSGeneration(problem.parameters)
+        gen = LHCGeneration(problem.parameters)
         gen.init(4)
 
         algorithm = SweepAlgorithm(problem, generator=gen)

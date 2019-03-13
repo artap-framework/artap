@@ -185,12 +185,12 @@ class SqliteDataStore(DataStore):
         self._execute_command(exec_cmd)
 
     def _create_structure_parameters(self):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS vector (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS parameters (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
                    'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
         self._execute_command(exec_cmd)
 
         for parameter in self.problem.parameters.items():
-            exec_cmd = "INSERT INTO vector(name, initial_value, low_boundary, high_boundary, precision) " \
+            exec_cmd = "INSERT INTO parameters(name, initial_value, low_boundary, high_boundary, precision) " \
                        "VALUES( '{}', {}, {}, {}, {});".format(parameter[0], parameter[1]['initial_value'],
                                                                parameter[1]['bounds'][0], parameter[1]['bounds'][1],
                                                                parameter[1]['precision'] if 'precision' in parameter[1] else 0)
