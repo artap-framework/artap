@@ -1,4 +1,4 @@
-README.rst
+README.md
 setup.py
 Artap.egg-info/PKG-INFO
 Artap.egg-info/SOURCES.txt
@@ -13,8 +13,11 @@ artap/algorithm_nlopt.py
 artap/algorithm_scipy.py
 artap/algorithm_sensitivity.py
 artap/algorithm_swarm.py
+artap/algorithm_sweep.py
 artap/benchmark_functions.py
 artap/datastore.py
+artap/doe.py
+artap/dynamical_systems.py
 artap/enviroment.py
 artap/executor.py
 artap/individual.py
@@ -24,14 +27,15 @@ artap/population.py
 artap/problem.py
 artap/results.py
 artap/server.py
+artap/surrogate.py
 artap/utils.py
 artap/tests/__init__.py
+artap/tests/test_agros.py
 artap/tests/test_algorithm.py
 artap/tests/test_comsol.py
-artap/tests/test_condor.py
-artap/tests/test_condor_comsol.py
 artap/tests/test_custom_gradient.py
 artap/tests/test_datastore.py
+artap/tests/test_generators.py
 artap/tests/test_graphical_results.py
 artap/tests/test_job.py
 artap/tests/test_operators.py
@@ -41,7 +45,9 @@ artap/tests/test_problem_nsga2.py
 artap/tests/test_problem_scipy.py
 artap/tests/test_problem_swarm.py
 artap/tests/test_remote.py
+artap/tests/test_remote_condor.py
 artap/tests/test_scikit.py
 artap/tests/test_sensitivity.py
 artap/tests/test_server.py
+artap/tests/test_surrogate.py
 artap/tests/transformer_opt_nsga2.py

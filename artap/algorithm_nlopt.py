@@ -1,7 +1,7 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
-from .enviroment import Enviroment
+from .environment import Enviroment
 from .job import JobSimple
 
 from multiprocessing import Queue
