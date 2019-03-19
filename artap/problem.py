@@ -83,17 +83,6 @@ class ProblemBase(ABC):
         self.server = ArtapServer(problem=self, local_host=local_host)
         self.server.run_server(open_viewer, daemon)
 
-    def get_parameters_list(self):
-        parameters_list = []
-        names = list(self.parameters.keys())
-        i = 0
-        for sub_dict in list(self.parameters.values()):
-            parameter = [names[i]]
-            parameter.extend(flatten(sub_dict.values()))
-            parameters_list.append(parameter)
-            i += 1
-        return parameters_list
-
 
 class Problem(ProblemBase):
     """ The Class Problem Is a main class which collects information about optimization task """
@@ -101,7 +90,7 @@ class Problem(ProblemBase):
     MINIMIZE = -1
     MAXIMIZE = 1
 
-    def __init__(self, name, parameters, costs, data_store=None, working_dir=None):
+    def __init__(self, name, parameters, costs, working_dir=None):
         super().__init__()
         self.name = name
         self.working_dir = working_dir
@@ -124,25 +113,10 @@ class Problem(ProblemBase):
             # add FileHandler to logger
             self.logger.addHandler(file_handler)
 
-        if data_store is None:
-            self.data_store = DummyDataStore(self)
-            self.data_store.create_structure()
+        # default datastore
+        self.data_store = DummyDataStore(self)
 
-        else:
-            self.data_store = data_store
-            self.data_store.problem = self
-        
-        self.id = self.data_store.get_id()
-
-        # working dir must be set
-        if self.options['log_db_handler'] and isinstance(self.data_store, SqliteDataStore):
-            # create file handler and set level to debug
-            file_handler = SqliteHandler(self.data_store)
-            file_handler.setLevel(logging.DEBUG)
-            # add formatter to SqliteHandler
-            file_handler.setFormatter(self.formatter)
-            # add SqliteHandler to logger
-            self.logger.addHandler(file_handler)
+        # self.id = self.data_store.get_id()
 
         self.logger.debug("START")
         # self.logger.debug('This message should go to the log file')
@@ -179,27 +153,9 @@ class Problem(ProblemBase):
 
 class ProblemDataStore(ProblemBase):
 
-    def __init__(self, data_store, working_dir=None):
+    def __init__(self, database_name, working_dir=None):
         super().__init__()
         self.working_dir = working_dir
 
-        self.data_store = data_store
-        self.data_store.read_problem(self)
-
-    def to_table(self):
-        table = []
-        line = ["Population ID"]
-        for parameter in self.get_parameters_list():
-            line.append(parameter[0])
-        for cost in self.costs:
-            line.append(cost)
-        table.append(line)
-        for population in self.data_store.populations:
-            for individual in population.individuals:
-                line = [individual.population_id]
-                for parameter in individual.parameters:
-                    line.append(parameter)
-                for cost in individual.costs:
-                    line.append(cost)
-                table.append(line)
-        return table
+        self.data_store = SqliteDataStore(self, database_name=database_name, remove_existing=False)
+        self.data_store.read_from_datastore()

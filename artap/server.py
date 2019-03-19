@@ -108,7 +108,7 @@ class ArtapServer(Thread):
                         }
                     )],
                     'layout': grObj.Layout(
-                        xaxis={'title': str(self.problem.eval_counter)},
+                        xaxis={'title': str(self.problem.surrogate.eval_counter)},
                         yaxis={'title': str(self.problem.costs)}
                     )
                 }
@@ -123,7 +123,7 @@ class ArtapServer(Thread):
             dash_table.DataTable(
                 id='datatable-interactivity',
                 columns=[
-                    {"name": str(self.problem.eval_counter), "id": str(self.problem.costs), "deletable": True}
+                    {"name": str(self.problem.surrogate.eval_counter), "id": str(self.problem.costs), "deletable": True}
                 ],
                 data=([self.x], [self.y]),
                 editable=True,
@@ -187,7 +187,7 @@ class ArtapServer(Thread):
             fig = {
                 'data': self.data,
                 'layout': grObj.Layout(
-                    xaxis={'title': str(self.problem.eval_counter)},
+                    xaxis={'title': str(self.problem.surrogate.eval_counter)},
                     yaxis={'title': str(self.problem.costs)}
                 )
             }
@@ -231,7 +231,12 @@ class ArtapServer(Thread):
                     # self.x.append(len(self.x))
                     if individual.front_number == 1:
                         self.x.append(individual.costs[0])
-                        self.y.append(individual.costs[1])
+                        # TODO: improve, this is only for debug
+                        if len(individual.costs) > 1:
+                            self.y.append(individual.costs[1])
+                        else:
+                            self.y.append(0.0);
+                        # -------------
 
             time.sleep(Enviroment.server_keep_live_delay)
 
