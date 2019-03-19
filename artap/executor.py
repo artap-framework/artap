@@ -7,7 +7,7 @@ import getpass
 
 from string import Template
 from xml.dom import minidom
-from artap.enviroment import Enviroment
+from artap.environment import Enviroment
 
 from abc import ABCMeta, abstractmethod
 from .utils import ConfigDictionary

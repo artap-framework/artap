@@ -5,7 +5,7 @@ path = os.path.abspath(__file__)
 dir_path = os.path.dirname(path)
 
 #  global enviroment
-with open(dir_path + os.sep + "enviroment.json", 'r') as f:
+with open(dir_path + os.sep + "environment.json", 'r') as f:
     enviroment_global = json.load(f)
 
 #  local enviroment
@@ -20,7 +20,7 @@ enviroment = {**enviroment_global, **enviroment_local}
 
 class Enviroment:
     path = __file__
-    path = path.replace("enviroment.py", "")
+    path = path.replace("environment.py", "")
 
     artap_root = path
     tests_root = os.path.abspath(path + "." + os.sep + "tests" + os.sep)

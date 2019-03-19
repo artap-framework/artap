@@ -2,7 +2,7 @@ Metadata-Version: 2.1
 Name: Artap
 Version: 0.10
 Summary: Platform for robust design optimization
-Home-page: https://github.com/pypa/sampleproject
+Home-page: https://edison.fel.zcu.cz:444/agros/RDOLab/Artap
 Author: Artap Team
 Author-email: artap.team@gmail.com
 License: UNKNOWN
@@ -52,4 +52,5 @@ Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
+Requires-Python: >3.6
 Description-Content-Type: text/markdown

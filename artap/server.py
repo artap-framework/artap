@@ -12,7 +12,7 @@ import time
 
 # from jedi._compatibility import pickle_dump
 
-from artap.enviroment import Enviroment
+from artap.environment import Enviroment
 # from .individual import Individual
 
 class NoneProblemDefined(Exception):
