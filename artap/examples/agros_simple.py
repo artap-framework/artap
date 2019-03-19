@@ -4,8 +4,14 @@ from artap.problem import Problem
 from artap.results import Results
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.algorithm_bayesopt import BayesOptSerial
-
+import sys
+import os
+old_path = os.getcwd()
+os.chdir("../../3rdparty/agros/")
+old_path = os.getcwd()
+print(os.getcwd())
 from agrossuite import agros
+os.chdir(old_path)
 
 
 class TestProblem(Problem):
