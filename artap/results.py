@@ -130,7 +130,12 @@ class GraphicalResults(Results):
             if individual.front_number == 1:
                 values1.append(self.value(individual, name1))
                 values2.append(self.value(individual, name2))
-        pl.scatter(values1, values2, c='k')
+            pl.scatter(values1, values2, c='k')
+
+        ax = pl.gca()
+        ax.set_yscale('log')
+        ax.set_xscale('log')
+        ax.set_xlim(1e-2, 1e1)
 
         # labels
         pl.grid()

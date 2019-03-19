@@ -16,9 +16,8 @@ class TestDataStore(unittest.TestCase):
         self.working_dir = tempfile.mkdtemp()
         copyfile("." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite",
                  self.working_dir + os.sep + "data.sqlite")
-        database_file = self.working_dir + os.sep + "data.sqlite"
-        data_store = SqliteDataStore(database_file=database_file)
-        problem = ProblemDataStore(data_store, working_dir=self.working_dir)
+        database_name = self.working_dir + os.sep + "data.sqlite"
+        problem = ProblemDataStore(database_name=database_name)
 
         self.results = GraphicalResults(problem)
 
