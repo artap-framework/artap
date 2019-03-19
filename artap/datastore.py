@@ -108,23 +108,28 @@ class DataStore:
 
 
 class SqliteDataStore(DataStore):
-    def __init__(self, problem=None, database_file=None, create_database=False):
+    def __init__(self, problem, database_name=None, remove_existing=True):
         super().__init__(problem)
 
-        if self.problem is not None:
-            problem.data_store = self
+        self.database_name = database_name
 
-        if create_database:
-            self.database_name = self.problem.working_dir + os.sep + "data" + ".sqlite"
-            if os.path.exists(self.database_name):
-                os.remove(self.database_name)
-        else:
-            if database_file is not None:
-                self.database_name = database_file
-            else:
-                parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite")
-                parameters_file.close()
-                self.database_name = parameters_file.name
+        # remove database and create structure
+        if remove_existing and os.path.exists(self.database_name):
+            os.remove(self.database_name)
+            self.create_structure()
+
+        # set datastore to problem
+        self.problem.data_store = self
+
+        # set db log
+        if self.problem.options['log_db_handler']:
+            # create file handler and set level to debug
+            file_handler = SqliteHandler(self)
+            file_handler.setLevel(logging.DEBUG)
+            # add formatter to SqliteHandler
+            file_handler.setFormatter(self.problem.formatter)
+            # add SqliteHandler to logger
+            self.problem.logger.addHandler(file_handler)
 
     def __del__(self):
         super().__del__()
@@ -180,16 +185,15 @@ class SqliteDataStore(DataStore):
         self._execute_command(exec_cmd)
 
     def _create_structure_parameters(self):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS vector (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS parameters (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
                    'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
         self._execute_command(exec_cmd)
 
-        for parameter in self.problem.get_parameters_list():
-            parameter_arg = [0] * 5
-            length = len(parameter)
-            parameter_arg[0:length] = parameter
-            exec_cmd = 'INSERT INTO vector(name, initial_value, low_boundary, high_boundary, precision) ' \
-                       "VALUES( '%s', %f, %f, %f, %f);" % tuple(parameter_arg)
+        for parameter in self.problem.parameters.items():
+            exec_cmd = "INSERT INTO parameters(name, initial_value, low_boundary, high_boundary, precision) " \
+                       "VALUES( '{}', {}, {}, {}, {});".format(parameter[0], parameter[1]['initial_value'],
+                                                               parameter[1]['bounds'][0], parameter[1]['bounds'][1],
+                                                               parameter[1]['precision'] if 'precision' in parameter[1] else 0)
             self._execute_command(exec_cmd)
 
     def _create_structure_costs(self):
@@ -228,7 +232,7 @@ class SqliteDataStore(DataStore):
         super().write_individual(individual)
 
         # add to database
-        if self.problem.options['save_level'] == "individual" and self.problem.working_dir:
+        if self.problem.options['save_level'] == "individual":
             params = individual.to_list()
             # individual index
             params.insert(0, self.individuals.index(individual) + 1)
@@ -270,7 +274,7 @@ class SqliteDataStore(DataStore):
         connection.close()
         """
 
-    def read_problem(self, problem):
+    def read_from_datastore(self):
         connection = sqlite3.connect(self.database_name)
         # connection.execute('pragma journal_mode=wal')
 
@@ -278,25 +282,25 @@ class SqliteDataStore(DataStore):
 
         exec_cmd_problem = "SELECT * FROM problem"
         problem_table = cursor.execute(exec_cmd_problem).fetchall()
-        problem.name = problem_table[0][1]
+        self.problem.name = problem_table[0][1]
 
-        # vector
+        # parameters
         exec_cmd_params = "SELECT * FROM parameters"
-
         columns = []
         for row in cursor.execute(exec_cmd_params):
             columns.append(row)
 
-        problem.parameters = {}
+        self.problem.parameters = {}
         for parameter in columns:
-            problem.parameters[parameter[1]] = {'initial_value': parameter[2],
+            self.problem.parameters[parameter[1]] = {'initial_value': parameter[2],
                                                 'bounds': [parameter[3], parameter[4]], 'precision': parameter[5]}
         exec_cmd_costs = "SELECT * FROM costs"
 
+        # costs
         costs = []
         for cost in cursor.execute(exec_cmd_costs):
             costs.append(cost[1])
-        problem.costs = {cost: 0.0 for cost in costs}
+        self.problem.costs = {cost: 0.0 for cost in costs}
 
         exec_cmd_data = "SELECT * FROM data"
         data = cursor.execute(exec_cmd_data)
@@ -320,9 +324,9 @@ class SqliteDataStore(DataStore):
         current_population = table[0][1]
         for row in table:
             if row[1] == current_population:
-                individual = Individual(row[2:2 + len(problem.parameters)])
-                l = 2 + len(problem.parameters) + len(problem.costs)
-                individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
+                individual = Individual(row[2:2 + len(self.problem.parameters)])
+                l = 2 + len(self.problem.parameters) + len(self.problem.costs)
+                individual.costs = row[2 + len(self.problem.parameters): 2 + len(self.problem.parameters) + len(self.problem.costs)]
                 individual.front_number = row[l]
                 individual.crowding_distance = row[l+1]
                 individual.feasible = row[l+2]
@@ -344,6 +348,7 @@ class DummyDataStore(DataStore):
 
     def __init__(self, problem=None):
         super().__init__(problem)
+        self.create_structure()
 
     def __del__(self):
         super().__del__()

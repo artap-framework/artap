@@ -1,10 +1,9 @@
-import unittest
 import math
 
 from artap.problem import Problem
 from artap.results import Results
-from artap.algorithm_nlopt import NLopt
-from artap.algorithm_nlopt import LN_BOBYQA
+from artap.algorithm_nlopt import NLopt, LN_BOBYQA
+from artap.algorithm_bayesopt import BayesOptSerial
 
 from agrossuite import agros
 
@@ -16,8 +15,7 @@ class TestProblem(Problem):
                       'd2': {'initial_value': 0.3, 'bounds': [0.1, 0.4]}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs, working_dir="team_22/")
-        self.options['save_level'] = "individual"
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x: list):
         # problem
@@ -145,20 +143,29 @@ class TestProblem(Problem):
         return [of]
 
 
-class TestAgrosOptimization(unittest.TestCase):
+def bobyqa():
+    problem = TestProblem("AgrosProblem")
+    algorithm = NLopt(problem)
+    algorithm.options['n_iterations'] = 10
+    algorithm.options['algorithm'] = LN_BOBYQA
+    algorithm.options['verbose_level'] = 0
+    algorithm.run()
 
-    def test_agros_exec(self):
-        problem = TestProblem("AgrosProblem")
-        algorithm = NLopt(problem)
-        algorithm.options['n_iterations'] = 3
-        algorithm.options['algorithm'] = LN_BOBYQA
-        algorithm.options['verbose_level'] = 0
-        algorithm.run()
-
-        results = Results(problem)
-        optimum = results.find_minimum('F')
-        self.assertLessEqual(optimum, 6.1)
+    results = Results(problem)
+    optimum = results.find_minimum('F')
+    print(optimum)
 
 
-if __name__ == '__main__':
-    unittest.main()
+def bayesopt():
+    problem = TestProblem("AgrosProblem")
+    algorithm = BayesOptSerial(problem)
+    algorithm.options['n_iterations'] = 20
+    algorithm.options['verbose_level'] = 1
+    algorithm.run()
+
+    results = Results(problem)
+    optimum = results.find_minimum('F')
+    print(optimum)
+
+bobyqa()
+# bayesopt()

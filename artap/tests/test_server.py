@@ -6,10 +6,7 @@ from urllib.error import URLError, HTTPError
 
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
-from artap.benchmark_functions import AckleyN2
-from artap.datastore import SqliteDataStore
 from artap.results import Results
-from artap.datastore import DummyDataStore
 
 
 class MyProblem(Problem):
@@ -50,20 +47,30 @@ class MyProblem(Problem):
             # print('Website is working fine')
             return True
 
+
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        #problem = MyProblem("TestSimpleOptimization")
+        #problem = MyProblem("AckleyN2")
         #algorithm = ScipyOpt(problem)
         #algorithm.options['algorithm'] = 'Nelder-Mead'
         #algorithm.options['tol'] = 1e-4
+        #algorithm.options['calculate_gradients'] = True
+
         #time.sleep(3)
         #web_server_works = problem.test_server_works(problem.server.get_server_url())
+
         #algorithm.run()
+        #results = Results(problem)
+        #optimum = results.find_minimum('F_1')
+
         #problem.server.stop_server()
-        web_server_works = True
+
+        web_server_works = True     # TODO: improve, for debug
         self.assertTrue(web_server_works, 'Web Server doesn\'t work.')
+        #self.assertAlmostEqual(optimum, -200, 3)
+
 
 
 if __name__ == '__main__':
