@@ -8,9 +8,6 @@ import scipy.sparse as sp
 import pylab as pl
 import random
 
-
-
-
 from artap.problem import Problem
 from artap.results import Results
 from artap.algorithm_sweep import SweepAlgorithm
@@ -163,6 +160,86 @@ class TestProblem(Problem):
         return [Ti1, Ti2, Ti3, To1]
 
 
+def lhc(j_ext):
+    problem = TestProblem("AgrosProblem")
+    [ti1, ti2, ti3, to] = problem.evaluate([j_ext])
+
+    Ti = []
+    To = []
+    for i in range(len(to)):
+        Ti.append([ti1[i], ti2[i], ti3[i]])
+        To.append([to[i]])
+
+    return Ti, To
+
+def surrogate(Ti_train, To_train, Ti, To):
+    x_train = Ti_train
+    y_train = To_train
+    x_test = Ti
+    y_test = To
+
+    regressors = [
+        # AdaBoost regressor
+        AdaBoostRegressor(DecisionTreeRegressor(max_depth=4), n_estimators=300),
+        # Bagging regressor
+        BaggingRegressor(n_estimators=10),
+        # Gradient Boosting for regression
+        GradientBoostingRegressor(n_estimators=500, max_depth=4, min_samples_split=2, learning_rate=0.01, loss='ls'),
+        # Ensemble Methods - decision trees
+        ExtraTreesRegressor(n_estimators=10),
+        RandomForestRegressor(n_estimators=10),
+        # Decision Trees
+        # Extremely randomized tree regressor
+        ExtraTreeRegressor(),
+        # Decision tree regressor
+        DecisionTreeRegressor(),
+
+        # Gaussian Processes
+        #GaussianProcessRegressor(kernel=1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
+        #                         n_restarts_optimizer=9),
+        #GaussianProcessRegressor(
+        #    kernel=1.0 * ExpSineSquared(length_scale=1.0, periodicity=3.0, length_scale_bounds=(0.1, 10.0),
+        #                                periodicity_bounds=(1.0, 10.0)), n_restarts_optimizer=9),
+        GaussianProcessRegressor(kernel=1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-5, 1e5), nu=1.5),
+                                 n_restarts_optimizer=9),
+        #GaussianProcessRegressor(kernel=ConstantKernel(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2)),
+        #                         n_restarts_optimizer=9),
+
+        # Generalized Linear Models
+        # SGDRegressor(),
+
+        # Nearest Neighbors
+        # Regression based on k-nearest neighbors
+        # KNeighborsRegressor(n_neighbors=6, weights='distance'),
+        # Regression based on neighbors within a fixed radius
+        # RadiusNeighborsRegressor(),
+
+        # Neural network models
+        # Multi-layer Perceptron regressor
+        MLPRegressor(hidden_layer_sizes=(20), activation='logistic', solver='lbfgs'),
+        #MLPRegressor(hidden_layer_sizes=(int(len(y_train)*0.75)), activation='relu', solver='adam', alpha=0.001, batch_size='auto',
+        #             learning_rate='constant', learning_rate_init=0.01, power_t=0.5, max_iter=1000, shuffle=True,
+        #             random_state=9, tol=0.0001, verbose=False, warm_start=False, momentum=0.9, nesterovs_momentum=True,
+        #             early_stopping=False, validation_fraction=0.1, beta_1=0.9, beta_2=0.999, epsilon=1e-08),
+        KernelRidge(alpha=1.0),
+        # SVR(kernel='rbf', C=1e4, gamma=0.1),
+    ]
+
+    thrs = 0.8
+    regressors_out = []
+    for regressor in regressors:
+        regressor.fit(x_train, np.ravel(y_train, order='C'))
+        score = regressor.score(x_test, y_test)
+        print("{}\t{}\t{}".format(regressor.__class__.__name__, score, "ok" if score > thrs else "removed"))
+        # remove regressor
+        if score > thrs:
+            regressors_out.append(regressor)
+
+        # regressor_stats(regressor, x_test, y_test)
+
+    return regressors_out
+
+
 def regressor_stats(regressor, x_test, y_test):
     # test
     print(regressor.__class__.__name__)
@@ -179,68 +256,6 @@ def regressor_stats(regressor, x_test, y_test):
                                                                                             math.fabs(value_problem - value_surrogate), percent))
 
 
-def lhc(j_ext):
-    problem = TestProblem("AgrosProblem")
-    [ti1, ti2, ti3, to] = problem.evaluate([j_ext])
-
-    Ti = []
-    To = []
-    for i in range(len(to)):
-        Ti.append([ti1[i], ti2[i], ti3[i]])
-        To.append([to[i]])
-
-    return Ti, To
-
-# def lhc():
-#     problem = TestProblem("AgrosProblem")
-#
-#     # sweep analysis (for training)
-#     n = 1
-#     gen = LHCGeneration(problem.parameters)
-#     gen.init(n)
-#     algorithm_sweep = SweepAlgorithm(problem, generator=gen)
-#     algorithm_sweep.run()
-#
-#     Jext = []
-#     Ti = []
-#     To = []
-#     for individual in problem.data_store.individuals:
-#         Ti.append([individual.costs[0], individual.costs[1], individual.costs[2]])
-#         To.append([individual.costs[3]])
-#         Jext.append(individual.vector[0])
-#
-#     print(Ti)
-#     print(To)
-#     print(Jext)
-
-
-def surrogate(Ti_train, To_train, Ti, To):
-    x_train = Ti_train
-    y_train = To_train
-    x_test = Ti
-    y_test = To
-
-    param_grid = {
-        "hidden_layer_sizes": [(int(len(x_train)/2)), (len(x_train))],
-        "activation": ['logistic', 'relu']
-    }
-    # gp = MLPRegressor(solver='lbfgs')
-    # grid_search = GridSearchCV(gp, param_grid=param_grid, n_jobs=-1, scoring=None)  #
-
-    # regressor = grid_search
-    # regressor = gp
-
-    regressor = MLPRegressor(solver='lbfgs')
-    # regressor = RandomForestRegressor(n_estimators=10)
-    # regressor = GaussianProcessRegressor(kernel=1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-5, 1e5), nu=1.5), n_restarts_optimizer=9)
-    # regressor = DecisionTreeRegressor()
-
-    regressor.fit(x_train, y_train)
-    # regressor_stats(regressor, x_test, y_test)
-
-    return regressor
-
-
 def find_index(other, px, py):
     ind = -1
     val = 1e6
@@ -254,8 +269,7 @@ def find_index(other, px, py):
     return ind
 
 
-def matrix_model(u, i1, i2, i3, o):
-    total_time = 30
+def matrix_model(u, total_time, i1, i2, i3, o):
     steps = len(u)
 
     dt = total_time / steps
@@ -286,7 +300,6 @@ def matrix_model(u, i1, i2, i3, o):
 
     return Ti, To
 
-
 total_time = 30
 steps = 250
 u = np.ones(steps)
@@ -297,7 +310,7 @@ i2 = find_index(other, 9.977e-3, -2.233e-5)
 i3 = find_index(other, 4.977e-3, 2.003e-3)
 o = find_index(other, 6.009e-3, 9.668e-3)
 
-Ti_train, To_train = matrix_model(u, i1, i2, i3, o)
+Ti_train, To_train = matrix_model(u, total_time, i1, i2, i3, o)
 #Ti_train, To_train = lhc(6.1e7)
 
 # Ti, To = lhc(5e7)
@@ -306,15 +319,36 @@ u[:60] = np.ones(60) * 1.7
 u[60:90] = np.ones(30) * 1.1
 u[90:] = np.ones(steps-90) * 0.1
 
-Ti, To = matrix_model(u, i1, i2, i3, o)
+Ti, To = matrix_model(u, total_time, i1, i2, i3, o)
 
-regressor = surrogate(Ti_train, To_train, Ti, To)
-Top = regressor.predict(Ti)
+regressors = surrogate(Ti_train, To_train, Ti, To)
+Top = {}
+for regressor in regressors:
+    pred = regressor.predict(Ti)
+    Top[regressor.__class__.__name__] = pred
 
 tm = pl.linspace(0, total_time, steps)
-# pl.plot(Ti)
 
-pl.plot(tm, To, label='exact solution')
-pl.plot(tm, Top, label='prediction')
+pl.rcParams['figure.figsize'] = 6, 4
+pl.rcParams['text.usetex'] = True
+for regressor in regressors:
+    diff = []
+    for i in range(len(To)):
+        diff.append(To[i]-Top[regressor.__class__.__name__][i])
+    pl.plot(tm, diff, '--', label='{}'.format(regressor.__class__.__name__))
+pl.grid(True)
+pl.xlabel('$t~\mathrm{(s)}$')
+pl.ylabel('$\Delta T~\mathrm{(deg.)}$')
 pl.legend()
-pl.show()
+pl.savefig("/tmp/surrogate_diff.png")
+pl.close()
+# pl.show()
+
+for regressor in regressors:
+    pl.plot(tm, Top[regressor.__class__.__name__], '--', label='{}'.format(regressor.__class__.__name__))
+pl.plot(tm, To, 'k-', linewidth=2.0, label='Exact Solution')
+pl.grid(True)
+pl.xlabel('$t~\mathrm{(s)}$')
+pl.ylabel('$T~\mathrm{(deg.)}$')
+pl.legend()
+pl.savefig("/tmp/surrogate.png")
