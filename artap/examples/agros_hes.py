@@ -61,6 +61,10 @@ class TestProblem(Problem):
         problem.time_method_order = 2
         problem.time_total = time_total
         problem.time_steps = 40
+
+        # agros.options.save_matrix_and_rhs = True
+        agros.options.save_system = True
+
         # fields
         # heat
         heat = problem.field("heat")
@@ -268,6 +272,10 @@ def matrix_model(u):
         To.append([float(to[i])+293])
 
     return Ti, To
+
+lhc(6.1e7)
+
+
 
 steps = 250
 u = np.ones(steps)
