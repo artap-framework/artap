@@ -310,6 +310,7 @@ i2 = find_index(other, 9.977e-3, -2.233e-5)
 i3 = find_index(other, 4.977e-3, 2.003e-3)
 o = find_index(other, 6.009e-3, 9.668e-3)
 
+
 Ti_train, To_train = matrix_model(u, total_time, i1, i2, i3, o)
 #Ti_train, To_train = lhc(6.1e7)
 
@@ -318,6 +319,7 @@ u = np.zeros(steps)
 u[:60] = np.ones(60) * 1.7
 u[60:90] = np.ones(30) * 1.1
 u[90:] = np.ones(steps-90) * 0.1
+# u = u + np.random.randn(steps) * 1
 
 Ti, To = matrix_model(u, total_time, i1, i2, i3, o)
 
@@ -328,27 +330,47 @@ for regressor in regressors:
     Top[regressor.__class__.__name__] = pred
 
 tm = pl.linspace(0, total_time, steps)
-
+pl.rcParams['figure.dpi'] = 300
 pl.rcParams['figure.figsize'] = 6, 4
 pl.rcParams['text.usetex'] = True
+pl.tick_params(axis='both', which='major', labelsize=16)
+pl.tick_params(axis='both', which='minor', labelsize=12)
+
+
 for regressor in regressors:
     diff = []
     for i in range(len(To)):
         diff.append(To[i]-Top[regressor.__class__.__name__][i])
     pl.plot(tm, diff, '--', label='{}'.format(regressor.__class__.__name__))
 pl.grid(True)
-pl.xlabel('$t~\mathrm{(s)}$')
-pl.ylabel('$\Delta T~\mathrm{(deg.)}$')
+pl.xlabel('$t~\mathrm{(s)}$', fontsize=16)
+pl.ylabel('$\Delta T~\mathrm{(deg.)}$', fontsize=16)
 pl.legend()
+pl.tight_layout()
 pl.savefig("/tmp/surrogate_diff.png")
-pl.close()
+pl.clf()
 # pl.show()
 
+pl.tick_params(axis='both', which='major', labelsize=16)
+pl.tick_params(axis='both', which='minor', labelsize=12)
 for regressor in regressors:
     pl.plot(tm, Top[regressor.__class__.__name__], '--', label='{}'.format(regressor.__class__.__name__))
 pl.plot(tm, To, 'k-', linewidth=2.0, label='Exact Solution')
 pl.grid(True)
-pl.xlabel('$t~\mathrm{(s)}$')
-pl.ylabel('$T~\mathrm{(deg.)}$')
+pl.xlabel('$t~\mathrm{(s)}$', fontsize=16)
+pl.ylabel('$T~\mathrm{(deg.)}$', fontsize=16)
 pl.legend()
+pl.tight_layout()
 pl.savefig("/tmp/surrogate.png")
+pl.clf()
+
+pl.tick_params(axis='both', which='major', labelsize=16)
+pl.tick_params(axis='both', which='minor', labelsize=12)
+pl.plot(tm, u, 'k-', linewidth=2.0)
+pl.grid(True)
+pl.xlabel('$t~\mathrm{(s)}$', fontsize=16)
+pl.ylabel('$I~\mathrm{(kA)}$', fontsize=16)
+# pl.legend()
+pl.tight_layout()
+pl.savefig("/tmp/input.png")
+pl.close()
