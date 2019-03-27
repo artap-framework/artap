@@ -1,8 +1,3 @@
-# from .problem import Problem
-
-import matplotlib
-# matplotlib.use('Agg')
-
 import os
 import numpy as np
 import pylab as pl
@@ -56,7 +51,7 @@ class Results:
 
         min_l.append(min(self.problem.data_store.individuals, key=lambda x: x.costs[index]))
         opt = min(min_l, key=lambda x: x.costs[index])
-        opt = opt.costs[index]
+        #opt = opt.costs[index]
 
         return opt
 
