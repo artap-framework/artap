@@ -4,7 +4,6 @@ from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
-from artap.results import  GraphicalResults
 
 
 class BinhAndKornProblem(Problem):
