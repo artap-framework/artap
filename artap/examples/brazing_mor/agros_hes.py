@@ -8,9 +8,6 @@ import scipy.sparse as sp
 import pylab as pl
 import random
 
-
-
-
 from artap.problem import Problem
 from artap.results import Results
 from artap.algorithm_sweep import SweepAlgorithm
@@ -163,6 +160,86 @@ class TestProblem(Problem):
         return [Ti1, Ti2, Ti3, To1]
 
 
+def lhc(j_ext):
+    problem = TestProblem("AgrosProblem")
+    [ti1, ti2, ti3, to] = problem.evaluate([j_ext])
+
+    Ti = []
+    To = []
+    for i in range(len(to)):
+        Ti.append([ti1[i], ti2[i], ti3[i]])
+        To.append([to[i]])
+
+    return Ti, To
+
+def surrogate(Ti_train, To_train, Ti, To):
+    x_train = Ti_train
+    y_train = To_train
+    x_test = Ti
+    y_test = To
+
+    regressors = [
+        # AdaBoost regressor
+        AdaBoostRegressor(DecisionTreeRegressor(max_depth=4), n_estimators=300),
+        # Bagging regressor
+        BaggingRegressor(n_estimators=10),
+        # Gradient Boosting for regression
+        GradientBoostingRegressor(n_estimators=500, max_depth=4, min_samples_split=2, learning_rate=0.01, loss='ls'),
+        # Ensemble Methods - decision trees
+        ExtraTreesRegressor(n_estimators=10),
+        RandomForestRegressor(n_estimators=10),
+        # Decision Trees
+        # Extremely randomized tree regressor
+        ExtraTreeRegressor(),
+        # Decision tree regressor
+        DecisionTreeRegressor(),
+
+        # Gaussian Processes
+        #GaussianProcessRegressor(kernel=1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
+        #                         n_restarts_optimizer=9),
+        #GaussianProcessRegressor(
+        #    kernel=1.0 * ExpSineSquared(length_scale=1.0, periodicity=3.0, length_scale_bounds=(0.1, 10.0),
+        #                                periodicity_bounds=(1.0, 10.0)), n_restarts_optimizer=9),
+        GaussianProcessRegressor(kernel=1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-5, 1e5), nu=1.5),
+                                 n_restarts_optimizer=9),
+        #GaussianProcessRegressor(kernel=ConstantKernel(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2)),
+        #                         n_restarts_optimizer=9),
+
+        # Generalized Linear Models
+        # SGDRegressor(),
+
+        # Nearest Neighbors
+        # Regression based on k-nearest neighbors
+        # KNeighborsRegressor(n_neighbors=6, weights='distance'),
+        # Regression based on neighbors within a fixed radius
+        # RadiusNeighborsRegressor(),
+
+        # Neural network models
+        # Multi-layer Perceptron regressor
+        MLPRegressor(hidden_layer_sizes=(20), activation='logistic', solver='lbfgs'),
+        #MLPRegressor(hidden_layer_sizes=(int(len(y_train)*0.75)), activation='relu', solver='adam', alpha=0.001, batch_size='auto',
+        #             learning_rate='constant', learning_rate_init=0.01, power_t=0.5, max_iter=1000, shuffle=True,
+        #             random_state=9, tol=0.0001, verbose=False, warm_start=False, momentum=0.9, nesterovs_momentum=True,
+        #             early_stopping=False, validation_fraction=0.1, beta_1=0.9, beta_2=0.999, epsilon=1e-08),
+        KernelRidge(alpha=1.0),
+        # SVR(kernel='rbf', C=1e4, gamma=0.1),
+    ]
+
+    thrs = 0.8
+    regressors_out = []
+    for regressor in regressors:
+        regressor.fit(x_train, np.ravel(y_train, order='C'))
+        score = regressor.score(x_test, y_test)
+        print("{}\t{}\t{}".format(regressor.__class__.__name__, score, "ok" if score > thrs else "removed"))
+        # remove regressor
+        if score > thrs:
+            regressors_out.append(regressor)
+
+        # regressor_stats(regressor, x_test, y_test)
+
+    return regressors_out
+
+
 def regressor_stats(regressor, x_test, y_test):
     # test
     print(regressor.__class__.__name__)
@@ -179,73 +256,23 @@ def regressor_stats(regressor, x_test, y_test):
                                                                                             math.fabs(value_problem - value_surrogate), percent))
 
 
-def lhc(j_ext):
-    problem = TestProblem("AgrosProblem")
-    [ti1, ti2, ti3, to] = problem.evaluate([j_ext])
+def find_index(other, px, py):
+    ind = -1
+    val = 1e6
+    for i in range(len(other)):
+        tmp = (px - other[i, 0])**2 + (py - other[i, 1])**2
+        if tmp < val:
+            val = tmp
+            ind = i
 
-    Ti = []
-    To = []
-    for i in range(len(to)):
-        Ti.append([ti1[i], ti2[i], ti3[i]])
-        To.append([to[i]])
-
-    return Ti, To
-
-# def lhc():
-#     problem = TestProblem("AgrosProblem")
-#
-#     # sweep analysis (for training)
-#     n = 1
-#     gen = LHCGeneration(problem.parameters)
-#     gen.init(n)
-#     algorithm_sweep = SweepAlgorithm(problem, generator=gen)
-#     algorithm_sweep.run()
-#
-#     Jext = []
-#     Ti = []
-#     To = []
-#     for individual in problem.data_store.individuals:
-#         Ti.append([individual.costs[0], individual.costs[1], individual.costs[2]])
-#         To.append([individual.costs[3]])
-#         Jext.append(individual.vector[0])
-#
-#     print(Ti)
-#     print(To)
-#     print(Jext)
+    print(ind, val)
+    return ind
 
 
-def surrogate(Ti_train, To_train, Ti, To):
-    # x_data = [[776.0100747742531, 837.5993208254577, 825.2519915234318], [827.5937508361477, 895.7625421493797, 882.0961544529697], [839.8134469116156, 909.5408716832276, 895.5620112451402], [852.5168607097335, 923.8646175795648, 909.5609151393703], [795.807201542774, 859.9215892972356, 847.0680229791197], [774.3420436234893, 835.7185307693109, 823.4138550867892], [761.7279609731238, 821.4955102906774, 809.5133923023287], [759.0411713473952, 818.4660181803404, 806.5526047256783], [841.015883556784, 910.8966802269373, 896.8870719966875], [779.999470008028, 842.0975670856233, 829.6482240134816], [845.3512748740532, 915.785054688863, 901.6645851407089], [791.5377748783183, 855.1075933402145, 842.3632015422332], [790.504150850787, 853.9421296185759, 841.2241688653397], [867.9723805866071, 941.2915032128535, 926.5925840143798], [863.8962104943841, 936.695413881363, 922.1007273934509], [772.0255723085006, 833.1065914103875, 820.8611507643478], [811.2956301476783, 877.3855811970623, 864.1359566037821], [807.8038706241978, 873.4484445391103, 860.2881085553842], [856.8674142350288, 928.7700882030572, 914.3551367285538], [866.0516707601352, 939.1258050838122, 924.476000811087], [802.4189626314053, 867.3766865857262, 854.3540493593027], [757.599792723974, 816.8407903895671, 804.9642347689775], [784.7493400121504, 847.4532873716051, 834.882484248922], [805.9071347033897, 871.3097782094189, 858.1979441090286], [801.493458808291, 866.3331338998963, 853.3341629508686], [849.6687250845125, 920.6531996393081, 906.4223275495515], [809.1260025909382, 874.939215652611, 861.7450711193059], [823.7533098273697, 891.4322493624296, 877.8640664923812], [769.8115347189258, 830.6101512926339, 818.4213263260322], [833.1866366544834, 902.0688056909852, 888.25940098705], [822.1609541663482, 889.6367872742512, 876.1093229078485], [763.8517345308545, 823.8901731164312, 811.8537476115762], [861.159491971077, 933.6096243966664, 919.0849191861105], [818.0941559504971, 885.0512652105543, 871.6277939042415], [826.1680398029603, 894.1549803643828, 880.5250498623739], [788.8868544229128, 852.1185455458119, 839.4419410624714], [857.766406009144, 929.7837472036847, 915.3458073976677], [794.7323081892775, 858.70959230921, 845.8835123435381], [784.0030433451245, 846.611799879201, 834.0600804852996], [837.2862043327559, 906.6912769921524, 892.7770412724236], [766.2054098036069, 826.5440618320897, 814.447449939544], [798.6937419666206, 863.1763106034622, 850.2489318767116], [817.6527197551105, 884.5535234229887, 871.1413401861485], [813.8119951537019, 880.2229108708975, 866.9089397122441], [781.4722879915457, 843.7582443557419, 831.2712395062141], [834.0010309868424, 902.9870767684837, 889.156846994242], [846.4846133545644, 917.0629515335381, 902.9135011187554], [768.3675852615964, 828.9820247557313, 816.8301233625995], [830.1690233010205, 898.6662929825641, 884.9340523841943], [850.4068333598294, 921.485454303099, 907.2357078718732]]
-    # y_data = [[819.1322440213304], [875.3226376930376], [888.6336225907687], [902.4715239732449], [840.6973675568644], [817.3152481386617], [803.5746556868746], [800.6479203646021], [889.9434437127896], [823.477915090412], [894.6660102965424], [836.046656647084], [834.9207240759787], [919.307310264248], [914.8671148450582], [814.7919026725081], [857.5690015137177], [853.7654078730773], [907.2106068370157], [917.2150700534258], [847.8995967657429], [799.0778183776522], [828.6519756808087], [851.6992825749609], [846.8914401523468], [899.3690335299528], [855.2056137941712], [871.1392233140832], [812.38013884992], [881.4150002364793], [869.4046611756557], [805.8880943827887], [911.8859916887827], [864.9746745950462], [873.769602501805], [833.1589938174141], [908.189883723657], [839.5264800727012], [827.8390304485689], [885.880682780106], [808.4519663331461], [843.8416925671836], [864.4938156200047], [860.3100923220145], [825.08226415233], [882.3021246454643], [895.9005623921894], [810.8072364388657], [878.1278967335079], [900.1730591002264]]
-    # Jz = [62272674.863322966, 65514566.82025235, 66259307.08561908, 67024755.56955151, 63536432.599254474, 62165021.91285617, 61344806.552677915, 61168680.53896497, 66332138.78460527, 62529394.46039568, 66594072.51090893, 63266027.03459662, 63200388.15907377, 67944406.0711816, 67703074.4052169, 62015209.35927996, 64507883.37210025, 64290158.115267694, 67284897.90326867, 67830796.4679012, 63952934.44625695, 61073985.11133313, 62833683.15905225, 64171579.377889805, 63894796.60033953, 66853902.392015204, 64372684.991411224, 65278752.98609571, 61871682.43529808, 65856475.441679426, 65180727.68720712, 61483668.385775305, 67540561.80571558, 64929704.26268192, 65427123.36452834, 63097546.96241009, 67338528.03007591, 63468462.38136747, 62785971.155681536, 66105970.21331556, 61637196.75277991, 63718602.41263401, 64902398.16782406, 64664334.344020054, 62623905.060110934, 65906113.68080527, 66662376.35457389, 61777897.49832106, 65672221.48626305, 66898221.71637714]
-
-    x_data = Ti
-    y_data = To
-    n = 10
-    x_train = Ti_train
-    y_train = To_train
-    x_test = Ti
-    y_test = To
-
-    param_grid = {
-        "hidden_layer_sizes": [(int(len(x_train)/2)), (len(x_train))],
-        "activation": ['logistic', 'relu']
-    }
-    gp = MLPRegressor(solver='lbfgs')
-    grid_search = GridSearchCV(gp, param_grid=param_grid, n_jobs=-1, scoring=None)  #
-    regressor = grid_search
-
-    regressor.fit(x_train, y_train)
-
-    regressor_stats(regressor, x_test, y_test)
-
-
-def matrix_model(u):
-    num = 3
-    total_time = 25;
+def matrix_model(u, total_time, i1, i2, i3, o):
     steps = len(u)
 
-    dt = total_time / steps;
+    dt = total_time / steps
 
     stiffness = scipy.io.loadmat('transient_solver-heat_matrix_stiffness.mat')['matrix_stiffness']
     mass = scipy.io.loadmat('transient_solver-heat_matrix_mass.mat')['matrix_mass']
@@ -260,10 +287,10 @@ def matrix_model(u):
     for i in range(1, steps):
         slnt[:, i] = la.spsolve(matrix_lhs, mass @ slnt[:, i - 1] + rhs[:, 0] * u[i])
 
-    ti1 = slnt[100, :]
-    ti2 = slnt[20, :]
-    ti3 = slnt[1500, :]
-    to = slnt[0, :]
+    ti1 = slnt[i1, :]
+    ti2 = slnt[i2, :]
+    ti3 = slnt[i3, :]
+    to = slnt[o, :]
 
     Ti = []
     To = []
@@ -273,26 +300,77 @@ def matrix_model(u):
 
     return Ti, To
 
-lhc(6.1e7)
-
-
-
+total_time = 30
 steps = 250
 u = np.ones(steps)
 
-# u[:70] = np.ones(70) * 2.5
-# u = np.ones(steps) * 0.7
+other = scipy.io.loadmat('transient_solver-heat_other.mat')['other']
+i1 = find_index(other, 4.980e-3, 1.767e-2)
+i2 = find_index(other, 9.977e-3, -2.233e-5)
+i3 = find_index(other, 4.977e-3, 2.003e-3)
+o = find_index(other, 6.009e-3, 9.668e-3)
 
-Ti_train, To_train = matrix_model(u)
 
-# Ti_train, To_train = lhc(6.1e7)
+Ti_train, To_train = matrix_model(u, total_time, i1, i2, i3, o)
+#Ti_train, To_train = lhc(6.1e7)
+
 # Ti, To = lhc(5e7)
 u = np.zeros(steps)
-u[:70] = np.ones(70) * 2.5
+u[:60] = np.ones(60) * 1.7
+u[60:90] = np.ones(30) * 1.1
+u[90:] = np.ones(steps-90) * 0.1
+# u = u + np.random.randn(steps) * 1
 
-Ti, To = matrix_model(u)
+Ti, To = matrix_model(u, total_time, i1, i2, i3, o)
 
-surrogate(Ti_train, To_train, Ti, To)
-pl.plot(Ti)
-pl.plot(To)
-pl.show()
+regressors = surrogate(Ti_train, To_train, Ti, To)
+Top = {}
+for regressor in regressors:
+    pred = regressor.predict(Ti)
+    Top[regressor.__class__.__name__] = pred
+
+tm = pl.linspace(0, total_time, steps)
+pl.rcParams['figure.dpi'] = 300
+pl.rcParams['figure.figsize'] = 6, 4
+pl.rcParams['text.usetex'] = True
+pl.tick_params(axis='both', which='major', labelsize=16)
+pl.tick_params(axis='both', which='minor', labelsize=12)
+
+
+for regressor in regressors:
+    diff = []
+    for i in range(len(To)):
+        diff.append(To[i]-Top[regressor.__class__.__name__][i])
+    pl.plot(tm, diff, '--', label='{}'.format(regressor.__class__.__name__))
+pl.grid(True)
+pl.xlabel('$t~\mathrm{(s)}$', fontsize=16)
+pl.ylabel('$\Delta T~\mathrm{(deg.)}$', fontsize=16)
+pl.legend()
+pl.tight_layout()
+pl.savefig("/tmp/surrogate_diff.png")
+pl.clf()
+# pl.show()
+
+pl.tick_params(axis='both', which='major', labelsize=16)
+pl.tick_params(axis='both', which='minor', labelsize=12)
+for regressor in regressors:
+    pl.plot(tm, Top[regressor.__class__.__name__], '--', label='{}'.format(regressor.__class__.__name__))
+pl.plot(tm, To, 'k-', linewidth=2.0, label='Exact Solution')
+pl.grid(True)
+pl.xlabel('$t~\mathrm{(s)}$', fontsize=16)
+pl.ylabel('$T~\mathrm{(deg.)}$', fontsize=16)
+pl.legend()
+pl.tight_layout()
+pl.savefig("/tmp/surrogate.png")
+pl.clf()
+
+pl.tick_params(axis='both', which='major', labelsize=16)
+pl.tick_params(axis='both', which='minor', labelsize=12)
+pl.plot(tm, u, 'k-', linewidth=2.0)
+pl.grid(True)
+pl.xlabel('$t~\mathrm{(s)}$', fontsize=16)
+pl.ylabel('$I~\mathrm{(kA)}$', fontsize=16)
+# pl.legend()
+pl.tight_layout()
+pl.savefig("/tmp/input.png")
+pl.close()

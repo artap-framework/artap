@@ -53,6 +53,7 @@ strip agros_solver
 strip pythonlab
 # link ~/.local
 #ln -sfn $DIR/agros ~/.local/lib/python3.7/site-packages/agrossuite
-ln -sfn $DIR/agros /home/tamas/anaconda3/envs/artapenc/lib/python3.6/site-packages/agrossuite
+ln -sfn $DIR/agros ~/.local/lib/python3.6/site-packages/agrossuite
+#ln -sfn $DIR/agros /home/tamas/anaconda3/envs/artapenc/lib/python3.6/site-packages/agrossuite
 # go back
 cd $DIR
