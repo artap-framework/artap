@@ -18,69 +18,48 @@ from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 from artap.algorithm_scipy import ScipyOpt
 
-H = 1.
-W = 1.
-L = 1.
-
 class ArtapProblem(Problem):
     """ Defines the optimization problem """
     def __init__(self, name):
-        parameters = {'x': {'initial_value': 0.8, 'bounds': [0., W]}}
+
+        # wall lengths
+        self.H = 1.
+        self.W = 1.
+        self.L = 1.
+
+        parameters = {'x': {'initial_value': 0.8,
+                            'bounds': [0., self.W]}}
         costs = ['F_1']
 
         super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
-        function = (x[0] ** 2. + H ** 2.) ** 0.5 + ((W - x[0]) ** 2. + L ** 2.) ** 0.5
+        function = (x[0] ** 2. + self.H ** 2.) ** 0.5 + ((self.W - x[0]) ** 2. + self.L ** 2.) ** 0.5
         return [function]
 
-class SpyderFlyOptimization():
-    """ Tests simple one objective optimization problem."""
+### Optimization with NSGA-II algorithm
 
-    def test_local_problem_nsga2(self):
+problem = ArtapProblem("Spyder on the wall")
+algorithm = NSGAII(problem)
+algorithm.options['max_population_number'] = 100
+algorithm.options['max_population_size'] = 50
+algorithm.run()
 
-        problem = ArtapProblem("Spyder on the wall")
-        algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 50
-        algorithm.run()
+results = Results(problem)
+optimum = results.find_minimum('F_1')
 
-        b = Results(problem)
-        optimum = b.find_minimum('F_1')  # Takes last cost function
+print('Optimal solution (NSGA-II):', optimum)
 
-        print('Optimal solution:', optimum) # variable x and the optimal value of the calculation
-        print('Difference:',optimum.costs[0] -(((W/2.) ** 2. + H ** 2.) ** 0.5 + ((W - (W/2.)) ** 2. + L ** 2.) ** 0.5))
+### Optimization with Nelder-Mead
 
-        ### calculate with scipy as well
-    def test_local_problem_scipy(self):
+problem_nlm = ArtapProblem("Spyder on the wall")
+algorithm_nlm = ScipyOpt(problem_nlm)
+algorithm_nlm.options['algorithm'] = 'Nelder-Mead'
+algorithm_nlm.options['tol'] = 1e-2
+algorithm_nlm.options['calculate_gradients'] = True
+algorithm_nlm.run()
 
-        problem2 = ArtapProblem("Spyder on the wall")
-        algorithm2 = ScipyOpt(problem2)
-        algorithm2.options['algorithm'] = 'Nelder-Mead'
-        algorithm2.options['tol'] = 1e-6
-        algorithm2.options['calculate_gradients'] = True
-        algorithm2.run()
+results_nlm = Results(problem_nlm)
+opt = results_nlm.find_minimum('F_1')
 
-        results2 = Results(problem2)
-        opt = results2.find_minimum('F_1')
-
-        for individual in problem2.data_store.individuals:
-            print(individual)
-
-        print("scipy optimum:", opt)
-        print('Difference:',
-              opt.costs[0] - (((W / 2.) ** 2. + H ** 2.) ** 0.5 + ((W - (W / 2.)) ** 2. + L ** 2.) ** 0.5))
-
-
-if __name__ == "__main__":
-   problem = SpyderFlyOptimization()
-   problem.test_local_problem_nsga2()
-   problem.test_local_problem_scipy()
-
-   problem2 = ArtapProblem("Spyder on the wall")
-   x = np.linspace(0.1, 1, 100)
-   y = []
-   for number in x:
-       y.append(problem2.evaluate([number])[0])
-   pl.plot(x, y)
-   pl.show()
+print('Optimal solution (Nelder-Mead):', opt)
