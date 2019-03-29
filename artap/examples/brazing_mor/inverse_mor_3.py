@@ -22,17 +22,17 @@ dt = total_time / steps;
 
 stiffness = scipy.io.loadmat('transient_solver-heat_matrix_stiffness.mat')['matrix_stiffness']
 mass = scipy.io.loadmat('transient_solver-heat_matrix_mass.mat')['matrix_mass']
-mass = mass /dt
-
+mass = mass / dt
 matrix_lhs = mass + stiffness
-
 rhs = scipy.io.loadmat('transient_solver-heat_rhs.mat')['rhs']
-# u = scipy.io.loadmat('transient_solver-heat_solutions.mat')['slns']
+
  
 u = np.zeros(steps)
 u[:int(steps/4)] = np.ones(int(steps/4)) * 1.7 * 2
 u[int(steps/4):int(steps/3)] = np.ones(int(steps/3) - int(steps/4)) * 0.8 * 1.7 * 2
 u[int(steps/3):] = np.ones(steps-int(steps/3)) * 0.1 * 1.7 * 2
+
+
 
 slnt = np.zeros([len(rhs), steps])
 for i in range(1, steps):            
@@ -129,3 +129,5 @@ pl.grid()
 pl.tight_layout()
 pl.savefig('error.png')
 pl.show()
+
+print(C)
