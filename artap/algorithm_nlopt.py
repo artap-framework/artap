@@ -586,6 +586,7 @@ class NLopt(Algorithm):
             t_s = time.time()
             self.problem.logger.info("NLopt: {}".format(op.get_algorithm_name()))
             x = op.optimize(self.problem.get_initial_values())
+            print('initial values:',x)
             t = time.time() - t_s
             self.problem.logger.info("NLopt: elapsed time: {} s".format(t))
 
@@ -617,4 +618,5 @@ class NLopt(Algorithm):
         MAXTIME_REACHED = 6
         """
         if self.options['verbose_level'] >= 1:
+            print('optimum = ', op.last_optimum_value())
             print('result code = ', op.last_optimize_result())
