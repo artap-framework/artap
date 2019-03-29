@@ -50,7 +50,7 @@ class TestNLoptOptimization(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum('F')
-        self.assertAlmostEqual(optimum, 0, places=1)
+        self.assertAlmostEqual(optimum.costs[0], 0, places=1)
 
     def test_local_problem_nlopt_GN_DIRECT_L(self):
         self.run_test(GN_DIRECT_L, 400)
