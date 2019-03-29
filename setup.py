@@ -1,6 +1,7 @@
 import setuptools
 import os
 
+
 base_dir = os.path.abspath(os.path.dirname(__file__))
 about = {}
 with open(os.path.join(base_dir, "artap", "__about__.py"), "rb") as f:
@@ -23,16 +24,21 @@ setuptools.setup(
     license=about["__license__"],
     data_files=[('artap', ['artap/environment.json']), ('artap/lib', ['artap/lib/bayesopt.so']),
                 ('artap/lib', ['artap/lib/_nlopt.so'])],
-    platforms="any",
-    install_requires=["numpy", "pipdate >=0.3.0, <0.4.0", "dash",
-                      "dash_core_components", "dash_html_components", "dash_table",
-                      "scipy", "sklearn", "paramiko", "matplotlib"],
+    install_requires=['numpy',
+                      'scipy',
+                      'dash>=0.39.0',
+                      'dash-core-components>=0.44.0',
+                      'dash-html-components>=0.14.0',
+                      'dash-table>=3.4.0',
+                      'sklearn',
+                      "paramiko",
+                      'matplotlib'],
     scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",
-        "Operating System :: Linux",
+        "Operating System :: POSIX :: Linux",
         "Topic :: Scientific/Engineering",
-        "Programming Language :: Python :: 3",
+        'Programming Language :: Python :: 3.6',
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
