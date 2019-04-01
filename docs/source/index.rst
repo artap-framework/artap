@@ -6,14 +6,17 @@
 Welcome to Artap's documentation!
 =================================
 
+Artap is a framework for robust design optimization in Python.
+It provides tools for coupling FEM solvers (Agros2D, Comsol) with metaheuristic, bayesian or neural network based
+optimization algorithms.
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-.. automodule:: function
-   :members:
-
-.. todolist::
+   intro
+   install
+   examples
+   copyright
 
 Indices and tables
 ==================
