@@ -15,6 +15,7 @@ from artap.operators import LHCGeneration
 
 from agrossuite import agros
 
+from sklearn.metrics.regression import r2_score, explained_variance_score
 from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 from sklearn.linear_model import SGDRegressor
@@ -216,7 +217,10 @@ def surrogate(Ti_train, To_train, Ti, To):
 
         # Neural network models
         # Multi-layer Perceptron regressor
-        MLPRegressor(hidden_layer_sizes=(20), activation='logistic', solver='lbfgs'),
+        GridSearchCV(MLPRegressor(solver='lbfgs'), param_grid={
+            "hidden_layer_sizes": [(10), (20), (30), (50), (100)],
+            "activation": ['logistic', 'relu']
+        }, n_jobs=-1, scoring=None),
         #MLPRegressor(hidden_layer_sizes=(int(len(y_train)*0.75)), activation='relu', solver='adam', alpha=0.001, batch_size='auto',
         #             learning_rate='constant', learning_rate_init=0.01, power_t=0.5, max_iter=1000, shuffle=True,
         #             random_state=9, tol=0.0001, verbose=False, warm_start=False, momentum=0.9, nesterovs_momentum=True,
@@ -225,14 +229,15 @@ def surrogate(Ti_train, To_train, Ti, To):
         # SVR(kernel='rbf', C=1e4, gamma=0.1),
     ]
 
-    thrs = 0.8
+    thrs = 0.90
     regressors_out = []
     for regressor in regressors:
         regressor.fit(x_train, np.ravel(y_train, order='C'))
-        score = regressor.score(x_test, y_test)
-        print("{}\t{}\t{}".format(regressor.__class__.__name__, score, "ok" if score > thrs else "removed"))
+        r2 = r2_score(y_test, regressor.predict(x_test), multioutput='variance_weighted')
+        explained_variance = explained_variance_score(y_test, regressor.predict(x_test), multioutput='variance_weighted')
+        print("{}\tr2 = {}\texplained_variance = {}\t{}".format(regressor.__class__.__name__, r2, explained_variance, "ok" if r2 > thrs else "removed"))
         # remove regressor
-        if score > thrs:
+        if r2 > thrs:
             regressors_out.append(regressor)
 
         # regressor_stats(regressor, x_test, y_test)
