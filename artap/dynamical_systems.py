@@ -216,17 +216,19 @@ class KalmanFilter(System):
 
         self.error_obs_x_1 = 1
         self.error_obs_x_2 = 1
+        self.error_obs_x_3 = 1
 
         self.error_proc_x_1 = 1
         self.error_proc_x_2 = 1
+        self.error_proc_x_3 = 1
 
         # self.Q = np.eye(n)
-        self.P = self.covariance2d(self.error_obs_x_1, self.error_obs_x_2)
-        self.R = self.covariance2d(self.error_obs_x_1, self.error_obs_x_2)
-        self.Q = 2 * self.covariance2d(self.error_obs_x_1, self.error_obs_x_2)
+        self.P = self.covariance2d(self.error_obs_x_1, self.error_obs_x_2, self.error_obs_x_3)
+        self.R = self.covariance2d(self.error_obs_x_1, self.error_obs_x_2, self.error_obs_x_3)
+        self.Q = 2 * self.covariance2d(self.error_obs_x_1, self.error_obs_x_2, self.error_obs_x_3)
         print(self.Q)
 
-    def covariance2d(self, sigma1, sigma2):
+    def covariance2d(self, sigma1, sigma2, sigma3):
         cov1_2 = sigma1 * sigma2
         cov2_1 = sigma2 * sigma1
         cov_matrix = np.array([[sigma1 ** 2, cov1_2],
@@ -322,10 +324,13 @@ def white_noise():
 
 # Kalman filter example
 model = Model()
-x0 = [10, 10]
-A = [[-0.01, 0], [0, -1]]
-C = [1, 0]
-B = [[1], [0]]
+x0 = [0, 0, 0]
+A = [[0.76243977,  0.05838487,  0.00243169],
+     [0.17547309, 0.93608581, -0.0034907],
+     [0.38910477, -0.10661557,  0.99478497]]
+
+C = [-0.00071247,  0.00937947,  0.02342581]
+B = [[-76.11608999], [90.20298402], [231.14489705]]
 D = [0]
 system = model.add_LTI(A, B, C, D, x0)
 kfilter = model.add_kalman_filter(system)
