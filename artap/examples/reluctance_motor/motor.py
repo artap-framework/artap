@@ -48,7 +48,7 @@ class Motor(Problem):
 
     def parse_results(self, content):
         parameters = content.split()
-        result = [float(parameters[10]), float(parameters[11])]
+        result = [-float(parameters[10]), float(parameters[11])]
         print(result)
 
         param_str = "parameters:"
@@ -61,7 +61,7 @@ class Motor(Problem):
         with open('results.txt', 'a') as file:
             file.write( param_str + "; " + costs + "\n")
 
-        return [result]
+        return result
 
 
 if __name__ == '__main__':
@@ -73,8 +73,8 @@ if __name__ == '__main__':
 
     algorithm = NSGAII(problem)
     algorithm.options['verbose_level'] = 0
-    algorithm.options['max_population_number'] = 25
-    algorithm.options['max_population_size'] = 50
+    algorithm.options['max_population_number'] = 10
+    algorithm.options['max_population_size'] = 10
     algorithm.options['max_processes'] = 8
     algorithm.run()
 
