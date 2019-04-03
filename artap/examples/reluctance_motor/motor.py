@@ -73,8 +73,8 @@ if __name__ == '__main__':
 
     algorithm = NSGAII(problem)
     algorithm.options['verbose_level'] = 0
-    algorithm.options['max_population_number'] = 10
-    algorithm.options['max_population_size'] = 10
+    algorithm.options['max_population_number'] = 25
+    algorithm.options['max_population_size'] = 50
     algorithm.options['max_processes'] = 8
     algorithm.run()
 
