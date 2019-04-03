@@ -412,7 +412,7 @@ class CondorJobExecutor(RemoteExecutor):
                         # stop while cycle
                         break
 
-                    if event == "Held":
+                    if (event == "Held") or (event == "JobAbortedEvent"):
                         self.problem.logger.error("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
                         # read log
                         content_log = self._read_file_from_remote("{}.log".format(self.output_file), client=client)
@@ -422,7 +422,7 @@ class CondorJobExecutor(RemoteExecutor):
                         # TODO: abort computation - no success?
                         assert 0
 
-                    time.sleep(1.0)
+                    # time.sleep(1.0)
 
                 if event == "Completed":
                     content = self._read_file_from_remote(self.output_file, client=client)
