@@ -28,9 +28,9 @@ def find_index(other, px, py):
     return ind
 
 
-num = 3
+num = 6
 total_time = 30
-steps = 200
+steps = 30
 time = np.linspace(0, total_time, steps)
 dt = total_time / steps;
 
@@ -43,7 +43,7 @@ other = scipy.io.loadmat('transient_solver-heat_other.mat')['other']
 
 point_n = find_index(other, 3.759e-3, 4.463e-2)
 point_meas = find_index(other, 6.009e-3, 9.668e-3)
-point_meas = find_index(other, 3.759e-3, 4.463e-2)
+# point_meas = find_index(other, 3.759e-3, 4.463e-2)
 
 u = np.zeros(steps)
 u[:int(steps/4)] = np.ones(int(steps/4)) * 1.7 * 2
@@ -66,7 +66,7 @@ mor_rhs = np.dot(L.T, rhs)
 mor_mass = L.T @ mass @ L 
 
 
-mor_lhs= L.T @ matrix_lhs @ L 
+mor_lhs = L.T @ matrix_lhs @ L
 A = np.linalg.inv(mor_lhs) @ mor_mass
 B = np.linalg.inv(mor_lhs) @ mor_rhs
 C = L[point_n, :]
@@ -78,9 +78,7 @@ for i in range(0, steps):
     x[:, i] = A @ x[:, i-1] + B.T * u[i]
     y[i] = C @ x[:, i-1]
 
-
-
-#H_c[3, :] = C[:] @ A @ A @ A
+# H_c[3, :] = C[:] @ A @ A @ A
 y_hat = []
 C_bar = L[point_meas, :]
 Y = np.zeros([num, 1])
@@ -118,6 +116,7 @@ pl.grid()
 pl.tick_params(axis='both', which='major', labelsize=16)
 pl.tick_params(axis='both', which='minor', labelsize=12)
 pl.plot(time, slnt[point_meas, :], 'k')
+pl.plot(time, y[:], 'g')
 pl.plot(time, slnt[point_n, :], 'r')
 pl.xlabel(r'$t$ [s]', size=16)
 pl.ylabel(r'$T [^\circ \mathrm{C}]$ ', size=16)
@@ -136,5 +135,3 @@ pl.grid()
 pl.tight_layout()
 pl.savefig('error.png')
 pl.show()
-
-print(C)
