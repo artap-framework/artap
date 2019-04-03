@@ -273,8 +273,6 @@ class KalmanFilter(System):
         # Update equation
         self.x = self.x + K.T @ (y_meas - y)
 
-        #self.P = self.P - self.C @  self.P @ self.C.T
-
         I = np.eye(self.n)
         self.P = (I - K @ self.C )@ self.P
         print(self.x)

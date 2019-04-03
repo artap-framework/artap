@@ -14,6 +14,20 @@ import scipy.sparse as sp
 import pylab as pl
 import random
 
+
+def find_index(other, px, py):
+    ind = -1
+    val = 1e6
+    for i in range(len(other)):
+        tmp = (px - other[i, 0])**2 + (py - other[i, 1])**2
+        if tmp < val:
+            val = tmp
+            ind = i
+
+    print(ind, val)
+    return ind
+
+
 num = 3
 total_time = 30
 steps = 200
@@ -25,21 +39,21 @@ mass = scipy.io.loadmat('transient_solver-heat_matrix_mass.mat')['matrix_mass']
 mass = mass / dt
 matrix_lhs = mass + stiffness
 rhs = scipy.io.loadmat('transient_solver-heat_rhs.mat')['rhs']
+other = scipy.io.loadmat('transient_solver-heat_other.mat')['other']
 
- 
+point_n = find_index(other, 3.759e-3, 4.463e-2)
+point_meas = find_index(other, 6.009e-3, 9.668e-3)
+point_meas = find_index(other, 3.759e-3, 4.463e-2)
+
 u = np.zeros(steps)
 u[:int(steps/4)] = np.ones(int(steps/4)) * 1.7 * 2
 u[int(steps/4):int(steps/3)] = np.ones(int(steps/3) - int(steps/4)) * 0.8 * 1.7 * 2
 u[int(steps/3):] = np.ones(steps-int(steps/3)) * 0.1 * 1.7 * 2
 
-
-
 slnt = np.zeros([len(rhs), steps])
 for i in range(1, steps):            
     slnt[:, i] = la.spsolve(matrix_lhs, mass @ slnt[:,i-1] + rhs[:,0] * u[i])
     
-   
-    #slnt[:, i] = la.spsolve(matrix_lhs, (mass / dt) * slnt[:, i-1] + rhs * u[i, 0])
 
 c = np.dot(slnt, slnt.T)
 [D, V] = (np.linalg.eigh(c))
@@ -51,8 +65,6 @@ L [:,:]= V[:, -num:]
 mor_rhs = np.dot(L.T, rhs) 
 mor_mass = L.T @ mass @ L 
 
-point_n = 1000
-point_meas = 10
 
 mor_lhs= L.T @ matrix_lhs @ L 
 A = np.linalg.inv(mor_lhs) @ mor_mass
@@ -91,18 +103,12 @@ for k in range(steps-num):
         coef = coef @ B
         coefs.append(coef)
     
-    
     Y[0, 0] = y[k]
     for i in range(1, num):
         Y[i, 0] = y[k+i]
         for j in range(0, i):
             Y[i, 0] = Y[i, 0] - coefs[i-j-1] * u[k + j]
-    
-    #Y[1, 0] = y[k+1] - C @ B * u[k]
-    #Y[2, 0] = y[k+2] - C @ A @ B * u[k] -   C @ B * u[k+1]    
-    #Y[3, 0] = y[k+2] - C @ A @ A @ B * u[k] -   C @ A @ B * u[k+1] -  C @ B * u[k+2]   
-    
-    
+
     x_hat = hc_inv @ Y[:num, 0]
     y_hat.append(C_bar @ x_hat[:])    
 
@@ -112,6 +118,7 @@ pl.grid()
 pl.tick_params(axis='both', which='major', labelsize=16)
 pl.tick_params(axis='both', which='minor', labelsize=12)
 pl.plot(time, slnt[point_meas, :], 'k')
+pl.plot(time, slnt[point_n, :], 'r')
 pl.xlabel(r'$t$ [s]', size=16)
 pl.ylabel(r'$T [^\circ \mathrm{C}]$ ', size=16)
 pl.tight_layout()

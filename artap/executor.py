@@ -150,9 +150,9 @@ class RemoteExecutor(Executor):
         if problem.working_dir is None:
             raise Exception('RemoteExecutor: Problem working directory must be set.')
 
-        self.options.declare(name='hostname', default='',
+        self.options.declare(name='hostname', default=Enviroment.ssh_host,
                              desc='Hostname')
-        self.options.declare(name='username', default=getpass.getuser(),
+        self.options.declare(name='username', default=Enviroment.ssh_login,
                              desc='Username')
         self.options.declare(name='port', default=22, lower=0,
                              desc='Port')
