@@ -31,7 +31,7 @@ class TestNSGA2Optimization(unittest.TestCase):
         problem = BinhAndKornProblem("TestNSGA2Optimization")
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 50
+        algorithm.options['max_population_size'] = 100
         # algorithm.options['calculate_gradients'] = True
         algorithm.run()
 
@@ -73,12 +73,12 @@ class TestAckleyN2(unittest.TestCase):
         problem = AckleyN2Test("TestAckleyN2")
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 50
+        algorithm.options['max_population_size'] = 100
         algorithm.run()
 
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
-        self.assertAlmostEqual(optimum, -200, 0)
+        self.assertAlmostEqual(optimum.vector[0], -200, 1e-4)
 
 
 if __name__ == '__main__':
