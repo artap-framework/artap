@@ -604,19 +604,19 @@ class NLopt(Algorithm):
             print('Optimization FAILED.')
             print(op.get_errmsg())
 
-        """
-        FAILURE = -1, # generic failure code
-        INVALID_ARGS = -2,
-        OUT_OF_MEMORY = -3,
-        ROUNDOFF_LIMITED = -4,
-        FORCED_STOP = -5,
-        SUCCESS = 1, # generic success code 
-        STOPVAL_REACHED = 2,
-        FTOL_REACHED = 3,
-        XTOL_REACHED = 4,
-        MAXEVAL_REACHED = 5,
-        MAXTIME_REACHED = 6
-        """
+        msg_nlopt = {-1: 'failure - generic failure code',
+                     -2: 'failure - invalid arguments',
+                     -3: 'failure - out of memory',
+                     -4: 'failure - round off limited',
+                     -5: 'failure - forced stop',
+                      1: 'success - generic success code',
+                      2: 'success - stop value reached',
+                      3: 'success - ftol reached',
+                      4: 'success - xtol reached',
+                      5: 'success - maxeval reached',
+                      6: 'success - maxtime reached'
+                     }
+
         if self.options['verbose_level'] >= 1:
             print('optimum = ', op.last_optimum_value())
-            print('result code = ', op.last_optimize_result())
+            print('result code and meaning = ', op.last_optimize_result(), msg_nlopt[op.last_optimize_result()])
