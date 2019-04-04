@@ -1,7 +1,7 @@
 from artap.problem import Problem
 from artap.results import Results
 from artap.algorithm_bayesopt import BayesOptSerial
-from artap.algorithm_nlopt import NLopt, LN_BOBYQA
+from artap.algorithm_nlopt import NLopt, LN_BOBYQA, LN_COBYLA
 from artap.algorithm_genetic import NSGAII
 from agrossuite import agros as a2d
 
@@ -72,7 +72,7 @@ def bobyqa():
     algorithm = NLopt(problem)
     algorithm.options['n_iterations'] = 30
     algorithm.options['algorithm'] = LN_BOBYQA
-    algorithm.options['verbose_level'] = 1
+    # algorithm.options['verbose_level'] = 2
     algorithm.run()
 
     results = Results(problem)
@@ -103,6 +103,6 @@ def nsga2():
     optimum = results.find_minimum('F1')
     print(optimum)
 
-#nsga2()
-bobyqa()
+nsga2()
+#bobyqa()
 #bayesopt()
