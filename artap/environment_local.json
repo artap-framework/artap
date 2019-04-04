@@ -1,0 +1,15 @@
+{
+    "default_working_directory" : "",
+    "condor_host" : "edison.fel.zcu.cz",
+    "condor_login" : "panek50",
+    "condor_working_directory" : "tests/",
+    
+    "ssh_host" : "edison.fel.zcu.cz",
+    "ssh_login" : "panek50",
+    "ssh_working_directory" : "tests/",
+
+    "comsol_path" : "",
+
+    "loopback_ip": "localhost",
+    "server_initial_port" : 8050
+}
