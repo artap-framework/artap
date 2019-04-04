@@ -39,10 +39,10 @@ mass = scipy.io.loadmat('transient_solver-heat_matrix_mass.mat')['matrix_mass']
 mass = mass / dt
 matrix_lhs = mass + stiffness
 rhs = scipy.io.loadmat('transient_solver-heat_rhs.mat')['rhs']
-other = scipy.io.loadmat('transient_solver-heat_other.mat')['other']
+points = scipy.io.loadmat('transient_solver-heat_points.mat')['points']
 
-point_n = find_index(other, 3.759e-3, 4.463e-2)
-point_meas = find_index(other, 6.009e-3, 9.668e-3)
+point_n = find_index(points, 3.759e-3, 4.463e-2)
+point_meas = find_index(points, 6.009e-3, 9.668e-3)
 # point_meas = find_index(other, 3.759e-3, 4.463e-2)
 
 u = np.zeros(steps)
