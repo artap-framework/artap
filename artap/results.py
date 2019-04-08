@@ -45,13 +45,15 @@ class Results:
         index = 0  # default - one parameter
         if name:
             index = int(self.problem.costs.get(name))
+        if len(self.problem.data_store.individuals) is not 0:
+            min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
+        else:
+            min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
 
-        min_l = []
         # for population in self.problem.data_store.populations:
 
-        min_l.append(min(self.problem.data_store.individuals, key=lambda x: x.costs[index]))
         opt = min(min_l, key=lambda x: x.costs[index])
-        #opt = opt.costs[index]
+        # opt = opt.costs[index]
 
         return opt
 
@@ -128,9 +130,9 @@ class GraphicalResults(Results):
             pl.scatter(values1, values2, c='k')
 
         ax = pl.gca()
-        ax.set_yscale('log')
-        ax.set_xscale('log')
-        ax.set_xlim(1e-2, 1e1)
+        # ax.set_yscale('log')
+        # ax.set_xscale('log')
+        # ax.set_xlim(1e-2, 1e1)
 
         # labels
         pl.grid()

@@ -86,7 +86,8 @@ class Algorithm(metaclass=ABCMeta):
         for item in range(queue.qsize()):
             individuals.append(queue.get())
             # write to datastore
-            self.problem.data_store.write_individual(individuals[-1])
+            if self.problem.options["save_level"] == "individual":
+                self.problem.data_store.write_individual(individuals[-1])
         queue.close()
         queue.join_thread()
 

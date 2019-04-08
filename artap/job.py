@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-
+from .utils import VectorAndNumbers
 from .individual import Individual
 from .population import Population
 from copy import deepcopy
@@ -40,7 +40,8 @@ class JobSimple(Job):
         # add to population
         self.population.individuals.append(individual)
         # write to datastore
-        self.problem.data_store.write_individual(individual)
+        if self.problem.options["save_level"] == "individual":
+            self.problem.data_store.write_individual(individual)
 
         individual.is_evaluated = True
 
@@ -62,24 +63,28 @@ class JobQueue(Job):
                     individual = deepcopy(item[1])
         else:
             individual = Individual(x)
+        while not individual.is_evaluated:
+            # check the constraints
+            constraints = self.problem.evaluate_constraints(individual.vector)
 
-        # check the constraints
-        constraints = self.problem.evaluate_constraints(individual.vector)
+            if constraints:
+                individual.feasible = sum(map(abs, constraints))
 
-        if constraints:
-            individual.feasible = sum(map(abs, constraints))
+            # problem cost function evaluate only in that case when the problem is fits the constraints
+            try:
+                individual.costs = self.problem.surrogate.evaluate(individual.vector)
+            except TimeoutError:
+                individual.vector = VectorAndNumbers.gen_vector(self.problem.parameters)
+                continue
 
-        # problem cost function evaluate only in that case when the problem is fits the constraints
-        individual.costs = self.problem.surrogate.evaluate(individual.vector)
-
-        individual.is_evaluated = True
-        # write to datastore - not working parallel
-        # self.problem.data_store.write_individual(individuals[-1])
+            individual.is_evaluated = True
 
         if self.queue is not None:
             self.queue.put(individual)
 
         # add to population
         self.population.individuals.append(individual)
+        #  write to datastore - not working parallel
+        #  self.problem.data_store.write_individual(individual)
 
         return individual.costs
