@@ -3,8 +3,6 @@ import paramiko
 import os
 import datetime
 import time
-import getpass
-
 from string import Template
 from xml.dom import minidom
 from artap.environment import Enviroment
@@ -71,7 +69,7 @@ class ComsolExecutor(Executor):
         param_values_string = Executor._join_parameters(x)
 
         run_string = "{} comsol batch -inputfile {} -nosave -pname {} -plist {}"\
-            .format(Enviroment.comsol_path, self.problem.working_dir + self.model_file, param_names_string, param_values_string)
+            .format(Enviroment.local_comsol_path, self.problem.working_dir + self.model_file, param_names_string, param_values_string)
 
         # run command
         os.system(run_string)
@@ -400,6 +398,7 @@ class CondorJobExecutor(RemoteExecutor):
                 process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
                 event = ""
+                start = time.time()
                 while (event != "Completed") and (event != "Held"):
                     content = self._read_file_from_remote("{}.condor_log".format(process_id), client=client)
                     state = ComsolExecutor.parse_condor_log(content)
@@ -423,6 +422,9 @@ class CondorJobExecutor(RemoteExecutor):
                         assert 0
 
                     # time.sleep(1.0)
+                    end = time.time()
+                    if (end - start) > self.problem.options["time_out"]:
+                        raise TimeoutError
 
                 if event == "Completed":
                     content = self._read_file_from_remote(self.output_file, client=client)
@@ -435,7 +437,7 @@ class CondorJobExecutor(RemoteExecutor):
                 
                 return result
 
-            except Exception as e:
-                print(e)
-                time.sleep(1.0)
-                continue
+            except ConnectionError as e:
+                 print(e)
+                 time.sleep(1.0)
+                 continue

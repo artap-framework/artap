@@ -275,4 +275,4 @@ class VectorAndNumbers:
 
             parameters_vector.append(cls.gen_number(bounds, precision))
 
-        return parameters_vector
+        return parameters_vector.copy()

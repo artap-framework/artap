@@ -50,6 +50,8 @@ class ProblemBase(ABC):
                              desc='Enable DB handler')
         self.options.declare(name='log_console_handler', default=True,
                              desc='Enable console handler')
+        self.options.declare(name='time_out', default=600,
+                             desc='maximal time for calculating one individual')
 
         # tmp name
         d = datetime.datetime.now()

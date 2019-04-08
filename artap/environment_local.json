@@ -9,6 +9,7 @@
     "ssh_working_directory" : "tests/",
 
     "comsol_path" : "",
+    "local_comsol_path": "/home/david/Apps/comsol53/multiphysics/bin/comsol",
 
     "loopback_ip": "localhost",
     "server_initial_port" : 8050
