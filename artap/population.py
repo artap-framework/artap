@@ -22,10 +22,14 @@ class Population:
             individual = Individual(parameters)
             self.individuals.append(individual)
 
-    def to_list(self):
+    def to_list(self, population_number):
         table = []
         for individual in self.individuals:
-            table.append(individual.to_list())
+            params = individual.to_list()
+            params.insert(0, self.individuals.index(individual) + 1)
+            # population index
+            params.insert(1, population_number)
+            table.append(params)
 
         return table
 
