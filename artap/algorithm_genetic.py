@@ -101,7 +101,8 @@ class NSGAII(GeneticAlgorithm):
         self.selector.non_dominated_sort(population.individuals)
         self.selector.crowding_distance(population.individuals)
         # write to data store
-        self.problem.data_store.write_population(population, len(self.problem.data_store.populations))
+        if self.options['verbose_level'] > 0:
+            self.problem.data_store.write_population(population, len(self.problem.data_store.populations))
 
         t_s = time.time()
         self.problem.logger.info(

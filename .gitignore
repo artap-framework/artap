@@ -11,6 +11,9 @@ __pycache__
 *.db
 *.pdf
 *.png
+*.sqlite
+*.txt
+docs/source/_build/
 build
 artap/lib/*
 test_problem_multiobjective.profile
