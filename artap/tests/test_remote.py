@@ -49,10 +49,11 @@ class TestRemoteSSHExecutor(unittest.TestCase):
 
         self.assertAlmostEqual(result[0], 5.0)
 
-    def test_remote_octave_exec(self):
+    def xtest_remote_octave_exec(self):
         problem = TestProblem("TestOctaveProblem")
         problem.executor = RemoteSSHExecutor(problem,
                                              command="octave --no-gui",
+
                                              model_file="run_input.m",
                                              input_file="input.txt", # file is created in eval with specific parameters
                                              output_file="output.txt")
