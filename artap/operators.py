@@ -557,17 +557,17 @@ class ParetoDominance(Dominance):
 
     def compare(self, p, q):
         # First check the constraint violations
-        if p.feasible != 0.0:
-            if q.feasible != 0.0:
-                if abs(p.feasible) < abs(q.feasible):
-                    return 1
-                else:
-                    return 2
-            else:
-                return 2
-        else:
-            if q.feasible != 0.0:
-                return 1
+        # if p.feasible != 0.0:
+        #     if q.feasible != 0.0:
+        #         if abs(p.feasible) < abs(q.feasible):
+        #             return 1
+        #         else:
+        #             return 2
+        #     else:
+        #         return 2
+        # else:
+        #     if q.feasible != 0.0:
+        #         return 1
 
         # Then the pareto dominance
 

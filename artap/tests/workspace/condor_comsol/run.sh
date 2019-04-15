@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/opt/comsol-5.3/bin/comsol batch $@
+/opt/comsol-5.4/bin/comsol batch $@
