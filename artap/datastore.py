@@ -99,7 +99,7 @@ class DataStore:
         self.individuals.append(individual)
 
     @abstractmethod
-    def write_population(self, population):
+    def write_population(self, population, index=0):
         self.populations.append(population)
         # print("write_population: {}/{}".format(len(population.individuals), len(self.populations)))
 
@@ -242,6 +242,8 @@ class SqliteDataStore(DataStore):
             exec_cmd = "INSERT INTO data VALUES ("
 
             for i in range(len(params) - 1):
+                if params[i] == float('inf'):
+                    params[i] = -1
                 if type(params[i]) == list:
                     par = "'" + str(params[i]) + "'"
                 else:
@@ -256,23 +258,32 @@ class SqliteDataStore(DataStore):
 
             self._execute_command(exec_cmd)
 
-    def write_population(self, population):
-        super().write_population(population)
-        """
+    def write_population(self, population, index):
+        super().write_population(population, index)
         connection = sqlite3.connect(self.database_name)
-
+        table = population.to_list(index)
+        cursor = connection.cursor()
         for params in table:
             exec_cmd = "INSERT INTO data VALUES ("
-            for i in range(len(params) - 2):
-                exec_cmd += " " + str(params[i]) + ","
-            exec_cmd += " '" + json.dumps(params[i + 1]) + "',"
-            exec_cmd += "'" + json.dumps(params[i+2]) + "')"
-            cursor = connection.cursor()
+            for i in range(len(params) - 1):
+                if params[i] == float('inf'):
+                    params[i] = -1
+                if type(params[i]) == list:
+                    par = "'" + str(params[i]) + "'"
+                else:
+                    par = str(params[i])
+                exec_cmd += " " + par + ","
+
+            if type(params[i]) == list:
+                par = "'" + str(params[i]) + "'"
+            else:
+                par = str(params[i])
+            exec_cmd += " " + par + ")"
+
             cursor.execute(exec_cmd)
-            cursor.close()
+        cursor.close()
         connection.commit()
         connection.close()
-        """
 
     def read_from_datastore(self):
         connection = sqlite3.connect(self.database_name)
@@ -324,7 +335,7 @@ class SqliteDataStore(DataStore):
         current_population = table[0][1]
         for row in table:
             if row[1] == current_population:
-                individual = Individual(row[2:2 + len(self.problem.parameters)])
+                individual = Individual(list(row[2:2 + len(self.problem.parameters)]))
                 l = 2 + len(self.problem.parameters) + len(self.problem.costs)
                 individual.costs = row[2 + len(self.problem.parameters): 2 + len(self.problem.parameters) + len(self.problem.costs)]
                 individual.front_number = row[l]
@@ -359,5 +370,5 @@ class DummyDataStore(DataStore):
     def write_individual(self, individual):
         super().write_individual(individual)
 
-    def write_population(self, population):
-        super().write_population(population)
+    def write_population(self, population, index=0):
+        super().write_population(population, index)

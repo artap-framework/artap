@@ -33,7 +33,7 @@ class TestDataStore(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum('F_1')
-        self.assertLessEqual(abs(optimum), 5)
+        self.assertLessEqual(abs(optimum.costs[0]), 5)
 
     def test_write_data_store(self):
         # database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
@@ -51,7 +51,7 @@ class TestDataStore(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum('F')
-        self.assertAlmostEqual(optimum, 1.854, 3)
+        self.assertAlmostEqual(optimum.costs[0], 1.854, 3)
 
         # check db
         connection = sqlite3.connect(database_name)
