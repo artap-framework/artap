@@ -3,8 +3,8 @@ from abc import ABCMeta, abstractmethod
 from .individual import Individual
 from .population import Population
 from copy import deepcopy
-from multiprocessing import Queue
-import os
+from multiprocessing import Queue, Process, Manager
+import os, time
 
 
 class Job(metaclass=ABCMeta):
@@ -35,7 +35,31 @@ class JobSimple(Job):
             individual.feasible = sum(map(abs, constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
-        individual.costs = self.problem.surrogate.evaluate(individual.vector)
+        t_out = self.problem.options['max_running_time']
+        if t_out is None or not isinstance(t_out, float):
+            individual.costs = self.problem.surrogate.evaluate(individual.vector)
+        else:
+            interval = max(t_out / 100, 1)
+
+            manager = Manager()
+            ret_value = manager.dict()
+            work_p = Process(target=self.problem.surrogate.evaluate, args=(individual.vector, ))
+            start = time.time()
+            work_p.start()
+
+            while time.time()-start<t_out:
+                if work_p.is_alive():
+                    time.sleep(interval)
+                else:
+                    # if the process is ready, break
+                    work_p.join()
+                    individual.costs = ret_value.values()
+                    break
+            else:
+                print('Ciao!')
+                work_p.terminate()
+                individual.feasible = float('inf')
+                work_p.join()
 
         # add to population
         self.population.individuals.append(individual)
