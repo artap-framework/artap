@@ -157,7 +157,7 @@ class TestAgrosOptimization(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum('F')
-        self.assertLessEqual(optimum, 6.1)
+        self.assertLessEqual(optimum.costs[0], 6.1)
 
 
 if __name__ == '__main__':

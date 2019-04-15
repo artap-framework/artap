@@ -1,3 +1,5 @@
+from pygments.lexer import include
+
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
@@ -70,6 +72,8 @@ class NSGAII(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
 
+        self.problem.options["save_level"] = "population"
+
         self.options.declare(name='prob_cross', default=0.6, lower=0,
                              desc='prob_cross')
         self.options.declare(name='prob_mutation', default=0.2, lower=0,
@@ -97,7 +101,8 @@ class NSGAII(GeneticAlgorithm):
         self.selector.non_dominated_sort(population.individuals)
         self.selector.crowding_distance(population.individuals)
         # write to data store
-        self.problem.data_store.write_population(population)
+        if self.options['verbose_level'] > 0:
+            self.problem.data_store.write_population(population, len(self.problem.data_store.populations))
 
         t_s = time.time()
         self.problem.logger.info(
@@ -128,7 +133,7 @@ class NSGAII(GeneticAlgorithm):
 
             # write population
             population = Population(offsprings)
-            self.problem.data_store.write_population(population)
+            self.problem.data_store.write_population(population, len(self.problem.data_store.populations))
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))

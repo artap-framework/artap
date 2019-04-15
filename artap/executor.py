@@ -3,8 +3,6 @@ import paramiko
 import os
 import datetime
 import time
-import getpass
-
 from string import Template
 from xml.dom import minidom
 from artap.environment import Enviroment
@@ -70,8 +68,8 @@ class ComsolExecutor(Executor):
         param_names_string = Executor._join_parameters(self.problem.parameters)
         param_values_string = Executor._join_parameters(x)
 
-        run_string = "{} comsol batch -inputfile {} -nosave -pname {} -plist {}"\
-            .format(Enviroment.comsol_path, self.problem.working_dir + self.model_file, param_names_string, param_values_string)
+        run_string = "comsol batch -inputfile {} -nosave -pname {} -plist {}"\
+            .format(self.problem.working_dir + self.model_file, param_names_string, param_values_string)
 
         # run command
         os.system(run_string)
@@ -150,9 +148,9 @@ class RemoteExecutor(Executor):
         if problem.working_dir is None:
             raise Exception('RemoteExecutor: Problem working directory must be set.')
 
-        self.options.declare(name='hostname', default='',
+        self.options.declare(name='hostname', default=Enviroment.ssh_host,
                              desc='Hostname')
-        self.options.declare(name='username', default=getpass.getuser(),
+        self.options.declare(name='username', default=Enviroment.ssh_login,
                              desc='Username')
         self.options.declare(name='port', default=22, lower=0,
                              desc='Port')
@@ -400,6 +398,7 @@ class CondorJobExecutor(RemoteExecutor):
                 process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
                 event = ""
+                start = time.time()
                 while (event != "Completed") and (event != "Held"):
                     content = self._read_file_from_remote("{}.condor_log".format(process_id), client=client)
                     state = ComsolExecutor.parse_condor_log(content)
@@ -412,7 +411,7 @@ class CondorJobExecutor(RemoteExecutor):
                         # stop while cycle
                         break
 
-                    if event == "Held":
+                    if (event == "Held") or (event == "JobAbortedEvent"):
                         self.problem.logger.error("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
                         # read log
                         content_log = self._read_file_from_remote("{}.log".format(self.output_file), client=client)
@@ -422,7 +421,10 @@ class CondorJobExecutor(RemoteExecutor):
                         # TODO: abort computation - no success?
                         assert 0
 
-                    time.sleep(1.0)
+                    # time.sleep(1.0)
+                    end = time.time()
+                    if (end - start) > self.problem.options["time_out"]:
+                        raise TimeoutError
 
                 if event == "Completed":
                     content = self._read_file_from_remote(self.output_file, client=client)
@@ -435,7 +437,7 @@ class CondorJobExecutor(RemoteExecutor):
                 
                 return result
 
-            except Exception as e:
-                print(e)
-                time.sleep(1.0)
-                continue
+            except ConnectionError as e:
+                 print(e)
+                 time.sleep(1.0)
+                 continue

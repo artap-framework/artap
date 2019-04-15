@@ -6,6 +6,7 @@ from artap.problem import Problem
 from artap.algorithm import DummyAlgorithm
 from artap.population import Population
 
+
 class TestProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
