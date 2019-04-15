@@ -3,7 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results, GraphicalResults
+from artap.results import Results
 from artap.datastore import SqliteDataStore
 
 
@@ -35,13 +35,7 @@ class TestNSGA2Optimization(unittest.TestCase):
         algorithm.options['verbose_level'] = 0
         algorithm.options['max_population_number'] = 10
         algorithm.options['max_population_size'] = 10
-        # algorithm.options['calculate_gradients'] = True
         algorithm.run()
-        #
-        # results = GraphicalResults(problem)
-        # results.plot_scatter('F_1', 'F_2')
-        # results.plot_scatter('x_1', 'x_2')
-        # results.plot_individuals('F_1')
 
         b = Results(problem)
         solution = b.pareto_values()
