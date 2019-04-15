@@ -8,7 +8,7 @@ Created on Fri Feb  8 13:20:29 2019
 
 import numpy as np
 import pylab as pl
-import random as rn
+from scipy.integrate import odeint
 
 
 class Model:
@@ -21,13 +21,12 @@ class Model:
         sub_system.dt = self.dt
         self.systems.append(sub_system)
 
-    def run(self, n):
-        for i in range(n):
-            self.time += self.dt
-            for sub_system in self.systems:
-                sub_system.step(self.time)
+    def add_continuous_lti(self, A, B, C, D, x0):
+        sub_system = ContinuousLTISystem(A, B, C, D, x0)
+        self.add_system(sub_system)
+        return sub_system
 
-    def add_LTI(self, A, B, C, D, x0, dt):
+    def add_LTI(self, A, B, C, D, x0, dt=0):
         sub_system = LTISystem(A, B, C, D, x0, dt)
         self.add_system(sub_system)
         return sub_system
@@ -47,16 +46,21 @@ class Model:
         self.add_system(sub_system)
         return sub_system
 
+    def run(self, n):
+        for i in range(n):
+            for sub_system in self.systems:
+                sub_system.step(self.time, self.time + self.dt)
+            self.time += self.dt
+
 
 class System:
-    def __init__(self, dt):
+    def __init__(self):
         self.inputs = []
-        self.archive_time = [0]
+        self.archive_time = []
         self.archive_y = []
         self.archive_x = []
         self.archive_u = []
         self.connections = []
-        self.dt = 0
 
     def initialize(self, x, y, B):
 
@@ -97,6 +101,11 @@ class System:
         self.connections.append(None)
 
     def connect(self, system_output, output_index=0, input_index=0):
+        n = len(self.inputs) - input_index + 1
+        for i in range(n):
+            self.inputs.append(None)
+            self.connections.append(None)
+
         self.inputs[input_index] = system_output
         self.connections[input_index] = output_index
 
@@ -109,7 +118,7 @@ class System:
         # pl.figure()
         if item == 'output':
             for y in self.archive_y:
-                pl.plot(self.archive_time, self.archive_y[0])
+                pl.plot(self.archive_time, self.archive_y)
             pl.ylabel('y[-]')
 
         if item == 'input':
@@ -118,12 +127,46 @@ class System:
             pl.ylabel('u[-]')
 
         if item == 'state':
-            for x in self.archive_x:
-                pl.plot(self.archive_time, x)
+            pl.plot(self.archive_time, self.archive_x)
             pl.ylabel('x[-]')
 
         pl.xlabel('t[s]')
         pl.grid()
+
+
+class ContinuousSystem(System):
+    def __init__(self, x_0):
+        super().__init__()
+        if x_0 is None:
+            self.x_0 = np.zeros(self.n)
+        else:
+            self.x_0 = x_0
+
+    def update_state(self, x_0, t):
+        dx = []
+        for x_i in x_0:
+            dx_i = -0.1 * x_i
+            dx.append(dx_i)
+        return dx
+
+    def update_output(self, t):
+        return [0]
+
+    def step(self, t_start, t_end):
+        if len(self.archive_x) is not 0:
+            x_0 = self.archive_x[-1]
+        else:
+            x_0 = self.x_0
+        t = np.linspace(t_start, t_end, 10)
+        x = odeint(self.update_state, x_0, t)
+        for x_i in x:
+            self.archive_x.append(x_i)
+
+        y = self.update_output(x, t)
+        for y_i in y:
+            self.archive_y.append(y_i)
+
+        self.archive_time.extend(t)
 
 
 class Sum(System):
@@ -167,9 +210,47 @@ class PI(System):
         self.archive_time.append(time)
 
 
+class ContinuousLTISystem(ContinuousSystem):
+    def __init__(self, A, B, C, D, x_0=None):
+        super().__init__(x_0)
+        self.A = np.matrix(A)
+        self.B = np.matrix(B)
+        self.C = np.matrix(C)
+        self.D = np.matrix(D)
+
+    def update_state(self, x, t):
+        u = list()
+
+        for i in range(len(self.inputs)):
+            u.append(self.inputs[i](t, self.connections[i]))
+        if len(u) is 0:
+            u = [0]
+        u = np.transpose(np.matrix(u))
+        x = np.matrix(x).T
+        deriv = self.A @ x + self.B @ u
+        dx = []
+        for line in deriv:
+            dx.append(line[0, 0])
+        return dx
+
+    def update_output(self, x, t):
+        y = []
+        for x_i, t_i in zip(x, t):
+            inputs = list()
+            for i in range(len(self.inputs)):
+                inputs.append(self.inputs[i](t_i, self.connections[i]))
+                u = np.transpose(np.matrix(inputs))
+                y.append(self.C @ x_i + self.D @ u)
+            output = []
+            for line in y:
+                output.append(line.tolist()[0])
+        return output
+
+
 class LTISystem(System):
+
     def __init__(self, A, B, C, D, x0=None, dt=0):
-        super().__init__(dt)
+        super().__init__()
         self.x = np.transpose(np.array(x0))
         self.A = np.matrix(A)
         self.B = np.matrix(B)
@@ -183,7 +264,7 @@ class LTISystem(System):
 
         self.initialize(self.x, self.y, B)
 
-    def discretize(self, dt, method = None):
+    def discretize(self, dt, method=None):
         if dt != 0:
             if method is None:
                 self.A = np.eye(self.n) + dt * self.A
@@ -213,6 +294,18 @@ class LTISystem(System):
 
                 self.update_data(u, self.x, self.y, time)
 
+    def continuous_step(self, time):
+        x0 = self.archive_x[-1]
+
+    def observability_matrix(self):
+        n = len(self.x)
+        h_o = np.zeros([n, n])
+        for i in range(n):
+            h_o[i, :] = self.C[:]
+            for j in range(i):
+                h_o[i, :] = h_o[i, :] @ A
+        return h_o
+
 
 class KalmanFilter(System):
     def __init__(self, controlled_system: System, dt):
@@ -238,7 +331,6 @@ class KalmanFilter(System):
         self.P = self.covariance(self.error_proc)
         self.R = self.covariance(self.error_obs)
         self.Q = np.zeros(n)
-
 
     def covariance(self, sigma):
         cov_matrix = np.eye(len(sigma))
@@ -303,23 +395,49 @@ def white_noise():
     return np.random.normal(0., 0.1, 1)
 
 
-model = Model(dt=1)
-
-x0 = [4000, 280]
-A = [[1,  1],
-     [0,  1]]
+A = [[-1,  1],
+     [0,  -1]]
 
 C = [[1,  0], [0,  1]]
 
 B = [[1], [2]]
 D = [0]
 
-system = model.add_LTI(A, B, C, D, x0=x0, dt=1)
-kfilter = model.add_kalman_filter(system)
+model = Model(dt=1)
+x0 = [10, 5]
+system = model.add_continuous_lti(A, B, C, D, x0)
 system.connect(unit_step)
-kfilter.connect(unit_step)
-kfilter.connect(system.output, 1, 1)
-model.run(3)
-kfilter.plot('output')
+model.run(10)
 system.plot('output')
 pl.show()
+
+# x0 = [4000, 280]
+# A = [[1,  1],
+#      [0,  1]]
+#
+# C = [[1,  0], [0,  1]]
+#
+# B = [[1], [2]]
+# D = [0]
+#
+# system = model.add_LTI(A, B, C, D, x0=x0, dt=1)
+# kfilter = model.add_kalman_filter(system)
+# system.connect(unit_step)
+# kfilter.connect(unit_step)
+# kfilter.connect(system.output, 1, 1)
+# model.run(3)
+# kfilter.plot('output')
+# system.plot('output')
+# pl.show()
+#
+# x0 = [4000, 280]
+# A = [[-1,  -2],
+#      [2,  -1]]
+#
+# C = [[1,  0]]
+#
+# B = [[1], [2]]
+# D = [0]
+#
+# system = model.add_LTI(A, B, C, D, x0=x0)
+# print(system.observability_matrix())
