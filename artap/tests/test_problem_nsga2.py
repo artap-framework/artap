@@ -28,7 +28,7 @@ class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem_nsga2(self):
-        database_name = "./new_data.sqlite"
+        database_name = "./data.sqlite"
         problem = BinhAndKornProblem("TestNSGA2Optimization")
         problem.data_store = SqliteDataStore(problem, database_name=database_name)
         algorithm = NSGAII(problem)
