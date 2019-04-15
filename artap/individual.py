@@ -8,7 +8,7 @@ class Individual(metaclass=ABCMeta):
     """
 
     def __init__(self, vector: list):
-        self.vector = vector.copy()
+        self.vector = vector
         self.costs = []
         self.gradient = []
 

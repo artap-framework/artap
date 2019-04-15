@@ -4,7 +4,7 @@ from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
-
+import time, random
 
 class BinhAndKornProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -79,6 +79,41 @@ class TestAckleyN2(unittest.TestCase):
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
         self.assertAlmostEqual(optimum.vector[0], -200, 1e-4)
+
+class AckleyN2Test_Sleepy(Problem):
+    """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
+
+    def __init__(self, name):
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32]},
+                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32]}}
+        costs = ['F_1']
+
+        super().__init__(name, parameters, costs)
+
+    def evaluate(self, x):
+        if random.random()>0.5:
+            time.sleep(5.)
+        function = AckleyN2()
+        return [function.eval(x)]
+
+
+class TestAckleyN2_Sleepy(unittest.TestCase):
+    """ Tests that the NSGA II algorithm can find the global optimum of a function."""
+
+    def test_local_problem(self):
+        problem = AckleyN2Test_Sleepy("TestSleepy")
+        problem.options['max_running_time'] = 2. #  seconds
+
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 100
+        algorithm.options['max_population_size'] = 100
+
+        algorithm.run()
+
+        b = Results(problem)
+        optimum = b.find_minimum('F_1')  # Takes last cost function
+        self.assertAlmostEqual(optimum.vector[0], -200.0, 1e-4)
+
 
 
 if __name__ == '__main__':
