@@ -1,9 +1,9 @@
 {
     "condor_host" : "localhost",
-    "condor_login" : "",
+    "condor_login" : null,
     
     "ssh_host" : "localhost",
-    "ssh_login" : "",
+    "ssh_login" : null,
 
     "comsol_path" : "",
 

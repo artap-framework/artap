@@ -31,7 +31,7 @@ algorithm.options['max_population_size'] = 100
 # algorithm.options['calculate_gradients'] = True
 algorithm.run()
 
-results = GraphicalResults(problem)
-results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf")
+# results = GraphicalResults(problem)
+# results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf")
 # results.plot_scatter('x_1', 'x_2')
 # results.plot_individuals('F_1')
