@@ -51,10 +51,7 @@ class Results:
             min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
 
         # for population in self.problem.data_store.populations:
-
         opt = min(min_l, key=lambda x: x.costs[index])
-        # opt = opt.costs[index]
-
         return opt
 
     def find_pareto(self, name1, name2):
