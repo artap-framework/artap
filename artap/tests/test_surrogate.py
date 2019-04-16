@@ -4,7 +4,7 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import Booth
 from artap.surrogate import SurrogateModelEval, SurrogateModelRegressor
-from artap.operators import CustomGeneration, LHCGeneration
+from artap.operators import CustomGeneration, LHSGeneration
 from artap.algorithm_sweep import SweepAlgorithm
 
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -171,7 +171,7 @@ class TestSurrogate(unittest.TestCase):
         problem.surrogate.train_step = 100
 
         # sweep analysis (for training)
-        gen = LHCGeneration(problem.parameters)
+        gen = LHSGeneration(problem.parameters)
         gen.init(problem.surrogate.train_step)
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()
