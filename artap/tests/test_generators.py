@@ -1,7 +1,7 @@
 import unittest
 from artap.doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
 from artap.individual import Individual
-from artap.operators import CustomGeneration, RandomGeneration, FullFactorGeneration, PlackettBurmanGeneration, BoxBehnkenGeneration, LHCGeneration
+from artap.operators import CustomGeneration, RandomGeneration, FullFactorGeneration, PlackettBurmanGeneration, BoxBehnkenGeneration, LHSGeneration
 
 
 class TestDOE(unittest.TestCase):
@@ -91,7 +91,7 @@ class TestDOE(unittest.TestCase):
     # Randomized Designs
     def test_lhs_generation(self):
         # Latin - Hypercube
-        gen = LHCGeneration(self.parameters)
+        gen = LHSGeneration(self.parameters)
         gen.init(number=3)
         individuals = gen.generate()
 

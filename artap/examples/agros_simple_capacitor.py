@@ -49,10 +49,10 @@ class Capacitor(Problem):
 
         # geometry
         geometry = problem.geometry()
-        geometry.add_edge("r1", 0, "r2", 0, curvilinear=False, boundaries={"electrostatic": "neumann"})
-        geometry.add_edge("r2", 0, 0, "r2", curvilinear=False, angle=90, boundaries={"electrostatic": "GND"})
-        geometry.add_edge(0, "r2", 0, "r1", curvilinear=False, boundaries={"electrostatic": "neumann"})
-        geometry.add_edge("r1", 0, 0, "r1", curvilinear=False, angle=90, boundaries={"electrostatic": "V"})
+        geometry.add_edge("r1", 0, "r2", 0, boundaries={"electrostatic": "neumann"})
+        geometry.add_edge("r2", 0, 0, "r2", angle=90, boundaries={"electrostatic": "GND"})
+        geometry.add_edge(0, "r2", 0, "r1", boundaries={"electrostatic": "neumann"})
+        geometry.add_edge("r1", 0, 0, "r1", angle=90, boundaries={"electrostatic": "V"})
 
         geometry.add_label("(r1 + r2) / 2.", "(r2 - r1) / 2", materials={"electrostatic": "dielectric"})
 
