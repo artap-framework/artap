@@ -28,6 +28,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
     def test_local_problem_nsga2(self):
 
+        database_name = "./new_data.sqlite"
         problem = BinhAndKornProblem("TestNSGA2Optimization")
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
@@ -78,7 +79,7 @@ class TestAckleyN2(unittest.TestCase):
 
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
-        self.assertAlmostEqual(optimum.vector[0], -200, 1e-4)
+        self.assertAlmostEqual(optimum.costs[0], -200, places=1)
 
 
 if __name__ == '__main__':
