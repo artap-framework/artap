@@ -154,13 +154,14 @@ class ThisIsNotMyProblem(Problem):
 
         return [abs(C - self.C_req)]
 
+
 class TestIsItNotMyProblem(unittest.TestCase):
 
     def test_run(self):
 
         problem = ThisIsNotMyProblem("AgrosProblem")
         algorithm = NLopt(problem)
-        algorithm.options['n_iterations'] = 20
+        algorithm.options['n_iterations'] = 30
         algorithm.options['algorithm'] = LN_BOBYQA
         # algorithm.options['verbose_level'] = 2
         algorithm.run()
