@@ -1,8 +1,9 @@
 from .problem import Problem
-from .population import Population
-from .individual import Individual
 from .utils import ConfigDictionary
+from .job import JobSimple, JobQueue
+from .population import Population
 
+from multiprocessing import Process, Manager, Queue, cpu_count
 from abc import ABCMeta, abstractmethod
 
 
@@ -18,49 +19,88 @@ class Algorithm(metaclass=ABCMeta):
                              desc='Verbose level')
         self.options.declare(name='calculate_gradients', default=False,
                              desc='Enable calculating of gradients')
+        # max(int(2 / 3 * cpu_count(), 1)
+        self.options.declare(name='max_processes', default=1,
+                             desc='Max running processes')
 
+        # initial population size
+        self.population_size = 0
 
     @abstractmethod
     def run(self):
         pass
 
+    def gen_initial_population(self):
+        individuals = self.generator.generate()
+        # set current size
+        self.population_size = len(individuals)
+        # evaluate individuals
+        individuals = self.evaluate(individuals)
 
-class Sensitivity(Algorithm):
-    def __init__(self, problem, parameters, name='Sensitivity analysis'):
-        self.parameters = parameters
+        population = Population(individuals)
+        return population
+
+    def evaluate(self, individuals: list):
+        if self.options["max_processes"] > 1:
+            individuals = self.evaluate_parallel(individuals)
+        else:
+            individuals = self.evaluate_serial(individuals)
+
+        return individuals
+
+    def evaluate_serial(self, individuals: list):
+        job = JobSimple(self.problem)
+        for individual in individuals:
+            if not individual.is_evaluated:
+                individual.costs = job.evaluate(individual.vector)
+                individual.is_evaluated = True
+
+        # collect the results
+        return individuals
+
+    def evaluate_parallel(self, individuals: list):
+        manager = Manager()
+        shared_list = manager.list([])
+        queue = Queue()
+        job = JobQueue(self.problem, shared_list, queue)
+        processes = []
+
+        i = 0
+        j = 0
+        for individual in individuals:
+            if not individual.is_evaluated:
+                p = Process(target=job.evaluate, args=(individual.vector,))
+                processes.append(p)
+                p.start()
+                shared_list.append([p.pid, individual])
+                i += 1
+                j += 1
+
+            if ((i % self.options['max_processes']) == 0) or (j >= len(individuals)):
+                for process in processes:
+                    process.join()
+                    processes = []
+
+        # collect the results
+        individuals = []
+        for item in range(queue.qsize()):
+            individuals.append(queue.get())
+            # write to datastore
+            if self.problem.options["save_level"] == "individual":
+                self.problem.data_store.write_individual(individuals[-1])
+        queue.close()
+        queue.join_thread()
+
+        return individuals
+
+
+class DummyAlgorithm(Algorithm):
+    """
+    Dummy class for testing
+    """
+
+    def __init__(self, problem, name='DummyAlgorithm'):
         super().__init__(problem, name)
 
     def run(self):
-        parameters = []
-        for parameter in self.problem.parameters.items():
-            parameters.append(float(parameter[1]['initial_value']))
-
-        for parameter_name in self.parameters:
-            parameter_values = []
-            population = Population(self.problem)
-
-            index = 0
-            selected_parameter = None
-            for parameter in self.problem.parameters.items():
-                if parameter[0] == parameter_name:
-                    selected_parameter = parameter
-                    break
-                index += 1
-
-            individuals = []
-            for i in range(self.problem.max_population_size):
-                value = Individual.gen_number(selected_parameter[1]['bounds'], selected_parameter[1]['precision'],
-                                              'normal')
-                parameters[index] = value
-                parameter_values.append(value)
-                individual = Individual(parameters.copy(), self.problem)
-                individuals.append(individual)
-
-            population.individuals = individuals
-            population.evaluate()
-            costs = []
-            # TODO: Make also for multi-objective
-            for individual in population.individuals:
-                costs.append(individual.costs)
-
-            self.problem.populations.append(population)
+        pass

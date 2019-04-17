@@ -1,21 +1,19 @@
-import unittest 
+import unittest
 
 from artap.problem import Problem
-from artap.algorithm import Sensitivity
+from artap.algorithm_sensitivity import Sensitivity
 from artap.datastore import DummyDataStore
 
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        self.max_population_number = 1
-        self.max_population_size = 10
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
                       'x_2': {'initial_value': 2.5, 'bounds': [2.2, 2.4], 'precision': 1e-1},
                       'x_3': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         result = 0
@@ -25,12 +23,13 @@ class MyProblem(Problem):
 
 class TestSensitivity(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
-    
-    def test_local_problem(self):   
+
+    def test_local_problem(self):
         problem = MyProblem("LocalPythonProblem")
         algorithm = Sensitivity(problem, ['x_2', 'x_3'])
-        algorithm.run()        
-        
+        algorithm.options['max_population_size'] = 10
+        algorithm.run()
+
 
 if __name__ == '__main__':
     unittest.main()
