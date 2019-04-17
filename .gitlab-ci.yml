@@ -9,4 +9,4 @@ build:
 
     # tests
     - cd artap/tests
-    - python3 -m unittest -v 
+    - pytest-3 -v

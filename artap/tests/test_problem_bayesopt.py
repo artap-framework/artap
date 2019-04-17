@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from artap.problem import Problem
@@ -12,12 +11,11 @@ from artap.benchmark_functions import Booth
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-30, 30], 'precision': 1e-1},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-30, 30], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
         costs = ['F']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
-        self.options['max_processes'] = 1
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -25,7 +23,7 @@ class MyProblem(Problem):
 
 class TestBayesOptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
-    
+
     def xtest_local_problem_bayesopt_parallel(self):
         problem = MyProblem("TestBayesOptParallel")
         algorithm = BayesOptParallel(problem)
@@ -34,9 +32,9 @@ class TestBayesOptOptimization(unittest.TestCase):
         algorithm.run()
         # TODO - multiprocess test
 
-        # results = Results(problem)
-        # optimum = results.find_minimum(name='F')
-        # self.assertAlmostEqual(optimum, 0, places=2)
+        results = Results(problem)
+        optimum = results.find_minimum(name='F')
+        self.assertAlmostEqual(optimum.costs[0], 0, places=2)
 
     def test_local_problem_bayesopt_serial(self):
         problem = MyProblem("TestBayesOptSerial")
@@ -47,7 +45,7 @@ class TestBayesOptOptimization(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum(name='F')
-        self.assertAlmostEqual(optimum, 0, places=2)
+        self.assertAlmostEqual(optimum.costs[0], 0, places=2)
 
 
 if __name__ == '__main__':

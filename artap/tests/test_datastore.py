@@ -1,21 +1,80 @@
+import sqlite3
 import os
 import unittest
-from artap.problem import ProblemDataStore
+import shutil
+from artap.problem import Problem, ProblemDataStore
 from artap.datastore import SqliteDataStore
+from artap.algorithm_nlopt import NLopt
+from artap.algorithm_nlopt import LN_BOBYQA
 
 from artap.results import Results
+from artap.benchmark_functions import Booth
+
+import tempfile
+
+
+class MyProblem(Problem):
+    """ Describe simple one objective optimization problem. """
+    def __init__(self, name):
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
+        costs = ['F']
+
+        super().__init__(name, parameters, costs, working_dir=tempfile.mkdtemp())
+
+    def evaluate(self, x):
+        return [Booth.eval(x)]
 
 
 class TestDataStore(unittest.TestCase):
-    def test_local_problem_data_store(self):
-        database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
-        data_store = SqliteDataStore(database_file=database_file)
-        problem = ProblemDataStore(data_store)
+    def test_read_data_store(self):
+        database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
+        problem = ProblemDataStore(database_name=database_name)
 
         results = Results(problem)
         optimum = results.find_minimum('F_1')
-        self.assertLessEqual(abs(optimum), 5)
-        
+        self.assertLessEqual(abs(optimum.costs[0]), 5)
+
+    def test_write_data_store(self):
+        # database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
+        problem = MyProblem("NLopt_BOBYQA")
+
+        # set datastore
+        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        problem.data_store = SqliteDataStore(problem, database_name=database_name)
+
+        algorithm = NLopt(problem)
+        algorithm.options['verbose_level'] = 0
+        algorithm.options['algorithm'] = LN_BOBYQA
+        algorithm.options['n_iterations'] = 10
+        algorithm.run()
+
+        results = Results(problem)
+        optimum = results.find_minimum('F')
+        self.assertAlmostEqual(optimum.costs[0], 1.854, 3)
+
+        # check db
+        connection = sqlite3.connect(database_name)
+        # connection.execute('pragma journal_mode=wal')
+
+        cursor = connection.cursor()
+        exec_cmd_data = "SELECT * FROM data"
+        data = cursor.execute(exec_cmd_data)
+
+        table = list()
+        for row in data:
+            table.append(row)
+
+        self.assertAlmostEqual(row[0], 10) # individual id
+        self.assertAlmostEqual(row[1], 1) # population id
+        self.assertAlmostEqual(row[4], 1.854, 3) # result
+
+        cursor.close()
+        connection.close()
+
+        # remove file
+        os.remove(database_name)
+
 
 if __name__ == '__main__':
     unittest.main()

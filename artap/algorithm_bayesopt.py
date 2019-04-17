@@ -1,7 +1,8 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
-from .enviroment import Enviroment
+from .environment import Enviroment
+from .job import JobSimple
 
 import time
 import numpy as np
@@ -12,8 +13,8 @@ import sys
 sys.path.append(Enviroment.artap_root + os.sep + "lib" + os.sep)
 import bayesopt
 
-from multiprocessing import Process, Pipe, Manager
-from multiprocessing.managers import BaseManager
+from multiprocessing import Process, Pipe, Queue, Manager
+# from multiprocessing.managers import BaseManager
 
 _l_type = ['L_FIXED', 'L_EMPIRICAL', 'L_DISCRETE', 'L_MCMC', 'L_ERROR']
 _sc_type = ['SC_MTL', 'SC_ML', 'SC_MAP', 'SC_LOOCV', 'SC_ERROR']
@@ -24,13 +25,13 @@ _surr_name = ["sGaussianProcess", "sGaussianProcessML", "sGaussianProcessNormal"
 # The objective module should inherit this one and override evaluateSample.
 class BayesOptContinuous(object):
 
-    ## Let's define the parameters.
+    # Let's define the vector.
     #
-    # For different options: see parameters.h and parameters.cpp .
+    # For different options: see vector.h and vector.cpp .
     # If a parameter is not defined, it will be automatically set
     # to a default value.
     def __init__(self, n_dim):
-        ## Library parameters
+        ## Library vector
         self.params = {}
         ## n dimensions
         self.n_dim = n_dim
@@ -71,8 +72,8 @@ class BayesOptContinuous(object):
     ## Main function. Starts the optimization process.
     def optimize(self):
         min_val, x_out, error = bayesopt.optimize(self.evaluateSample, self.n_dim,
-                                            self.lb, self.ub,
-                                            self.params)
+                                                  self.lb, self.ub,
+                                                  self.params)
 
         return min_val, x_out, error
 
@@ -103,17 +104,22 @@ class BayesOpt(Algorithm):
 
 
 class BayesOptClassSerial(BayesOptContinuous):
-    def __init__(self, n, problem: Problem):
+    def __init__(self, algorithm):
+        n = len(algorithm.problem.parameters)
         super().__init__(n)
-        self.problem = problem
+
+        # algorithm
+        self.algorithm = algorithm
 
         # Size design variables.
         self.lb = np.empty((n,))
         self.ub = np.empty((n,))
         self.params = {}
 
+        self.job = JobSimple(self.algorithm.problem)
+
     def evaluateSample(self, x):
-        return self.problem.evaluate_individual_scalar(x)
+        return self.job.evaluate_scalar(x)
 
 
 class BayesOptSerial(BayesOpt):
@@ -122,12 +128,9 @@ class BayesOptSerial(BayesOpt):
     def __init__(self, problem: Problem, name="BayesOpt"):
         super().__init__(problem, name)
 
-        self.bo = BayesOptClassSerial(len(self.problem.parameters), problem)
+        self.bo = BayesOptClassSerial(self)
 
     def run(self):
-        population = Population(self.problem)
-        self.problem.populations.append(population)
-
         # Figure out bounds vectors.
         i = 0
         for id in self.problem.parameters:
@@ -159,10 +162,11 @@ class BayesOptSerial(BayesOpt):
             print('Optimization FAILED.')
             print("Error", error)
             print('-' * 35)
-        #else:
-        #    print('Optimization Complete, %f seconds' % (clock() - start))
-        #    print("Result", x_out, mvalue)
-        #    print('-' * 35)
+        else:
+            pass
+            # print('Optimization Complete, %f seconds' % (clock() - start))
+            # print("Result", x_out, mvalue)
+            # print('-' * 35)
 
 
 class BayesOptClassParallel(Process, BayesOptContinuous):
@@ -210,7 +214,8 @@ def worker(pipe, problem):
         if str(x) == 'STOP':
             break
 
-        result = problem.evaluate_individual_scalar(x)
+        job = JobSimple(problem)
+        result = job.evaluate_scalar(x)
         pipe.send(result)
 
 
@@ -224,9 +229,6 @@ class BayesOptParallel(BayesOpt):
         self.bo = BayesOptClassParallel(self.pipe_child, len(self.problem.parameters), problem)
 
     def run(self):
-        population = Population(self.problem)
-        self.problem.populations.append(population)
-
         # Figure out bounds vectors.
         i = 0
         for id in self.problem.parameters:
