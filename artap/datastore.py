@@ -66,13 +66,20 @@ class SqliteHandler(logging.Handler):
 class DataStore:
     """ Class  ensures saving data from optimization problems. """
 
-    def __init__(self):
+    def __init__(self, problem):
+        self.problem = problem
+
         # create the new loop and worker thread
         self.worker_loop = asyncio.new_event_loop()
         worker = Thread(target=self._start_worker, args=(self.worker_loop,))
         worker.daemon = True
         # Start the thread
         worker.start()
+
+        # populations
+        self.populations = []
+        # individuals ???
+        self.individuals = []
 
     def __del__(self):
         # print("DataStore:def __del__(self):")
@@ -83,40 +90,46 @@ class DataStore:
         loop.run_forever()
 
     @abstractmethod
-    def write_individual(self, params):
+    def create_structure(self):
         pass
 
     @abstractmethod
-    def write_population(self, table):
-        pass
+    def write_individual(self, individual):
+        # print("write_individual: {}".format(individual))
+        self.individuals.append(individual)
+
+    @abstractmethod
+    def write_population(self, population, index=0):
+        self.populations.append(population)
+        # print("write_population: {}/{}".format(len(population.individuals), len(self.populations)))
 
     def get_id(self):
         return 0
 
+
 class SqliteDataStore(DataStore):
+    def __init__(self, problem, database_name=None, remove_existing=True):
+        super().__init__(problem)
 
-    def __init__(self, problem=None, database_file=None, working_dir=None, create_database=False):
-        super().__init__()
+        self.database_name = database_name
 
-        if working_dir is None:
-            self.working_dir = ""
-        else:
-            self.working_dir = working_dir
+        # remove database and create structure
+        if remove_existing and os.path.exists(self.database_name):
+            os.remove(self.database_name)
+            self.create_structure()
 
-        if problem is not None:
-            problem.data_store = self
+        # set datastore to problem
+        self.problem.data_store = self
 
-        if create_database:
-            self.database_name = self.working_dir + os.sep + "data" + ".sqlite"
-            if os.path.exists(self.database_name):
-                os.remove(self.database_name)
-        else:
-            if database_file is not None:
-                self.database_name = database_file
-            else:
-                parameters_file = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite")
-                parameters_file.close()
-                self.database_name = parameters_file.name()
+        # set db log
+        if self.problem.options['log_db_handler']:
+            # create file handler and set level to debug
+            file_handler = SqliteHandler(self)
+            file_handler.setLevel(logging.DEBUG)
+            # add formatter to SqliteHandler
+            file_handler.setFormatter(self.problem.formatter)
+            # add SqliteHandler to logger
+            self.problem.logger.addHandler(file_handler)
 
     def __del__(self):
         super().__del__()
@@ -144,8 +157,58 @@ class SqliteDataStore(DataStore):
         except sqlite3.Error as e:
             print("SqliteDataStore: execute: error occurred:", e.args[0])
 
-    def save_problem(self, problem):
-        pass
+    def _create_structure_task(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (INTEGER PRIMARY KEY, ' \
+                   'name TEXT, ' \
+                   'description TEXT,' \
+                   'algorithm TEXT,' \
+                   'calculation_time NUMBER,' \
+                   'state TEXT)'
+        self._execute_command(exec_cmd)
+
+        exec_cmd = "INSERT INTO problem(name, description, state) " \
+                   "values('%s', '%s', '%s');" % (self.problem.name, self.problem.description, "running")
+        self._execute_command(exec_cmd)
+
+    def _create_structure_individual(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS data (id INTEGER, population_id INTEGER, '
+
+        for parameter in self.problem.parameters.keys():
+            exec_cmd += parameter + " NUMBER, "
+
+        for cost in self.problem.costs:
+            exec_cmd += cost + " NUMBER,"
+
+        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
+        exec_cmd += ");"
+
+        self._execute_command(exec_cmd)
+
+    def _create_structure_parameters(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS parameters (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
+                   'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
+        self._execute_command(exec_cmd)
+
+        for parameter in self.problem.parameters.items():
+            exec_cmd = "INSERT INTO parameters(name, initial_value, low_boundary, high_boundary, precision) " \
+                       "VALUES( '{}', {}, {}, {}, {});".format(parameter[0], parameter[1]['initial_value'],
+                                                               parameter[1]['bounds'][0], parameter[1]['bounds'][1],
+                                                               parameter[1]['precision'] if 'precision' in parameter[1] else 0)
+            self._execute_command(exec_cmd)
+
+    def _create_structure_costs(self):
+        exec_cmd = 'CREATE TABLE IF NOT EXISTS costs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);'
+        self._execute_command(exec_cmd)
+
+        for cost in self.problem.costs:
+            exec_cmd = "INSERT INTO costs(name) values('%s');" % cost
+            self._execute_command(exec_cmd)
+
+    def create_structure(self):
+        self._create_structure_task()
+        self._create_structure_individual()
+        self._create_structure_parameters()
+        self._create_structure_costs()
 
     def create_structure_log(self):
         exec_cmd = 'CREATE TABLE IF NOT EXISTS log(' \
@@ -164,93 +227,65 @@ class SqliteDataStore(DataStore):
 
         self._execute_command(exec_cmd)
 
-    def create_structure_task(self, problem):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS problem (INTEGER PRIMARY KEY, ' \
-                   'name TEXT, ' \
-                   'description TEXT,' \
-                   'algorithm TEXT,' \
-                   'calculation_time NUMBER,' \
-                   'state TEXT)'
-        self._execute_command(exec_cmd)
+    def write_individual(self, individual):
+        # add individual
+        super().write_individual(individual)
 
-        exec_cmd = "INSERT INTO problem(name, description, state) " \
-                   "values('%s', '%s', '%s');" % (problem.name, problem.description, "running")
-        self._execute_command(exec_cmd)
+        # add to database
+        if self.problem.options['save_level'] == "individual":
+            params = individual.to_list()
+            # individual index
+            params.insert(0, self.individuals.index(individual) + 1)
+            # population index
+            params.insert(1, len(self.populations) + 1)
 
-    def create_structure_individual(self, parameters, costs):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS data (id INTEGER, population_id INTEGER, '
+            exec_cmd = "INSERT INTO data VALUES ("
 
-        for parameter in parameters.keys():
-            exec_cmd += parameter + " NUMBER, "
+            for i in range(len(params) - 1):
+                if params[i] == float('inf'):
+                    params[i] = -1
+                if type(params[i]) == list:
+                    par = "'" + str(params[i]) + "'"
+                else:
+                    par = str(params[i])
+                exec_cmd += " " + par + ","
 
-        for cost in costs:
-            exec_cmd += cost + " NUMBER,"
-
-        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
-        exec_cmd += ");"
-
-        self._execute_command(exec_cmd)
-
-    def create_structure_parameters(self, parameters_list):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS parameters (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,' \
-                   'initial_value NUMBER, low_boundary NUMBER, high_boundary NUMBER, precision NUMBER);'
-        self._execute_command(exec_cmd)
-
-        for parameter in parameters_list:
-            parameter_arg = [0] * 5
-            length = len(parameter)
-            parameter_arg[0:length] = parameter
-            exec_cmd = 'INSERT INTO parameters(name, initial_value, low_boundary, high_boundary, precision) ' \
-                       "VALUES( '%s', %f, %f, %f, %f);" % tuple(parameter_arg)
-            self._execute_command(exec_cmd)
-
-    def create_structure_costs(self, costs):
-        exec_cmd = 'CREATE TABLE IF NOT EXISTS costs (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);'
-        self._execute_command(exec_cmd)
-
-        for cost in costs:
-            exec_cmd = "INSERT INTO costs(name) values('%s');" % cost
-            self._execute_command(exec_cmd)
-
-    def write_individual(self, params):
-        exec_cmd = "INSERT INTO data VALUES ("
-        """
-        for i in range(len(params) - 1):
-            exec_cmd += " " + str(params[i]) + ","
-        exec_cmd += " " + str(params[i]) + ")"
-        """
-
-        for i in range(len(params) - 1):
             if type(params[i]) == list:
                 par = "'" + str(params[i]) + "'"
             else:
                 par = str(params[i])
-            exec_cmd += " " + par + ","
+            exec_cmd += " " + par + ")"
 
-        if type(params[i]) == list:
-            par = "'" + str(params[i]) + "'"
-        else:
-            par = str(params[i])
-        exec_cmd += " " + par + ")"
+            self._execute_command(exec_cmd)
 
-        self._execute_command(exec_cmd)
-
-    def write_population(self, table):
+    def write_population(self, population, index):
+        super().write_population(population, index)
         connection = sqlite3.connect(self.database_name)
-
+        table = population.to_list(index)
+        cursor = connection.cursor()
         for params in table:
             exec_cmd = "INSERT INTO data VALUES ("
-            for i in range(len(params) - 2):
-                exec_cmd += " " + str(params[i]) + ","
-            exec_cmd += " '" + json.dumps(params[i + 1]) + "',"
-            exec_cmd += "'" + json.dumps(params[i+2]) + "')"
-            cursor = connection.cursor()
+            for i in range(len(params) - 1):
+                if params[i] == float('inf'):
+                    params[i] = -1
+                if type(params[i]) == list:
+                    par = "'" + str(params[i]) + "'"
+                else:
+                    par = str(params[i])
+                exec_cmd += " " + par + ","
+
+            if type(params[i]) == list:
+                par = "'" + str(params[i]) + "'"
+            else:
+                par = str(params[i])
+            exec_cmd += " " + par + ")"
+
             cursor.execute(exec_cmd)
-            cursor.close()
+        cursor.close()
         connection.commit()
         connection.close()
 
-    def read_problem(self, problem):
+    def read_from_datastore(self):
         connection = sqlite3.connect(self.database_name)
         # connection.execute('pragma journal_mode=wal')
 
@@ -258,32 +293,36 @@ class SqliteDataStore(DataStore):
 
         exec_cmd_problem = "SELECT * FROM problem"
         problem_table = cursor.execute(exec_cmd_problem).fetchall()
-        problem.name = problem_table[0][1]
+        self.problem.name = problem_table[0][1]
 
         # parameters
         exec_cmd_params = "SELECT * FROM parameters"
-
         columns = []
         for row in cursor.execute(exec_cmd_params):
             columns.append(row)
 
-        problem.parameters = {}
+        self.problem.parameters = {}
         for parameter in columns:
-            problem.parameters[parameter[1]] = {'initial_value': parameter[2],
+            self.problem.parameters[parameter[1]] = {'initial_value': parameter[2],
                                                 'bounds': [parameter[3], parameter[4]], 'precision': parameter[5]}
         exec_cmd_costs = "SELECT * FROM costs"
 
+        # costs
         costs = []
         for cost in cursor.execute(exec_cmd_costs):
             costs.append(cost[1])
-        problem.costs = {cost: 0.0 for cost in costs}
+        self.problem.costs = {cost: 0.0 for cost in costs}
 
         exec_cmd_data = "SELECT * FROM data"
-        problem.populations = []
-
         data = cursor.execute(exec_cmd_data)
 
-        population = Population(problem)
+        # clear populations and individuals
+        self.individuals = []
+        self.populations = []
+        # new population
+        population = Population()
+        self.populations.append(population)
+
         table = list()
         for row in data:
             table.append(row)
@@ -296,36 +335,40 @@ class SqliteDataStore(DataStore):
         current_population = table[0][1]
         for row in table:
             if row[1] == current_population:
-                population.number = current_population
-                individual = Individual(row[2:2 + len(problem.parameters)], problem, row[1])
-                l = 2 + len(problem.parameters) + len(problem.costs)
-                individual.costs = row[2 + len(problem.parameters): 2 + len(problem.parameters) + len(problem.costs)]
+                individual = Individual(list(row[2:2 + len(self.problem.parameters)]))
+                l = 2 + len(self.problem.parameters) + len(self.problem.costs)
+                individual.costs = row[2 + len(self.problem.parameters): 2 + len(self.problem.parameters) + len(self.problem.costs)]
                 individual.front_number = row[l]
                 individual.crowding_distance = row[l+1]
                 individual.feasible = row[l+2]
                 individual.dominate = json.loads(row[l+3])
                 individual.gradient = json.loads(row[l+4])
+
+                # add individual
+                self.individuals.append(individual)
+                # add to population
                 population.individuals.append(individual)
             else:
-                problem.populations.append(population)
-                population = Population(problem)
+                # increase population
+                self.populations.append(population)
+                population = Population()
                 current_population = row[1]
-
-        problem.populations.append(population)
 
 
 class DummyDataStore(DataStore):
 
     def __init__(self, problem=None):
-        super().__init__()
-
-        problem.data_store = self
+        super().__init__(problem)
+        self.create_structure()
 
     def __del__(self):
         super().__del__()
 
-    def write_individual(self, params):
+    def create_structure(self):
         pass
 
-    def write_population(self, table):
-        pass
+    def write_individual(self, individual):
+        super().write_individual(individual)
+
+    def write_population(self, population, index=0):
+        super().write_population(population, index)

@@ -12,8 +12,7 @@ class GradientProblem(Problem):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
-        self.options['max_processes'] = 1
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         return [(x[0]-1)**2 + x[1]**2]
@@ -26,9 +25,9 @@ class TestAckleyN2(unittest.TestCase):
         problem = GradientProblem("TestAckleyN2")
         algorithm = GradientDescent(problem)
         algorithm.options["x0"] = [10, 10]
-        algorithm.options["n_iterations"] = 11
-        algorithm.options["h"] = 0.3
-        print(algorithm.run()[-1])
+        algorithm.options["n_iterations"] = 8
+        algorithm.options["h"] = 0.1
+        algorithm.run()
 
 
 if __name__ == '__main__':

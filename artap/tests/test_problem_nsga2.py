@@ -1,23 +1,19 @@
 import unittest
 
-# from pygments.lexer import words
-
 from artap.problem import Problem
-from artap.datastore import DummyDataStore
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
-from artap.algorithm_genetic import NSGA_II
+from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
 
-class MyProblem(Problem):
+class BinhAndKornProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
-                      'x_2': {'initial_value': 1.5, 'bounds': [0, 3], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5]},
+                      'x_2': {'initial_value': 1.5, 'bounds': [0, 3]}}
         costs = ['F_1', 'F_2']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
-        self.options['max_processes'] = 10
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         function = BinhAndKorn()
@@ -33,12 +29,17 @@ class TestNSGA2Optimization(unittest.TestCase):
 
     def test_local_problem_nsga2(self):
 
-        problem = MyProblem("TestNSGA2Optimization")
-        algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 10
-        algorithm.options['max_population_size'] = 10
-        algorithm.options['calculate_gradients'] = True
+        problem = BinhAndKornProblem("TestNSGA2Optimization")
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 100
+        algorithm.options['max_population_size'] = 100
+        # algorithm.options['calculate_gradients'] = True
         algorithm.run()
+
+        # results = GraphicalResults(problem)
+        # results.plot_scatter('F_1', 'F_2')
+        # results.plot_scatter('x_1', 'x_2')
+        # results.plot_individuals('F_1')
 
         b = Results(problem)
         solution = b.pareto_values()
@@ -48,19 +49,18 @@ class TestNSGA2Optimization(unittest.TestCase):
                     and 20 < sol[0] < 70:
                 wrong += 1
 
-        self.assertLessEqual(wrong, 3)
+        self.assertLessEqual(wrong, 5)
 
 
 class AckleyN2Test(Problem):
     """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1},
-                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32], 'precision': 1e-1}}
+        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-32, 32]},
+                      'x_2': {'initial_value': 2.5, 'bounds': [-32, 32]}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
-        self.options['max_processes'] = 1
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         function = AckleyN2()
@@ -72,14 +72,14 @@ class TestAckleyN2(unittest.TestCase):
 
     def test_local_problem(self):
         problem = AckleyN2Test("TestAckleyN2")
-        algorithm = NSGA_II(problem)
-        algorithm.options['max_population_number'] = 15
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100
         algorithm.run()
 
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
-        self.assertAlmostEqual(optimum, -200, 0)
+        self.assertAlmostEqual(optimum.costs[0], -200, 0)
 
 
 if __name__ == '__main__':

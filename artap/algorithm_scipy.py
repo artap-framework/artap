@@ -1,8 +1,10 @@
 from .problem import Problem
-from .population import Population
 from .algorithm import Algorithm
+from .job import JobSimple
+
 
 from scipy.optimize import minimize
+from multiprocessing import Queue
 import numpy as np
 import time
 
@@ -23,9 +25,8 @@ class ScipyOpt(Algorithm):
 
         self.save_all = True
 
-    def run(self):            
-        population = Population(self.problem)
-        self.problem.populations.append(population)
+    def run(self):
+        job = JobSimple(self.problem)
 
         # initial vector
         x0 = np.array(self.problem.get_initial_values())
@@ -33,6 +34,6 @@ class ScipyOpt(Algorithm):
         # optimization
         t_s = time.time()
         self.problem.logger.info("ScipyOpt: {}".format(self.options['algorithm']))
-        minimize(self.problem.evaluate_individual_scalar, x0, method=self.options['algorithm'], tol=self.options['tol'])
+        minimize(job.evaluate_scalar, x0, method=self.options['algorithm'], tol=self.options['tol'])
         t = time.time() - t_s
         self.problem.logger.info("ScipyOpt: elapsed time: {} s".format(t))
