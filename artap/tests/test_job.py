@@ -6,7 +6,7 @@ from artap.population import Population
 from artap.job import JobSimple
 
 
-class TestProblem(Problem):
+class JobProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 10}}
@@ -29,7 +29,7 @@ class TestJob(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_individual_evaluation(self):
-        problem = TestProblem("Test_Job")
+        problem = JobProblem("JobProblem")
         individual = Individual([1, 2, 2])
         job = JobSimple(problem)
         result = job.evaluate(individual.vector)

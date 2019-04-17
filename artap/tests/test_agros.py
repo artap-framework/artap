@@ -9,7 +9,7 @@ from artap.algorithm_nlopt import LN_BOBYQA
 from agrossuite import agros
 
 
-class TestProblem(Problem):
+class AgrosProblem(Problem):
     def __init__(self, name):
         parameters = {'R2': {'initial_value': 3.0, 'bounds': [2.6, 3.4]},
                       'h2': {'initial_value': 1.0, 'bounds': [0.408, 2.2]},
@@ -148,7 +148,7 @@ class TestProblem(Problem):
 class TestAgrosOptimization(unittest.TestCase):
 
     def test_agros_exec(self):
-        problem = TestProblem("AgrosProblem")
+        problem = AgrosProblem("AgrosProblem")
         algorithm = NLopt(problem)
         algorithm.options['n_iterations'] = 3
         algorithm.options['algorithm'] = LN_BOBYQA
