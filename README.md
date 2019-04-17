@@ -1,25 +1,14 @@
-# Artap
+# Artap - robust design optimization
 
-## About project
+Artap is a framework for robust design optimization in Python. 
+It provides tools for coupling FEM solvers (Agros2D, Comsol) with metaheuristic, bayesian or neural network based
+optimization algorithms.
 
-## Dependencies, installation
+## Installation
 
-### Dash
-Dash is a productive Python framework for building web applications, written on top of Flask, Plotly.js, and React.js.
-
+### Linux
 ```
-pip install dash  # The core dash backend
-pip install dash-html-components  # HTML components
-pip install dash-core-components  # Supercharged components
-pip install dash-table # Interactive DataTable component (new!)
-
-pip install flask_caching
-pip install redis
+pip3 install artap
 ```
 
-### Pandas
-For data analysis.
-
-```
-pip install pandas
-```
+## Examples

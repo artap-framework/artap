@@ -1,14 +1,21 @@
 import collections
+from numpy.random import normal
+from random import random
+
 
 def flatten(l):
     output = []
-    for item in l:
-        if isinstance(item, collections.Iterable):
-            for subitem in item:
-                output.append(subitem)
-        else:
-            output.append(item)
+    if isinstance(l, collections.Iterable):
+        for item in l:
+            if isinstance(item, collections.Iterable):
+                output.append(flatten(item))
+            else:
+                output.append(item)
+    else:
+        output.append(l)
+
     return output
+
 
 class ConfigDictionary(object):
     """
@@ -214,3 +221,58 @@ class ConfigDictionary(object):
             return meta['value']
         except KeyError:
             raise KeyError("Entry '{}' cannot be found".format(name))
+
+
+class VectorAndNumbers:
+    @classmethod
+    def gen_number(cls, bounds=None, precision=0, distribution="uniform"):
+
+        number = 0
+        if bounds is None:
+            bounds = [0, 1]
+
+        if precision == 0:
+            precision = 1e-12
+
+        if distribution == "uniform":
+            number = random() * (bounds[1] - bounds[0]) + bounds[0]
+            number = round(number / precision) * precision
+
+        if distribution == "normal":
+            mean = (bounds[0] + bounds[1]) / 2
+            std = (bounds[1] - bounds[0]) / 6
+            number = normal(mean, std)
+
+        return number
+
+    @classmethod
+    def gen_vector(cls, design_parameters: dict):
+
+        parameters_vector = []
+        for parameter in design_parameters.items():
+
+            if not ('bounds' in parameter[1]):
+                bounds = [parameter[1]["initial_value"] * 0.5, parameter[1]["initial_value"] * 1.5]
+            else:
+                bounds = parameter[1]['bounds']
+
+            if not ('precision' in parameter[1]):
+                precision = None
+            else:
+                precision = parameter[1]['precision']
+
+            if (precision is None) and (bounds is None):
+                parameters_vector.append(cls.gen_number())
+                continue
+
+            if precision is None:
+                parameters_vector.append(cls.gen_number(bounds=bounds))
+                continue
+
+            if bounds is None:
+                parameters_vector.append(cls.gen_number(precision=precision))
+                continue
+
+            parameters_vector.append(cls.gen_number(bounds, precision))
+
+        return parameters_vector.copy()

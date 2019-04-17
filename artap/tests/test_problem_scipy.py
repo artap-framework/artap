@@ -1,10 +1,11 @@
-# import os
 import unittest
+
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
 from artap.benchmark_functions import AckleyN2
-from artap.datastore import DummyDataStore
+from artap.datastore import SqliteDataStore
 from artap.results import Results
+from artap.datastore import DummyDataStore
 
 
 class MyProblem(Problem):
@@ -13,8 +14,7 @@ class MyProblem(Problem):
         parameters = {'x_1': {'initial_value': 10}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
-        self.options['max_processes'] = 1
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         result = 0
@@ -36,7 +36,7 @@ class TestSimpleOptimization(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum('F_1')
-        self.assertAlmostEqual(optimum, 0)
+        self.assertAlmostEqual(optimum.costs[0], 0)
 
 
 class AckleyN2Problem(Problem):
@@ -46,8 +46,7 @@ class AckleyN2Problem(Problem):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         costs = ['F_1']
 
-        super().__init__(name, parameters, costs, data_store=DummyDataStore(self))
-        self.options['max_processes'] = 1
+        super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
         function = AckleyN2()
@@ -67,7 +66,7 @@ class TestAckleyN2(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_minimum('F_1')
-        self.assertAlmostEqual(optimum, -200, 3)
+        self.assertAlmostEqual(optimum.costs[0], -200, 3)
 
 
 if __name__ == '__main__':

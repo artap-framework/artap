@@ -1,8 +1,10 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
-from .enviroment import Enviroment
+from .environment import Enviroment
+from .job import JobSimple
 
+from multiprocessing import Queue
 import time
 
 import sys
@@ -531,8 +533,8 @@ class NLopt(Algorithm):
 
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
-        self.problem = problem
 
+        self.job = JobSimple(self.problem)
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
         self.options.declare(name='n_iterations', default=50, lower=1,
@@ -547,26 +549,16 @@ class NLopt(Algorithm):
                              desc='ftol_abs')
 
     def _function(self, x, grad):
-        #if grad.size > 0:
-        #    grad[0] = 0.0
-        #    grad[1] = 0.5 / np.sqrt(x[1])
-        #return np.sqrt(x[1])
-
-        val = self.problem.evaluate_individual_scalar(x)
-        # print(x, val)
-        return val
+        return self.job.evaluate_scalar(x)
 
     def _constraint(x, grad, a, b):
-        #if grad.size > 0:
-        #    grad[0] = 3 * a * (a * x[0] + b) ** 2
-        #    grad[1] = -1.0
-        #return (a * x[0] + b) ** 3 - x[1]
+        # if grad.size > 0:
+        #     grad[0] = 3 * a * (a * x[0] + b) ** 2
+        #     grad[1] = -1.0
+        # return (a * x[0] + b) ** 3 - x[1]
         return 0
 
     def run(self):
-        population = Population(self.problem)
-        self.problem.populations.append(population)
-
         # Figure out bounds vectors.
         lb = []
         ub = []
@@ -587,16 +579,16 @@ class NLopt(Algorithm):
         op.set_maxeval(self.options['n_iterations'])
 
         # constraint
-        #op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, 2, 0), 1e-8)
-        #op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, -1, 1), 1e-8)
+        # op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, 2, 0), 1e-8)
+        # op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, -1, 1), 1e-8)
 
         try:
             t_s = time.time()
             self.problem.logger.info("NLopt: {}".format(op.get_algorithm_name()))
             x = op.optimize(self.problem.get_initial_values())
+            print('initial values:',x)
             t = time.time() - t_s
             self.problem.logger.info("NLopt: elapsed time: {} s".format(t))
-
 
             """
             if self.options['verbose_level'] >= 1:
@@ -612,18 +604,19 @@ class NLopt(Algorithm):
             print('Optimization FAILED.')
             print(op.get_errmsg())
 
-        """
-        FAILURE = -1, # generic failure code
-        INVALID_ARGS = -2,
-        OUT_OF_MEMORY = -3,
-        ROUNDOFF_LIMITED = -4,
-        FORCED_STOP = -5,
-        SUCCESS = 1, # generic success code 
-        STOPVAL_REACHED = 2,
-        FTOL_REACHED = 3,
-        XTOL_REACHED = 4,
-        MAXEVAL_REACHED = 5,
-        MAXTIME_REACHED = 6
-        """
+        msg_nlopt = {-1: 'failure - generic failure code',
+                     -2: 'failure - invalid arguments',
+                     -3: 'failure - out of memory',
+                     -4: 'failure - round off limited',
+                     -5: 'failure - forced stop',
+                      1: 'success - generic success code',
+                      2: 'success - stop value reached',
+                      3: 'success - ftol reached',
+                      4: 'success - xtol reached',
+                      5: 'success - maxeval reached',
+                      6: 'success - maxtime reached'
+                     }
+
         if self.options['verbose_level'] >= 1:
-            print('result code = ', op.last_optimize_result())
+            print('optimum = ', op.last_optimum_value())
+            print('result code and meaning = ', op.last_optimize_result(), msg_nlopt[op.last_optimize_result()])
