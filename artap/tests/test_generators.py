@@ -1,7 +1,8 @@
 import unittest
 from artap.doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
 from artap.individual import Individual
-from artap.operators import CustomGeneration, RandomGeneration, FullFactorGeneration, PlackettBurmanGeneration, BoxBehnkenGeneration, LHSGeneration
+from artap.operators import CustomGeneration, RandomGeneration, FullFactorGeneration, PlackettBurmanGeneration, \
+    BoxBehnkenGeneration, LHSGeneration, GradientGeneration
 
 
 class TestDOE(unittest.TestCase):
@@ -107,6 +108,17 @@ class TestDOE(unittest.TestCase):
                         self.parameters['x_1']['bounds'][0] <= individuals[2].vector[0] <= self.parameters['x_1']['bounds'][1] and
                         self.parameters['x_2']['bounds'][0] <= individuals[2].vector[1] <= self.parameters['x_2']['bounds'][1] and
                         self.parameters['x_3']['bounds'][0] <= individuals[2].vector[2] <= self.parameters['x_3']['bounds'][1])
+
+    def test_gradient_generation(self):
+        # gradient
+        gen = LHSGeneration(self.parameters)
+        gen.init(number=3)
+        individuals = gen.generate()
+        gen = GradientGeneration(self.parameters)
+        gen.init()
+        new_individuals = gen.generate(individuals)
+        # size
+        self.assertEqual(len(new_individuals), 12 )
 
 
 if __name__ == '__main__':

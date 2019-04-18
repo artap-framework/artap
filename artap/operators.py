@@ -184,6 +184,26 @@ class LHSGeneration(Generation):
         return individuals
 
 
+class GradientGeneration(Generation):
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        self.delta = 1e-6
+
+    def init(self):
+        pass
+
+    def generate(self, individuals):
+        new_individuals = []
+        for individual in individuals:
+            new_individuals.append(individual)
+            for i in range(len(individual.vector)):
+                vector = individual.vector.copy()
+                vector[i] += self.delta
+                new_individuals.append(Individual(vector))
+        return new_individuals
+
+
 class Mutation(Operation):
 
     def __init__(self, parameters, probability):
