@@ -1,7 +1,6 @@
 import sqlite3
 import os
 import unittest
-import shutil
 from artap.problem import Problem, ProblemDataStore
 from artap.datastore import SqliteDataStore
 from artap.algorithm_nlopt import NLopt

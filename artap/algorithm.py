@@ -93,6 +93,19 @@ class Algorithm(metaclass=ABCMeta):
 
         return individuals
 
+    def evaluate_gradient(self, individuals: list):
+        i = 0
+        n = len(self.problem.parameters)
+        gradients = []
+        gradient = []
+        for individual in individuals:
+            i += 1
+            gradient.append(individual.costs.copy())
+            if i == n:
+                i = 0
+                gradients.append(gradient.copy())
+                gradient.clear()
+
 
 class DummyAlgorithm(Algorithm):
     """
