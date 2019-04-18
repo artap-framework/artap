@@ -30,9 +30,6 @@ class TestNSGA2Optimization(unittest.TestCase):
     def test_local_problem_nsga2(self):
 
         problem = BinhAndKornProblem("TestNSGA2Optimization")
-        problem.working_dir = "./"
-        database_name = "data.sqlite"
-        problem.data_store = SqliteDataStore(problem, database_name=database_name)
 
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 2
