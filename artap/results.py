@@ -142,6 +142,33 @@ class GraphicalResults(Results):
             pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
         pl.close()
 
+    def plot_convergence_chart(self, name1, filename=None, population_number=None):
+
+        figure = Figure()
+        figure.clf()
+
+        # all individuals
+        if population_number is None:
+            populations = self.problem.data_store.populations
+        else:
+            populations = [self.problem.data_store.populations[population_number]]
+
+        results = []
+        for population in populations:
+            min_l = min(population.individuals, key=lambda x: x.costs[0])
+            results.append(min_l.costs)
+
+        pl.grid()
+        pl.xlabel("Number of generation")
+        pl.ylabel("TOC [eur]".format(name1))
+
+        pl.plot(results)
+        if filename is not None:
+            pl.savefig(filename)
+        else:
+            pl.savefig("convergence.pdf")
+        pl.close()
+
     def plot_scatter_vectors(self, name1, name2, filename=None, population_number=None):
         figure = Figure()
         figure.clf()
