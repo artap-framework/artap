@@ -2,7 +2,7 @@ import sqlite3
 import os
 import unittest
 from artap.problem import Problem, ProblemDataStore
-from artap.datastore import SqliteDataStore
+from artap.datastore import SqliteDataStore, FileDataStore
 from artap.algorithm_nlopt import NLopt
 from artap.algorithm_nlopt import LN_BOBYQA
 
@@ -25,7 +25,7 @@ class MyProblem(Problem):
         return [Booth.eval(x)]
 
 
-class TestDataStore(unittest.TestCase):
+class TestDataStoreSqlite(unittest.TestCase):
     def test_read_data_store(self):
         database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
         problem = ProblemDataStore(database_name=database_name)
@@ -35,7 +35,6 @@ class TestDataStore(unittest.TestCase):
         self.assertLessEqual(abs(optimum.costs[0]), 5)
 
     def test_write_data_store(self):
-        # database_file = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
         problem = MyProblem("NLopt_BOBYQA")
 
         # set datastore
@@ -70,6 +69,48 @@ class TestDataStore(unittest.TestCase):
 
         cursor.close()
         connection.close()
+
+        # remove file
+        os.remove(database_name)
+
+
+class TestDataStoreFile(unittest.TestCase):
+    def xtest_read_data_store(self):
+        database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
+        problem = ProblemDataStore(database_name=database_name)
+
+        results = Results(problem)
+        optimum = results.find_minimum('F_1')
+        self.assertLessEqual(abs(optimum.costs[0]), 5)
+
+    def test_write_data_store(self):
+        problem = MyProblem("NLopt_BOBYQA")
+
+        # set datastore
+        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".db").name
+        problem.data_store = FileDataStore(problem, database_name=database_name)
+
+        algorithm = NLopt(problem)
+        algorithm.options['verbose_level'] = 0
+        algorithm.options['algorithm'] = LN_BOBYQA
+        algorithm.options['n_iterations'] = 10
+        algorithm.run()
+
+        results = Results(problem)
+        optimum = results.find_minimum('F')
+        self.assertAlmostEqual(optimum.costs[0], 1.854, 3)
+
+        populations = problem.data_store.db["populations"]
+        problem.data_store.db.close()
+
+        # check db
+        import shelve
+
+        db = shelve.open(problem.data_store.database_name, flag='r')
+        populations = db["populations"]
+
+        self.assertAlmostEqual(populations[-1].individuals[9].costs[0], 1.854, 3) # result
+        db.close()
 
         # remove file
         os.remove(database_name)
