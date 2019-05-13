@@ -78,8 +78,6 @@ class DataStore:
 
         # populations
         self.populations = []
-        # individuals ???
-        self.individuals = []
 
     def __del__(self):
         # print("DataStore:def __del__(self):")
@@ -95,11 +93,15 @@ class DataStore:
 
     @abstractmethod
     def write_individual(self, individual):
-        # print("write_individual: {}".format(individual))
-        self.individuals.append(individual)
+        # TODO: check this hack
+        if len(self.populations) == 0:
+            self.populations.append(Population())
+
+        # add individual
+        self.populations[-1].individuals.append(individual)
 
     @abstractmethod
-    def write_population(self, population, index=0):
+    def write_population(self, population):
         self.populations.append(population)
         # print("write_population: {}/{}".format(len(population.individuals), len(self.populations)))
 
@@ -235,9 +237,9 @@ class SqliteDataStore(DataStore):
         if self.problem.options['save_level'] == "individual":
             params = individual.to_list()
             # individual index
-            params.insert(0, self.individuals.index(individual) + 1)
+            params.insert(0, self.populations[-1].individuals.index(individual) + 1)
             # population index
-            params.insert(1, len(self.populations) + 1)
+            params.insert(1, len(self.populations))
 
             exec_cmd = "INSERT INTO data VALUES ("
 
@@ -258,10 +260,12 @@ class SqliteDataStore(DataStore):
 
             self._execute_command(exec_cmd)
 
-    def write_population(self, population, index):
-        super().write_population(population, index)
+    def write_population(self, population):
+        super().write_population(population)
+
+        # write to database
         connection = sqlite3.connect(self.database_name)
-        table = population.to_list(index)
+        table = population.to_list(self.populations.index(population))
         cursor = connection.cursor()
         for params in table:
             exec_cmd = "INSERT INTO data VALUES ("
@@ -304,7 +308,8 @@ class SqliteDataStore(DataStore):
         self.problem.parameters = {}
         for parameter in columns:
             self.problem.parameters[parameter[1]] = {'initial_value': parameter[2],
-                                                'bounds': [parameter[3], parameter[4]], 'precision': parameter[5]}
+                                                     'bounds': [parameter[3], parameter[4]],
+                                                     'precision': parameter[5]}
         exec_cmd_costs = "SELECT * FROM costs"
 
         # costs
@@ -344,8 +349,6 @@ class SqliteDataStore(DataStore):
                 individual.dominate = json.loads(row[l+3])
                 individual.gradient = json.loads(row[l+4])
 
-                # add individual
-                self.individuals.append(individual)
                 # add to population
                 population.individuals.append(individual)
             else:
@@ -353,6 +356,62 @@ class SqliteDataStore(DataStore):
                 self.populations.append(population)
                 population = Population()
                 current_population = row[1]
+
+
+import shelve
+import datetime
+import pickle
+
+from .sqlitedict import SqliteDict
+
+
+class FileDataStore(DataStore):
+
+    def __init__(self, problem, database_name=None, remove_existing=True):
+        super().__init__(problem)
+
+        self.database_name = database_name
+        if remove_existing:
+            os.remove(self.database_name)
+
+        # self.db = SqliteDict(self.db_fn, autocommit=True)
+        # self.db = SqliteDict(":memory", autocommit=False)
+        self.db = shelve.open(self.database_name, writeback=True)
+
+        # remove database and create structure
+        if os.path.exists(self.database_name):
+            self.create_structure()
+
+        # set datastore to problem
+        self.problem.data_store = self
+
+    def __del__(self):
+        self.db.close()
+        super().__del__()
+
+    def create_structure(self):
+        self.db["populations"] = []
+
+    def write_individual(self, individual):
+        # add individual
+        super().write_individual(individual)
+
+        # TODO: check this hack
+        populations = self.db["populations"]
+        if len(populations) == 0:
+            self.db["populations"].append(Population())
+
+        # add individual
+        self.db["populations"][-1].individuals.append(individual)
+        self.db.sync()
+
+    def write_population(self, population):
+        super().write_population(population)
+
+        # write to database
+        self.db["populations"].append(population)
+        # self.db["populations"] = self.populations
+        self.db.sync()
 
 
 class DummyDataStore(DataStore):
@@ -370,5 +429,5 @@ class DummyDataStore(DataStore):
     def write_individual(self, individual):
         super().write_individual(individual)
 
-    def write_population(self, population, index=0):
-        super().write_population(population, index)
+    def write_population(self, population):
+        super().write_population(population)
