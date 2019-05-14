@@ -1,4 +1,5 @@
 import sqlite3
+import shelve
 import tempfile
 import os
 import json
@@ -356,13 +357,6 @@ class SqliteDataStore(DataStore):
                 self.populations.append(population)
                 population = Population()
                 current_population = row[1]
-
-
-import shelve
-import datetime
-import pickle
-
-from .sqlitedict import SqliteDict
 
 
 class FileDataStore(DataStore):
