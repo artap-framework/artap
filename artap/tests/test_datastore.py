@@ -1,7 +1,7 @@
 import sqlite3
 import os
 import unittest
-from artap.problem import Problem, ProblemDataStore
+from artap.problem import Problem, ProblemSqliteDataStore, ProblemFileDataStore
 from artap.datastore import SqliteDataStore, FileDataStore
 from artap.algorithm_nlopt import NLopt
 from artap.algorithm_nlopt import LN_BOBYQA
@@ -28,7 +28,7 @@ class MyProblem(Problem):
 class TestDataStoreSqlite(unittest.TestCase):
     def test_read_data_store(self):
         database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
-        problem = ProblemDataStore(database_name=database_name)
+        problem = ProblemSqliteDataStore(database_name=database_name)
 
         results = Results(problem)
         optimum = results.find_minimum('F_1')
@@ -75,13 +75,25 @@ class TestDataStoreSqlite(unittest.TestCase):
 
 
 class TestDataStoreFile(unittest.TestCase):
-    def xtest_read_data_store(self):
-        database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite"
-        problem = ProblemDataStore(database_name=database_name)
+    def test_read_data_store(self):
+        database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.db"
+        problem = ProblemFileDataStore(database_name=database_name)
 
         results = Results(problem)
-        optimum = results.find_minimum('F_1')
-        self.assertLessEqual(abs(optimum.costs[0]), 5)
+        optimum = results.find_minimum('F')
+        self.assertAlmostEqual(optimum.costs[0], 1.854, 3)
+        self.assertEqual(problem.name, 'NLopt_BOBYQA')
+        self.assertEqual(problem.description, '')
+        self.assertEqual(problem.parameters['x_1']['initial_value'], 2.5)
+        self.assertEqual(problem.parameters['x_1']['bounds'][0], -10)
+        self.assertEqual(problem.parameters['x_1']['bounds'][1], 10)
+        self.assertEqual(problem.parameters['x_2']['initial_value'], 1.5)
+        self.assertEqual(problem.parameters['x_2']['bounds'][0], -10)
+        self.assertEqual(problem.parameters['x_2']['bounds'][1], 10)
+        individual = problem.data_store.populations[0].individuals[6]
+        self.assertAlmostEqual(individual.vector[0], 2.6989845414318134, 5)
+        self.assertAlmostEqual(individual.vector[1], 1.83185007711266, 5)
+        self.assertAlmostEqual(individual.costs[0], 5.378264283347013, 5)
 
     def test_write_data_store(self):
         problem = MyProblem("NLopt_BOBYQA")
