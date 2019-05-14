@@ -71,11 +71,11 @@ class DataStore:
         self.problem = problem
 
         # create the new loop and worker thread
-        self.worker_loop = asyncio.new_event_loop()
-        worker = Thread(target=self._start_worker, args=(self.worker_loop,))
-        worker.daemon = True
-        # Start the thread
-        worker.start()
+        # self.worker_loop = asyncio.new_event_loop()
+        # worker = Thread(target=self._start_worker, args=(self.worker_loop,))
+        # worker.daemon = True
+        # # Start the thread
+        # worker.start()
 
         # populations
         self.populations = []
@@ -84,9 +84,9 @@ class DataStore:
         # print("DataStore:def __del__(self):")
         pass
 
-    def _start_worker(self, loop):
-        asyncio.set_event_loop(loop)
-        loop.run_forever()
+    # def _start_worker(self, loop):
+    #     asyncio.set_event_loop(loop)
+    #     loop.run_forever()
 
     @abstractmethod
     def create_structure(self):
@@ -104,7 +104,6 @@ class DataStore:
     @abstractmethod
     def write_population(self, population):
         self.populations.append(population)
-        # print("write_population: {}/{}".format(len(population.individuals), len(self.populations)))
 
     def get_id(self):
         return 0
@@ -120,6 +119,8 @@ class SqliteDataStore(DataStore):
         if remove_existing and os.path.exists(self.database_name):
             os.remove(self.database_name)
             self.create_structure()
+        else:
+            self.read_from_datastore()
 
         # set datastore to problem
         self.problem.data_store = self
@@ -370,11 +371,13 @@ class FileDataStore(DataStore):
 
         # self.db = SqliteDict(self.db_fn, autocommit=True)
         # self.db = SqliteDict(":memory", autocommit=False)
-        self.db = shelve.open(self.database_name, writeback=True)
+        self.db = shelve.open(self.database_name, flag='c', writeback=True)
 
         # remove database and create structure
-        if os.path.exists(self.database_name):
+        if remove_existing and os.path.exists(self.database_name):
             self.create_structure()
+        else:
+            self.read_from_datastore()
 
         # set datastore to problem
         self.problem.data_store = self
@@ -384,6 +387,11 @@ class FileDataStore(DataStore):
         super().__del__()
 
     def create_structure(self):
+        self.db["name"] = self.problem.name
+        self.db["description"] = self.problem.description
+        self.db["parameters"] = self.problem.parameters
+        self.db["costs"] = self.problem.costs
+
         self.db["populations"] = []
 
     def write_individual(self, individual):
@@ -406,6 +414,14 @@ class FileDataStore(DataStore):
         self.db["populations"].append(population)
         # self.db["populations"] = self.populations
         self.db.sync()
+
+    def read_from_datastore(self):
+        self.problem.name = self.db["name"]
+        self.problem.description = self.db["description"]
+        self.problem.parameters = self.db["parameters"]
+        self.problem.costs = self.db["costs"]
+
+        self.populations = self.db["populations"]
 
 
 class DummyDataStore(DataStore):
