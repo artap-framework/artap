@@ -1,5 +1,4 @@
-from .datastore import DataStore, SqliteDataStore, SqliteHandler, DummyDataStore
-from .utils import flatten
+from .datastore import DataStore, SqliteDataStore, FileDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .server import ArtapServer
 from .surrogate import SurrogateModelEval
@@ -153,11 +152,21 @@ class Problem(ProblemBase):
         pass
 
 
-class ProblemDataStore(ProblemBase):
+class ProblemSqliteDataStore(ProblemBase):
 
     def __init__(self, database_name, working_dir=None):
         super().__init__()
         self.working_dir = working_dir
 
         self.data_store = SqliteDataStore(self, database_name=database_name, remove_existing=False)
-        self.data_store.read_from_datastore()
+        # self.data_store.read_from_datastore()
+
+
+class ProblemFileDataStore(ProblemBase):
+
+    def __init__(self, database_name, working_dir=None):
+        super().__init__()
+        self.working_dir = working_dir
+
+        self.data_store = FileDataStore(self, database_name=database_name, remove_existing=False)
+        # self.data_store.read_from_datastore()
