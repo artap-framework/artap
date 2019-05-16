@@ -1,6 +1,5 @@
 from .datastore import DataStore, SqliteDataStore, FileDataStore, DummyDataStore
 from .utils import ConfigDictionary
-from .server import ArtapServer
 from .surrogate import SurrogateModelEval
 from abc import ABC, abstractmethod
 
@@ -32,7 +31,6 @@ class ProblemBase(ABC):
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: DataStore = None
-        self.server = None
 
         # options
         self.options = ConfigDictionary()
@@ -78,11 +76,6 @@ class ProblemBase(ABC):
         # for h in list(self.logger.handlers):
         #    print(h)
         pass
-
-    def run_server(self, open_viewer=False, daemon=True, local_host=True):
-        # testing - Artap Server
-        self.server = ArtapServer(problem=self, local_host=local_host)
-        self.server.run_server(open_viewer, daemon)
 
 
 class Problem(ProblemBase):
