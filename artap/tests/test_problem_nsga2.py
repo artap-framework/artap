@@ -3,7 +3,8 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results
+from artap.results import Results, GraphicalResults
+from artap.datastore import SqliteDataStore
 
 
 class BinhAndKornProblem(Problem):
@@ -28,18 +29,14 @@ class TestNSGA2Optimization(unittest.TestCase):
 
     def test_local_problem_nsga2(self):
 
-        database_name = "./new_data.sqlite"
         problem = BinhAndKornProblem("TestNSGA2Optimization")
-        algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 100
-        # algorithm.options['calculate_gradients'] = True
-        algorithm.run()
 
-        # results = GraphicalResults(problem)
-        # results.plot_scatter('F_1', 'F_2')
-        # results.plot_scatter('x_1', 'x_2')
-        # results.plot_individuals('F_1')
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 2
+        algorithm.options['max_population_size'] = 2
+        algorithm.options['calculate_gradients'] = True
+        algorithm.options['verbose_level'] = 1
+        algorithm.run()
 
         b = Results(problem)
         solution = b.pareto_values()
@@ -50,6 +47,9 @@ class TestNSGA2Optimization(unittest.TestCase):
                 wrong += 1
 
         self.assertLessEqual(wrong, 5)
+
+       # self.results = GraphicalResults(problem)
+       # self.results.plot_scatter('F_1', 'F_2')
 
 
 class AckleyN2Test(Problem):
@@ -79,7 +79,7 @@ class TestAckleyN2(unittest.TestCase):
 
         b = Results(problem)
         optimum = b.find_minimum('F_1')  # Takes last cost function
-        self.assertAlmostEqual(optimum.costs[0], -200, places=1)
+        self.assertAlmostEqual(optimum.costs[0], -200, 0)
 
 
 if __name__ == '__main__':

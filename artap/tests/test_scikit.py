@@ -10,7 +10,7 @@ from artap.algorithm_genetic import NSGAII
 from artap.algorithm_sweep import SweepAlgorithm
 from artap.benchmark_functions import Booth
 from artap.results import Results
-from artap.operators import CustomGeneration, LHCGeneration
+from artap.operators import CustomGeneration, LHSGeneration
 from artap.surrogate import SurrogateModelRegressor
 
 from sklearn.svm import SVR
@@ -249,7 +249,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.surrogate.score_threshold = 0.0
 
         # sweep analysis (for training)
-        gen = LHCGeneration(problem.parameters)
+        gen = LHSGeneration(problem.parameters)
         gen.init(problem.surrogate.train_step)
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()
@@ -307,7 +307,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.surrogate.score_threshold = 0.0
 
         # sweep analysis (for training)
-        gen = LHCGeneration(problem.parameters)
+        gen = LHSGeneration(problem.parameters)
         gen.init(problem.surrogate.train_step)
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()
@@ -423,7 +423,7 @@ def figures(name):
     from matplotlib import rc
 
     data_store = SqliteDataStore(database_file=name + ".sqlite")
-    problem = ProblemDataStore(data_store)
+    problem = ProblemSqliteDataStore(data_store)
 
     data_x = []
     data_y = []
