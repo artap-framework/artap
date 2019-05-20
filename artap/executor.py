@@ -53,7 +53,6 @@ class Executor(metaclass=ABCMeta):
         return param_values_string
 
 
-# TODO: not working
 class ComsolExecutor(Executor):
 
     def __init__(self, problem, model_file, output_file):
@@ -78,7 +77,9 @@ class ComsolExecutor(Executor):
             content = file.read()
             result = self.parse_results(content)
 
-        return result
+            return result
+
+        self.problem.logger.error("Output file '{}' doesn't exists.".format(self.problem.working_dir + self.output_file))
 
     @staticmethod
     def parse_condor_log(content):

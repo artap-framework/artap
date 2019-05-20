@@ -7,7 +7,7 @@ from artap.algorithm import DummyAlgorithm
 from artap.population import Population
 
 
-class TestProblem(Problem):
+class ComsolProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
     def __init__(self, name):
@@ -35,7 +35,7 @@ class TestProblem(Problem):
 class TestSimpleComsolOptimization(unittest.TestCase):
     def test_comsol_exec(self):
         """ Tests one calculation of goal function."""
-        problem = TestProblem("CondorComsolProblem")
+        problem = ComsolProblem("ComsolProblem")
 
         table = [[10, 10]]
         population = Population()

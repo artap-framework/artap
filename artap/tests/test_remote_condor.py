@@ -59,7 +59,7 @@ class CondorComsolProblem(Problem):
         return [result]
 
 
-class TestPythonExecProblem(Problem):
+class PythonExecProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 10},
@@ -81,7 +81,7 @@ class TestPythonExecProblem(Problem):
         return [float(content)]
 
 
-class TestPythonInputProblem(Problem):
+class PythonInputProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 10},
@@ -134,7 +134,7 @@ class TestCondor(TestCase):
         self.assertAlmostEqual(124.23499735221547, population.individuals[1].costs[0])
 
     def test_condor_python_exec(self):
-        problem = TestPythonExecProblem("CondorPythonExecProblem")
+        problem = PythonExecProblem("PythonExecProblem")
 
         table = [[1, 2]]
         population = Population()
@@ -145,7 +145,7 @@ class TestCondor(TestCase):
         self.assertAlmostEqual(5.0, population.individuals[0].costs[0])
 
     def test_condor_python_input(self):
-        problem = TestPythonInputProblem("CondorPythonInputProblem")
+        problem = PythonInputProblem("PythonInputProblem")
 
         table = [[1, 2]]
         population = Population()

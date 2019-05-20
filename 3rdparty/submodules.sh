@@ -15,7 +15,8 @@ mkdir -p build
 cd build
 cmake ..
 make -j4
-cp $DIR/nlopt2/build/src/swig/_nlopt.so $DIR/../artap/lib/
+cp $DIR/nlopt2/build/src/swig/_nlopt.so $DIR/../artap/lib/_nlopt.so
+cp $DIR/nlopt2/build/src/swig/__nlopt.so $DIR/../artap/lib/_nlopt.so
 strip $DIR/../artap/lib/_nlopt.so
 
 # BayesOpt
@@ -52,8 +53,8 @@ strip agros
 strip agros_solver
 strip pythonlab
 # link ~/.local
-#ln -sfn $DIR/agros ~/.local/lib/python3.7/site-packages/agrossuite
-ln -sfn $DIR/agros ~/.local/lib/python3.6/site-packages/agrossuite
+ln -sfn $DIR/agros ~/.local/lib/python3.7/site-packages/agrossuite
+#ln -sfn $DIR/agros ~/.local/lib/python3.6/site-packages/agrossuite
 #ln -sfn $DIR/agros /home/tamas/anaconda3/envs/artapenc/lib/python3.6/site-packages/agrossuite
 # go back
 cd $DIR
