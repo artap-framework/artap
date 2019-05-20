@@ -45,16 +45,13 @@ class Results:
         index = 0  # default - one parameter
         if name:
             index = int(self.problem.costs.get(name))
-        if len(self.problem.data_store.individuals) is not 0:
-            min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
-        else:
-            min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
+        #if len(self.problem.data_store.individuals) is not 0:
+        #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
+        #else:
+        min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
 
         # for population in self.problem.data_store.populations:
-
         opt = min(min_l, key=lambda x: x.costs[index])
-        # opt = opt.costs[index]
-
         return opt
 
     def find_pareto(self, name1, name2):
@@ -143,6 +140,33 @@ class GraphicalResults(Results):
             pl.savefig(filename)
         else:
             pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
+        pl.close()
+
+    def plot_convergence_chart(self, name1, filename=None, population_number=None):
+
+        figure = Figure()
+        figure.clf()
+
+        # all individuals
+        if population_number is None:
+            populations = self.problem.data_store.populations
+        else:
+            populations = [self.problem.data_store.populations[population_number]]
+
+        results = []
+        for population in populations:
+            min_l = min(population.individuals, key=lambda x: x.costs[0])
+            results.append(min_l.costs)
+
+        pl.grid()
+        pl.xlabel("Number of generation")
+        pl.ylabel("TOC [eur]".format(name1))
+
+        pl.plot(results)
+        if filename is not None:
+            pl.savefig(filename)
+        else:
+            pl.savefig("convergence.pdf")
         pl.close()
 
     def plot_scatter_vectors(self, name1, name2, filename=None, population_number=None):

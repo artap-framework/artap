@@ -5,7 +5,7 @@ from artap.executor import RemoteSSHExecutor
 from artap.problem import Problem
 
 
-class TestProblem(Problem):
+class RemoteProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
         parameters = {'x_1': {'initial_value': 10},
@@ -27,7 +27,7 @@ class TestRemoteSSHExecutor(unittest.TestCase):
         goal function is performed on remote machine.
     """
     def test_remote_python_exec(self):
-        problem = TestProblem("TestPythonProblem")
+        problem = RemoteProblem("TestPythonProblem")
         problem.executor = RemoteSSHExecutor(problem,
                                              command="python3",
                                              model_file="run_exec.py",
@@ -38,7 +38,7 @@ class TestRemoteSSHExecutor(unittest.TestCase):
         self.assertAlmostEqual(result[0], 5.0)
 
     def test_remote_python_input(self):
-        problem = TestProblem("TestPythonProblem")
+        problem = RemoteProblem("TestPythonProblem")
         problem.executor = RemoteSSHExecutor(problem,
                                              command="python3",
                                              model_file="run_input.py",
@@ -50,10 +50,9 @@ class TestRemoteSSHExecutor(unittest.TestCase):
         self.assertAlmostEqual(result[0], 5.0)
 
     def xtest_remote_octave_exec(self):
-        problem = TestProblem("TestOctaveProblem")
+        problem = RemoteProblem("TestOctaveProblem")
         problem.executor = RemoteSSHExecutor(problem,
                                              command="octave --no-gui",
-
                                              model_file="run_input.m",
                                              input_file="input.txt", # file is created in eval with specific parameters
                                              output_file="output.txt")
@@ -63,7 +62,7 @@ class TestRemoteSSHExecutor(unittest.TestCase):
         self.assertAlmostEqual(result[0], 5.0)
 
     def xtest_remote_matlab_run(self):
-        problem = TestProblem("TestMatlabProblem")
+        problem = RemoteProblem("TestMatlabProblem")
 
         # TODO: for matlab it must be without .m extension
         problem.executor = RemoteSSHExecutor(problem,

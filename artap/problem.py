@@ -1,7 +1,5 @@
-from .datastore import DataStore, SqliteDataStore, SqliteHandler, DummyDataStore
-from .utils import flatten
+from .datastore import DataStore, SqliteDataStore, FileDataStore, DummyDataStore
 from .utils import ConfigDictionary
-from .server import ArtapServer
 from .surrogate import SurrogateModelEval
 from abc import ABC, abstractmethod
 
@@ -33,7 +31,6 @@ class ProblemBase(ABC):
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: DataStore = None
-        self.server = None
 
         # options
         self.options = ConfigDictionary()
@@ -50,6 +47,8 @@ class ProblemBase(ABC):
                              desc='Enable DB handler')
         self.options.declare(name='log_console_handler', default=True,
                              desc='Enable console handler')
+        self.options.declare(name='time_out', default=600,
+                             desc='Maximal time for calculation')
 
         # tmp name
         d = datetime.datetime.now()
@@ -77,11 +76,6 @@ class ProblemBase(ABC):
         # for h in list(self.logger.handlers):
         #    print(h)
         pass
-
-    def run_server(self, open_viewer=False, daemon=True, local_host=True):
-        # testing - Artap Server
-        self.server = ArtapServer(problem=self, local_host=local_host)
-        self.server.run_server(open_viewer, daemon)
 
 
 class Problem(ProblemBase):
@@ -151,11 +145,21 @@ class Problem(ProblemBase):
         pass
 
 
-class ProblemDataStore(ProblemBase):
+class ProblemSqliteDataStore(ProblemBase):
 
     def __init__(self, database_name, working_dir=None):
         super().__init__()
         self.working_dir = working_dir
 
         self.data_store = SqliteDataStore(self, database_name=database_name, remove_existing=False)
-        self.data_store.read_from_datastore()
+        # self.data_store.read_from_datastore()
+
+
+class ProblemFileDataStore(ProblemBase):
+
+    def __init__(self, database_name, working_dir=None):
+        super().__init__()
+        self.working_dir = working_dir
+
+        self.data_store = FileDataStore(self, database_name=database_name, remove_existing=False)
+        # self.data_store.read_from_datastore()

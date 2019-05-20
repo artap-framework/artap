@@ -11,9 +11,9 @@ class Individual(metaclass=ABCMeta):
         self.vector = vector.copy()
         self.costs = []
         self.gradient = []
+        self.is_evaluated = False
 
         self.feasible = 0.0  # the distance from the feasibility region in min norm
-        self.is_evaluated = False
         self.dominate = set()
         self.domination_counter = 0
         self.front_number = None  # TODO: make better
