@@ -1,5 +1,4 @@
 import sqlite3
-import tempfile
 import os
 import json
 import time
@@ -116,6 +115,8 @@ class SqliteDataStore(DataStore):
         # remove database and create structure
         if remove_existing and os.path.exists(self.database_name):
             os.remove(self.database_name)
+
+        if remove_existing:
             self.create_structure()
 
         # set datastore to problem
@@ -179,7 +180,8 @@ class SqliteDataStore(DataStore):
         for cost in self.problem.costs:
             exec_cmd += cost + " NUMBER,"
 
-        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
+        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, depends_on NUMBER, ' \
+                    'modified_param NUMBER, dominates JSON, gradient JSON '
         exec_cmd += ");"
 
         self._execute_command(exec_cmd)
@@ -258,7 +260,7 @@ class SqliteDataStore(DataStore):
 
             self._execute_command(exec_cmd)
 
-    def write_population(self, population, index):
+    def write_population(self, population, index=0):
         super().write_population(population, index)
         connection = sqlite3.connect(self.database_name)
         table = population.to_list(index)
@@ -339,10 +341,16 @@ class SqliteDataStore(DataStore):
                 l = 2 + len(self.problem.parameters) + len(self.problem.costs)
                 individual.costs = row[2 + len(self.problem.parameters): 2 + len(self.problem.parameters) + len(self.problem.costs)]
                 individual.front_number = row[l]
-                individual.crowding_distance = row[l+1]
-                individual.feasible = row[l+2]
-                individual.dominate = json.loads(row[l+3])
-                individual.gradient = json.loads(row[l+4])
+                # individual.crowding_distance = row[l+1]
+                # individual.feasible = row[l+2]
+                individual.depends_on = row[l+3]
+                individual.modified_param = row[l+4]
+                individual.dominate = json.loads(row[l+5])
+                individual.gradient = json.loads(row[l+6])
+
+                # individual.dominate = json.loads(row[l+3])
+                # individual.gradient = json.loads(row[l+4])
+
 
                 # add individual
                 self.individuals.append(individual)
