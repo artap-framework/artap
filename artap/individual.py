@@ -18,7 +18,8 @@ class Individual(metaclass=ABCMeta):
         self.domination_counter = 0
         self.front_number = None  # TODO: make better
         self.crowding_distance = 0  # TODO: deprecated? --
-
+        self.depends_on = None  # For calculating gradients
+        self.modified_param = -1
         # For particle swarm optimization
         self.velocity_i = [0]*len(vector)  # particle velocity
         self.best_parameters = []  # best position individual
@@ -29,15 +30,15 @@ class Individual(metaclass=ABCMeta):
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
-        string = "vector: ["
 
+        string = "vector: ["
         for i, number in enumerate(self.vector):
             string += str(number)
             if i < len(self.vector)-1:
                 string += ", "
-
         string = string[:len(string) - 1]
         string += "]"
+
         string += "; costs:["
 
         for i, number in enumerate(self.costs):
@@ -47,6 +48,14 @@ class Individual(metaclass=ABCMeta):
         string += "],"
         string += " front number: {}".format(self.front_number)
         string += " crowding distance: {}".format(self.crowding_distance)
+        string += "gradient: ["
+        for i, number in enumerate(self.gradient):
+            string += str(number)
+            if i < len(self.vector)-1:
+                string += ", "
+        string = string[:len(string) - 1]
+        string += "]"
+
         return string
 
     def to_list(self):
@@ -68,10 +77,14 @@ class Individual(metaclass=ABCMeta):
             out.append(0)
         else:
             out.append(self.feasible)
+        if self.depends_on is None:
+            out.append(-1)
+        else:
+            out.append(self.depends_on)
+        out.append(self.modified_param)
         # dominates
         dominates = []
         out.append(dominates)
         # gradient
         out.append(self.gradient)
-
         return out

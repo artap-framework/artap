@@ -1,14 +1,13 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .population import Population
 from .environment import Enviroment
 from .job import JobSimple
 
-from multiprocessing import Queue
 import time
 
 import sys
 sys.path.append(Enviroment.artap_root + "/lib/")
+
 import _nlopt
 
 import builtins as __builtin__

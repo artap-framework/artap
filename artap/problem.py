@@ -1,5 +1,4 @@
-from .datastore import DataStore, SqliteDataStore, SqliteHandler, DummyDataStore
-from .utils import flatten
+from .datastore import DataStore, SqliteDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .server import ArtapServer
 from .surrogate import SurrogateModelEval

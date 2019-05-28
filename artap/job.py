@@ -84,7 +84,4 @@ class JobQueue(Job):
 
         # add to population
         self.population.individuals.append(individual)
-        #  write to datastore - not working parallel
-        #  self.problem.data_store.write_individual(individual)
-
         return individual.costs

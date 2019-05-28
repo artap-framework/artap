@@ -22,6 +22,7 @@ class ScipyOpt(Algorithm):
                              desc='Algorithm')
         self.options.declare(name='tol', default=1e-6, lower=0.0,
                              desc='tol')
+        self.options.declare(name='bounds', default=None, desc='bounds')
 
         self.save_all = True
 
@@ -34,6 +35,6 @@ class ScipyOpt(Algorithm):
         # optimization
         t_s = time.time()
         self.problem.logger.info("ScipyOpt: {}".format(self.options['algorithm']))
-        minimize(job.evaluate_scalar, x0, method=self.options['algorithm'], tol=self.options['tol'])
+        minimize(job.evaluate_scalar, x0, method=self.options['algorithm'], tol=self.options['tol'], bounds=self.options['bounds'])
         t = time.time() - t_s
         self.problem.logger.info("ScipyOpt: elapsed time: {} s".format(t))
