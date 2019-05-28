@@ -186,18 +186,17 @@ class LHSGeneration(Generation):
 
 class GradientGeneration(Generation):
 
-    def __init__(self, parameters, individuals):
+    def __init__(self, parameters):
         super().__init__(parameters)
-        self.individuals = individuals
         self.delta = 1e-6
 
     def init(self):
         pass
 
-    def generate(self):
+    def generate(self, individuals):
         new_individuals = []
         k = 0
-        for individual in self.individuals:
+        for individual in individuals:
             individual.depends_on = -k
             new_individuals.append(individual)
             for i in range(len(individual.vector)):

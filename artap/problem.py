@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from .datastore import DataStore, SqliteDataStore, DummyDataStore
-=======
 from .datastore import DataStore, SqliteDataStore, FileDataStore, DummyDataStore
->>>>>>> fa8512bb7836fbc8de17ed994bbbd283c9eb5cbb
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
 from abc import ABC, abstractmethod
