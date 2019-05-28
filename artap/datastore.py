@@ -1,9 +1,6 @@
 import sqlite3
-<<<<<<< HEAD
-=======
 import shelve
 import tempfile
->>>>>>> fa8512bb7836fbc8de17ed994bbbd283c9eb5cbb
 import os
 import json
 import time
@@ -268,15 +265,9 @@ class SqliteDataStore(DataStore):
 
             self._execute_command(exec_cmd)
 
-<<<<<<< HEAD
-    def write_population(self, population, index=0):
-        super().write_population(population, index)
-=======
     def write_population(self, population):
         super().write_population(population)
-
         # write to database
->>>>>>> fa8512bb7836fbc8de17ed994bbbd283c9eb5cbb
         connection = sqlite3.connect(self.database_name)
         table = population.to_list(self.populations.index(population))
         cursor = connection.cursor()
@@ -357,12 +348,12 @@ class SqliteDataStore(DataStore):
                 l = 2 + len(self.problem.parameters) + len(self.problem.costs)
                 individual.costs = row[2 + len(self.problem.parameters): 2 + len(self.problem.parameters) + len(self.problem.costs)]
                 individual.front_number = row[l]
-                # individual.crowding_distance = row[l+1]
-                # individual.feasible = row[l+2]
-                individual.depends_on = row[l+3]
-                individual.modified_param = row[l+4]
-                individual.dominate = json.loads(row[l+5])
-                individual.gradient = json.loads(row[l+6])
+                individual.crowding_distance = row[l+1]
+                individual.feasible = row[l+2]
+                # individual.depends_on = row[l+3]
+                # individual.modified_param = row[l+4]
+                # individual.dominate = json.loads(row[l+5])
+                # individual.gradient = json.loads(row[l+6])
 
                 # individual.dominate = json.loads(row[l+3])
                 # individual.gradient = json.loads(row[l+4])
