@@ -3,13 +3,11 @@ from .utils import flatten
 import warnings
 from abc import ABCMeta, abstractmethod
 
-import numpy as np
 from scipy.spatial import distance
 
-# surrogate (default regressor)
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RationalQuadratic
-from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor
+
 
 class SurrogateModel(metaclass=ABCMeta):
     def __init__(self, problem):
