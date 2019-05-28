@@ -7,7 +7,7 @@ import math
 
 from .individual import Individual
 from .utils import VectorAndNumbers
-from .doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
+from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
 
 EPSILON = sys.float_info.epsilon
 
@@ -186,21 +186,27 @@ class LHSGeneration(Generation):
 
 class GradientGeneration(Generation):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, individuals):
         super().__init__(parameters)
+        self.individuals = individuals
         self.delta = 1e-6
 
     def init(self):
         pass
 
-    def generate(self, individuals):
+    def generate(self):
         new_individuals = []
-        for individual in individuals:
+        k = 0
+        for individual in self.individuals:
+            individual.depends_on = -k
             new_individuals.append(individual)
             for i in range(len(individual.vector)):
                 vector = individual.vector.copy()
-                vector[i] += self.delta
+                vector[i] -= self.delta
                 new_individuals.append(Individual(vector))
+                new_individuals[-1].depends_on = k
+                new_individuals[-1].modified_param = i
+            k += 1
         return new_individuals
 
 
