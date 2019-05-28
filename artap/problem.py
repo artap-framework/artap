@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 from .datastore import DataStore, SqliteDataStore, DummyDataStore
+=======
+from .datastore import DataStore, SqliteDataStore, FileDataStore, DummyDataStore
+>>>>>>> fa8512bb7836fbc8de17ed994bbbd283c9eb5cbb
 from .utils import ConfigDictionary
-from .server import ArtapServer
 from .surrogate import SurrogateModelEval
 from abc import ABC, abstractmethod
 
@@ -32,7 +35,6 @@ class ProblemBase(ABC):
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: DataStore = None
-        self.server = None
 
         # options
         self.options = ConfigDictionary()
@@ -78,11 +80,6 @@ class ProblemBase(ABC):
         # for h in list(self.logger.handlers):
         #    print(h)
         pass
-
-    def run_server(self, open_viewer=False, daemon=True, local_host=True):
-        # testing - Artap Server
-        self.server = ArtapServer(problem=self, local_host=local_host)
-        self.server.run_server(open_viewer, daemon)
 
 
 class Problem(ProblemBase):
@@ -152,11 +149,21 @@ class Problem(ProblemBase):
         pass
 
 
-class ProblemDataStore(ProblemBase):
+class ProblemSqliteDataStore(ProblemBase):
 
     def __init__(self, database_name, working_dir=None):
         super().__init__()
         self.working_dir = working_dir
 
         self.data_store = SqliteDataStore(self, database_name=database_name, remove_existing=False)
-        self.data_store.read_from_datastore()
+        # self.data_store.read_from_datastore()
+
+
+class ProblemFileDataStore(ProblemBase):
+
+    def __init__(self, database_name, working_dir=None):
+        super().__init__()
+        self.working_dir = working_dir
+
+        self.data_store = FileDataStore(self, database_name=database_name, remove_existing=False)
+        # self.data_store.read_from_datastore()
