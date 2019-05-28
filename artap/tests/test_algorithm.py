@@ -35,7 +35,7 @@ class TestJob(unittest.TestCase):
         algorithm.options['max_processes'] = 2
         algorithm.run()
 
-        individuals = problem.data_store.individuals
+        individuals = problem.data_store.populations[-1].individuals
         # values
         self.assertEqual(len(individuals), 4)
         self.assertTrue(problem.parameters['x_1']['bounds'][0] <= individuals[0].vector[0] <= problem.parameters['x_1']['bounds'][1] and
@@ -52,7 +52,7 @@ class TestJob(unittest.TestCase):
         algorithm = SweepAlgorithm(problem, generator=gen)
         algorithm.run()
 
-        individuals = problem.data_store.individuals
+        individuals = problem.data_store.populations[-1].individuals
         self.assertEqual(individuals[0].costs, [9])
         self.assertEqual(individuals[1].costs, [22])
 

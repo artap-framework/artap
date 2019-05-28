@@ -106,6 +106,7 @@ class NSGAII(GeneticAlgorithm):
         self.selector.crowding_distance(population.individuals)
         # write to data store
 
+<<<<<<< HEAD
         self.problem.data_store.write_population(population, len(self.problem.data_store.populations))
 
         if self.options['calculate_gradients'] is True:
@@ -113,6 +114,17 @@ class NSGAII(GeneticAlgorithm):
             gradient_population.individuals = self.evaluate(gradient_population.individuals)
             self.evaluate_gradient(gradient_population.individuals)
             self.problem.data_store.write_population(gradient_population, len(self.problem.data_store.populations))
+=======
+        if self.options['verbose_level'] > 0:
+            self.problem.data_store.write_population(population)
+
+            if self.options['calculate_gradients'] is True:
+                gradient_population = Population(self.gradient_generator.generate(population.individuals))
+                gradient_population.individuals = self.evaluate(gradient_population.individuals)
+                self.evaluate_gradient(gradient_population.individuals)
+                if self.options['verbose_level'] > 0:
+                    self.problem.data_store.write_population(gradient_population)
+>>>>>>> fa8512bb7836fbc8de17ed994bbbd283c9eb5cbb
 
         t_s = time.time()
         self.problem.logger.info(
@@ -143,12 +155,17 @@ class NSGAII(GeneticAlgorithm):
 
             # write population
             population = Population(offsprings)
-            self.problem.data_store.write_population(population, len(self.problem.data_store.populations))
+            self.problem.data_store.write_population(population)
 
             if self.options['calculate_gradients'] is True:
                 gradient_population = Population(self.gradient_generator.generate(population.individuals))
                 gradient_population.individuals = self.evaluate(gradient_population.individuals)
+<<<<<<< HEAD
                 self.problem.data_store.write_population(gradient_population, len(self.problem.data_store.populations))
+=======
+                if self.options['verbose_level'] > 0:
+                    self.problem.data_store.write_population(gradient_population)
+>>>>>>> fa8512bb7836fbc8de17ed994bbbd283c9eb5cbb
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
