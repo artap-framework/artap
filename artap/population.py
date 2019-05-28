@@ -12,7 +12,7 @@ class Population:
         self.pareto_costs: list = []
 
     def __str__(self):
-        string = "Population: {} individuals\n".format(len(self.individuals))
+        string = "individuals: {}\n".format(len(self.individuals))
         for individual in self.individuals:
             string += "\t{},\n".format(individual.__str__())
         return string
@@ -32,14 +32,3 @@ class Population:
             table.append(params)
 
         return table
-
-
-class PopulationGenetic(Population):
-
-    def __init__(self, individuals=None):
-            if individuals is None:
-                individuals = []
-            super().__init__(individuals)
-
-    def gen_random_population(self, population_size, vector_length, parameters):
-        self.individuals = Individual.gen_individuals(population_size, self.id)

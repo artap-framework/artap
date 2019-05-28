@@ -3,7 +3,7 @@ import os
 import unittest
 import tempfile
 from shutil import copyfile, rmtree
-from artap.problem import ProblemDataStore
+from artap.problem import ProblemSqliteDataStore
 from artap.datastore import SqliteDataStore
 from artap.results import GraphicalResults
 
@@ -17,7 +17,7 @@ class TestDataStore(unittest.TestCase):
         copyfile("." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.sqlite",
                  self.working_dir + os.sep + "data.sqlite")
         database_name = self.working_dir + os.sep + "data.sqlite"
-        problem = ProblemDataStore(database_name=database_name)
+        problem = ProblemSqliteDataStore(database_name=database_name)
 
         self.results = GraphicalResults(problem)
 
