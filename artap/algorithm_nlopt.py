@@ -585,7 +585,7 @@ class NLopt(Algorithm):
             t_s = time.time()
             self.problem.logger.info("NLopt: {}".format(op.get_algorithm_name()))
             x = op.optimize(self.problem.get_initial_values())
-            print('initial values:',x)
+            # print('initial values:',x)
             t = time.time() - t_s
             self.problem.logger.info("NLopt: elapsed time: {} s".format(t))
 

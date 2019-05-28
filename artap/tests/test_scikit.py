@@ -423,7 +423,7 @@ def figures(name):
     from matplotlib import rc
 
     data_store = SqliteDataStore(database_file=name + ".sqlite")
-    problem = ProblemDataStore(data_store)
+    problem = ProblemSqliteDataStore(data_store)
 
     data_x = []
     data_y = []
