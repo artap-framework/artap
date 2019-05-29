@@ -79,6 +79,9 @@ class NSGAII(GeneticAlgorithm):
         self.options.declare(name='prob_mutation', default=0.2, lower=0,
                              desc='prob_mutation')
 
+        # TODO: Make new class NSGAII with gradients
+        self.gradient_generator = None
+
     def run(self):
         # set random generator
         self.generator = RandomGeneration(self.problem.parameters)
@@ -108,10 +111,11 @@ class NSGAII(GeneticAlgorithm):
         self.problem.data_store.write_population(population)
 
         if self.options['calculate_gradients'] is True:
-            gradient_population = Population(self.gradient_generator.generate(population.individuals))
+            self.gradient_generator.init(population.individuals)
+            gradient_population = Population(self.gradient_generator.generate())
             gradient_population.individuals = self.evaluate(gradient_population.individuals)
-            self.evaluate_gradient(gradient_population.individuals)
-            self.problem.data_store.write_population(gradient_population)
+            population.individuals = self.evaluate_gradient(population.individuals, gradient_population.individuals)
+            self.problem.data_store.write_population(population)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -145,9 +149,11 @@ class NSGAII(GeneticAlgorithm):
             self.problem.data_store.write_population(population)
 
             if self.options['calculate_gradients'] is True:
-                gradient_population = Population(self.gradient_generator.generate(population.individuals))
+                self.gradient_generator.init(population.individuals)
+                gradient_population = Population(self.gradient_generator.generate())
                 gradient_population.individuals = self.evaluate(gradient_population.individuals)
-                self.problem.data_store.write_population(gradient_population)
+                population.individuals = self.evaluate_gradient(population.individuals, gradient_population.individuals)
+                self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
