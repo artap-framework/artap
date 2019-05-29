@@ -189,16 +189,15 @@ class GradientGeneration(Generation):
     def __init__(self, parameters):
         super().__init__(parameters)
         self.delta = 1e-6
+        self.individuals = None
 
-    def init(self):
-        pass
+    def init(self, individuals):
+        self.individuals = individuals
 
-    def generate(self, individuals):
+    def generate(self):
         new_individuals = []
         k = 0
-        for individual in individuals:
-            individual.depends_on = -k
-            new_individuals.append(individual)
+        for individual in self.individuals:
             for i in range(len(individual.vector)):
                 vector = individual.vector.copy()
                 vector[i] -= self.delta

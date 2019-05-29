@@ -95,30 +95,25 @@ class Algorithm(metaclass=ABCMeta):
             queue.join_thread()
         return new_individuals
 
-    def evaluate_gradient(self, individuals: list):
-        individuals.sort(key=lambda x: abs(x.depends_on))
-        n_params = len(individuals[0].vector)
-        n = int(len(individuals) / (n_params+1))
+    def evaluate_gradient(self, individuals: list, gradient_individuals: list):
 
-        for j in range(n):
+        # individuals.sort(key=lambda x: abs(x.depends_on))
+        n_params = len(individuals[0].vector)
+        for j in range(len(individuals)):
             table = []
-            for i in range(len(individuals)):
-                individual = individuals[i]
-                if abs(individual.depends_on) == j:
+            for i in range(len(gradient_individuals)):
+                individual = gradient_individuals[i]
+                if individual.depends_on == j:
                     table.append(individual)
-                    if individual.modified_param < 0:
-                        ref_index = len(table) - 1
 
             gradient = np.zeros(n_params)
             for k in range(len(table)):
-                if k == ref_index:
-                    continue
                 index = table[k].modified_param
-                gradient[index] = ((table[ref_index].costs[0] - table[k].costs[0]) / 1e-6)
-            print(gradient)
-            for individual in individuals:
-                if individual.depends_on == j:
-                    individual.gradient = gradient
+                gradient[index] = ((individuals[j].costs[0] - table[k].costs[0]) / 1e-6)
+
+            individuals[j].gradient = gradient
+
+        return individuals
 
 
 class DummyAlgorithm(Algorithm):

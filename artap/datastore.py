@@ -375,7 +375,8 @@ class FileDataStore(DataStore):
 
         self.database_name = database_name
         if remove_existing:
-            os.remove(self.database_name)
+            if os.path.isfile(self.database_name):
+                os.remove(self.database_name)
 
         # self.db = SqliteDict(self.db_fn, autocommit=True)
         # self.db = SqliteDict(":memory", autocommit=False)
@@ -391,7 +392,7 @@ class FileDataStore(DataStore):
         self.problem.data_store = self
 
     def __del__(self):
-        self.db.close()
+        # self.db.close()
         super().__del__()
 
     def create_structure(self):
