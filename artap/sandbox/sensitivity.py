@@ -2,7 +2,7 @@ from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn
 from artap.operators import GradientGeneration
 from artap.algorithm_sweep import SweepAlgorithm
-from artap.datastore import SqliteDataStore
+from artap.datastore import FileDataStore
 from artap.individual import Individual
 import numpy as np
 
@@ -17,7 +17,7 @@ class BinhAndKornProblem(Problem):
         super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
-        function = BinhAndKorn()
+        # function = BinhAndKorn()
         # return function.eval(x)
         return [np.sin(x[0]) + np.sin(x[1]), np.cos(x[1])]
 
@@ -25,16 +25,19 @@ class BinhAndKornProblem(Problem):
         return BinhAndKorn.constraints(x)
 
 
+class NewIndividual:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
 if __name__ == '__main__':
 
     problem_gradient = BinhAndKornProblem("SweepProblem")
-    database_name = "data_gradient.sqlite"
-    problem_gradient.data_store = SqliteDataStore(problem_gradient, database_name=database_name)
-
-    gen = GradientGeneration(problem_gradient.parameters, [Individual([0, 0]), Individual([0.25 * np.pi, 0]),
-                                                           Individual([0.25 * np.pi, 0]), Individual([0.25 * np.pi, 0])])
+    database_name = "data_gradient.sol"
+    problem_gradient.data_store = FileDataStore(problem_gradient, database_name=database_name)
+    gen = GradientGeneration(problem_gradient.parameters)
+    gen.init([Individual([0, 0])])
     algorithm = SweepAlgorithm(problem_gradient, generator=gen)
     algorithm.options['max_processes'] = 10
     algorithm.run()
-    print(len(problem_gradient.data_store.individuals))
-    individuals = algorithm.evaluate_gradient(problem_gradient.data_store.individuals)
+    print(problem_gradient.data_store.populations[0])
