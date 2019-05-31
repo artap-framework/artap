@@ -41,7 +41,7 @@ class Sensitivity(Algorithm):
                 individual = Individual(parameters.copy())
                 individuals.append(individual)
 
-            population.individuals = self.evaluate(population.individuals)
+            self.evaluate(population.individuals)
             costs = []
             # TODO: Make also for multi-objective
             for individual in population.individuals:
