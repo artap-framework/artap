@@ -32,8 +32,8 @@ class TestJob(unittest.TestCase):
         problem = JobProblem("JobProblem")
         individual = Individual([1, 2, 2])
         job = JobSimple(problem)
-        result = job.evaluate(individual.vector)
-        self.assertEqual(result, [9])
+        job.evaluate(individual)
+        self.assertEqual(individual.costs, [9])
 
 
 if __name__ == '__main__':

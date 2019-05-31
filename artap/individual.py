@@ -10,9 +10,10 @@ class Individual(metaclass=ABCMeta):
     def __init__(self, vector: list):
         self.vector = vector.copy()
         self.costs = []
-        self.gradient = []
         self.is_evaluated = False
 
+        # TODO: move to inherited classes
+        self.gradient = []
         self.feasible = 0.0  # the distance from the feasibility region in min norm
         self.dominate = set()
         self.domination_counter = 0
@@ -58,6 +59,12 @@ class Individual(metaclass=ABCMeta):
 
         return string
 
+    def sync(self, individual):
+        self.vector = individual.vector
+        self.costs = individual.costs
+        self.is_evaluated = individual.is_evaluated
+
+    # deprecated
     def to_list(self):
         params = [self.vector, self.costs]
         # flatten list
