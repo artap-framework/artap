@@ -8,7 +8,7 @@ import itertools
 
 from .individual import Individual
 from .utils import VectorAndNumbers
-from .doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
+from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
 
 EPSILON = sys.float_info.epsilon
 
@@ -190,18 +190,22 @@ class GradientGeneration(Generation):
     def __init__(self, parameters):
         super().__init__(parameters)
         self.delta = 1e-6
+        self.individuals = None
 
-    def init(self):
-        pass
+    def init(self, individuals):
+        self.individuals = individuals
 
-    def generate(self, individuals):
+    def generate(self):
         new_individuals = []
-        for individual in individuals:
-            new_individuals.append(individual)
+        k = 0
+        for individual in self.individuals:
             for i in range(len(individual.vector)):
                 vector = individual.vector.copy()
-                vector[i] += self.delta
+                vector[i] -= self.delta
                 new_individuals.append(Individual(vector))
+                new_individuals[-1].depends_on = k
+                new_individuals[-1].modified_param = i
+            k += 1
         return new_individuals
 
 
