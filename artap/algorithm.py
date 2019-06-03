@@ -5,6 +5,8 @@ from .population import Population
 
 from multiprocessing import Process, Manager, Queue, cpu_count
 from abc import ABCMeta, abstractmethod
+import copy
+import numpy as np
 
 
 class Algorithm(metaclass=ABCMeta):
@@ -35,7 +37,7 @@ class Algorithm(metaclass=ABCMeta):
         # set current size
         self.population_size = len(individuals)
         # evaluate individuals
-        individuals = self.evaluate(individuals)
+        self.evaluate(individuals)
 
         if is_archive:
             population = Population(individuals, individuals)
@@ -45,69 +47,72 @@ class Algorithm(metaclass=ABCMeta):
 
     def evaluate(self, individuals: list):
         if self.options["max_processes"] > 1:
-            individuals = self.evaluate_parallel(individuals)
+            self.evaluate_parallel(individuals)
         else:
-            individuals = self.evaluate_serial(individuals)
-
-        return individuals
+            self.evaluate_serial(individuals)
 
     def evaluate_serial(self, individuals: list):
         job = JobSimple(self.problem)
         for individual in individuals:
             if not individual.is_evaluated:
-                individual.costs = job.evaluate(individual.vector)
-                individual.is_evaluated = True
-
-        # collect the results
-        return individuals
+                job.evaluate(individual)
 
     def evaluate_parallel(self, individuals: list):
         manager = Manager()
-        shared_list = manager.list([])
-        queue = Queue()
-        job = JobQueue(self.problem, shared_list, queue)
         processes = []
-
         i = 0
-        j = 0
-        for individual in individuals:
-            if not individual.is_evaluated:
-                p = Process(target=job.evaluate, args=(individual.vector,))
-                processes.append(p)
-                p.start()
-                shared_list.append([p.pid, individual])
-                i += 1
-                j += 1
+        n = len(individuals)
+        while i < n:
+            j = 0
+            shared_list = manager.list([])
+            queue = Queue()
+            job = JobQueue(self.problem, shared_list, queue)
+            while (j < self.options["max_processes"]) and ((i + j) < n):
+                individual = individuals[i + j]
+                if not individual.is_evaluated:
+                    p = Process(target=job.evaluate, args=(individual,))
+                    processes.append(p)
+                    p.start()
+                    shared_list.append([p.pid, individual])
+                    j += 1
 
-            if ((i % self.options['max_processes']) == 0) or (j >= len(individuals)):
-                for process in processes:
-                    process.join()
-                    processes = []
+            for process in processes:
+                process.join()
 
-        # collect the results
-        individuals = []
-        for item in range(queue.qsize()):
-            individuals.append(queue.get())
-            # write to datastore
-            if self.problem.options["save_level"] == "individual":
-                self.problem.data_store.write_individual(individuals[-1])
-        queue.close()
-        queue.join_thread()
+            processes = []
+            i += j
 
-        return individuals
+            for item in range(queue.qsize()):
+                local_individual = queue.get()
+                # TODO: rewrite !!! - very slow
+                for individual in individuals:
+                    if local_individual.vector == individual.vector:
+                        # update individual
+                        individual.sync(local_individual)
 
-    def evaluate_gradient(self, individuals: list):
-        i = 0
-        n = len(self.problem.parameters)
-        gradients = []
-        gradient = []
-        for individual in individuals:
-            i += 1
-            gradient.append(individual.costs.copy())
-            if i == n:
-                i = 0
-                gradients.append(gradient.copy())
-                gradient.clear()
+                        # write to datastore
+                        if self.problem.options["save_level"] == "individual":
+                            self.problem.data_store.write_individual(individual)
+            queue.close()
+            queue.join_thread()
+
+    def evaluate_gradient(self, individuals: list, gradient_individuals: list):
+
+        # individuals.sort(key=lambda x: abs(x.depends_on))
+        n_params = len(individuals[0].vector)
+        for j in range(len(individuals)):
+            table = []
+            for i in range(len(gradient_individuals)):
+                individual = gradient_individuals[i]
+                if individual.depends_on == j:
+                    table.append(individual)
+
+            gradient = np.zeros(n_params)
+            for k in range(len(table)):
+                index = table[k].modified_param
+                gradient[index] = ((individuals[j].costs[0] - table[k].costs[0]) / 1e-6)
+
+            individuals[j].gradient = gradient
 
 
 class DummyAlgorithm(Algorithm):

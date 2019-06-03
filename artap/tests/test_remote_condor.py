@@ -116,7 +116,7 @@ class TestCondor(TestCase):
         population = Population()
         population.gen_population_from_table(table)
         evaluator = DummyAlgorithm(problem)
-        population.individuals = evaluator.evaluate(population.individuals)
+        evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(5.0, population.individuals[0].costs[0])
 
@@ -128,7 +128,7 @@ class TestCondor(TestCase):
         population = Population()
         population.gen_population_from_table(table)
         evaluator = DummyAlgorithm(problem)
-        population.individuals = evaluator.evaluate(population.individuals)
+        evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0])
         self.assertAlmostEqual(124.23499735221547, population.individuals[1].costs[0])
@@ -140,7 +140,7 @@ class TestCondor(TestCase):
         population = Population()
         population.gen_population_from_table(table)
         evaluator = DummyAlgorithm(problem)
-        population.individuals = evaluator.evaluate(population.individuals)
+        evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(5.0, population.individuals[0].costs[0])
 
@@ -151,7 +151,7 @@ class TestCondor(TestCase):
         population = Population()
         population.gen_population_from_table(table)
         evaluator = DummyAlgorithm(problem)
-        population.individuals = evaluator.evaluate(population.individuals)
+        evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(5.0, population.individuals[0].costs[0])
 

@@ -115,10 +115,10 @@ class TestDOE(unittest.TestCase):
         gen.init(number=3)
         individuals = gen.generate()
         gen = GradientGeneration(self.parameters)
-        gen.init()
-        new_individuals = gen.generate(individuals)
+        gen.init(individuals)
+        new_individuals = gen.generate()
         # size
-        self.assertEqual(len(new_individuals), 12 )
+        self.assertEqual(len(new_individuals), 9)
 
 
 if __name__ == '__main__':
