@@ -26,7 +26,7 @@ class PSO(GeneticAlgorithm):
         for individual in population.individuals:
             self.mutator.evaluate_pso(individual)
 
-        self.selector.non_dominated_sort(population.individuals)
+        self.selector.sorting(population.individuals)
         self.problem.data_store.write_population(population)
 
         t_s = time.time()
@@ -54,7 +54,7 @@ class PSO(GeneticAlgorithm):
             for individual in offsprings:
                 self.mutator.evaluate_pso(individual)
 
-            self.selector.non_dominated_sort(offsprings)
+            self.selector.sorting(offsprings)
             population = Population(offsprings)
             self.problem.data_store.write_population(population)
 
