@@ -49,7 +49,7 @@ class PSO(GeneticAlgorithm):
                     self.mutator.update(best_individual)
                     self.mutator.mutate(individual)
 
-            offsprings = self.evaluate(offsprings)
+            self.evaluate(offsprings)
 
             for individual in offsprings:
                 self.mutator.evaluate_pso(individual)
