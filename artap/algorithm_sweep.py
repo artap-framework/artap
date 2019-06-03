@@ -28,7 +28,8 @@ class SweepAlgorithm(Algorithm):
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
-        self.problem.data_store.write_population(population)
+        if self.problem.options['save_level'] == 'population':
+            self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))

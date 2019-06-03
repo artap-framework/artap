@@ -118,6 +118,8 @@ class SqliteDataStore(DataStore):
         # remove database and create structure
         if remove_existing and os.path.exists(self.database_name):
             os.remove(self.database_name)
+
+        if remove_existing:
             self.create_structure()
         else:
             self.read_from_datastore()
@@ -183,7 +185,8 @@ class SqliteDataStore(DataStore):
         for cost in self.problem.costs:
             exec_cmd += cost + " NUMBER,"
 
-        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, dominates JSON, gradient JSON'
+        exec_cmd += 'front_number NUMBER, crowding_distance NUMBER, feasible NUMBER, depends_on NUMBER, ' \
+                    'modified_param NUMBER, dominates JSON, gradient JSON '
         exec_cmd += ");"
 
         self._execute_command(exec_cmd)
@@ -264,7 +267,6 @@ class SqliteDataStore(DataStore):
 
     def write_population(self, population):
         super().write_population(population)
-
         # write to database
         connection = sqlite3.connect(self.database_name)
         table = population.to_list(self.populations.index(population))
@@ -348,8 +350,14 @@ class SqliteDataStore(DataStore):
                 individual.front_number = row[l]
                 individual.crowding_distance = row[l+1]
                 individual.feasible = row[l+2]
-                individual.dominate = json.loads(row[l+3])
-                individual.gradient = json.loads(row[l+4])
+                # individual.depends_on = row[l+3]
+                # individual.modified_param = row[l+4]
+                # individual.dominate = json.loads(row[l+5])
+                # individual.gradient = json.loads(row[l+6])
+
+                # individual.dominate = json.loads(row[l+3])
+                # individual.gradient = json.loads(row[l+4])
+
 
                 # add to population
                 population.individuals.append(individual)
@@ -367,7 +375,8 @@ class FileDataStore(DataStore):
 
         self.database_name = database_name
         if remove_existing:
-            os.remove(self.database_name)
+            if os.path.isfile(self.database_name):
+                os.remove(self.database_name)
 
         # self.db = SqliteDict(self.db_fn, autocommit=True)
         # self.db = SqliteDict(":memory", autocommit=False)
@@ -383,7 +392,7 @@ class FileDataStore(DataStore):
         self.problem.data_store = self
 
     def __del__(self):
-        self.db.close()
+        # self.db.close()
         super().__del__()
 
     def create_structure(self):
