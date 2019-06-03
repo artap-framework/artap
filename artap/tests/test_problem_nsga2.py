@@ -2,7 +2,7 @@ import unittest
 
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
-from artap.algorithm_genetic import NSGAII
+from artap.algorithm_genetic import NSGAII, EpsMOEA
 from artap.results import Results, GraphicalResults
 from artap.datastore import SqliteDataStore
 
@@ -81,6 +81,21 @@ class TestAckleyN2(unittest.TestCase):
         optimum = b.find_minimum('F_1')  # Takes last cost function
         self.assertAlmostEqual(optimum.costs[0], -200, 0)
 
+
+class TestAckleyN2(unittest.TestCase):
+    """ Tests that the NSGA II algorithm can find the global optimum of a function."""
+
+    def test_local_problem(self):
+        problem = AckleyN2Test("TestAckleyN2")
+        algorithm = EpsMOEA(problem)
+        algorithm.options['max_population_number'] = 100
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['epsilons'] = 0.01
+        algorithm.run()
+
+        b = Results(problem)
+        optimum = b.find_minimum('F_1')  # Takes last cost function
+        self.assertAlmostEqual(optimum.costs[0], -200, 0)
 
 if __name__ == '__main__':
     unittest.main()
