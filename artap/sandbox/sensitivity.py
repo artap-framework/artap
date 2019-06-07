@@ -1,9 +1,8 @@
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn
-from artap.operators import GradientGeneration
+from artap.operators import CustomGeneration
 from artap.algorithm_sweep import SweepAlgorithm
 from artap.datastore import FileDataStore
-from artap.individual import Individual
 import numpy as np
 
 
@@ -35,9 +34,12 @@ if __name__ == '__main__':
     problem_gradient = BinhAndKornProblem("SweepProblem")
     database_name = "data_gradient.sol"
     problem_gradient.data_store = FileDataStore(problem_gradient, database_name=database_name)
-    gen = GradientGeneration(problem_gradient.parameters)
-    gen.init([Individual([0, 0])])
+    gen = CustomGeneration(problem_gradient.parameters)
+    individuals = [[0, 1], [1, 0]]
+    gen.init(individuals)
+
     algorithm = SweepAlgorithm(problem_gradient, generator=gen)
     algorithm.options['max_processes'] = 10
+    algorithm.options['calculate_gradients'] = True
     algorithm.run()
     print(problem_gradient.data_store.populations[0])
