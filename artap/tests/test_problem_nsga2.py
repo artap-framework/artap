@@ -3,8 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results, GraphicalResults
-from artap.datastore import SqliteDataStore
+from artap.results import Results
 
 
 class BinhAndKornProblem(Problem):
@@ -32,8 +31,8 @@ class TestNSGA2Optimization(unittest.TestCase):
         problem = BinhAndKornProblem("TestNSGA2Optimization")
 
         algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 2
-        algorithm.options['max_population_size'] = 2
+        algorithm.options['max_population_number'] = 50
+        algorithm.options['max_population_size'] = 50
         algorithm.options['calculate_gradients'] = True
         algorithm.options['verbose_level'] = 1
         algorithm.run()
@@ -47,9 +46,6 @@ class TestNSGA2Optimization(unittest.TestCase):
                 wrong += 1
 
         self.assertLessEqual(wrong, 5)
-
-       # self.results = GraphicalResults(problem)
-       # self.results.plot_scatter('F_1', 'F_2')
 
 
 class AckleyN2Test(Problem):
