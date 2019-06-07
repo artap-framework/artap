@@ -9,4 +9,4 @@ build:
 
     # tests
     - cd artap/tests
-    - pytest-3 -v
+    - pytest-3 --disable-warnings -v

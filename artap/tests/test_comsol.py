@@ -41,7 +41,7 @@ class TestSimpleComsolOptimization(unittest.TestCase):
         population = Population()
         population.gen_population_from_table(table)
         evaluator = DummyAlgorithm(problem)
-        population.individuals = evaluator.evaluate(population.individuals)
+        evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0])
 
