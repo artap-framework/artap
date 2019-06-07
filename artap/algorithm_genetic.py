@@ -113,8 +113,8 @@ class NSGAII(GeneticAlgorithm):
         if self.options['calculate_gradients'] is True:
             self.gradient_generator.init(population.individuals)
             gradient_population = Population(self.gradient_generator.generate())
-            gradient_population.individuals = self.evaluate(gradient_population.individuals)
-            population.individuals = self.evaluate_gradient(population.individuals, gradient_population.individuals)
+            self.evaluate(gradient_population.individuals)
+            self.evaluate_gradient(population.individuals, gradient_population.individuals)
             self.problem.data_store.write_population(population)
 
         t_s = time.time()
@@ -126,7 +126,7 @@ class NSGAII(GeneticAlgorithm):
             # generate new offsprings
             offsprings = self.generate(population.individuals)
             # evaluate the offsprings
-            offsprings = self.evaluate(offsprings)
+            self.evaluate(offsprings)
 
             # if (self.options['calculate_gradients'] is True) and population.number > 20:
             #     population.evaluate_gradients()
@@ -151,8 +151,8 @@ class NSGAII(GeneticAlgorithm):
             if self.options['calculate_gradients'] is True:
                 self.gradient_generator.init(population.individuals)
                 gradient_population = Population(self.gradient_generator.generate())
-                gradient_population.individuals = self.evaluate(gradient_population.individuals)
-                population.individuals = self.evaluate_gradient(population.individuals, gradient_population.individuals)
+                self.evaluate(gradient_population.individuals)
+                self.evaluate_gradient(population.individuals, gradient_population.individuals)
                 self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
@@ -202,7 +202,7 @@ class EpsMOEA(GeneticAlgorithm):
             # generate new offsprings
             offsprings = self.generate(population.individuals)
             # evaluate the offsprings
-            offsprings = self.evaluate(offsprings)
+            self.evaluate(offsprings)
 
             # if (self.options['calculate_gradients'] is True) and population.number > 20:
             #     population.evaluate_gradients()
