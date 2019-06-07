@@ -12,7 +12,7 @@ class Individual(metaclass=ABCMeta):
         self.costs = []
         self.gradient = []
         self.is_evaluated = False
-
+        # TODO: Inherite properties specific for particular method
         self.feasible = 0.0  # the distance from the feasibility region in min norm
         self.dominate = set()
         self.domination_counter = 0
