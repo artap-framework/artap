@@ -2,7 +2,7 @@ from random import randint
 from .problem import Problem
 from .population import Population
 # from .individual import Individual
-from .algorithm_genetic import GeneticAlgorithm
+from .algorithm_genetic import GeneticAlgorithm, GeneticIndividual
 from .operators import SwarmMutation, DummySelection, RandomGeneration
 
 import time
@@ -18,7 +18,7 @@ class PSO(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
