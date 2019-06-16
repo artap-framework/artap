@@ -1,4 +1,4 @@
-from .datastore import DataStore, SqliteDataStore, FileDataStore, DummyDataStore
+from .datastore import DataStore, FileDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
 from abc import ABC, abstractmethod
@@ -145,14 +145,14 @@ class Problem(ProblemBase):
         pass
 
 
-class ProblemSqliteDataStore(ProblemBase):
-
-    def __init__(self, database_name, working_dir=None):
-        super().__init__()
-        self.working_dir = working_dir
-
-        self.data_store = SqliteDataStore(self, database_name=database_name, remove_existing=False)
-        # self.data_store.read_from_datastore()
+# class ProblemSqliteDataStore(ProblemBase):
+#
+#     def __init__(self, database_name, working_dir=None):
+#         super().__init__()
+#         self.working_dir = working_dir
+#
+#         self.data_store = SqliteDataStore(self, database_name=database_name, remove_existing=False)
+#         # self.data_store.read_from_datastore()
 
 
 class ProblemFileDataStore(ProblemBase):
