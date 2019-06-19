@@ -24,9 +24,13 @@ class Operation(ABC):
 
 class Generation(Operation):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, individual_class=Individual):
         super().__init__()
         self.parameters = parameters
+        self.individual_class = individual_class
+
+    def create_individual(self, vector: list=[]):
+        return self.individual_class(vector)
 
     @abstractmethod
     def generate(self):
@@ -45,14 +49,14 @@ class CustomGeneration(Generation):
     def generate(self):
         individuals = []
         for vector in self.vectors:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
 class RandomGeneration(Generation):
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters, individual_class=Individual):
+        super().__init__(parameters, individual_class)
         self.number = 0
 
     def init(self, number):
@@ -62,7 +66,7 @@ class RandomGeneration(Generation):
         individuals = []
         for i in range(self.number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -96,7 +100,7 @@ class FullFactorGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -122,7 +126,7 @@ class PlackettBurmanGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -151,7 +155,7 @@ class BoxBehnkenGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -180,7 +184,7 @@ class LHSGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -201,7 +205,7 @@ class GradientGeneration(Generation):
             for i in range(len(individual.vector)):
                 vector = individual.vector.copy()
                 vector[i] -= self.delta
-                new_individuals.append(Individual(vector))
+                new_individuals.append(self.create_individual(vector))
                 new_individuals[-1].depends_on = k
                 new_individuals[-1].modified_param = i
             k += 1
@@ -241,7 +245,7 @@ class SimpleMutation(Mutation):
             else:
                 vector.append(p.vector[i])
 
-        p_new = Individual(vector)
+        p_new = p.__class__(vector)
         return p_new
 
 
@@ -263,7 +267,7 @@ class PmMutation(Mutation):
             else:
                 vector.append(p.vector[i])
 
-        p_new = Individual(vector)
+        p_new = p.__class__(vector)
         return p_new
 
     def pm_mutation(self, x, lb, ub):
@@ -436,13 +440,14 @@ class DummySelection(Selection):
         selection = []
         for individual in individuals:
 
-            candidate = Individual(individual.vector)
+            candidate = individual.__class__(individual.vector)
             candidate.costs = individual.costs
             candidate.front_number = individual.front_number
             candidate.best_vector = individual.best_vector
             candidate.best_costs = individual.best_costs
 
             selection.append(candidate)
+
         return selection
 
 
@@ -668,8 +673,8 @@ class SimpleCrossover(Crossover):
         super().__init__(parameters, probability)
 
     def cross(self, p1, p2):
-        parent_a = deepcopy(p1.vector)
-        parent_b = deepcopy(p2.vector)
+        parent_a = p1.vector.copy()
+        parent_b = p2.vector.copy()
 
         if random.uniform(0.0, 1.0) <= self.probability:
             parameter1 = []
@@ -688,8 +693,8 @@ class SimpleCrossover(Crossover):
             parent_a = parameter1
             parent_b = parameter2
 
-        offspring_a = Individual(parent_a)
-        offspring_b = Individual(parent_b)
+        offspring_a = p1.__class__(parent_a)
+        offspring_b = p2.__class__(parent_b)
 
         return offspring_a, offspring_b
 
@@ -751,8 +756,8 @@ class SimulatedBinaryCrossover(Crossover):
         :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        parent_a = deepcopy(p1.vector)
-        parent_b = deepcopy(p2.vector)
+        parent_a = p1.vector.copy()
+        parent_b = p2.vector.copy()
 
         if random.uniform(0.0, 1.0) <= self.probability:
             for i, param in enumerate(self.parameters.items()):
@@ -768,7 +773,7 @@ class SimulatedBinaryCrossover(Crossover):
                     parent_a[i] = x1
                     parent_b[i] = x2
 
-        offspring_a = Individual(parent_a)
-        offspring_b = Individual(parent_b)
+        offspring_a = p1.__class__(parent_a)
+        offspring_b = p2.__class__(parent_b)
 
         return offspring_a, offspring_b
