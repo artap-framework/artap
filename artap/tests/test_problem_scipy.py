@@ -3,9 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
 from artap.benchmark_functions import AckleyN2
-from artap.datastore import SqliteDataStore
 from artap.results import Results
-from artap.datastore import DummyDataStore
 
 
 class MyProblem(Problem):
