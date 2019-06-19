@@ -3,7 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results
+from artap.results import Results, GraphicalResults
 
 
 class BinhAndKornProblem(Problem):
@@ -71,6 +71,8 @@ class TestAckleyN2(unittest.TestCase):
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100
+        #algorithm.options['max_population_number'] = 3
+        #algorithm.options['max_population_size'] = 3
         algorithm.run()
 
         b = Results(problem)
