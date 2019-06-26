@@ -97,7 +97,7 @@ class Algorithm(metaclass=ABCMeta):
             queue.join_thread()
 
     def evaluate_gradient(self, individuals: list, gradient_individuals: list):
-
+        # Todo: Make operator Gradient consisting of current gradient generator and evaluate_gradient
         # individuals.sort(key=lambda x: abs(x.depends_on))
         n_params = len(individuals[0].vector)
         for j in range(len(individuals)):
