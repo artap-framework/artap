@@ -1,15 +1,63 @@
-from pygments.lexer import include
-
+from artap import individual
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
+from .individual import Individual
+from .operators import RandomGeneration, SimulatedBinaryCrossover,  \
+    PmMutation, TournamentSelection, GradientGeneration
+
 from .operators import RandomGeneration, SimulatedBinaryCrossover, \
     PmMutation, TournamentSelection, GradientGeneration, ParetoDominance, EpsilonDominance
 from copy import deepcopy
 import time
 import sys
+from random import uniform
+from copy import deepcopy
 
 EPSILON = sys.float_info.epsilon
+
+
+class GeneticIndividual(Individual):
+    def __init__(self, vector: list):
+        super().__init__(vector)
+
+        self.gradient = []
+        self.feasible = 0.0  # the distance from the feasibility region in min norm
+        self.dominate = set()
+        self.domination_counter = 0
+        self.front_number = None  # TODO: make better
+        self.crowding_distance = 0  # TODO: deprecated? --
+        self.depends_on = None  # For calculating gradients
+        self.modified_param = -1
+        # For particle swarm optimization
+        self.velocity_i = [0] * len(vector)  # particle velocity
+        self.best_parameters = []  # best position individual
+        self.best_costs = []  # best error individual
+
+        for i in range(0, len(self.vector)):
+            self.velocity_i.append(uniform(-1, 1))
+
+    def __repr__(self):
+        """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
+
+        string = "{}, ".format(super.__repr__())
+
+        string += ", front number: {}".format(self.front_number)
+        string += ", crowding distance: {}".format(self.crowding_distance)
+        string += ", gradient: ["
+        for i, number in enumerate(self.gradient):
+            string += str(number)
+            if i < len(self.vector)-1:
+                string += ", "
+        string = string[:len(string) - 1]
+        string += "]"
+
+        return string
+
+    def sync(self, individual):
+        self.vector = individual.vector
+        self.costs = individual.costs
+        self.is_evaluated = individual.is_evaluated
 
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
@@ -89,7 +137,7 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         if self.options['calculate_gradients'] is True:
@@ -178,6 +226,7 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
+        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator = RandomGeneration(self.problem.parameters)  # the same as in the case of NSGA-II
         self.generator.init(self.options['max_population_size'])
 

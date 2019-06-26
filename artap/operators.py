@@ -25,9 +25,13 @@ class Operation(ABC):
 
 class Generation(Operation):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, individual_class=Individual):
         super().__init__()
         self.parameters = parameters
+        self.individual_class = individual_class
+
+    def create_individual(self, vector: list=[]):
+        return self.individual_class(vector)
 
     @abstractmethod
     def generate(self):
@@ -46,14 +50,14 @@ class CustomGeneration(Generation):
     def generate(self):
         individuals = []
         for vector in self.vectors:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
 class RandomGeneration(Generation):
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters, individual_class=Individual):
+        super().__init__(parameters, individual_class)
         self.number = 0
 
     def init(self, number):
@@ -63,7 +67,7 @@ class RandomGeneration(Generation):
         individuals = []
         for i in range(self.number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -97,7 +101,7 @@ class FullFactorGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -123,7 +127,7 @@ class PlackettBurmanGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -152,7 +156,7 @@ class BoxBehnkenGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -181,7 +185,7 @@ class LHSGeneration(Generation):
 
         individuals = []
         for vector in df:
-            individuals.append(Individual(vector))
+            individuals.append(self.create_individual(vector))
         return individuals
 
 
@@ -202,7 +206,7 @@ class GradientGeneration(Generation):
             for i in range(len(individual.vector)):
                 vector = individual.vector.copy()
                 vector[i] -= self.delta
-                new_individuals.append(Individual(vector))
+                new_individuals.append(self.create_individual(vector))
                 new_individuals[-1].depends_on = k
                 new_individuals[-1].modified_param = i
             k += 1
@@ -242,7 +246,7 @@ class SimpleMutation(Mutation):
             else:
                 vector.append(p.vector[i])
 
-        p_new = Individual(vector)
+        p_new = p.__class__(vector)
         return p_new
 
 
@@ -264,7 +268,7 @@ class PmMutation(Mutation):
             else:
                 vector.append(p.vector[i])
 
-        p_new = Individual(vector)
+        p_new = p.__class__(vector)
         return p_new
 
     def pm_mutation(self, x, lb, ub):
@@ -342,6 +346,110 @@ class SwarmMutation(Mutation):
         self.update_velocity(p)
         self.update_position(p)
         return p
+
+
+class Selection(Operation):
+
+    def __init__(self, parameters, part_num=2):
+        super().__init__()
+        self.parameters = parameters
+        self.part_num = part_num
+        self.comparator = ParetoDominance()
+
+    @abstractmethod
+    def select(self, population):
+        pass
+
+    def is_dominate(self, p, q):
+        """
+        :param p: current solution
+        :param q: candidate
+        :return: True if the candidate is better than the current solution
+        """
+        dominate = False
+
+        # The cost function can be a float or a list of floats
+        for i in range(0, len(p.costs)):
+            if p.costs[i] > q.costs[i]:
+                return False
+            if p.costs[i] <= q.costs[i]:
+                dominate = True
+        return dominate
+
+    def non_dominated_sort(self, population):
+        pareto_front = []
+        front_number = 1
+
+        for p in population:
+            p.domination_counter = 0
+            p.front_number = None
+            p.dominate = set()
+
+            for q in population:
+                if p is q:
+                    continue
+                if self.comparator.compare(p, q) == 1:          # TODO: simplify
+                    p.dominate.add(q)
+                elif self.comparator.compare(q, p) == 1:
+                    p.domination_counter = p.domination_counter + 1
+
+            if p.domination_counter == 0:
+                p.front_number = front_number
+                pareto_front.append(p)
+
+        while not len(pareto_front) == 0:
+            front_number += 1
+            temp_set = []
+            for p in pareto_front:
+                for q in p.dominate:
+                    q.domination_counter -= 1
+                    if q.domination_counter == 0 and q.front_number is None:
+                        q.front_number = front_number
+                        temp_set.append(q)
+            pareto_front = temp_set
+
+    def sort_by_coordinate(self, population, dim):
+        population.sort(key=lambda x: x.costs[dim])
+        return population
+
+    def crowding_distance(self, population):
+        infinite = float("inf")
+        n = len(population[0].costs)
+        for dim in range(0, n):
+            new_list = self.sort_by_coordinate(population, dim)
+
+            new_list[0].crowding_distance += infinite
+            new_list[-1].crowding_distance += infinite
+            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
+            for i in range(1, len(new_list) - 1):
+                distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
+                if max_distance == 0:
+                    new_list[i].crowding_distance = 0
+                else:
+                    new_list[i].crowding_distance += distance / max_distance
+
+        for p in population:
+            p.crowding_distance = p.crowding_distance / n
+
+
+class DummySelection(Selection):
+
+    def __init__(self, parameters, part_num=2):
+        super().__init__(parameters, part_num)
+
+    def select(self, individuals):
+        selection = []
+        for individual in individuals:
+
+            candidate = individual.__class__(individual.vector)
+            candidate.costs = individual.costs
+            candidate.front_number = individual.front_number
+            candidate.best_vector = individual.best_vector
+            candidate.best_costs = individual.best_costs
+
+            selection.append(candidate)
+
+        return selection
 
 
 class Dominance(ABC):
@@ -755,8 +863,8 @@ class SimpleCrossover(Crossover):
         super().__init__(parameters, probability)
 
     def cross(self, p1, p2):
-        parent_a = deepcopy(p1.vector)
-        parent_b = deepcopy(p2.vector)
+        parent_a = p1.vector.copy()
+        parent_b = p2.vector.copy()
 
         if random.uniform(0.0, 1.0) <= self.probability:
             parameter1 = []
@@ -775,8 +883,8 @@ class SimpleCrossover(Crossover):
             parent_a = parameter1
             parent_b = parameter2
 
-        offspring_a = Individual(parent_a)
-        offspring_b = Individual(parent_b)
+        offspring_a = p1.__class__(parent_a)
+        offspring_b = p2.__class__(parent_b)
 
         return offspring_a, offspring_b
 
@@ -838,8 +946,8 @@ class SimulatedBinaryCrossover(Crossover):
         :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        parent_a = deepcopy(p1.vector)
-        parent_b = deepcopy(p2.vector)
+        parent_a = p1.vector.copy()
+        parent_b = p2.vector.copy()
 
         if random.uniform(0.0, 1.0) <= self.probability:
             for i, param in enumerate(self.parameters.items()):
@@ -855,7 +963,7 @@ class SimulatedBinaryCrossover(Crossover):
                     parent_a[i] = x1
                     parent_b[i] = x2
 
-        offspring_a = Individual(parent_a)
-        offspring_b = Individual(parent_b)
+        offspring_a = p1.__class__(parent_a)
+        offspring_b = p2.__class__(parent_b)
 
         return offspring_a, offspring_b
