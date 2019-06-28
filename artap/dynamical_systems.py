@@ -25,7 +25,7 @@ class Model:
                     if abs(self.t - sub_system.k * sub_system.dt) < 1e-12:
                         sub_system.discrete_step()
                 else:
-                    sub_system.continuous_step(self.t)
+                    sub_system.continuous_step(self.dt)
             self.t += self.dt
 
 
@@ -59,7 +59,7 @@ class System:
         self.archive_x = []
         self.archive_u = []
 
-        self.integrate = self.euler_step
+        self.integrate = self.runge_kutta_step
         self.type = None
 
     def connect(self, system_output, output_index=0, input_index=0):
@@ -95,6 +95,7 @@ class System:
     def discrete_step(self):
         self.k += 1
         self.t = self.k * self.dt
+        self.update_input()
         self.x = self.update_state()
         self.y = self.update_output()
         self.save_step()
@@ -121,6 +122,15 @@ class System:
         self.archive_time.append(self.t)
         self.archive_x.append(self.x)
         self.archive_y.append(self.update_output())
+
+    def get_state(self):
+        table = []
+        for i in range(len(self.x)):
+            x = []
+            for item in self.archive_x:
+                x.append(item[i])
+            table.append(x)
+        return table
 
     def plot(self, signal='output', index=None):
         # t = self.dt * np.linspace(0, len(self.archive_y), len(self.archive_y))
@@ -183,6 +193,7 @@ class LTISystem(System):
         self.matrix_c = np.array(matrix_c)
         self.matrix_d = np.array(matrix_d)
         self.n_inputs = len(matrix_b[0])
+        self.n_outputs = len(matrix_c)
         self.n = len(matrix_a)
         self.u = np.zeros(self.n_inputs)
 
@@ -222,6 +233,8 @@ class DiscreteLTISystem(LTISystem):
         super().__init__(model, matrix_a, matrix_b, matrix_c, matrix_d, x_0, dt)
         self.type = 'discrete'
         self.dt = dt
+        self.x = np.array(x_0)
+        self.save_step()
 
     def update_state(self):
         self.update_input()
@@ -230,22 +243,28 @@ class DiscreteLTISystem(LTISystem):
 
     def update_output(self):
         self.update_input()
-        self.y = self.matrix_c @ self.x + self.matrix_d @ self.u
+        self.y = self.matrix_c @ self.x + self.matrix_d @ self.u + 50 * (np.random.rand() - 0.5)
         return self.y
 
 
 class Sum(System):
-    def __init__(self, signs):
-        super().__init__()
+    def __init__(self, model: Model, signs):
+        self.n_inputs = len(signs)
+        super().__init__(model, n_inputs=self.n_inputs)
+        self.type = 'continuous'
         self.signs = signs
-        self.archive_y.append(0)
+        self.archive_y.append([0])
+        self.archive_time.append(0)
+        self.y = 0
 
     def output(self, time=None, index=0):
         output = 0
         for i in range(len(self.inputs)):
-            output += self.signs[i] * self.inputs[i](time, index)
-        self.archive_y.append(output)
-        self.archive_time.append(time)
+            output += self.signs[i] * self.inputs[i](time)[0]
+
+        self.archive_y.append([output])
+        self.y = [output]
+        self.archive_time.append(self.model.t)
         return output
 
     def continuous_step(self, time):
@@ -269,28 +288,27 @@ class PI(System):
 
 
 class KalmanFilter(DiscreteLTISystem):
-    def __init__(self, model: Model, controlled_system: DiscreteLTISystem, dt):
+    def __init__(self, model: Model, controlled_system: DiscreteLTISystem, dt, error_obs, error_proc):
 
         self.n = len(controlled_system.x)
-        n_inputs = controlled_system.n_inputs + len(self.matrix_c)
+        self.controlled_system = controlled_system
+        n_inputs = controlled_system.n_inputs + len(controlled_system.matrix_c)
 
+        x0 = [-600, 3e3, 100, 500]
         super().__init__(model, controlled_system.matrix_a, controlled_system.matrix_b,
-                         controlled_system.matrix_c, controlled_system.matrix_d, dt=dt)
+                         controlled_system.matrix_c, controlled_system.matrix_d, x_0=x0, dt=dt)
 
         for i in range(n_inputs):
             self.inputs.append(self.dummy_input)
             self.connections.append(0)
 
-        self.x = controlled_system.x
-        self.y = self.matrix_c @ self.x
-
-        self.error_obs = [25, 6]    # ToDo:Move magic number to constructor
-        self.error_proc = [20, 5]   # ToDo:Move magic number to constructor
+        self.error_proc = error_proc
+        self.error_obs = error_obs
 
         self.P = self.covariance(self.error_proc)
         self.R = self.covariance(self.error_obs)
         self.Q = np.zeros(self.n)
-        self.save_step()
+
 
     @staticmethod
     def covariance(sigma):
@@ -300,7 +318,7 @@ class KalmanFilter(DiscreteLTISystem):
         return cov_matrix
 
     def update_output(self):
-        self.y = self.x
+        # self.y = self.x
         return self.y
 
     def discrete_step(self):
@@ -311,6 +329,39 @@ class KalmanFilter(DiscreteLTISystem):
 
         matrix_p = self.matrix_a @ self.P @ self.matrix_a.T + self.Q
         self.P = np.eye(self.n)
+
+        for i in range(self.n):
+            self.P[i, i] = matrix_p[i, i]  # Takes only diagonal
+
+        matrix_s = self.R + self.matrix_c @ self.P @ self.matrix_c.T
+        matrix_k = self.P @ self.matrix_c.T @ np.linalg.inv(matrix_s)
+
+        # Difference between real output and estimated output
+        self.k = self.k + 1
+        self.t = self.k * self.dt
+        y_meas = np.array(self.inputs[1](self.t))
+        y = self.matrix_c @ self.x
+
+        # Update equation
+        self.x = self.x + matrix_k @ (y_meas - y)
+
+        matrix_i = np.eye(self.n)
+        self.P = (matrix_i - matrix_k @ self.matrix_c) @ self.P
+        self.y = self.matrix_c @ self.x
+        self.save_step()
+
+    def discrete_step_(self):
+        u = self.inputs[0](self.t)
+
+        N = self.n + self.n_outputs
+        # Prediction steps
+        self.x = self.matrix_a @ self.x + self.matrix_b @ u
+
+        matrix_p = self.matrix_a @ self.P @ self.matrix_a.T + self.Q
+        self.P = np.eye(self.controlled_system.n_outputs)
+        R = np.zeros([N, N])
+        R[:self.n, :self.n] = matrix_p
+        R[N-self.n_outputs:N, N-self.n_outputs:N] = self.R
 
         for i in range(self.n):
             self.P[i, i] = matrix_p[i, i]  # Takes only diagonal
@@ -347,12 +398,28 @@ def unit_impulse(t):
         return 0
 
 
+def programme_control(t):
+
+    u = 5.5
+    if t > 4:
+        u = u * 0.6
+    if t > 7:
+        u = u * 0.35
+    if t > 10:
+        u = u * 0.1
+    if t > 20:
+        u = u * 0.1
+    if t > 25:
+        u = u * 1.4
+    return [u + (np.random.rand()-0.5)]
+
+
 def zeros():
     return 0
 
 
-def white_noise():
-    return np.random.normal(0., 0.1, 1)
+def white_noise(t):
+    return [(np.random.rand() - 0.5) * 0]
 
 
 # ToDo: Make tests from this
@@ -394,7 +461,8 @@ def white_noise():
 # plant.run(10)
 # system.plot('output')
 # pl.show()
-#
+
+
 # plant = Model(dt=0.1)
 # x0 = [4000, 280]
 # A = [[1,  1],
@@ -420,8 +488,11 @@ def white_noise():
 #     return y
 #
 #
+# error_obs = [25, 6]
+# error_proc = [20, 5]
+#
 # system = DiscreteLTISystem(plant, A, B, C, D, x_0=x0, dt=1)
-# kalman_filter = KalmanFilter(plant, system, dt=1)
+# kalman_filter = KalmanFilter(plant, system, dt=1, error_obs=error_obs, error_proc=error_proc)
 #
 # system.connect(unit_step)
 # kalman_filter.connect(unit_step)
@@ -429,10 +500,152 @@ def white_noise():
 #
 # plant.run(3)
 # kalman_filter.plot('output', index=1)
+# pl.show()
 
-plant = Model(0.1)
-pi = PI(plant, 10, 1.5)
-pi.connect(unit_step)
-plant.run(10)
-pi.plot('output')
+
+# plant = Model(0.1)
+# pi = PI(plant, 1, 0.015)
+# pi.connect(unit_step)
+# sumator = Sum(plant, [1, 1])
+# sumator.connect(pi.output, output_index=0, input_index=0)
+# sumator.connect(unit_step, output_index=0, input_index=1)
+# plant.run(10)
+# sumator.plot('output')
+# pl.show()
+
+
+# A = [[-1,  -1],
+#      [0,  -1]]
+#
+# C = [[1,  0], [0,  1]]
+#
+# B = [[1, 1], [2, 2]]
+# D = [0, 0]
+#
+# plant = Model(dt=0.01)
+# x0 = [0, 1]
+# system = ContinuousLTISystem(plant, A, B, C, D, x0)
+# plant.run(100)
+# system.plot('state')
+# pl.show()
+
+# x0 = [0, 0, 0]
+# A = [[-1,  -1,  0],
+#      [1,  0, -1],
+#      [0,  1, 0]]
+#
+# C = [[1,  0,  0]]
+#
+# B = [[1], [-1], [2]]
+# D = [0]
+#
+# plant = Model(dt=0.01)
+# system = ContinuousLTISystem(plant, A, B, C, D, x0)
+# system.connect(unit_step, output_index=0, input_index=0)
+# plant.run(20)
+# system.plot('output')
+# pl.show()
+# T = system.observability_matrix()
+# T_1 = np.linalg.inv(T)
+# A_ = T @ A @ T_1
+# B_ = T @ B
+# C_ = C @ T
+# x0_ = T @ x0
+# print(A_)
+# print(B_)
+# print(C_)
+#
+# plant = Model(dt=0.01)
+# system_ = ContinuousLTISystem(plant, A_, B_, C_, D, x0_)
+# system_.connect(unit_step, output_index=0, input_index=0)
+# plant.run(20)
+# system_.plot('output')
+# pl.show()
+# print((A_[-1]))
+# nom = list(np.array(B_)[:, 0])
+# nom.reverse()
+# print(nom)
+# print(np.roots(nom))
+
+
+# A = [[0.596,   -0.214,   -0.051,    0.002],
+#      [-0.435,    0.642,  -0.093,    0.004],
+#      [-0.152,   -0.166,   0.933,    0.004],
+#      [0.278,    0.350,    0.109,    0.994]]
+#
+# B = [[-60.846],
+#      [-107.441],
+#      [-83.854],
+#      [217.776]]
+#
+# C = [[.0287,    0.0081,    0.0181,    0.0208]]
+#
+# D = [0]
+#
+# x0 = [0, 0, 0, 0]
+#
+# error_obs = [1]
+# error_proc = [100, 100, 100, 100]
+#
+# plant = Model(dt=0.01)
+# system = DiscreteLTISystem(plant, A, B, C, D, x0, dt=0.1)
+# system.connect(programme_control)
+# suma = Sum(plant, signs=[1, 1])
+# suma.connect(system.output, input_index=1, output_index=0)
+# suma.connect(white_noise, input_index=0, output_index=0)
+# kalman_filter = KalmanFilter(plant, system, dt=0.1, error_obs=error_obs, error_proc=error_proc)
+# kalman_filter.connect(programme_control)
+# kalman_filter.connect(suma.output, input_index=1, output_index=0)
+# plant.run(400)
+# suma.plot('output')
+# pl.figure()
+# kalman_filter.plot('output')
+# system.plot('output')
+# pl.show()
+
+dt = 0.2
+
+A = [[1,   0,   0,    0],
+     [dt,  1,   0,    0],
+     [0,   0,   1,    0],
+     [0,   0,   dt,   1]]
+
+B = [[0],
+     [0],
+     [-9.8],
+     [0]]
+
+C = [[1,    0,    0,    0],
+     [0,    1,    0,    0],
+     [0,    0,    1,    0],
+     [0,    0,    0,    1]]
+
+D = [[0], [0], [0], [0]]
+
+x0 = [-600, 3e3, 100, 500]
+
+error_obs = [10, 10, 10, 10]
+error_proc = [200, 20, 20, 20]
+
+plant = Model(dt=0.01)
+system = DiscreteLTISystem(plant, A, B, C, D, x0, dt=0.2)
+system.connect(unit_step)
+
+suma = Sum(plant, signs=[1.0, 1.0])
+# suma.connect(system.output, input_index=0, output_index=0)
+suma.connect(white_noise, input_index=0, output_index=0)
+kalman_filter = KalmanFilter(plant, system, dt=0.2, error_obs=error_obs, error_proc=error_proc)
+
+kalman_filter.connect(unit_step)
+kalman_filter.connect(system.output, input_index=1, output_index=0)
+plant.run(6.5)
+kalman_filter.plot('input')
+
+x = system.get_state()
+pl.plot(x[3])
+x_hat = kalman_filter.get_state()
+pl.plot(x_hat[3], 'x')
+pl.show()
+pl.figure(1)
+system.plot('output',index=0)
 pl.show()
