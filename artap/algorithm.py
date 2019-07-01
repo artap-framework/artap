@@ -32,14 +32,17 @@ class Algorithm(metaclass=ABCMeta):
     def run(self):
         pass
 
-    def gen_initial_population(self):
+    def gen_initial_population(self, is_archive = False):
         individuals = self.generator.generate()
         # set current size
         self.population_size = len(individuals)
         # evaluate individuals
         self.evaluate(individuals)
 
-        population = Population(individuals)
+        if is_archive:
+            population = Population(individuals, individuals)
+        else:
+            population = Population(individuals)
         return population
 
     def evaluate(self, individuals: list):
