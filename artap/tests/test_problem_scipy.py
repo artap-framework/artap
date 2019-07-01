@@ -14,6 +14,13 @@ class MyProblem(Problem):
 
         super().__init__(name, parameters, costs)
 
+    # def evaluate_individual(self, individual):
+    #     result = 0
+    #     for i in individual.vector:
+    #         result += i*i
+    #
+    #     individual.costs = [result]
+
     def evaluate(self, x):
         result = 0
         for i in x:
