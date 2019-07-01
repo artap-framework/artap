@@ -62,7 +62,7 @@ class TestCrossover(unittest.TestCase):
         individuals[8].costs = [3, 0]
 
         selector = TournamentSelection(self.parameters)
-        selector.non_dominated_sort(individuals)
+        selector.sorting(individuals)
 
         for individual in individuals:
             self.assertEqual(individual.costs[0] + individual.costs[1], individual.front_number)
