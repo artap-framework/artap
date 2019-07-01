@@ -2,11 +2,16 @@ from .individual import Individual
 
 
 class Population:
-    def __init__(self, individuals: list = None):
+    def __init__(self, individuals: list = None, archives: list = None):
         if individuals is None:
             self.individuals = []
         else:
             self.individuals = individuals.copy()
+
+        if archives is None:
+            self.archives = []
+        else:
+            self.archives = archives.copy()
 
         self.pareto_vectors: list = []
         self.pareto_costs: list = []
