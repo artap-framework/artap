@@ -37,6 +37,7 @@ class JobSimple(Job):
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
         individual.costs = self.problem.surrogate.evaluate(individual.vector)
+        # self.problem.surrogate.evaluate(individual)
 
         # add to population
         if self.population is not None:
