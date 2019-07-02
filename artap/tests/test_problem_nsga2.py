@@ -97,9 +97,6 @@ class CEC2005_TEST_Problems(Problem):
 
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [lb, ub]},
                       'x_2': {'initial_value': 2.5, 'bounds': [lb, ub]}}
-                      #'x_3': {'initial_value': 2.5, 'bounds': [ub, lb]},
-                      #'x_4': {'initial_value': 2.5, 'bounds': [ub, lb]},
-                      #'x_5': {'initial_value': 2.5, 'bounds': [ub, lb]}}
 
         costs = ['F_1']
         self.function = test_function(2)

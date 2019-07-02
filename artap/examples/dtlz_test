@@ -5,8 +5,6 @@ from artap.results import Results, GraphicalResults
 import optproblems as optp
 import optproblems.dtlz as dtlz
 
-from math import pi
-
 class DTLZ2_TEST_Problems(Problem):
 
     def __init__(self, name):
