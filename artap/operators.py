@@ -732,7 +732,7 @@ class DummySelection(Selection):
         selection = []
         for individual in individuals:
 
-            candidate = Individual(individual.vector)
+            candidate = individual.__class__(individual.vector)
             candidate.costs = individual.costs
             candidate.front_number = individual.front_number
             candidate.best_vector = individual.best_vector
