@@ -75,7 +75,7 @@ class MyProblem(Problem):
 
 class TestDataStoreFile(unittest.TestCase):
     def test_read_data_store(self):
-        database_name = "." + os.sep + "workspace" + os.sep + "common_data" + os.sep + "data.db"
+        database_name = "." + os.sep + "data" + os.sep + "data.db"
         problem = ProblemFileDataStore(database_name=database_name)
 
         results = Results(problem)
@@ -99,7 +99,7 @@ class TestDataStoreFile(unittest.TestCase):
 
         # set datastore
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".db").name
-        problem.data_store = FileDataStore(problem, database_name=database_name)
+        problem.data_store = FileDataStore(problem, database_name=database_name, mode="write")
 
         algorithm = NLopt(problem)
         algorithm.options['verbose_level'] = 0
@@ -111,7 +111,6 @@ class TestDataStoreFile(unittest.TestCase):
         optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum.costs[0], 1.854, 3)
 
-        populations = problem.data_store.db["populations"]
         problem.data_store.db.close()
 
         # check db

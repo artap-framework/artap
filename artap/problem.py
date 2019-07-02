@@ -10,11 +10,11 @@ from enum import Enum
 
 
 class ProblemType(Enum):
-    comsol = "comsol"
-    analytical = "analytical"
-    agros = "agros2d"
-    matlab = "matlab"
-
+    comsol = 0
+    analytical = 1
+    agros = 2
+    matlab = 3
+    python = 4
 
 
 """

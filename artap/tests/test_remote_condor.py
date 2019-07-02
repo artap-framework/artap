@@ -2,7 +2,7 @@ import os
 from unittest import TestCase, main
 
 from artap.executor import CondorJobExecutor
-from artap.problem import Problem
+from artap.problem import Problem, ProblemType
 from artap.population import Population
 from artap.algorithm import DummyAlgorithm
 
@@ -16,8 +16,9 @@ class CondorMatlabProblem(Problem):
         costs = ['F1']
 
         super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "workspace" + os.sep + "condor_matlab" + os.sep)
+                         working_dir="." + os.sep + "data" + os.sep)
 
+        self.problem_type = ProblemType.matlab
         self.executor = CondorJobExecutor(self,
                                           command="run.sh",
                                           model_file="run_input.m",
@@ -41,8 +42,9 @@ class CondorComsolProblem(Problem):
         costs = ['F1']
 
         super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "workspace" + os.sep + "condor_comsol" + os.sep)
+                         working_dir="." + os.sep + "data")
 
+        self.problem_type = ProblemType.comsol
         self.executor = CondorJobExecutor(self,
                                           command="run.sh",
                                           model_file="elstat.mph",
@@ -67,10 +69,11 @@ class PythonExecProblem(Problem):
         costs = ['F1']
 
         super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "workspace" + os.sep + "condor_python_exec" + os.sep)
+                         working_dir="." + os.sep + "data" + os.sep)
 
+        self.problem_type = ProblemType.python
         self.executor = CondorJobExecutor(self,
-                                          command="/usr/bin/python3",
+                                          command="/usr/bin/python",
                                           model_file="run_exec.py",
                                           output_file="output.txt")
 
@@ -89,12 +92,12 @@ class PythonInputProblem(Problem):
         costs = ['F1']
 
         super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "workspace" + os.sep + "condor_python_input" + os.sep)
-
+                         working_dir="." + os.sep + "data" + os.sep)
+        self.problem_type = ProblemType.python
         self.executor = CondorJobExecutor(self,
-                                          command="/usr/bin/python3",
+                                          command="/usr/bin/python",
                                           model_file="run_input.py",
-                                          input_file="input.txt", # file is created in eval with specific parameters
+                                          input_file="input.txt",  # file is created in eval with specific parameters
                                           output_file="output.txt")
 
     def evaluate(self, x):
@@ -123,11 +126,11 @@ class TestCondor(TestCase):
     def test_condor_comsol_exec(self):
         """ Tests one calculation of goal function."""
         problem = CondorComsolProblem("CondorComsolProblem")
-
         table = [[10, 10], [11, 11]]
         population = Population()
         population.gen_population_from_table(table)
         evaluator = DummyAlgorithm(problem)
+        evaluator.options["max_processes"] = 1
         evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0])

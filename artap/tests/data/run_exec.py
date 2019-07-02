@@ -5,7 +5,9 @@ def eval(x):
 
 if __name__ == "__main__":
     # parameters    
+    
     params = sys.argv[1].split(",")
+    print(params)
     x = []
     for val in params:
         x.append(float(val))
