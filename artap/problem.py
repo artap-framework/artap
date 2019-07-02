@@ -6,6 +6,16 @@ from abc import ABC, abstractmethod
 import os
 import logging
 import datetime
+from enum import Enum
+
+
+class ProblemType(Enum):
+    comsol = "comsol"
+    analytical = "analytical"
+    agros = "agros2d"
+    matlab = "matlab"
+
+
 
 """
  Module is dedicated to describe optimization problem. 
@@ -31,6 +41,7 @@ class ProblemBase(ABC):
         self.parameters: dict = None
         self.costs: list = None
         self.data_store: DataStore = None
+        self.type = "None"
 
         # options
         self.options = ConfigDictionary()

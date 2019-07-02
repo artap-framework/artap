@@ -87,7 +87,7 @@ class System:
     def output(self, time=None, index=0):
         return self.y
 
-    def continuous_step(self, dt):
+    def continuous_step(self, dt=0.0):
         self.dt = dt
         self.integrate()
         self.save_step()
@@ -186,7 +186,7 @@ class Gain(System):
 
 class LTISystem(System):
     def __init__(self, model=None, matrix_a=None, matrix_b=None,
-                 matrix_c=None, matrix_d=None, x_0=None, dt=0):
+                 matrix_c=None, matrix_d=None, x_0=None, dt=0.0):
 
         self.matrix_a = np.array(matrix_a)
         self.matrix_b = np.array(matrix_b)
@@ -229,7 +229,7 @@ class ContinuousLTISystem(LTISystem):
 
 
 class DiscreteLTISystem(LTISystem):
-    def __init__(self, model, matrix_a, matrix_b, matrix_c, matrix_d, x_0=None, dt=0):
+    def __init__(self, model, matrix_a, matrix_b, matrix_c, matrix_d, x_0=None, dt=0.0):
         super().__init__(model, matrix_a, matrix_b, matrix_c, matrix_d, x_0, dt)
         self.type = 'discrete'
         self.dt = dt
@@ -350,39 +350,6 @@ class KalmanFilter(DiscreteLTISystem):
         self.y = self.matrix_c @ self.x
         self.save_step()
 
-    def discrete_step_(self):
-        u = self.inputs[0](self.t)
-
-        N = self.n + self.n_outputs
-        # Prediction steps
-        self.x = self.matrix_a @ self.x + self.matrix_b @ u
-
-        matrix_p = self.matrix_a @ self.P @ self.matrix_a.T + self.Q
-        self.P = np.eye(self.controlled_system.n_outputs)
-        R = np.zeros([N, N])
-        R[:self.n, :self.n] = matrix_p
-        R[N-self.n_outputs:N, N-self.n_outputs:N] = self.R
-
-        for i in range(self.n):
-            self.P[i, i] = matrix_p[i, i]  # Takes only diagonal
-
-        matrix_s = self.R + self.matrix_c @ self.P @ self.matrix_c.T
-        matrix_k = self.P @ self.matrix_c @ np.linalg.inv(matrix_s)
-
-        # Difference between real output and estimated output
-        self.k = self.k + 1
-        self.t = self.k * self.dt
-        y_meas = np.array(self.inputs[1](self.t))
-        y = self.matrix_c @ self.x
-
-        # Update equation
-        self.x = self.x + matrix_k @ (y_meas - y)
-
-        matrix_i = np.eye(self.n)
-        self.P = (matrix_i - matrix_k @ self.matrix_c) @ self.P
-        self.y = self.matrix_c @ self.x
-        self.save_step()
-
 
 def unit_step(t):
     if t >= 0:
@@ -422,7 +389,7 @@ def white_noise(t):
     return [(np.random.rand() - 0.5) * 0]
 
 
-# ToDo: Make tests from this
+# ToDo: Make tests from these
 
 #
 
@@ -622,7 +589,7 @@ C = [[1,    0,    0,    0],
 
 D = [[0], [0], [0], [0]]
 
-x0 = [-600, 3e3, 100, 500]
+x0 = [-600, 3e3, 100, 600]
 
 error_obs = [10, 10, 10, 10]
 error_proc = [200, 20, 20, 20]
