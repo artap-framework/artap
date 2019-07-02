@@ -5,6 +5,9 @@ from artap.results import Results, GraphicalResults
 import optproblems as optp
 import optproblems.dtlz as dtlz
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 class DTLZ2_TEST_Problems(Problem):
 
     def __init__(self, name):
@@ -12,7 +15,12 @@ class DTLZ2_TEST_Problems(Problem):
                       'x_2': {'initial_value': .5, 'bounds': [0, 1]},
                       'x_3': {'initial_value': .5, 'bounds': [0, 1]},
                       'x_4': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_5': {'initial_value': .5, 'bounds': [0, 1]}}
+                      'x_5': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_6': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_7': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_8': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_9': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_10': {'initial_value': .5, 'bounds': [0, 1]}}
 
         costs = ['F_1', 'F_2']
 
@@ -20,26 +28,43 @@ class DTLZ2_TEST_Problems(Problem):
 
     def evaluate(self, x):
         # objective values were stored together with decision variables
-        problem = optp.Problem(dtlz.DTLZ2(2, 5), num_objectives=2)
+        problem = optp.Problem(dtlz.DTLZ2(3, 10), num_objectives=3)
         solutions = [optp.Individual(x)]
 
         problem.batch_evaluate(solutions)
-        print(x, solutions[0].objective_values)
+        #print(x, solutions[0].objective_values)
         return solutions[0].objective_values.copy()
 
-def test_problem():
+def test_problem_2():
 
     problem = DTLZ2_TEST_Problems("DTLZ2")
     algorithm = NSGAII(problem)
-    algorithm.options['max_population_number'] = 5
-    algorithm.options['max_population_size'] = 5
+    algorithm.options['max_population_number'] = 1000
+    algorithm.options['max_population_size'] = 100
     algorithm.run()
 
     b = Results(problem)
     #b.find_pareto('F_1','F_2')
-    solutions = problem.data_store.populations[5]
-    for solution in solutions.individuals:
-            print(solution.vector)
+    #solutions = problem.data_store.populations[5]
+    #for solution in solutions.individuals:
+    #    print(solution.vector)
+    solution = b.pareto_values()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection='3d')
+    ax.scatter([s[0] for s in solution],
+                [s[1] for s in solution],
+                [s[2] for s in solution])
+    ax.set_xlim([0, 1.1])
+    ax.set_ylim([0, 1.1])
+    ax.set_zlim([0, 1.1])
+
+    plt.xlabel("$f_1(x)$")
+    plt.ylabel("$f_2(x)$")
+    #plt.zlabel("$f_3(x)$")
+
+    ax.view_init(elev=30.0, azim=15.0)
+    plt.show()
 
 
-test_problem()
+test_problem_2()
