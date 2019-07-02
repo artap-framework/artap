@@ -1,3 +1,4 @@
+import textwrap
 import re
 import paramiko
 import os
@@ -16,30 +17,113 @@ getLogger('paramiko.transport').addHandler(NullHandler())
 
 
 class Templates:
-
-    condor_template = """ universe = vanilla
-initialdir = ./
-executable = $run_file
-arguments = batch -inputfile $model_name -nosave -pname $param_names -plist $param_values
-requirements = (OpSys == "LINUX" && Arch == "X86_64")
-
-input = $model_name
-output = $log_file
-log = $$(cluster).condor_log
-error = $$(cluster)_$$(process).condor_err
-
-request_cpus = 10
-request_memory = 10 GB
-log_xml = true
-should_transfer_files = yes
-when_to_transfer_output = ON_EXIT
-transfer_input_files = $model_name, $run_file
-transfer_output_files = $output_file
-transfer_executable = true
-queue
-"""
-
     condor_command = """condor_submit remote.job"""
+
+    comsol_job_template = textwrap.dedent("""\
+        universe = vanilla
+        initialdir = ./
+        executable = $run_file
+        arguments = batch -inputfile $model_name -nosave -pname $param_names -plist $param_values
+        requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+        input = $model_name
+        output = $log_file
+        log = $$(cluster).condor_log
+        error = $$(cluster)_$$(process).condor_err
+
+        request_cpus = 10
+        request_memory = 10 GB
+        log_xml = true
+        should_transfer_files = yes
+        when_to_transfer_output = ON_EXIT
+        transfer_input_files = $model_name, $run_file
+        transfer_output_files = $output_file
+        transfer_executable = true
+        queue""")
+
+    matlab_job_template = textwrap.dedent("""\
+        universe = vanilla
+        initialdir = ./
+        executable = $run_file
+        arguments = $model_name 
+        requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+        input = $input_file
+        output = $log_file
+        log = $$(cluster).condor_log
+        error = $$(cluster)_$$(process).condor_err
+
+        request_cpus = 10
+        request_memory = 10 GB
+        log_xml = true
+        should_transfer_files = yes
+        when_to_transfer_output = ON_EXIT
+        transfer_input_files = $model_name, $input_file
+        transfer_output_files = $output_file
+        transfer_executable = true
+        queue""")
+
+    python_job_template = textwrap.dedent("""\
+        universe = vanilla
+        initialdir = ./
+        executable = $run_file
+        arguments = $model_name $param_values
+        requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+        input = $model_name
+        output = $log_file
+        log = $$(cluster).condor_log
+        error = $$(cluster)_$$(process).condor_err
+
+        request_cpus = 10
+        request_memory = 10 GB
+        log_xml = true
+        should_transfer_files = yes
+        when_to_transfer_output = ON_EXIT
+        transfer_input_files = $model_name
+        transfer_output_files = $output_file 
+        transfer_executable = true
+        queue""")
+
+    python_job_input_template = textwrap.dedent("""\
+        universe = vanilla
+        initialdir = ./
+        executable = $run_file
+        arguments = $model_name $input_file
+        requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+        input = $model_name
+        output = $log_file
+        log = $$(cluster).condor_log
+        error = $$(cluster)_$$(process).condor_err
+
+        request_cpus = 10
+        request_memory = 10 GB
+        log_xml = true
+        should_transfer_files = yes
+        when_to_transfer_output = ON_EXIT
+        transfer_input_files = $model_name, $input_file
+        transfer_output_files = $output_file
+        transfer_executable = true
+        queue""")
+
+    condor_comsol_run = textwrap.dedent("""\
+        #!/bin/sh
+        /opt/comsol-5.4/bin/comsol batch $@
+        """)
+    condor_matlab_run = textwrap.dedent("""\
+        #!/bin/sh
+        # args
+        s=$@
+
+        /opt/matlab-R2018b/bin/matlab -nodisplay -nosplash -nodesktop -r ${s%.m}""")
+
+    condor_python_run = textwrap.dedent("""\
+        #!/bin/sh
+        # args
+        s=$@
+
+        python3 $@""")
 
     comsol_command = "comsol batch -inputfile {} -nosave -pname {} -plist {}"
 
@@ -107,7 +191,6 @@ class LocalExecutor(Executor):
         os.system(run_string)
         result = self.parse_results()
         return result
-
 
     @staticmethod
     def parse_condor_log(content):
@@ -190,7 +273,6 @@ class RemoteExecutor(Executor):
 
         # command
         self.command = command
-
         # files
         self.model_file = model_file
         self.input_file = input_file
@@ -328,12 +410,23 @@ class CondorJobExecutor(RemoteExecutor):
 
     def _create_job_file(self, x, client):
         # create job file
-        job_file = Template(Templates.condor_template)
-
+        file = open(self.problem.working_dir + os.sep + "run.sh", "w")
+        if self.problem.problem_type == ProblemType.comsol:
+            job_file = Template(Templates.comsol_job_template)
+            file.write(Templates.condor_comsol_run)
+        if self.problem.problem_type == ProblemType.matlab:
+            job_file = Template(Templates.matlab_job_template)
+            file.write(Templates.condor_matlab_run)
+        if self.problem.problem_type == ProblemType.python:
+            job_file = Template(Templates.python_job_template)
+            if self.input_file:
+                job_file = Template(Templates.python_job_input_template)
+            file.write(Templates.condor_python_run)
+        file.close()
         # parameters
         param_names_string = Executor._join_parameters(self.problem.parameters)
         param_values_string = Executor._join_parameters(x)
-        # file
+
         job_file = job_file.substitute(model_name=os.path.basename(self.model_file),
                                        run_file=self.command,
                                        input_file=self.input_file,
@@ -363,17 +456,17 @@ class CondorJobExecutor(RemoteExecutor):
                 # create client
                 client = self._create_client()
 
-                # transfer supplementary files, input and model file
-                self._transfer_files_to_remote(client)
-
                 # apply template for remote.job
                 self._create_job_file(x, client)
+
+                # transfer supplementary files, input and model file
+                self._transfer_files_to_remote(client)
 
                 # submit job
                 output = self._run_command_on_remote("condor_submit remote.job", client=client)
 
                 # process id
-                process_id = re.search('cluster \\d+', output).group().split(" ")[1]
+                process_id = re.search('cluster \d+', output).group().split(" ")[1]
 
                 event = ""
                 start = time.time()
