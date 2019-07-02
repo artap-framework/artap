@@ -40,7 +40,7 @@ class GeneticIndividual(Individual):
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
 
-        string = "{}, ".format(super.__repr__())
+        string = "{}, ".format(super().__repr__())
 
         string += ", front number: {}".format(self.front_number)
         string += ", crowding distance: {}".format(self.crowding_distance)
@@ -55,9 +55,20 @@ class GeneticIndividual(Individual):
         return string
 
     def sync(self, individual):
-        self.vector = individual.vector
-        self.costs = individual.costs
-        self.is_evaluated = individual.is_evaluated
+        super().sync(individual)
+
+        self.gradient = individual.gradient
+        self.feasible = individual.feasible
+        self.dominate = individual.dominate
+        self.domination_counter = individual.domination_counter
+        self.front_number = individual.front_number
+        self.crowding_distance = individual.crowding_distance
+        self.depends_on = individual.depends_on
+        self.modified_param = individual.modified_param
+        # For particle swarm optimization
+        self.velocity_i = individual.velocity_i
+        self.best_parameters = individual.best_parameters
+        self.best_costs = individual.best_costs
 
 
 class GeneralEvolutionaryAlgorithm(Algorithm):

@@ -1,6 +1,7 @@
 from artap.operators import RandomGeneration, SimpleMutation, SimulatedBinaryCrossover, SimpleCrossover, \
     TournamentSelection, ParetoDominance
 from artap.individual import Individual
+from artap.algorithm_genetic import GeneticIndividual
 
 import unittest
 
@@ -34,9 +35,9 @@ class TestCrossover(unittest.TestCase):
 
     def test_dominates(self):
         dominance = ParetoDominance()
-        i1 = Individual([0, 0])
+        i1 = GeneticIndividual([0, 0])
         i1.costs = [0, 1]
-        i2 = Individual([2, 2])
+        i2 = GeneticIndividual([2, 2])
         i2.costs = [2, 2]
         result = dominance.compare(i1, i2)
         self.assertEqual(result, 1)
@@ -48,7 +49,7 @@ class TestCrossover(unittest.TestCase):
         individuals = []
         for i in range(3):
             for j in range(3):
-                individual = Individual([0, 1])
+                individual = GeneticIndividual([0, 1])
                 individuals.append(individual)
 
         individuals[0].costs = [0, 1]
