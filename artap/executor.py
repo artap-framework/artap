@@ -9,12 +9,43 @@ from artap.environment import Enviroment
 
 from abc import ABCMeta, abstractmethod
 from .utils import ConfigDictionary
+from .problem import ProblemType
 
 from logging import NullHandler, getLogger
 getLogger('paramiko.transport').addHandler(NullHandler())
 
 
+class Templates:
+
+    condor_template = """ universe = vanilla
+initialdir = ./
+executable = $run_file
+arguments = batch -inputfile $model_name -nosave -pname $param_names -plist $param_values
+requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+input = $model_name
+output = $log_file
+log = $$(cluster).condor_log
+error = $$(cluster)_$$(process).condor_err
+
+request_cpus = 10
+request_memory = 10 GB
+log_xml = true
+should_transfer_files = yes
+when_to_transfer_output = ON_EXIT
+transfer_input_files = $model_name, $run_file
+transfer_output_files = $output_file
+transfer_executable = true
+queue
+"""
+
+    condor_command = """condor_submit remote.job"""
+
+    comsol_command = "comsol batch -inputfile {} -nosave -pname {} -plist {}"
+
+
 class Executor(metaclass=ABCMeta):
+
     """
     Function is a class representing objective or cost function for
     optimization problems.
@@ -53,33 +84,30 @@ class Executor(metaclass=ABCMeta):
         return param_values_string
 
 
-class ComsolExecutor(Executor):
+class LocalExecutor(Executor):
 
-    def __init__(self, problem, model_file, output_file):
+    def __init__(self, problem, problem_file, input_files=[], output_files=[]):
         super().__init__(problem)
 
-        self.model_file = model_file
-        self.output_file = output_file
+        self.problem_file = problem_file
+        self.output_files = output_files
+        self.input_files = input_files
 
     def eval(self, x):
         super().eval(x)
 
+        run_string = ""
         param_names_string = Executor._join_parameters(self.problem.parameters)
         param_values_string = Executor._join_parameters(x)
 
-        run_string = "comsol batch -inputfile {} -nosave -pname {} -plist {}"\
-            .format(self.problem.working_dir + self.model_file, param_names_string, param_values_string)
-
+        if self.problem.type == ProblemType.comsol:
+            run_string = Templates.comsol_command.format(self.problem.working_dir + self.problem_file,
+                                                         param_names_string, param_values_string)
         # run command
         os.system(run_string)
+        result = self.parse_results()
+        return result
 
-        with open(self.problem.working_dir + self.output_file) as file:
-            content = file.read()
-            result = self.parse_results(content)
-
-            return result
-
-        self.problem.logger.error("Output file '{}' doesn't exists.".format(self.problem.working_dir + self.output_file))
 
     @staticmethod
     def parse_condor_log(content):
@@ -286,56 +314,6 @@ class RemoteExecutor(Executor):
         pass
 
 
-class RemoteSSHExecutor(RemoteExecutor):
-    """
-    Allows distributing of calculation of objective functions.
-    """
-
-    def __init__(self, problem, command, model_file, output_file, input_file=None, supplementary_files=None):
-        super().__init__(problem, command, model_file, output_file, input_file, supplementary_files)
-
-        # set default host
-        self.options["hostname"] = Enviroment.ssh_host
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # remove remote dir
-        self._remove_remote_dir()
-
-    def eval(self, x):
-        super().eval(x)
-
-        # init remote
-        self._init_remote(directory="remote")
-
-        # create client
-        client = self._create_client()
-
-        # transfer supplementary files, input and model file
-        self._transfer_files_to_remote(client)
-
-        #  run command on remote
-        if self.input_file:
-            # parameters
-            param_values_string = Executor._join_parameters(x, "\n")
-            # create remote file
-            self._create_file_on_remote(self.input_file, param_values_string, client=client)
-            # execute command on remote
-            self._run_command_on_remote("{} {}".format(self.command, self.model_file), client=client)
-        else:
-            # parameters
-            param_values_string = Executor._join_parameters(x)
-            # execute command on remote
-            self._run_command_on_remote("{} {} {}".format(self.command, self.model_file, param_values_string), client=client)
-
-        # read and parse output file
-        content = self._read_file_from_remote(self.output_file, client=client)
-        result = self.parse_results(content)
-
-        client.close()
-
-        return result
-
-
 class CondorJobExecutor(RemoteExecutor):
     """
     Allows distributing of calculation of objective functions.
@@ -350,8 +328,7 @@ class CondorJobExecutor(RemoteExecutor):
 
     def _create_job_file(self, x, client):
         # create job file
-        with open(self.problem.working_dir + os.sep + "remote.tp", 'r') as job_file:
-            job_file = Template(job_file.read())
+        job_file = Template(Templates.condor_template)
 
         # parameters
         param_names_string = Executor._join_parameters(self.problem.parameters)
@@ -396,13 +373,13 @@ class CondorJobExecutor(RemoteExecutor):
                 output = self._run_command_on_remote("condor_submit remote.job", client=client)
 
                 # process id
-                process_id = re.search('cluster \d+', output).group().split(" ")[1]
+                process_id = re.search('cluster \\d+', output).group().split(" ")[1]
 
                 event = ""
                 start = time.time()
                 while (event != "Completed") and (event != "Held"):
                     content = self._read_file_from_remote("{}.condor_log".format(process_id), client=client)
-                    state = ComsolExecutor.parse_condor_log(content)
+                    state = LocalExecutor.parse_condor_log(content)
 
                     if state[1] != event:
                         self.problem.logger.info("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
@@ -422,7 +399,6 @@ class CondorJobExecutor(RemoteExecutor):
                         # TODO: abort computation - no success?
                         assert 0
 
-                    # time.sleep(1.0)
                     end = time.time()
                     if (end - start) > self.problem.options["time_out"]:
                         raise TimeoutError
@@ -439,6 +415,6 @@ class CondorJobExecutor(RemoteExecutor):
                 return result
 
             except ConnectionError as e:
-                 print(e)
-                 time.sleep(1.0)
-                 continue
+                print(e)
+                time.sleep(1.0)
+                continue
