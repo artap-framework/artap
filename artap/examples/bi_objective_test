@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 
 class BiObjectiveTestProblem(Problem):
     """
+    From GDE3: The third Evolution Step of Generalized Dierential Evolution
+    Saku Kukkonen, Jouni Lampinen
+
     Minimize f1 = x1
     Minimize f2 = (1+x2) / x1
 
