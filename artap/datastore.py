@@ -371,7 +371,7 @@ class SqliteDataStore(DataStore):
 
 class FileDataStore(DataStore):
 
-    def __init__(self, problem, database_name=None, remove_existing=True):
+    def __init__(self, problem, database_name=None, remove_existing=True, mode="read"):
         super().__init__(problem)
 
         self.database_name = database_name
@@ -379,9 +379,10 @@ class FileDataStore(DataStore):
             if os._exists(self.database_name):
                 os.remove(self.database_name)
 
-        # self.db = SqliteDict(self.db_fn, autocommit=True)
-        # self.db = SqliteDict(":memory", autocommit=False)
-        self.db = shelve.open(self.database_name, flag='c', writeback=True)
+        if mode == "write":
+            self.db = shelve.open(self.database_name, flag='n', writeback=True)
+        else:
+            self.db = shelve.open(self.database_name, flag='r', writeback=True)
 
         # remove database and create structure
         if remove_existing and os.path.exists(self.database_name):
@@ -393,7 +394,6 @@ class FileDataStore(DataStore):
         self.problem.data_store = self
 
     def __del__(self):
-        self.db.close()
         super().__del__()
 
     def create_structure(self):

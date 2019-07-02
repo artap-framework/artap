@@ -16,7 +16,7 @@ class ComsolProblem(Problem):
         costs = ['F1']
 
         super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "workspace" + os.sep + "comsol" + os.sep)
+                         working_dir="." + os.sep + "data" + os.sep)
         self.type = ProblemType.comsol
         self.output_files = ["out.txt"]
         self.executor = LocalExecutor(self,
