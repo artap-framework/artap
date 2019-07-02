@@ -1,7 +1,6 @@
 from random import randint
 from .problem import Problem
 from .population import Population
-# from .individual import Individual
 from .algorithm_genetic import GeneticAlgorithm, GeneticIndividual
 from .operators import SwarmMutation, DummySelection, RandomGeneration
 
