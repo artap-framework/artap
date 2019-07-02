@@ -1,8 +1,8 @@
 import unittest
 import os
 
-from artap.executor import ComsolExecutor
-from artap.problem import Problem
+from artap.executor import LocalExecutor
+from artap.problem import Problem, ProblemType
 from artap.algorithm import DummyAlgorithm
 from artap.population import Population
 
@@ -17,15 +17,26 @@ class ComsolProblem(Problem):
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "workspace" + os.sep + "comsol" + os.sep)
-
-        self.executor = ComsolExecutor(self,
-                                       model_file="elstat.mph",
-                                       output_file="out.txt")
+        self.type = ProblemType.comsol
+        self.output_files = ["out.txt"]
+        self.executor = LocalExecutor(self,
+                                      problem_file="elstat.mph",
+                                      output_files=self.output_files)
 
     def evaluate(self, x):
         return self.executor.eval(x)
 
-    def parse_results(self, content):
+    def parse_results(self):
+        output_file = self.output_files[0]
+        path = self.working_dir + output_file
+        content = ""
+        if os.path.exists(path):
+            with open(path) as file:
+                content = file.read()
+        else:
+            self.logger.error(
+                "Output file '{}' doesn't exists.".format(path))
+
         lines = content.split("\n")
         line_with_results = lines[5]  # 5th line contains results
         result = float(line_with_results)
