@@ -698,6 +698,7 @@ class Selection(Operation):
                         temp_set.append(q)
             pareto_front = temp_set
 
+
     def sort_by_coordinate(self, population, dim):
         population.sort(key=lambda x: x.costs[dim])
         return population

@@ -1,0 +1,47 @@
+from artap.problem import Problem
+from artap.algorithm_genetic import NSGAII, EpsMOEA
+from artap.results import Results, GraphicalResults
+
+import optproblems as optp
+import optproblems.dtlz as dtlz
+
+from math import pi
+
+class DTLZ2_TEST_Problems(Problem):
+
+    def __init__(self, name):
+        parameters = {'x_1': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_2': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_3': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_4': {'initial_value': .5, 'bounds': [0, 1]},
+                      'x_5': {'initial_value': .5, 'bounds': [0, 1]}}
+
+        costs = ['F_1', 'F_2']
+
+        super().__init__(name, parameters, costs)
+
+    def evaluate(self, x):
+        # objective values were stored together with decision variables
+        problem = optp.Problem(dtlz.DTLZ2(2, 5), num_objectives=2)
+        solutions = [optp.Individual(x)]
+
+        problem.batch_evaluate(solutions)
+        print(x, solutions[0].objective_values)
+        return solutions[0].objective_values.copy()
+
+def test_problem():
+
+    problem = DTLZ2_TEST_Problems("DTLZ2")
+    algorithm = NSGAII(problem)
+    algorithm.options['max_population_number'] = 5
+    algorithm.options['max_population_size'] = 5
+    algorithm.run()
+
+    b = Results(problem)
+    #b.find_pareto('F_1','F_2')
+    solutions = problem.data_store.populations[5]
+    for solution in solutions.individuals:
+            print(solution.vector)
+
+
+test_problem()
