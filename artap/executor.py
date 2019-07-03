@@ -123,7 +123,7 @@ class Templates:
         # args
         s=$@
 
-        python3 $@""")
+        python $@""")
 
     comsol_command = "comsol batch -inputfile {} -nosave -pname {} -plist {}"
 
