@@ -109,7 +109,7 @@ class Templates:
 
     condor_comsol_run = textwrap.dedent("""\
         #!/bin/sh
-        /opt/comsol-5.4/bin/comsol batch $@
+        /opt/comsol53/bin/comsol batch $@
         """)
     condor_matlab_run = textwrap.dedent("""\
         #!/bin/sh
