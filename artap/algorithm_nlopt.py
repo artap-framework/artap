@@ -561,8 +561,8 @@ class NLopt(Algorithm):
         # Figure out bounds vectors.
         lb = []
         ub = []
-        for id in self.problem.parameters:
-            bounds = self.problem.parameters[id]['bounds']
+        for parameter in self.problem.parameters:
+            bounds = parameter['bounds']
 
             lb.append(bounds[0])
             ub.append(bounds[1])

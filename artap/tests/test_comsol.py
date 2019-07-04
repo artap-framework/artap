@@ -11,16 +11,15 @@ class ComsolProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
     def __init__(self, name):
-        parameters = {'a': {'initial_value': 10},
-                      'b': {'initial_value': 10}}
-        costs = ['F1']
+        parameters = [{'name': 'a', 'initial_value': 10},
+                      {'name': 'b', 'initial_value': 10}]
+        costs = [{'name': 'F1', 'criteria': 'minimize'}]
 
-        super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "data" + os.sep)
+        super().__init__(name, parameters, costs)
         self.type = ProblemType.comsol
-        self.output_files = ["out.txt"]
+        self.output_files = ["./data/out.txt"]
         self.executor = LocalExecutor(self,
-                                      problem_file="elstat.mph",
+                                      problem_file="./data/elstat.mph",
                                       output_files=self.output_files)
 
     def evaluate(self, x):
@@ -28,7 +27,7 @@ class ComsolProblem(Problem):
 
     def parse_results(self):
         output_file = self.output_files[0]
-        path = self.working_dir + output_file
+        path = output_file
         content = ""
         if os.path.exists(path):
             with open(path) as file:
