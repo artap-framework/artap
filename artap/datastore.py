@@ -371,7 +371,7 @@ class SqliteDataStore(DataStore):
 
 class FileDataStore(DataStore):
 
-    def __init__(self, problem, database_name=None, remove_existing=True, mode="read"):
+    def __init__(self, problem, database_name=None, remove_existing=True, mode="write"):
         super().__init__(problem)
 
         self.database_name = database_name
@@ -380,7 +380,7 @@ class FileDataStore(DataStore):
                 os.remove(self.database_name)
 
         if mode == "write":
-            self.db = shelve.open(self.database_name, flag='n', writeback=True)
+            self.db = shelve.open(self.database_name, flag='c', writeback=True)
         else:
             self.db = shelve.open(self.database_name, flag='r', writeback=True)
 
