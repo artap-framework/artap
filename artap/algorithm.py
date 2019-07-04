@@ -74,7 +74,8 @@ class Algorithm(metaclass=ABCMeta):
                     processes.append(p)
                     p.start()
                     shared_list.append([p.pid, individual])
-                    j += 1
+                # increment index
+                j += 1
 
             for process in processes:
                 process.join()
