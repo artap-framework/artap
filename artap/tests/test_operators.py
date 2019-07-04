@@ -1,4 +1,4 @@
-from artap.operators import RandomGeneration, SimpleMutation, SimulatedBinaryCrossover, SimpleCrossover, \
+from artap.operators import SimpleMutation, SimulatedBinaryCrossover, SimpleCrossover, \
     TournamentSelection, ParetoDominance
 from artap.individual import Individual
 from artap.algorithm_genetic import GeneticIndividual
@@ -10,8 +10,8 @@ class TestCrossover(unittest.TestCase):
     """ Tests crossover."""
 
     def setUp(self):
-        self.parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5]},
-                           'x_2': {'initial_value': 1.5, 'bounds': [0, 3]}}
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
+                           {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
 
         self.i1 = Individual([1, 2, 2])
         self.i2 = Individual([3, 2, 1])
@@ -20,8 +20,8 @@ class TestCrossover(unittest.TestCase):
         sbx = SimpleMutation(self.parameters, 0.7)
         individual = sbx.mutate(self.i1)
         self.assertTrue(
-            self.parameters['x_1']['bounds'][0] <= individual.vector[0] <= self.parameters['x_1']['bounds'][1] and
-            self.parameters['x_2']['bounds'][0] <= individual.vector[1] <= self.parameters['x_2']['bounds'][1])
+            self.parameters[0]['bounds'][0] <= individual.vector[0] <= self.parameters[0]['bounds'][1] and
+            self.parameters[1]['bounds'][0] <= individual.vector[1] <= self.parameters[1]['bounds'][1])
 
     def test_sbx(self):
         sbx = SimulatedBinaryCrossover(self.parameters, 10)

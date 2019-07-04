@@ -13,29 +13,31 @@ from artap.results import Results
 from artap.operators import CustomGeneration, LHSGeneration
 from artap.surrogate import SurrogateModelRegressor
 
-from sklearn.svm import SVR
-from sklearn.neural_network import MLPRegressor
-from sklearn.linear_model import BayesianRidge
+# from sklearn.svm import SVR
+# from sklearn.neural_network import MLPRegressor
+# from sklearn.linear_model import BayesianRidge
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor
-from sklearn.kernel_ridge import KernelRidge
-from sklearn.model_selection import GridSearchCV
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, WhiteKernel, ConstantKernel, RationalQuadratic, ExpSineSquared
+# from sklearn.kernel_ridge import KernelRidge
+# from sklearn.model_selection import GridSearchCV
+# from sklearn.neighbors import KNeighborsRegressor
+# from sklearn.gaussian_process import GaussianProcessRegressor
+# from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, WhiteKernel, ConstantKernel,
+# RationalQuadratic, ExpSineSquared
+
 
 class MyProblemCoil(Problem):
     def __init__(self, name, costs):
-        parameters = {'x1': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x2': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x3': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x4': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x5': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x6': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x7': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x8': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x9': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
-                      'x10': {'initial_value': 0.01, 'bounds': [5e-3, 50e-3]}}
+        parameters = [{'name': 'x1', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x2', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x3', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x4', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x5', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x6', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x7', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x8', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x9', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+                      {'name': 'x10', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]}]
 
         super().__init__(name, parameters, costs)
 
@@ -222,8 +224,7 @@ class MyProblemBooth(Problem):
         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
                       'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
 
-        # costs = {'F': {'type': Problem.MINIMIZE, 'value': 0.0}}
-        costs = ['F']
+        costs = [{'name': 'F'}]
 
         super().__init__(name, parameters, costs)
 
