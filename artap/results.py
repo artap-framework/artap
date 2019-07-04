@@ -48,7 +48,10 @@ class Results:
         #if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
         #else:
-        min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
+        if len(self.problem.data_store.populations[-1].archives) < 1:
+            min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
+        else:
+            min_l = [min(self.problem.data_store.populations[-1].archives, key=lambda x: x.costs[index])]
 
         # for population in self.problem.data_store.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
@@ -82,9 +85,15 @@ class Results:
 
         population = self.problem.data_store.populations[-1]
         l_sol = []
-        if len(population.individuals) > 1:
-            for individual in population.individuals:
-                l_sol.append(individual.costs)
+
+        if len(self.problem.data_store.populations[-1].archives) < 1:
+            if len(population.individuals) > 1:
+                for individual in population.individuals:
+                    l_sol.append(individual.costs)
+        else:
+            if len(population.archives) > 1:
+                for individual in population.archives:
+                    l_sol.append(individual.costs)
         return l_sol
 
 
