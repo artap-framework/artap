@@ -7,7 +7,7 @@ from artap.algorithm_nlopt import GN_DIRECT_L
 from artap.algorithm_nlopt import GN_MLSL
 from artap.algorithm_nlopt import GN_CRS2_LM
 from artap.algorithm_nlopt import GN_ISRES
-from artap.algorithm_nlopt import GN_ESCH
+# from artap.algorithm_nlopt import GN_ESCH
 from artap.algorithm_nlopt import LN_BOBYQA
 from artap.algorithm_nlopt import LN_COBYLA
 from artap.algorithm_nlopt import LN_NELDERMEAD
@@ -16,7 +16,6 @@ from artap.algorithm_nlopt import LN_PRAXIS
 from artap.algorithm_nlopt import LN_AUGLAG_EQ
 
 from artap.results import Results
-from artap.datastore import DummyDataStore
 from artap.benchmark_functions import Booth
 from agrossuite import agros as a2d
 
@@ -24,9 +23,9 @@ from agrossuite import agros as a2d
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
-        costs = ['F']
+        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
+                      {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
+        costs = [{'name': 'F'}]
 
         super().__init__(name, parameters, costs)
 
@@ -97,9 +96,9 @@ class ThisIsNotMyProblem(Problem):
 
     """
     def __init__(self, name):
-        parameters = {'r1': {'initial_value': 0.02, 'bounds': [0.01, 0.03]},
-                      'r2': {'initial_value': 0.04, 'bounds': [0.035, 0.1]}}
-        costs = ['F1']
+        parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
+                      {'name': 'r2','initial_value': 0.04, 'bounds': [0.035, 0.1]}]
+        costs = [{'name': 'F'}]
         self.C_req = 80.  # pF
 
         super().__init__(name, parameters, costs)
@@ -174,12 +173,12 @@ class TestIsItNotMyProblem(unittest.TestCase):
         # --- excludes possible errors between -> job -- nlopt and memory handling
 
         # r1 between the limits?
-        self.assertTrue(optimum.vector[0]>=problem.parameters['r1']['bounds'][0])
-        self.assertTrue(optimum.vector[0]<=problem.parameters['r1']['bounds'][1])
+        self.assertTrue(optimum.vector[0] >= problem.parameters[0]['bounds'][0])
+        self.assertTrue(optimum.vector[0] <= problem.parameters[0]['bounds'][1])
 
         # r2 between the limits?
-        self.assertTrue(optimum.vector[1]>=problem.parameters['r2']['bounds'][0])
-        self.assertTrue(optimum.vector[1]<=problem.parameters['r2']['bounds'][1])
+        self.assertTrue(optimum.vector[1] >= problem.parameters[1]['bounds'][0])
+        self.assertTrue(optimum.vector[1] <= problem.parameters[1]['bounds'][1])
 
 
 if __name__ == '__main__':

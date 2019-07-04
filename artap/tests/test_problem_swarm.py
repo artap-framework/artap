@@ -2,17 +2,18 @@ import unittest
 from artap.problem import Problem
 from artap.algorithm_swarm import PSO
 from artap.benchmark_functions import BinhAndKorn
-from artap.results import Results
-from artap.results import GraphicalResults
+# from artap.results import Results
+# from artap.results import GraphicalResults
 
 
 class PSORosenbrock(Problem):
     """ Search the optimal value of the Rosenbrock function in 2d"""
 
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5]},
-                      'x_2': {'initial_value': 2.5, 'bounds': [0, 3]}}
-        costs = ['F_1', 'F_2']
+        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
+                      {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
+        costs = [{'name': 'F_1'},
+                 {'name': 'F_2'}]
 
         super().__init__(name, parameters, costs)
 
@@ -41,9 +42,9 @@ class TestPSOptimization(unittest.TestCase):
         #
         # self.assertLessEqual(wrong, 5)
 
-        #results = GraphicalResults(problem)
-        #results.plot_scatter_vectors('x_1', 'x_2', filename="/tmp/scatter_vec.pdf", population_number=10)
-        #results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf", population_number=None)
+        # results = GraphicalResults(problem)
+        # results.plot_scatter_vectors('x_1', 'x_2', filename="/tmp/scatter_vec.pdf", population_number=10)
+        # results.plot_scatter('F_1', 'F_2', filename="/tmp/scatter.pdf", population_number=None)
 
 
 if __name__ == '__main__':

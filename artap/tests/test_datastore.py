@@ -14,9 +14,9 @@ import tempfile
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
-        costs = ['F']
+        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
+                      {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
+        costs = [{'name': 'F', 'criteria': 'minimize'}]
 
         super().__init__(name, parameters, costs, working_dir=tempfile.mkdtemp())
 
@@ -76,19 +76,19 @@ class MyProblem(Problem):
 class TestDataStoreFile(unittest.TestCase):
     def test_read_data_store(self):
         database_name = "." + os.sep + "data" + os.sep + "data.db"
-        problem = ProblemFileDataStore(database_name=database_name)
+        problem = ProblemFileDataStore(database_name=database_name, mode="read")
 
         results = Results(problem)
         optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum.costs[0], 1.854, 3)
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
         self.assertEqual(problem.description, '')
-        self.assertEqual(problem.parameters['x_1']['initial_value'], 2.5)
-        self.assertEqual(problem.parameters['x_1']['bounds'][0], -10)
-        self.assertEqual(problem.parameters['x_1']['bounds'][1], 10)
-        self.assertEqual(problem.parameters['x_2']['initial_value'], 1.5)
-        self.assertEqual(problem.parameters['x_2']['bounds'][0], -10)
-        self.assertEqual(problem.parameters['x_2']['bounds'][1], 10)
+        self.assertEqual(problem.parameters[0]['initial_value'], 2.5)
+        self.assertEqual(problem.parameters[0]['bounds'][0], -10)
+        self.assertEqual(problem.parameters[0]['bounds'][1], 10)
+        self.assertEqual(problem.parameters[1]['initial_value'], 1.5)
+        self.assertEqual(problem.parameters[1]['bounds'][0], -10)
+        self.assertEqual(problem.parameters[1]['bounds'][1], 10)
         individual = problem.data_store.populations[0].individuals[6]
         self.assertAlmostEqual(individual.vector[0], 2.6989845414318134, 5)
         self.assertAlmostEqual(individual.vector[1], 1.83185007711266, 5)
@@ -96,9 +96,9 @@ class TestDataStoreFile(unittest.TestCase):
 
     def test_write_data_store(self):
         problem = MyProblem("NLopt_BOBYQA")
-
         # set datastore
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".db").name
+        # database_name = "." + os.sep + "data" + os.sep + "data.db"
         problem.data_store = FileDataStore(problem, database_name=database_name, mode="write")
 
         algorithm = NLopt(problem)
