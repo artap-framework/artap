@@ -380,7 +380,7 @@ class FileDataStore(DataStore):
                 os.remove(self.database_name)
 
         if mode == "write":
-            self.db = shelve.open(self.database_name, flag='n', writeback=True)
+            self.db = shelve.open(self.database_name, flag='c', writeback=True)
         else:
             self.db = shelve.open(self.database_name, flag='r')
 
