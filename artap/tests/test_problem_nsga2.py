@@ -66,10 +66,10 @@ class TestEPSMOEAOptimization(unittest.TestCase):
 
         algorithm = EpsMOEA(problem)
         algorithm.options['max_population_number'] = 50
-        algorithm.options['max_population_size'] = 50
+        algorithm.options['max_population_size'] = 100
         algorithm.options['calculate_gradients'] = True
         algorithm.options['verbose_level'] = 1
-        algorithm.options['epsilons'] = 0.01
+        algorithm.options['epsilons'] = 0.05
 
         algorithm.run()
         solutions = problem.data_store.populations[1]

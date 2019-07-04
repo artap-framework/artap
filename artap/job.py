@@ -1,10 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from .utils import VectorAndNumbers
-from .individual import Individual
+from .individual import Individual, GeneticIndividual
 from .population import Population
 from copy import deepcopy
 from multiprocessing import Queue
 import os
+
+from random import uniform
+from copy import deepcopy
 
 
 class Job(metaclass=ABCMeta):
@@ -44,8 +47,11 @@ class JobSimple(Job):
             self.population.individuals.append(individual)
 
         # write to datastore
-        #if self.problem.options["save_level"] == "individual":
-        #    self.problem.data_store.write_individual(individual)
+        if isinstance(individual, GeneticIndividual):
+            pass #TODO: this solution should be improved
+        else:
+            if self.problem.options["save_level"] == "individual":
+                self.problem.data_store.write_individual(individual)
 
         individual.is_evaluated = True
 
