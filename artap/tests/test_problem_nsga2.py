@@ -41,6 +41,36 @@ class TestNSGA2Optimization(unittest.TestCase):
         algorithm.options['max_population_size'] = 50
         algorithm.options['calculate_gradients'] = True
         algorithm.options['verbose_level'] = 1
+
+        algorithm.run()
+        solutions = problem.data_store.populations[1]
+        for solution in solutions.individuals:
+            print(solution.front_number)
+
+        b = Results(problem)
+        solution = b.pareto_values()
+        wrong = 0
+        for sol in solution:
+            if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
+                    and 20 < sol[0] < 70:
+                wrong += 1
+
+        self.assertLessEqual(wrong, 5)
+
+class TestEPSMOEAOptimization(unittest.TestCase):
+    """ Tests simple one objective optimization problem."""
+
+    def test_local_problem_nsga2(self):
+
+        problem = BinhAndKornProblem("TEST_EPSMOEA")
+
+        algorithm = EpsMOEA(problem)
+        algorithm.options['max_population_number'] = 50
+        algorithm.options['max_population_size'] = 50
+        algorithm.options['calculate_gradients'] = True
+        algorithm.options['verbose_level'] = 1
+        algorithm.options['epsilons'] = 0.01
+
         algorithm.run()
         solutions = problem.data_store.populations[1]
         for solution in solutions.individuals:
