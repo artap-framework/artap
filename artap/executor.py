@@ -123,7 +123,7 @@ class Templates:
         # args
         s=$@
 
-        python $@""")
+        python3 $@""")
 
     comsol_command = "comsol batch -inputfile {} -nosave -pname {} -plist {}"
 
@@ -280,7 +280,7 @@ class RemoteExecutor(Executor):
                              desc='Username')
         self.options.declare(name='port', default=22, lower=0,
                              desc='Port')
-        self.options.declare(name='password', default='',
+        self.options.declare(name='password', default=None,
                              desc='Password')
 
         self.remote_dir = ""

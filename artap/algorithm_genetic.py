@@ -250,7 +250,7 @@ class EpsMOEA(GeneticAlgorithm):
         # -----
         Selector_Pareto = TournamentSelection(self.problem.parameters)
         self.selector = TournamentSelection(self.problem.parameters)  # the same as in the case of NSGA - ii
-                                                                      # this operator is used to generate the new individuals
+        #                                                              # this operator is used to generate the new individuals
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population(True)  # archiving True
@@ -276,7 +276,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             # generate and evaluate the next generation
             child = self.generate(population.individuals, population.archives)
-            child = self.evaluate(child)
+            self.evaluate(child)
 
             arch_child = deepcopy(child)
             # PART A
@@ -285,7 +285,7 @@ class EpsMOEA(GeneticAlgorithm):
             child.extend(population.individuals)
 
             # non-dominated truncate on the guys
-            Selector_Pareto.sorting(child)
+            self.selector.sorting(child)
             Selector_Pareto.crowding_distance(child)
 
             parents = sorted(child, key=lambda x: (x.front_number, -x.crowding_distance))
