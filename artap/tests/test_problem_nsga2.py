@@ -117,33 +117,33 @@ class TestAckleyN2(unittest.TestCase):
         self.assertAlmostEqual(optimum.costs[0], -200, 0)
 #####
 #####
-class CEC2005_TEST_Problems(Problem):
-
-    # these problems working for 2, 10, 30 variables in every case
-
-    def __init__(self, name, test_function, ub, lb):
-
-        #ub = 100
-        #lb = -100
-
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [lb, ub]},
-                      'x_2': {'initial_value': 2.5, 'bounds': [lb, ub]}}
-
-        costs = ['F_1']
-        self.function = test_function(2)
-
-        super().__init__(name, parameters, costs)
-
-
-    def evaluate(self, x):
-
-        #function = optp.cec2005.F1(2)
-        problem = optp.Problem(self.function, num_objectives = 1)
-        solutions = [optp.Individual(x)]
-
-        problem.batch_evaluate(solutions)
-
-        return [solutions[0].objective_values]
+# class CEC2005_TEST_Problems(Problem):
+#
+#     # these problems working for 2, 10, 30 variables in every case
+#
+#     def __init__(self, name, test_function, ub, lb):
+#
+#         #ub = 100
+#         #lb = -100
+#
+#         parameters = {'x_1': {'initial_value': 2.5, 'bounds': [lb, ub]},
+#                       'x_2': {'initial_value': 2.5, 'bounds': [lb, ub]}}
+#
+#         costs = ['F_1']
+#         self.function = test_function(2)
+#
+#         super().__init__(name, parameters, costs)
+#
+#
+#     def evaluate(self, x):
+#
+#         #function = optp.cec2005.F1(2)
+#         problem = optp.Problem(self.function, num_objectives = 1)
+#         solutions = [optp.Individual(x)]
+#
+#         problem.batch_evaluate(solutions)
+#
+#         return [solutions[0].objective_values]
 
 
 
