@@ -86,10 +86,10 @@ class FullFactorGeneration(Generation):
 
     def generate(self):
         dict_vars = {}
-        for parameter in self.parameters.items():
-            name = parameter[0]
-            l_b = parameter[1]['bounds'][0]
-            u_b = parameter[1]['bounds'][1]
+        for parameter in self.parameters:
+            name = parameter['name']
+            l_b = parameter['bounds'][0]
+            u_b = parameter['bounds'][1]
 
             if self.center:
                 dict_vars[name] = [l_b, (l_b + u_b) / 2.0, u_b]
@@ -116,10 +116,10 @@ class PlackettBurmanGeneration(Generation):
 
     def generate(self):
         dict_vars = {}
-        for parameter in self.parameters.items():
-            name = parameter[0]
-            l_b = parameter[1]['bounds'][0]
-            u_b = parameter[1]['bounds'][1]
+        for parameter in self.parameters:
+            name = parameter['name']
+            l_b = parameter['bounds'][0]
+            u_b = parameter['bounds'][1]
             dict_vars[name] = [l_b, u_b]
 
         df = build_plackett_burman(dict_vars)
@@ -145,10 +145,10 @@ class BoxBehnkenGeneration(Generation):
 
     def generate(self):
         dict_vars = {}
-        for parameter in self.parameters.items():
-            name = parameter[0]
-            l_b = parameter[1]['bounds'][0]
-            u_b = parameter[1]['bounds'][1]
+        for parameter in self.parameters:
+            name = parameter['name']
+            l_b = parameter['bounds'][0]
+            u_b = parameter['bounds'][1]
             dict_vars[name] = [l_b, u_b]
 
         df = build_box_behnken(dict_vars)
@@ -174,10 +174,10 @@ class LHSGeneration(Generation):
 
     def generate(self):
         dict_vars = {}
-        for parameter in self.parameters.items():
-            name = parameter[0]
-            l_b = parameter[1]['bounds'][0]
-            u_b = parameter[1]['bounds'][1]
+        for parameter in self.parameters:
+            name = parameter["name"]
+            l_b = parameter['bounds'][0]
+            u_b = parameter['bounds'][1]
             dict_vars[name] = [l_b, u_b]
 
         df = build_lhs(dict_vars, num_samples=self.number)
@@ -234,10 +234,10 @@ class SimpleMutation(Mutation):
         mutation_space = 0.1
         vector = []
 
-        for i, parameter in enumerate(self.parameters.items()):
+        for i, parameter in enumerate(self.parameters):
             if random.uniform(0, 1) < self.probability:
-                l_b = parameter[1]['bounds'][0]
-                u_b = parameter[1]['bounds'][1]
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
 
                 para_range = mutation_space * (u_b - l_b)
                 mutation = random.uniform(-para_range, para_range)
@@ -259,10 +259,10 @@ class PmMutation(Mutation):
     def mutate(self, p):
         vector = []
 
-        for i, parameter in enumerate(self.parameters.items()):
+        for i, parameter in enumerate(self.parameters):
             if random.uniform(0, 1) < self.probability:
-                l_b = parameter[1]['bounds'][0]
-                u_b = parameter[1]['bounds'][1]
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
 
                 vector.append(self.pm_mutation(p.vector[i], l_b, u_b))
             else:
@@ -328,16 +328,16 @@ class SwarmMutation(Mutation):
     # update the particle position based off new velocity updates
     def update_position(self, individual):
 
-        for parameter, i in zip(self.parameters.items(), range(len(individual.vector))):
+        for parameter, i in zip(self.parameters, range(len(individual.vector))):
             individual.vector[i] = individual.vector[i] + individual.velocity_i[i]
 
             # adjust maximum position if necessary
-            if individual.vector[i] > parameter[1]['bounds'][1]:
-                individual.vector[i] = parameter[1]['bounds'][1]
+            if individual.vector[i] > parameter['bounds'][1]:
+                individual.vector[i] = parameter['bounds'][1]
 
             # adjust minimum position if necessary
-            if individual.vector[i] < parameter[1]['bounds'][0]:
-                individual.vector[i] = parameter[1]['bounds'][0]
+            if individual.vector[i] < parameter['bounds'][0]:
+                individual.vector[i] = parameter['bounds'][0]
 
     def update(self, best_individual):
         self.best_individual = best_individual
@@ -874,9 +874,9 @@ class SimpleCrossover(Crossover):
 
             alpha = random.uniform(0, linear_range)
 
-            for i, param in enumerate(self.parameters.items()):
-                l_b = param[1]['bounds'][0]
-                u_b = param[1]['bounds'][1]
+            for i, param in enumerate(self.parameters):
+                l_b = param['bounds'][0]
+                u_b = param['bounds'][1]
 
                 parameter1.append(self.clip(alpha * p1.vector[i] + (1 - alpha) * p2.vector[i], l_b, u_b))
                 parameter2.append(self.clip((1 - alpha) * p1.vector[i] + alpha * p2.vector[i], l_b, u_b))
@@ -951,13 +951,13 @@ class SimulatedBinaryCrossover(Crossover):
         parent_b = p2.vector.copy()
 
         if random.uniform(0.0, 1.0) <= self.probability:
-            for i, param in enumerate(self.parameters.items()):
+            for i, param in enumerate(self.parameters):
                 if random.uniform(0.0, 1.0) <= 0.5:
                     x1 = parent_a[i]
                     x2 = parent_b[i]
 
-                    lb = param[1]['bounds'][0]
-                    ub = param[1]['bounds'][1]
+                    lb = param['bounds'][0]
+                    ub = param['bounds'][1]
 
                     x1, x2 = self.sbx(x1, x2, lb, ub)
 

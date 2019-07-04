@@ -249,17 +249,17 @@ class VectorAndNumbers:
     def gen_vector(cls, design_parameters: dict):
 
         parameters_vector = []
-        for parameter in design_parameters.items():
+        for parameter in design_parameters:
 
-            if not ('bounds' in parameter[1]):
-                bounds = [parameter[1]["initial_value"] * 0.5, parameter[1]["initial_value"] * 1.5]
+            if not ('bounds' in parameter):
+                bounds = [parameter["initial_value"] * 0.5, parameter["initial_value"] * 1.5]
             else:
-                bounds = parameter[1]['bounds']
+                bounds = parameter['bounds']
 
-            if not ('precision' in parameter[1]):
+            if not ('precision' in parameter):
                 precision = None
             else:
-                precision = parameter[1]['precision']
+                precision = parameter['precision']
 
             if (precision is None) and (bounds is None):
                 parameters_vector.append(cls.gen_number())

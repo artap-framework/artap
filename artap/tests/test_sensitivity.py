@@ -8,10 +8,10 @@ from artap.datastore import DummyDataStore
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
-                      'x_2': {'initial_value': 2.5, 'bounds': [2.2, 2.4], 'precision': 1e-1},
-                      'x_3': {'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}}
-        costs = ['F']
+        parameters = [{'name':'x_1', 'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1},
+                      {'name':'x_2', 'initial_value': 2.5, 'bounds': [2.2, 2.4], 'precision': 1e-1},
+                      {'name':'x_3', 'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}]
+        costs = [{'name': 'F'}]
 
         super().__init__(name, parameters, costs)
 
