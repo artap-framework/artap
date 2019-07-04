@@ -697,6 +697,7 @@ class Selection(Operation):
                         q.front_number = front_number
                         temp_set.append(q)
             pareto_front = temp_set
+        return
 
 
     def sort_by_coordinate(self, population, dim):
