@@ -2,4 +2,4 @@
 # args
 s=$@
 
-python3 $@
+python $@

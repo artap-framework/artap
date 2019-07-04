@@ -44,7 +44,10 @@ class Results:
         # get the index of the required parameter
         index = 0  # default - one parameter
         if name:
-            index = int(self.problem.costs.get(name))
+            for i in range(len(self.problem.costs)):
+                cost = self.problem.costs[i]
+                if cost['name'] == name:
+                    index = i
         #if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
         #else:

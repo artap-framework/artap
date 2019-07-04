@@ -17,9 +17,9 @@ from sklearn.ensemble import BaggingRegressor, RandomForestRegressor, GradientBo
 class MyProblemSin(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [0, 10]}}
+        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 10]}]
 
-        costs = ['F']
+        costs = [{'name': 'F'}]
 
         super().__init__(name, parameters, costs)
 
@@ -30,10 +30,10 @@ class MyProblemSin(Problem):
 class MyProblemBooth(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-5, 5]},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-5, 5]}}
+        parameters = [{'name': 'x_1', 'initial_value': 0, 'bounds': [-5, 5]},
+                      {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
 
-        costs = ['F']
+        costs = [{'name': 'F'}]
 
         super().__init__(name, parameters, costs)
 
