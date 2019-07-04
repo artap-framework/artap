@@ -109,7 +109,7 @@ class Templates:
 
     condor_comsol_run = textwrap.dedent("""\
         #!/bin/sh
-        /opt/comsol53/bin/comsol batch $@
+        /opt/comsol-5.4/bin/comsol batch $@
         """)
     condor_matlab_run = textwrap.dedent("""\
         #!/bin/sh
@@ -266,7 +266,7 @@ class RemoteExecutor(Executor):
                              desc='Username')
         self.options.declare(name='port', default=22, lower=0,
                              desc='Port')
-        self.options.declare(name='password', default='',
+        self.options.declare(name='password', default=None,
                              desc='Password')
 
         self.remote_dir = ""
