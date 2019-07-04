@@ -155,11 +155,23 @@ class Executor(metaclass=ABCMeta):
             self.parse_results = self.problem.parse_results
 
     @staticmethod
-    def _join_parameters(x, sep=","):
-        param_values_string = ""
+    def _join_parameters_names(parameters, sep=","):
+        param_names_string = ""
 
-        for val in x:
-            param_values_string += str(val) + sep
+        for parameter in parameters:
+            param_names_string += str(parameter['name']) + sep
+
+        # remove last sep
+        if (len(parameters)) > len(sep):
+            param_names_string = param_names_string[:-len(sep)]
+
+        return param_names_string
+
+    @staticmethod
+    def _join_parameters_values(x, sep=","):
+        param_values_string = ""
+        for number in x:
+            param_values_string += str(number) + sep
 
         # remove last sep
         if (len(x)) > len(sep):
@@ -181,11 +193,11 @@ class LocalExecutor(Executor):
         super().eval(x)
 
         run_string = ""
-        param_names_string = Executor._join_parameters(self.problem.parameters)
-        param_values_string = Executor._join_parameters(x)
+        param_names_string = Executor._join_parameters_names(self.problem.parameters)
+        param_values_string = Executor._join_parameters_values(self.problem.parameters)
 
         if self.problem.type == ProblemType.comsol:
-            run_string = Templates.comsol_command.format(self.problem.working_dir + self.problem_file,
+            run_string = Templates.comsol_command.format(self.problem_file,
                                                          param_names_string, param_values_string)
         # run command
         os.system(run_string)
@@ -252,6 +264,8 @@ class RemoteExecutor(Executor):
     """
         Allows distributing of calculation of objective functions.
         """
+
+    # ToDo: Make inheritated classes: Matlab, Comsol ...
 
     def __init__(self, problem, command,
                  model_file, output_file, input_file=None, supplementary_files=None):
@@ -424,8 +438,8 @@ class CondorJobExecutor(RemoteExecutor):
             file.write(Templates.condor_python_run)
         file.close()
         # parameters
-        param_names_string = Executor._join_parameters(self.problem.parameters)
-        param_values_string = Executor._join_parameters(x)
+        param_names_string = Executor._join_parameters_names(self.problem.parameters)
+        param_values_string = Executor._join_parameters_values(x)
 
         job_file = job_file.substitute(model_name=os.path.basename(self.model_file),
                                        run_file=self.command,
@@ -440,7 +454,7 @@ class CondorJobExecutor(RemoteExecutor):
         # create input file with parameters
         if self.input_file:
             # parameters
-            param_values_string = Executor._join_parameters(x, "\n")
+            param_values_string = Executor._join_parameters_values(x, "\n")
             # create remote file
             self._create_file_on_remote(self.input_file, param_values_string, client=client)
 
@@ -466,7 +480,7 @@ class CondorJobExecutor(RemoteExecutor):
                 output = self._run_command_on_remote("condor_submit remote.job", client=client)
 
                 # process id
-                process_id = re.search('cluster \d+', output).group().split(" ")[1]
+                process_id = re.search(r'cluster \d+', output).group().split(" ")[1]
 
                 event = ""
                 start = time.time()

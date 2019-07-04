@@ -9,8 +9,8 @@ from artap.results import Results
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 10}}
-        costs = ['F_1']
+        parameters = [{'name': 'x_1', 'initial_value': 10}]
+        costs = [{'name': 'F_1'}]
 
         super().__init__(name, parameters, costs)
 
@@ -49,7 +49,7 @@ class AckleyN2Problem(Problem):
 
     def __init__(self, name):
         parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
-        costs = ['F_1']
+        costs = [{'name': 'F_1'}]
 
         super().__init__(name, parameters, costs)
 
