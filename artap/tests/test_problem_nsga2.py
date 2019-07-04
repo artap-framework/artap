@@ -258,5 +258,7 @@ class TestAckleyN222(unittest.TestCase):
         optimum = b.find_minimum('F_1')  # Takes last cost function
         self.assertAlmostEqual(optimum.costs[0], -200, 0)
 
+
+
 if __name__ == '__main__':
     unittest.main()
