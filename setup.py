@@ -32,7 +32,8 @@ setuptools.setup(
                       'dash-table>=3.4.0',
                       'sklearn',
                       "paramiko",
-                      'matplotlib'],
+                      'matplotlib',
+                      'optproblems'],
     scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",
