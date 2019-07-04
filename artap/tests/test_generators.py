@@ -8,24 +8,24 @@ from artap.operators import CustomGeneration, RandomGeneration, FullFactorGenera
 class TestDOE(unittest.TestCase):
 
     def setUp(self):
-        self.parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-2.5, 5]},
-                           'x_2': {'initial_value': 1.5, 'bounds': [1, 3.4]},
-                           'x_3': {'initial_value': 3.5, 'bounds': [6, 10]}}
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-2.5, 5]},
+                           {'name': 'x_2','initial_value': 1.5, 'bounds': [1, 3.4]},
+                           {'name': 'x_3','initial_value': 3.5, 'bounds': [6, 10]}]
 
     def test_random_generator(self):
         gen = RandomGeneration(self.parameters)
         gen.init(3)
         individuals = gen.generate()
         # values
-        self.assertTrue(self.parameters['x_1']['bounds'][0] <= individuals[0].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[0].vector[1] <= self.parameters['x_2']['bounds'][1] and
-                        self.parameters['x_3']['bounds'][0] <= individuals[0].vector[2] <= self.parameters['x_3']['bounds'][1] and
-                        self.parameters['x_1']['bounds'][0] <= individuals[1].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[1].vector[1] <= self.parameters['x_2']['bounds'][1] and
-                        self.parameters['x_3']['bounds'][0] <= individuals[1].vector[2] <= self.parameters['x_3']['bounds'][1] and
-                        self.parameters['x_1']['bounds'][0] <= individuals[2].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[2].vector[1] <= self.parameters['x_2']['bounds'][1] and
-                        self.parameters['x_3']['bounds'][0] <= individuals[2].vector[2] <= self.parameters['x_3']['bounds'][1])
+        self.assertTrue(self.parameters[0]['bounds'][0] <= individuals[0].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[0].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[0].vector[2] <= self.parameters[2]['bounds'][1] and
+                        self.parameters[0]['bounds'][0] <= individuals[1].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[1].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[1].vector[2] <= self.parameters[2]['bounds'][1] and
+                        self.parameters[0]['bounds'][0] <= individuals[2].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[2].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[2].vector[2] <= self.parameters[2]['bounds'][1])
 
     def test_custom_generator(self):
         gen = CustomGeneration(self.parameters)
@@ -99,15 +99,15 @@ class TestDOE(unittest.TestCase):
         # size
         self.assertEqual(len(individuals), 3)
         # values
-        self.assertTrue(self.parameters['x_1']['bounds'][0] <= individuals[0].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[0].vector[1] <= self.parameters['x_2']['bounds'][1] and
-                        self.parameters['x_3']['bounds'][0] <= individuals[0].vector[2] <= self.parameters['x_3']['bounds'][1] and
-                        self.parameters['x_1']['bounds'][0] <= individuals[1].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[1].vector[1] <= self.parameters['x_2']['bounds'][1] and
-                        self.parameters['x_3']['bounds'][0] <= individuals[1].vector[2] <= self.parameters['x_3']['bounds'][1] and
-                        self.parameters['x_1']['bounds'][0] <= individuals[2].vector[0] <= self.parameters['x_1']['bounds'][1] and
-                        self.parameters['x_2']['bounds'][0] <= individuals[2].vector[1] <= self.parameters['x_2']['bounds'][1] and
-                        self.parameters['x_3']['bounds'][0] <= individuals[2].vector[2] <= self.parameters['x_3']['bounds'][1])
+        self.assertTrue(self.parameters[0]['bounds'][0] <= individuals[0].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[0].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[0].vector[2] <= self.parameters[2]['bounds'][1] and
+                        self.parameters[0]['bounds'][0] <= individuals[1].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[1].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[1].vector[2] <= self.parameters[2]['bounds'][1] and
+                        self.parameters[0]['bounds'][0] <= individuals[2].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[2].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[2].vector[2] <= self.parameters[2]['bounds'][1])
 
     def test_gradient_generation(self):
         # gradient

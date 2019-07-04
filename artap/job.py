@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from .utils import VectorAndNumbers
 from .individual import Individual
-from .population import Population
 from copy import deepcopy
 from multiprocessing import Queue
 import os

@@ -11,9 +11,9 @@ class CondorMatlabProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
     def __init__(self, name):
-        parameters = {'a': {'initial_value': 10, 'bounds': [0, 20]},
-                      'b': {'initial_value': 10, 'bounds': [5, 15]}}
-        costs = ['F1']
+        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                      {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+        costs = [{'name': 'F_1'}]
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "data" + os.sep)
@@ -37,9 +37,10 @@ class CondorComsolProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
     def __init__(self, name):
-        parameters = {'a': {'initial_value': 10, 'bounds': [0, 20]},
-                      'b': {'initial_value': 10, 'bounds': [5, 15]}}
-        costs = ['F1']
+        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                      {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+
+        costs = [{'name': 'F_1'}]
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "data")
@@ -64,9 +65,9 @@ class CondorComsolProblem(Problem):
 class PythonExecProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 10},
-                      'x_2': {'initial_value': 10}}
-        costs = ['F1']
+        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                      {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+        costs = [{'name': 'F_1'}]
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "data" + os.sep)
@@ -87,9 +88,9 @@ class PythonExecProblem(Problem):
 class PythonInputProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 10},
-                      'x_2': {'initial_value': 10}}
-        costs = ['F1']
+        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                      {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+        costs = [{'name': 'F_1'}]
 
         super().__init__(name, parameters, costs,
                          working_dir="." + os.sep + "data" + os.sep)
@@ -121,7 +122,7 @@ class TestCondor(TestCase):
         evaluator = DummyAlgorithm(problem)
         evaluator.evaluate(population.individuals)
 
-        self.assertAlmostEqual(5.0, population.individuals[0].costs[0])
+        self.assertAlmostEqual(5, population.individuals[0].costs[0])
 
     def test_condor_comsol_exec(self):
         """ Tests one calculation of goal function."""
@@ -145,7 +146,7 @@ class TestCondor(TestCase):
         evaluator = DummyAlgorithm(problem)
         evaluator.evaluate(population.individuals)
 
-        self.assertAlmostEqual(5.0, population.individuals[0].costs[0])
+        self.assertAlmostEqual(5, population.individuals[0].costs[0])
 
     def test_condor_python_input(self):
         problem = PythonInputProblem("PythonInputProblem")
@@ -156,7 +157,7 @@ class TestCondor(TestCase):
         evaluator = DummyAlgorithm(problem)
         evaluator.evaluate(population.individuals)
 
-        self.assertAlmostEqual(5.0, population.individuals[0].costs[0])
+        self.assertAlmostEqual(5, population.individuals[0].costs[0])
 
 
 if __name__ == '__main__':
