@@ -133,8 +133,8 @@ class BayesOptSerial(BayesOpt):
     def run(self):
         # Figure out bounds vectors.
         i = 0
-        for id in self.problem.parameters:
-            bounds = self.problem.parameters[id]['bounds']
+        for parameter in self.problem.parameters:
+            bounds = parameter['bounds']
 
             self.bo.lb[i] = bounds[0]
             self.bo.ub[i] = bounds[1]

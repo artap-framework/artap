@@ -36,10 +36,11 @@ _log_level = [CRITICAL, ERROR, WARNING, INFO, DEBUG]
 class ProblemBase(ABC):
 
     def __init__(self):
+        object.__setattr__(self, 'name', None)
         self.name: str = None
         self.description = ""
         self.parameters: dict = None
-        self.costs: list = None
+        self.costs: dict = None
         self.data_store: DataStore = None
         self.type = "None"
 
@@ -72,7 +73,8 @@ class ProblemBase(ABC):
             print(h)
 
         # create formatter
-        self.formatter = logging.Formatter('%(asctime)s (%(levelname)s): %(name)s - %(funcName)s (%(lineno)d) - %(message)s')
+        self.formatter = logging.Formatter('%(asctime)s (%(levelname)s): '
+                                           '%(name)s - %(funcName)s (%(lineno)d) - %(message)s')
 
         if self.options['log_console_handler']:
             # create console handler and set level to debug
@@ -82,6 +84,13 @@ class ProblemBase(ABC):
             stream_handler.setFormatter(self.formatter)
             # add StreamHandler to logger
             self.logger.addHandler(stream_handler)
+
+    # def __setattr__(self, name, value):
+    #     if hasattr(self, name):
+    #         object.__setattr__(self, name, value)
+    #     else:
+    #         raise TypeError('Cannot set name %r on object of type %s' % (
+    #             name, self.__class__.__name__))
 
     def __del__(self):
         # for h in list(self.logger.handlers):
@@ -100,13 +109,13 @@ class Problem(ProblemBase):
         self.name = name
         self.working_dir = working_dir
 
-        forbidden_path = os.sep + "workspace" + os.sep + "common_data"
-        if working_dir is not None:
-            if forbidden_path in self.working_dir:
-                raise IOError('Folder "/workspace/common_data" is read only.')
+        # forbidden_path = os.sep + "data"
+        # if working_dir is not None:
+        #     if forbidden_path in self.working_dir:
+        #         raise IOError('Folder "/data" is read only.')
 
         self.parameters = parameters
-        self.costs = {cost: 0.0 for cost in costs}
+        self.costs = costs
 
         # working dir must be set
         if self.options['log_file_handler'] and working_dir:
@@ -139,9 +148,9 @@ class Problem(ProblemBase):
 
     def get_initial_values(self):
         values = []
-        for parameter in self.parameters.items():
-            if 'initial_value' in parameter[1]:
-                values.append(parameter[1]['initial_value'])
+        for parameter in self.parameters:
+            if 'initial_value' in parameter:
+                values.append(parameter['initial_value'])
             else:
                 values.append(0)
         return values
@@ -168,9 +177,9 @@ class Problem(ProblemBase):
 
 class ProblemFileDataStore(ProblemBase):
 
-    def __init__(self, database_name, working_dir=None):
+    def __init__(self, database_name, working_dir=None, mode="write"):
         super().__init__()
         self.working_dir = working_dir
 
-        self.data_store = FileDataStore(self, database_name=database_name, remove_existing=False)
+        self.data_store = FileDataStore(self, database_name=database_name, remove_existing=False, mode=mode)
         # self.data_store.read_from_datastore()

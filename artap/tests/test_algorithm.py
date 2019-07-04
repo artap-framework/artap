@@ -9,8 +9,8 @@ from artap.algorithm_sweep import SweepAlgorithm
 class SweepProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 10, 'bounds': [-10, 30]}}
-        costs = ['F_1']
+        parameters = [{'name': 'x_1', 'initial_value': 10, 'bounds': [-10, 30]}]
+        costs = [{'name': 'F_1', 'criteria': 'minimize'}]
 
         super().__init__(name, parameters, costs)
 
@@ -38,10 +38,14 @@ class TestJob(unittest.TestCase):
         individuals = problem.data_store.populations[-1].individuals
         # values
         self.assertEqual(len(individuals), 4)
-        self.assertTrue(problem.parameters['x_1']['bounds'][0] <= individuals[0].vector[0] <= problem.parameters['x_1']['bounds'][1] and
-                        problem.parameters['x_1']['bounds'][0] <= individuals[1].vector[0] <= problem.parameters['x_1']['bounds'][1] and
-                        problem.parameters['x_1']['bounds'][0] <= individuals[2].vector[0] <= problem.parameters['x_1']['bounds'][1] and
-                        problem.parameters['x_1']['bounds'][0] <= individuals[3].vector[0] <= problem.parameters['x_1']['bounds'][1])
+        self.assertTrue(problem.parameters[0]['bounds'][0] <= individuals[0].vector[0] <=
+                        problem.parameters[0]['bounds'][1] and
+                        problem.parameters[0]['bounds'][0] <= individuals[1].vector[0] <=
+                        problem.parameters[0]['bounds'][1] and
+                        problem.parameters[0]['bounds'][0] <= individuals[2].vector[0] <=
+                        problem.parameters[0]['bounds'][1] and
+                        problem.parameters[0]['bounds'][0] <= individuals[3].vector[0] <=
+                        problem.parameters[0]['bounds'][1])
 
     def test_sweep_evaluate_serial(self):
         problem = SweepProblem("SweepProblem")

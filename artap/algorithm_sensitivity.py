@@ -16,8 +16,8 @@ class Sensitivity(Algorithm):
         self.population_size = self.options['max_population_size']
 
         parameters = []
-        for parameter in self.problem.parameters.items():
-            parameters.append(float(parameter[1]['initial_value']))
+        for parameter in self.problem.parameters:
+            parameters.append(float(parameter['initial_value']))
 
         population = Population()
 
@@ -26,15 +26,15 @@ class Sensitivity(Algorithm):
 
             index = 0
             selected_parameter = None
-            for parameter in self.problem.parameters.items():
-                if parameter[0] == parameter_name:
+            for parameter in self.problem.parameters:
+                if parameter['name'] == parameter_name:
                     selected_parameter = parameter
                     break
                 index += 1
 
             individuals = []
             for i in range(self.options['max_population_size']):
-                value = VectorAndNumbers.gen_number(selected_parameter[1]['bounds'], selected_parameter[1]['precision'],
+                value = VectorAndNumbers.gen_number(selected_parameter['bounds'], selected_parameter['precision'],
                                               'normal')
                 parameters[index] = value
                 parameter_values.append(value)

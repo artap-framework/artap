@@ -1,8 +1,6 @@
 import unittest
 from artap.problem import Problem
-from artap.datastore import DummyDataStore
 from artap.individual import Individual
-from artap.population import Population
 from artap.job import JobSimple
 
 
