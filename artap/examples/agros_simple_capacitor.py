@@ -40,8 +40,7 @@ class Capacitor(Problem):
         # boundaries
         electrostatic.add_boundary("GND", "electrostatic_potential", {"electrostatic_potential": 0})
         electrostatic.add_boundary("V", "electrostatic_potential", {"electrostatic_potential": 1})
-        electrostatic.add_boundary("neumann", "electrostatic_surface_charge_density",
-                                   {"electrostatic_surface_charge_density": 0})
+        electrostatic.add_boundary("neumann", "electrostatic_surface_charge_density",{"electrostatic_surface_charge_density": 0})
 
         # materials
         electrostatic.add_material("dielectric",
@@ -55,10 +54,10 @@ class Capacitor(Problem):
         geometry.add_edge("r1", 0, 0, "r1", angle=90, boundaries={"electrostatic": "V"})
 
         geometry.add_label("(r1 + r2) / 2.", "(r2 - r1) / 2", materials={"electrostatic": "dielectric"})
+        print('iii')
 
         computation = problem.computation()
         computation.solve()
-
         solution = computation.solution("electrostatic")
         result = solution.volume_integrals()["We"]
 
