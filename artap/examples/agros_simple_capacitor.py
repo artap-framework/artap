@@ -9,9 +9,9 @@ from agrossuite import agros as a2d
 class Capacitor(Problem):
 
     def __init__(self, name):
-        parameters = {'r1': {'initial_value': 0.02, 'bounds': [0.01, 0.03]},
-                      'r2': {'initial_value': 0.04, 'bounds': [0.035, 0.1]}}
-        costs = ['F1']
+        parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
+                      {'name': 'r2', 'initial_value': 0.04, 'bounds': [0.035, 0.1]}]
+        costs = [{'name': 'F'}]
         self.C_req = 80.  # pF
 
         super().__init__(name, parameters, costs)
@@ -62,8 +62,9 @@ class Capacitor(Problem):
         solution = computation.solution("electrostatic")
         result = solution.volume_integrals()["We"]
 
-        C = 4 * 2 * result *1e12 # pF
-        print("result", C, x[0], x[1])
+        C = 4 * 2 * result * 1e12  # pF
+        print('Capacitance', C)
+
         return [abs(C - self.C_req)]
 
 
@@ -72,11 +73,11 @@ def bobyqa():
     algorithm = NLopt(problem)
     algorithm.options['n_iterations'] = 30
     algorithm.options['algorithm'] = LN_BOBYQA
-    # algorithm.options['verbose_level'] = 2
+    algorithm.options['verbose_level'] = 0
     algorithm.run()
 
     results = Results(problem)
-    optimum = results.find_minimum('F1')
+    optimum = results.find_minimum('F')
     print(optimum)
 
 
@@ -88,7 +89,7 @@ def bayesopt():
     algorithm.run()
 
     results = Results(problem)
-    optimum = results.find_minimum('F1')
+    optimum = results.find_minimum('F')
     print(optimum)
 
 
@@ -100,9 +101,9 @@ def nsga2():
     algorithm.run()
 
     results = Results(problem)
-    optimum = results.find_minimum('F1')
+    optimum = results.find_minimum('F')
     print(optimum)
 
-nsga2()
-#bobyqa()
+#nsga2()
+bobyqa()
 #bayesopt()
