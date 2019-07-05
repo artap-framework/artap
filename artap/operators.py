@@ -597,7 +597,8 @@ class ParetoDominance(Dominance):
         super(ParetoDominance, self).__init__()
 
     def compare(self, p, q):
-
+        if len(p.costs) != len(q.costs):
+            print("Len {} - {}".format(len(p.costs), len(p.costs)))
         # first check constraint violation
         if p.feasible != q.feasible:
             if p.feasible == 0:
@@ -632,6 +633,7 @@ class ParetoDominance(Dominance):
             return 1
         else:
             return 2
+
 
 class Selection(Operation):
 
