@@ -18,10 +18,10 @@ os.chdir(old_path)
 
 class TestProblem(Problem):
     def __init__(self, name):
-        parameters = {'R2': {'initial_value': 3.0, 'bounds': [2.6, 3.4]},
-                      'h2': {'initial_value': 1.0, 'bounds': [0.408, 2.2]},
-                      'd2': {'initial_value': 0.3, 'bounds': [0.1, 0.4]}}
-        costs = ['F']
+        parameters = [{'name': 'R2', 'initial_value': 3.0, 'bounds': [2.6, 3.4]},
+                      {'name': 'h2', 'initial_value': 1.0, 'bounds': [0.408, 2.2]},
+                      {'name': 'd2', 'initial_value': 0.3, 'bounds': [0.1, 0.4]}]
+        costs = [{'name': 'F'}]
 
         super().__init__(name, parameters, costs)
 
