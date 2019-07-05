@@ -376,11 +376,11 @@ class FileDataStore(DataStore):
 
         self.database_name = database_name
         if remove_existing:
-            if os._exists(self.database_name):
+            if os.path.exists(self.database_name):
                 os.remove(self.database_name)
 
         if mode == "write":
-            self.db = shelve.open(self.database_name, flag='n', writeback=True)
+            self.db = shelve.open(self.database_name, flag='c', writeback=True)
         else:
             self.db = shelve.open(self.database_name, flag='r')
 
