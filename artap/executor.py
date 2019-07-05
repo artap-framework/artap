@@ -194,7 +194,7 @@ class LocalExecutor(Executor):
 
         run_string = ""
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
-        param_values_string = Executor._join_parameters_values(self.problem.parameters)
+        param_values_string = Executor._join_parameters_values(x)
 
         if self.problem.type == ProblemType.comsol:
             run_string = Templates.comsol_command.format(self.problem_file,

@@ -4,9 +4,21 @@ import warnings
 from abc import ABCMeta, abstractmethod
 
 from scipy.spatial import distance
+from scipy import arange
 
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
+from sklearn.linear_model import SGDRegressor
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.tree import DecisionTreeRegressor, ExtraTreeRegressor
+from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor, BaggingRegressor
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.neighbors import KNeighborsRegressor, RadiusNeighborsRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RationalQuadratic
+from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, WhiteKernel, ConstantKernel, RationalQuadratic, ExpSineSquared
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 
 class SurrogateModel(metaclass=ABCMeta):
@@ -86,6 +98,41 @@ class SurrogateModelRegressor(SurrogateModel):
         self.score = None
         self.lml = None
         self.lml_gradient = None
+
+    @staticmethod
+    def get_mlp_regressor(search=False, verbose=1):
+        gp = MLPRegressor()
+
+        if search:
+            parameters = {
+                'solver': ['sgd', 'adam', 'lbfgs'],
+                'max_iter': [1000, 1200, 1400, 1600, 1800, 2000],
+                'alpha': 10.0 ** -arange(1, 10),
+                'hidden_layer_sizes': arange(10, 25),
+                'random_state': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            }
+
+            gp = GridSearchCV(gp, parameters, n_jobs=-1, verbose=verbose)
+
+        return gp
+
+    @staticmethod
+    def get_random_forest_regressor(search=False, verbose=1):
+        gp = RandomForestRegressor()
+
+        if search:
+            parameters = {
+                'bootstrap': [True],
+                'max_depth': [80, 90, 100, 110],
+                'max_features': [2, 3],
+                'min_samples_leaf': [3, 4, 5],
+                'min_samples_split': [8, 10, 12],
+                'n_estimators': [100, 200, 300, 1000]
+            }
+
+            gp = GridSearchCV(gp, parameters, n_jobs=-1, verbose=verbose)
+
+        return gp
 
     def init_default_regressor(self):
         # default kernel
