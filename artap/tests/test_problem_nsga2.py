@@ -57,7 +57,6 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         self.assertLessEqual(wrong, 5)
 
-
 class AckleyN2Test(Problem):
     """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
