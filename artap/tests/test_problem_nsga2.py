@@ -65,7 +65,7 @@ class TestEPSMOEAOptimization(unittest.TestCase):
         problem = BinhAndKornProblem("TEST_EPSMOEA")
 
         algorithm = EpsMOEA(problem)
-        algorithm.options['max_population_number'] = 50
+        algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100
         algorithm.options['calculate_gradients'] = True
         algorithm.options['verbose_level'] = 1
