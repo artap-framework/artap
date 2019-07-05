@@ -97,7 +97,7 @@ class ThisIsNotMyProblem(Problem):
     """
     def __init__(self, name):
         parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
-                      {'name': 'r2','initial_value': 0.04, 'bounds': [0.035, 0.1]}]
+                      {'name': 'r2', 'initial_value': 0.04, 'bounds': [0.035, 0.1]}]
         costs = [{'name': 'F'}]
         self.C_req = 80.  # pF
 
