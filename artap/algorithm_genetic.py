@@ -184,7 +184,7 @@ class NSGAII(GeneticAlgorithm):
 
         t_s = time.time()
         self.problem.logger.info(
-            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.population_size))
+            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.options['max_population_number'] * self.population_size))
 
         # optimization
         for it in range(self.options['max_population_number']):
