@@ -5,7 +5,6 @@ from .population import Population
 
 from multiprocessing import Process, Manager, Queue, cpu_count
 from abc import ABCMeta, abstractmethod
-import copy
 import numpy as np
 
 
