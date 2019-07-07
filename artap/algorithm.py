@@ -7,7 +7,8 @@ from multiprocessing import Process, Manager, Queue, cpu_count
 from abc import ABCMeta, abstractmethod
 import numpy as np
 
-
+from joblib import Parallel, delayed
+import time
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
 
@@ -57,6 +58,11 @@ class Algorithm(metaclass=ABCMeta):
                 job.evaluate(individual)
 
     def evaluate_parallel(self, individuals: list):
+        # simple parallel loop
+        job = JobSimple(self.problem)
+        Parallel(n_jobs=self.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual) for individual in individuals)
+
+        """
         manager = Manager()
         processes = []
         i = 0
@@ -95,6 +101,7 @@ class Algorithm(metaclass=ABCMeta):
                             self.problem.data_store.write_individual(individual)
             queue.close()
             queue.join_thread()
+        """
 
     def evaluate_gradient(self, individuals: list, gradient_individuals: list):
         # Todo: Make operator Gradient consisting of current gradient generator and evaluate_gradient

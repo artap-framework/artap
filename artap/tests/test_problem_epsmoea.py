@@ -2,8 +2,8 @@ import unittest
 
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
-from artap.algorithm_genetic import NSGAII
-from artap.results import Results
+from artap.algorithm_genetic import EpsMOEA
+from artap.results import Results, GraphicalResults
 
 #import optproblems as optp
 #import optproblems.cec2005 as cec2005
@@ -29,18 +29,19 @@ class BinhAndKornProblem(Problem):
         return BinhAndKorn.constraints(x)
 
 
-class TestNSGA2Optimization(unittest.TestCase):
+class TestEPSMOEAOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-    def test_local_problem_nsga2(self):
+    def test_local_problem_epsmoea(self):
 
-        problem = BinhAndKornProblem("TestNSGA2Optimization")
+        problem = BinhAndKornProblem("EPSMOEA")
 
-        algorithm = NSGAII(problem)
+        algorithm = EpsMOEA(problem)
         algorithm.options['max_population_number'] = 50
-        algorithm.options['max_population_size'] = 50
+        algorithm.options['max_population_size'] = 100
         algorithm.options['calculate_gradients'] = True
         algorithm.options['verbose_level'] = 1
+        algorithm.options['epsilons'] = 0.05
 
         algorithm.run()
         solutions = problem.data_store.populations[1]
@@ -57,6 +58,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         self.assertLessEqual(wrong, 5)
 
+
 class AckleyN2Test(Problem):
     """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
@@ -72,14 +74,15 @@ class AckleyN2Test(Problem):
         return [function.eval(x)]
 
 
-class TestAckleyN2(unittest.TestCase):
-    """ Tests that the NSGA II algorithm can find the global optimum of a function."""
+class TestAckleyN222(unittest.TestCase):
+    """ Tests that the eps-moea algorithm can find the global optimum of a function."""
 
     def test_local_problem(self):
         problem = AckleyN2Test("TestAckleyN2")
-        algorithm = NSGAII(problem)
+        algorithm = EpsMOEA(problem)
         algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100
+        algorithm.options['epsilons'] = 0.01
         algorithm.run()
 
         b = Results(problem)
@@ -212,6 +215,9 @@ class TestAckleyN2(unittest.TestCase):
 #
 
 #####
+#####
+
+
 
 if __name__ == '__main__':
     unittest.main()
