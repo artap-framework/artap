@@ -123,7 +123,7 @@ class TestDataStoreFile(unittest.TestCase):
         db.close()
 
         # remove file
-        print(database_name)
+        # print(database_name)
         os.remove(database_name)
 
 

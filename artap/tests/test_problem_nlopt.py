@@ -89,7 +89,7 @@ class TestNLoptOptimization(unittest.TestCase):
         self.run_test(LN_PRAXIS)
 
 
-class ThisIsNotMyProblem(Problem):
+class SimpleCapacitorProblem(Problem):
     """
     There was a bug between the job queue and the nlopt --- this is a testproblem to test the interface between the
     agros and artap
@@ -97,7 +97,7 @@ class ThisIsNotMyProblem(Problem):
     """
     def __init__(self, name):
         parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
-                      {'name': 'r2','initial_value': 0.04, 'bounds': [0.035, 0.1]}]
+                      {'name': 'r2', 'initial_value': 0.04, 'bounds': [0.035, 0.1]}]
         costs = [{'name': 'F'}]
         self.C_req = 80.  # pF
 
@@ -154,19 +154,19 @@ class ThisIsNotMyProblem(Problem):
         return [abs(C - self.C_req)]
 
 
-class TestIsItNotMyProblem(unittest.TestCase):
+class TestSimpleCapacitor(unittest.TestCase):
 
     def test_run(self):
 
-        problem = ThisIsNotMyProblem("AgrosProblem")
+        problem = SimpleCapacitorProblem("AgrosProblem")
         algorithm = NLopt(problem)
-        algorithm.options['n_iterations'] = 30
+        algorithm.options['n_iterations'] = 300
         algorithm.options['algorithm'] = LN_BOBYQA
-        # algorithm.options['verbose_level'] = 2
+        algorithm.options['verbose_level'] = 0
         algorithm.run()
 
         results = Results(problem)
-        optimum = results.find_minimum('F1')
+        optimum = results.find_minimum('F')
 
         self.assertAlmostEqual(optimum.costs[0], 0, places=1)
         # tests that the optimal value is within the predefined boundaries
