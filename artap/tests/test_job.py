@@ -6,11 +6,10 @@ from artap.job import JobSimple
 
 class JobProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 10}}
-        costs = ['F_1']
-
-        super().__init__(name, parameters, costs)
+    def set(self):
+        self.name = "JobProblem"
+        self.parameters = {'x_1': {'initial_value': 10}}
+        self.costs = ['F_1']
 
     def evaluate(self, x):
         result = 0
@@ -27,7 +26,7 @@ class TestJob(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_individual_evaluation(self):
-        problem = JobProblem("JobProblem")
+        problem = JobProblem()
         individual = Individual([1, 2, 2])
         job = JobSimple(problem)
         job.evaluate(individual)

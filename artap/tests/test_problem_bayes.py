@@ -24,11 +24,11 @@ def target_func(x):
 
 class MyProblemOne(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-2, 10]}]
-        costs = [{'name': 'F'}]
 
-        super().__init__(name, parameters, costs)
+    def set(self):
+        self.name = "TestBayesOptParallel"
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-2, 10]}]
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x):
         return -(np.exp(-(x - 2)**2) + np.exp(-(x - 6)**2/10) + 1/ (x**2 + 1))
@@ -36,12 +36,11 @@ class MyProblemOne(Problem):
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
+    def set(self):
+        self.name = "TestBayesOptSerial"
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
-        costs = [{'name': 'F'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -51,7 +50,7 @@ class TestBayesOptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def xtest_local_problem_bayesopt_parallel(self):
-        problem = MyProblem("TestBayesOptParallel")
+        problem = MyProblem()
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 100
@@ -63,7 +62,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         self.assertAlmostEqual(optimum, 0, places=2)
 
     def xtest_local_problem_bayesopt_serial(self):
-        problem = MyProblem("TestBayesOptSerial")
+        problem = MyProblem()
         algorithm = Bayes(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 200
@@ -75,7 +74,7 @@ class TestBayesOptOptimization(unittest.TestCase):
 
 
     def xtest_local_problem_bayesopt_serial(self):
-        problem = MyProblem("TestBayesOptSerial")
+        problem = MyProblem()
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 20
@@ -87,7 +86,7 @@ class TestBayesOptOptimization(unittest.TestCase):
 
 
     def xtest_local_problem_bayesop_one(self):
-        problem = MyProblemOne("TestBayesOptSerial")
+        problem = MyProblemOne()
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 20

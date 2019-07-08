@@ -375,19 +375,17 @@ class FileDataStore(DataStore):
         super().__init__(problem)
 
         self.database_name = database_name
-        if remove_existing:
-            if os.path.exists(self.database_name):
-                os.remove(self.database_name)
 
         if mode == "write":
+            if remove_existing:
+                if os.path.exists(self.database_name):
+                    os.remove(self.database_name)
             self.db = shelve.open(self.database_name, flag='c', writeback=True)
+            # remove database and create structure
+            if remove_existing and os.path.exists(self.database_name):
+                self.create_structure()
         else:
             self.db = shelve.open(self.database_name, flag='r')
-
-        # remove database and create structure
-        if remove_existing and os.path.exists(self.database_name):
-            self.create_structure()
-        else:
             self.read_from_datastore()
 
         # set datastore to problem
