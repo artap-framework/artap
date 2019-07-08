@@ -11,14 +11,14 @@ class JobProblem(Problem):
         self.parameters = {'x_1': {'initial_value': 10}}
         self.costs = ['F_1']
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
         result = 0
-        for i in x:
+        for i in individual.vector:
             result += i*i
 
         return [result]
 
-    def evaluate_constraints(self, x):
+    def evaluate_constraints(self, individual):
         pass
 
 

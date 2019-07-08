@@ -30,8 +30,9 @@ class MyProblemOne(Problem):
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-2, 10]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x):
-        return -(np.exp(-(x - 2)**2) + np.exp(-(x - 6)**2/10) + 1/ (x**2 + 1))
+    def evaluate(self, individual):
+        x = individual.vector
+        return -(np.exp(-(x - 2)**2) + np.exp(-(x - 6)**2/10) + 1 / (x**2 + 1))
 
 
 class MyProblem(Problem):
@@ -42,8 +43,8 @@ class MyProblem(Problem):
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x):
-        return [Booth.eval(x)]
+    def evaluate(self, individual):
+        return [Booth.eval(individual.vector)]
 
 
 class TestBayesOptOptimization(unittest.TestCase):
