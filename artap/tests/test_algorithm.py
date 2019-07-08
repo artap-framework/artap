@@ -13,9 +13,9 @@ class SweepProblem(Problem):
         self.parameters = [{'name': 'x_1', 'initial_value': 10, 'bounds': [-10, 30]}]
         self.costs = [{'name': 'F_1', 'criteria': 'minimize'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual: Individual):
         result = 0
-        for i in x:
+        for i in individual.vector:
             result += i*i
 
         return [result]

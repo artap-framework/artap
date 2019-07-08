@@ -13,9 +13,9 @@ class MyProblem(Problem):
                            {'name': 'x_3', 'initial_value': 2.5, 'bounds': [0, 5], 'precision': 1e-1}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x):
-        result = 0
-        result += x[0] * x[0] + 0.1 * x[1] * x[1] + x[2] * x[2]
+    def evaluate(self, individual):
+        x = individual.vector
+        result = x[0] * x[0] + 0.1 * x[1] * x[1] + x[2] * x[2]
         return [result]
 
 

@@ -11,7 +11,8 @@ class GradientProblem(Problem):
         self.parameters = [{'name': 'x', 'initial_value': 2.13}, {'name': 'y', 'initial_value': 2.13}]
         self.costs = [{'name': 'F_1', 'criteria': 'minimize'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
+        x = individual.vector
         return [(x[0]-1)**2 + x[1]**2]
 
 

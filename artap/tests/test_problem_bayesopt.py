@@ -15,8 +15,8 @@ class MyProblem(Problem):
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x):
-        return [Booth.eval(x)]
+    def evaluate(self, individual):
+        return [Booth.eval(individual.vector)]
 
 
 class TestBayesOptOptimization(unittest.TestCase):

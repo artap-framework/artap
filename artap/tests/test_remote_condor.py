@@ -24,8 +24,8 @@ class CondorMatlabProblem(Problem):
                                           output_file="output.txt",
                                           supplementary_files=["run.sh"])
 
-    def evaluate(self, x):
-        return self.executor.eval(x)
+    def evaluate(self, individual):
+        return self.executor.eval(individual.vector)    # ToDo: could be passed individual?
 
     def parse_results(self, content):
         return [float(content)]
@@ -48,8 +48,8 @@ class CondorComsolProblem(Problem):
                                           output_file="out.txt",
                                           supplementary_files=["run.sh"])
 
-    def evaluate(self, x):
-        return self.executor.eval(x)
+    def evaluate(self, individual):
+        return self.executor.eval(individual.vector)
 
     def parse_results(self, content):
         lines = content.split("\n")
@@ -71,8 +71,8 @@ class PythonExecProblem(Problem):
                                           model_file="run_exec.py",
                                           output_file="output.txt")
 
-    def evaluate(self, x):
-        return self.executor.eval(x)
+    def evaluate(self, individual):
+        return self.executor.eval(individual.vector)
 
     def parse_results(self, content):
         return [float(content)]
@@ -92,8 +92,8 @@ class PythonInputProblem(Problem):
                                           input_file="input.txt",  # file is created in eval with specific parameters
                                           output_file="output.txt")
 
-    def evaluate(self, x):
-        return self.executor.eval(x)
+    def evaluate(self, individual):
+        return self.executor.eval(individual.vector)
 
     def parse_results(self, content):
         return [float(content)]

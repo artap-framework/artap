@@ -21,10 +21,10 @@ class ComsolProblem(Problem):
                                       problem_file="./data/elstat.mph",
                                       output_files=self.output_files)
 
-    def evaluate(self, x):
-        return self.executor.eval(x)
+    def evaluate(self, individual):
+        return self.executor.eval(individual.vector)
 
-    def parse_results(self):
+    def parse_results(self, individual=None):
         output_file = self.output_files[0]
         path = output_file
         content = ""
