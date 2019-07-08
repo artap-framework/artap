@@ -47,11 +47,8 @@ class JobSimple(Job):
             self.population.individuals.append(individual)
 
         # write to datastore
-        if isinstance(individual, GeneticIndividual):
-            pass #TODO: this solution should be improved
-        else:
-            if self.problem.options["save_level"] == "individual":
-                self.problem.data_store.write_individual(individual)
+        if self.problem.options["save_level"] == "individual":
+            self.problem.data_store.write_individual(individual)
 
         individual.is_evaluated = True
 

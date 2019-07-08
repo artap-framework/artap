@@ -149,7 +149,7 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGeneration(self.problem, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         if self.options['calculate_gradients'] is True:
@@ -238,7 +238,7 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
+        self.generator = RandomGeneration(self.problem, individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
         self.generator.init(self.options['max_population_size'])
 
         # set crossover

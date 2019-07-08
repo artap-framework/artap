@@ -16,12 +16,9 @@ from sklearn.ensemble import BaggingRegressor, RandomForestRegressor, GradientBo
 
 class MyProblemSin(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 10]}]
-
-        costs = [{'name': 'F'}]
-
-        super().__init__(name, parameters, costs)
+    def set(self):
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 10]}]
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x):
         return [x[0] * math.sin(x[0])]
@@ -29,13 +26,10 @@ class MyProblemSin(Problem):
 
 class MyProblemBooth(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 0, 'bounds': [-5, 5]},
+    def set(self):
+        self.parameters = [{'name': 'x_1', 'initial_value': 0, 'bounds': [-5, 5]},
                       {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
-
-        costs = [{'name': 'F'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -76,7 +70,7 @@ class TestSurrogate(unittest.TestCase):
                 step += 1
 
     def test_eval(self):
-        problem = MyProblemBooth("MyProblemBooth")
+        problem = MyProblemBooth()
         problem.surrogate = SurrogateModelEval(problem)
 
         x_ref = [2.5, 1.5]
@@ -90,7 +84,7 @@ class TestSurrogate(unittest.TestCase):
         self.assertLess(math.fabs(value_problem - value_surrogate), 1e-8)
 
     def test_gaussian_process_one(self):
-        problem = MyProblemSin("GaussianProcessRegressor")
+        problem = MyProblemSin()
         problem.surrogate = SurrogateModelRegressor(problem)
         problem.surrogate.sigma_threshold = 0.1
 
@@ -100,7 +94,7 @@ class TestSurrogate(unittest.TestCase):
         self.check_one(problem, 5.0)
 
     def test_gradient_boosting_regressor_one(self):
-        problem = MyProblemSin("GradientBoostingRegressor")
+        problem = MyProblemSin()
         problem.surrogate = SurrogateModelRegressor(problem)
 
         problem.surrogate.regressor = GradientBoostingRegressor()
@@ -108,7 +102,7 @@ class TestSurrogate(unittest.TestCase):
         self.check_one(problem, 7.0)
 
     def test_bagging_regressor_one(self):
-        problem = MyProblemSin("BaggingRegressor")
+        problem = MyProblemSin()
         problem.surrogate = SurrogateModelRegressor(problem)
 
         problem.surrogate.regressor = BaggingRegressor()
@@ -116,7 +110,7 @@ class TestSurrogate(unittest.TestCase):
         self.check_one(problem, 7.0)
 
     def test_random_tree_regressor_one(self):
-        problem = MyProblemSin("RandomForestRegressor")
+        problem = MyProblemSin()
         problem.surrogate = SurrogateModelRegressor(problem)
 
         problem.surrogate.regressor = RandomForestRegressor(n_estimators=20)
@@ -124,7 +118,7 @@ class TestSurrogate(unittest.TestCase):
         self.check_one(problem, 10.0)
 
     def test_gaussian_process_two(self):
-        problem = MyProblemBooth("MyProblemBooth")
+        problem = MyProblemBooth()
         problem.surrogate = SurrogateModelRegressor(problem)
         # set custom regressor
         kernel = 1.0 * RationalQuadratic(length_scale=1.0, alpha=0.1)
@@ -160,18 +154,19 @@ class TestSurrogate(unittest.TestCase):
         self.assertLess(percent, 5.0)
 
     def test_gaussian_process_lhs_two(self):
-        problem = MyProblemBooth("MyProblemBooth")
+        problem = MyProblemBooth()
         problem.surrogate = SurrogateModelRegressor(problem)
         # set custom regressor
         kernel = 1.0 * RationalQuadratic(length_scale=1.0)
         problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel)
-        #problem.surrogate.regressor = GradientBoostingRegressor()
+
+        # problem.surrogate.regressor = GradientBoostingRegressor()
         # set threshold
         problem.surrogate.sigma_threshold = 0.01
         problem.surrogate.train_step = 100
 
         # sweep analysis (for training)
-        gen = LHSGeneration(problem.parameters)
+        gen = LHSGeneration(problem)
         gen.init(problem.surrogate.train_step)
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()

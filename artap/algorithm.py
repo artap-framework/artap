@@ -9,12 +9,15 @@ import numpy as np
 
 from joblib import Parallel, delayed
 import time
+
+
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
 
     def __init__(self, problem: Problem, name="Algorithm"):
         self.name = name
         self.problem = problem
+        self.parameters = problem.parameters
         self.options = ConfigDictionary()
 
         self.options.declare(name='verbose_level', default=1, lower=0,
@@ -32,7 +35,7 @@ class Algorithm(metaclass=ABCMeta):
     def run(self):
         pass
 
-    def gen_initial_population(self, is_archive = False):
+    def gen_initial_population(self, is_archive=False):
         individuals = self.generator.generate()
         # set current size
         self.population_size = len(individuals)
