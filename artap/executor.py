@@ -438,13 +438,13 @@ class CondorJobExecutor(RemoteExecutor):
     def _create_job_file(self, remote_dir, x, client):
         # create job file
         file = open(self.problem.working_dir + os.sep + "run.sh", "w")
-        if self.problem.problem_type == ProblemType.comsol:
+        if self.problem.type == ProblemType.comsol:
             job_file = Template(Templates.comsol_job_template)
             file.write(Templates.condor_comsol_run)
-        if self.problem.problem_type == ProblemType.matlab:
+        if self.problem.type == ProblemType.matlab:
             job_file = Template(Templates.matlab_job_template)
             file.write(Templates.condor_matlab_run)
-        if self.problem.problem_type == ProblemType.python:
+        if self.problem.type == ProblemType.python:
             job_file = Template(Templates.python_job_template)
             if self.input_file:
                 job_file = Template(Templates.python_job_input_template)

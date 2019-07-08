@@ -27,8 +27,8 @@ from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, Rando
 
 
 class MyProblemCoil(Problem):
-    def __init__(self, name, costs):
-        parameters = [{'name': 'x1', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
+    def set(self):
+        self.parameters = [{'name': 'x1', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       {'name': 'x2', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       {'name': 'x3', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       {'name': 'x4', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
@@ -38,8 +38,6 @@ class MyProblemCoil(Problem):
                       {'name': 'x8', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       {'name': 'x9', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]},
                       {'name': 'x10', 'initial_value': 0.01, 'bounds': [5e-3, 50e-3]}]
-
-        super().__init__(name, parameters, costs)
 
     def intl22(self, R2, R, dZ, phi):
         return math.sqrt(R2 ** 2 + R ** 2 - 2.0 * R2 * R * math.cos(phi) + dZ ** 2)
@@ -98,8 +96,6 @@ class MyProblemCoil(Problem):
 
 
 class MyProblemCoilOne(MyProblemCoil):
-    def __init__(self, name):
-        super().__init__(name, costs=['F1'])
 
     def evaluate(self, x):
         B0 = 2e-3
@@ -125,8 +121,6 @@ class MyProblemCoilOne(MyProblemCoil):
 
 
 class MyProblemCoilMultiTwo1(MyProblemCoil):
-    def __init__(self, name):
-        super().__init__(name, costs=['F1', 'F2'])
 
     def evaluate(self, x):
         B0 = 2e-3
@@ -220,13 +214,11 @@ class MyProblemCoilMultiThree(MyProblemCoil):
 
 class MyProblemBooth(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
-                      'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
+    def set(self):
+        self.parameters = {'x_1': {'initial_value': 2.5, 'bounds': [-10, 10]},
+                           'x_2': {'initial_value': 1.5, 'bounds': [-10, 10]}}
 
-        costs = [{'name': 'F'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x):
         return [Booth.eval(x)]

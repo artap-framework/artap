@@ -8,11 +8,10 @@ from artap.algorithm_sweep import SweepAlgorithm
 
 class SweepProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 10, 'bounds': [-10, 30]}]
-        costs = [{'name': 'F_1', 'criteria': 'minimize'}]
-
-        super().__init__(name, parameters, costs)
+    def set(self):
+        self.name = "SweepProblem"
+        self.parameters = [{'name': 'x_1', 'initial_value': 10, 'bounds': [-10, 30]}]
+        self.costs = [{'name': 'F_1', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
         result = 0
@@ -26,9 +25,8 @@ class TestJob(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_sweep_evaluate_parallel(self):
-        problem = SweepProblem("SweepProblem")
-
-        gen = LHSGeneration(problem.parameters)
+        problem = SweepProblem()
+        gen = LHSGeneration(problem)
         gen.init(4)
 
         algorithm = SweepAlgorithm(problem, generator=gen)
@@ -48,9 +46,9 @@ class TestJob(unittest.TestCase):
                         problem.parameters[0]['bounds'][1])
 
     def test_sweep_evaluate_serial(self):
-        problem = SweepProblem("SweepProblem")
+        problem = SweepProblem()
 
-        gen = CustomGeneration(problem.parameters)
+        gen = CustomGeneration(problem)
         gen.init([[1, 2, 2], [3, 3, 2]])
 
         algorithm = SweepAlgorithm(problem, generator=gen)
@@ -61,7 +59,7 @@ class TestJob(unittest.TestCase):
         self.assertEqual(individuals[1].costs, [22])
 
     def test_dummy_evaluate_serial(self):
-        problem = SweepProblem("SweepProblem")
+        problem = SweepProblem()
 
         i1 = Individual([1, 2, 2])
         i2 = Individual([3, 3, 2])
@@ -74,7 +72,7 @@ class TestJob(unittest.TestCase):
         self.assertEqual(individuals[1].costs, [22])
 
     def test_dummy_evaluate_parallel(self):
-        problem = SweepProblem("SweepProblem")
+        problem = SweepProblem()
 
         i1 = Individual([1, 2, 2])
         i2 = Individual([3, 3, 2])

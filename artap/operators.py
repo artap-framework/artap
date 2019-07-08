@@ -25,9 +25,12 @@ class Operation(ABC):
 
 class Generation(Operation):
 
-    def __init__(self, parameters, individual_class=Individual):
+    def __init__(self, problem=None, individual_class=Individual, parameters=None):
         super().__init__()
-        self.parameters = parameters
+        if problem is not None:
+            self.parameters = problem.parameters
+        else:
+            self.parameters = parameters
         self.individual_class = individual_class
 
     def create_individual(self, vector: list=[]):
@@ -40,8 +43,8 @@ class Generation(Operation):
 
 class CustomGeneration(Generation):
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None):
+        super().__init__(problem)
         self.vectors = []
 
     def init(self, vectors):
@@ -56,8 +59,8 @@ class CustomGeneration(Generation):
 
 class RandomGeneration(Generation):
 
-    def __init__(self, parameters, individual_class=Individual):
-        super().__init__(parameters, individual_class)
+    def __init__(self, problem=None, individual_class=Individual, parameters=None):
+        super().__init__(problem, individual_class, parameters=parameters)
         self.number = 0
 
     def init(self, number):
@@ -77,8 +80,8 @@ class FullFactorGeneration(Generation):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
         self.center = False
 
     def init(self, center):
@@ -111,8 +114,8 @@ class PlackettBurmanGeneration(Generation):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
 
     def generate(self):
         dict_vars = {}
@@ -143,6 +146,9 @@ class BoxBehnkenGeneration(Generation):
     https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
     """
 
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
+
     def generate(self):
         dict_vars = {}
         for parameter in self.parameters:
@@ -165,8 +171,8 @@ class LHSGeneration(Generation):
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
         self.number = 0
 
     def init(self, number):
@@ -191,8 +197,8 @@ class LHSGeneration(Generation):
 
 class GradientGeneration(Generation):
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(parameters=parameters)
         self.delta = 1e-6
         self.individuals = None
 

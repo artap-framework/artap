@@ -10,15 +10,13 @@ from artap.algorithm import DummyAlgorithm
 class CondorMatlabProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
-    def __init__(self, name):
-        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+    def set(self):
+        self.name = "CondorMatlabProblem"
+        self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
                       {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
-        costs = [{'name': 'F_1'}]
-
-        super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "data" + os.sep)
-
-        self.problem_type = ProblemType.matlab
+        self.costs = [{'name': 'F_1'}]
+        self.working_dir = "." + os.sep + "data" + os.sep
+        self.type = ProblemType.matlab
         self.executor = CondorJobExecutor(self,
                                           command="run.sh",
                                           model_file="run_input.m",
@@ -36,16 +34,14 @@ class CondorMatlabProblem(Problem):
 class CondorComsolProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
-    def __init__(self, name):
-        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
-                      {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+    def set(self):
+        self.name = "CondorComsolProblem"
+        self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                           {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
 
-        costs = [{'name': 'F_1'}]
-
-        super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "data")
-
-        self.problem_type = ProblemType.comsol
+        self.costs = [{'name': 'F_1'}]
+        self.working_dir = "." + os.sep + "data" + os.sep
+        self.type = ProblemType.comsol
         self.executor = CondorJobExecutor(self,
                                           command="run.sh",
                                           model_file="elstat.mph",
@@ -64,15 +60,12 @@ class CondorComsolProblem(Problem):
 
 class PythonExecProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
-                      {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
-        costs = [{'name': 'F_1'}]
-
-        super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "data" + os.sep)
-
-        self.problem_type = ProblemType.python
+    def set(self):
+        self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                           {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+        self.costs = [{'name': 'F_1'}]
+        self.working_dir = "." + os.sep + "data" + os.sep
+        self.type = ProblemType.python
         self.executor = CondorJobExecutor(self,
                                           command="/usr/bin/python",
                                           model_file="run_exec.py",
@@ -87,14 +80,12 @@ class PythonExecProblem(Problem):
 
 class PythonInputProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
-                      {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
-        costs = [{'name': 'F_1'}]
-
-        super().__init__(name, parameters, costs,
-                         working_dir="." + os.sep + "data" + os.sep)
-        self.problem_type = ProblemType.python
+    def set(self):
+        self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                           {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+        self.costs = [{'name': 'F_1'}]
+        self.working_dir = "." + os.sep + "data" + os.sep
+        self.type = ProblemType.python
         self.executor = CondorJobExecutor(self,
                                           command="/usr/bin/python",
                                           model_file="run_input.py",
@@ -114,7 +105,7 @@ class TestCondor(TestCase):
     """
     def test_condor_matlab_input(self):
         """ Tests one calculation of goal function."""
-        problem = CondorMatlabProblem("CondorMatlabProblem")
+        problem = CondorMatlabProblem()
 
         table = [[1, 2]]
         population = Population()
@@ -126,7 +117,7 @@ class TestCondor(TestCase):
 
     def test_condor_comsol_exec(self):
         """ Tests one calculation of goal function."""
-        problem = CondorComsolProblem("CondorComsolProblem")
+        problem = CondorComsolProblem()
         table = [[10, 10], [11, 11]]
         population = Population()
         population.gen_population_from_table(table)
@@ -138,7 +129,7 @@ class TestCondor(TestCase):
         self.assertAlmostEqual(124.23499735221547, population.individuals[1].costs[0])
 
     def test_condor_python_exec(self):
-        problem = PythonExecProblem("PythonExecProblem")
+        problem = PythonExecProblem()
 
         table = [[1, 2]]
         population = Population()
@@ -149,7 +140,7 @@ class TestCondor(TestCase):
         self.assertAlmostEqual(5, population.individuals[0].costs[0])
 
     def test_condor_python_input(self):
-        problem = PythonInputProblem("PythonInputProblem")
+        problem = PythonInputProblem()
 
         table = [[1, 2]]
         population = Population()
