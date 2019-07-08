@@ -5,21 +5,20 @@ from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
-#import optproblems as optp
-#import optproblems.cec2005 as cec2005
-#import optproblems.dtlz as dtlz
+# import optproblems as optp
+# import optproblems.cec2005 as cec2005
+# import optproblems.dtlz as dtlz
 
-from math import pi
+# from math import pi
 
 
 class BinhAndKornProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
+    def set(self):
+        self.name = "TestNSGA2Optimization"
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
-        costs = [{'name': 'F_1'}, {'name': 'F_2'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F_1'}, {'name': 'F_2'}]
 
     def evaluate(self, x):
         function = BinhAndKorn()
@@ -34,7 +33,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
     def test_local_problem_nsga2(self):
 
-        problem = BinhAndKornProblem("TestNSGA2Optimization")
+        problem = BinhAndKornProblem()
 
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 50
@@ -57,15 +56,15 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         self.assertLessEqual(wrong, 5)
 
+
 class AckleyN2Test(Problem):
     """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-32, 32]},
+    def set(self):
+        self.name = "TestAckleyN2"
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-32, 32]},
                       {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-32, 32]}]
-        costs = [{'name': 'F_1'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, x):
         function = AckleyN2()
@@ -76,7 +75,7 @@ class TestAckleyN2(unittest.TestCase):
     """ Tests that the NSGA II algorithm can find the global optimum of a function."""
 
     def test_local_problem(self):
-        problem = AckleyN2Test("TestAckleyN2")
+        problem = AckleyN2Test()
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100

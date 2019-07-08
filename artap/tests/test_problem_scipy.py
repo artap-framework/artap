@@ -8,18 +8,11 @@ from artap.results import Results
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 10}]
-        costs = [{'name': 'F_1'}]
 
-        super().__init__(name, parameters, costs)
-
-    # def evaluate_individual(self, individual):
-    #     result = 0
-    #     for i in individual.vector:
-    #         result += i*i
-    #
-    #     individual.costs = [result]
+    def set(self):
+        self.name = "TestSimpleOptimization"
+        self.parameters = [{'name': 'x_1', 'initial_value': 10}]
+        self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, x):
         result = 0
@@ -33,7 +26,7 @@ class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = MyProblem("TestSimpleOptimization")
+        problem = MyProblem()
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4
@@ -47,11 +40,10 @@ class TestSimpleOptimization(unittest.TestCase):
 class AckleyN2Problem(Problem):
     """Test with a simple 2 variable Ackley N2 formula"""
 
-    def __init__(self, name):
-        parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
-        costs = [{'name': 'F_1'}]
-
-        super().__init__(name, parameters, costs)
+    def set(self):
+        self.name = "AckleyN2"
+        self.parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
+        self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, x):
         function = AckleyN2()
@@ -62,7 +54,7 @@ class TestAckleyN2(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = AckleyN2Problem("AckleyN2")
+        problem = AckleyN2Problem()
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4

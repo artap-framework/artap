@@ -22,12 +22,11 @@ from agrossuite import agros as a2d
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
+    def set(self):
+        self.name = "AgrosProblem"
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
-        costs = [{'name': 'F'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x):
         return [Booth.eval(x)]
@@ -37,7 +36,7 @@ class TestNLoptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def run_test(self, method, n_iterations=100):
-        problem = MyProblem("NLopt_{}".format(method))
+        problem = MyProblem()
         algorithm = NLopt(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['algorithm'] = method
@@ -95,15 +94,13 @@ class SimpleCapacitorProblem(Problem):
     agros and artap
 
     """
-    def __init__(self, name):
-        parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
+    def set(self):
+        self.parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
                       {'name': 'r2', 'initial_value': 0.04, 'bounds': [0.035, 0.1]}]
-        costs = [{'name': 'F'}]
-        self.C_req = 80.  # pF
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x: list):
+        C_req = 80.  # pF
         # problem
         problem = a2d.problem(clear=True)
         problem.coordinate_type = "planar"
@@ -151,14 +148,14 @@ class SimpleCapacitorProblem(Problem):
 
         C = 4 * 2 * result *1e12 # pF
 
-        return [abs(C - self.C_req)]
+        return [abs(C - C_req)]
 
 
 class TestSimpleCapacitor(unittest.TestCase):
 
     def test_run(self):
 
-        problem = SimpleCapacitorProblem("AgrosProblem")
+        problem = SimpleCapacitorProblem()
         algorithm = NLopt(problem)
         algorithm.options['n_iterations'] = 300
         algorithm.options['algorithm'] = LN_BOBYQA

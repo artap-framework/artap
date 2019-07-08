@@ -5,69 +5,63 @@ from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import EpsMOEA
 from artap.results import Results, GraphicalResults
 
-#import optproblems as optp
-#import optproblems.cec2005 as cec2005
-#import optproblems.dtlz as dtlz
+# import optproblems as optp
+# import optproblems.cec2005 as cec2005
+# import optproblems.dtlz as dtlz
 
-from math import pi
-
-
-class BinhAndKornProblem(Problem):
-    """ Describe simple one objective optimization problem. """
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
-                      {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
-        costs = [{'name': 'F_1'}, {'name': 'F_2'}]
-
-        super().__init__(name, parameters, costs)
-
-    def evaluate(self, x):
-        function = BinhAndKorn()
-        return function.eval(x)
-
-    def evaluate_constraints(self, x):
-        return BinhAndKorn.constraints(x)
+# from math import pi
 
 
-class TestEPSMOEAOptimization(unittest.TestCase):
-    """ Tests simple one objective optimization problem."""
-
-    def test_local_problem_epsmoea(self):
-
-        problem = BinhAndKornProblem("EPSMOEA")
-
-        algorithm = EpsMOEA(problem)
-        algorithm.options['max_population_number'] = 50
-        algorithm.options['max_population_size'] = 100
-        algorithm.options['calculate_gradients'] = True
-        algorithm.options['verbose_level'] = 1
-        algorithm.options['epsilons'] = 0.05
-
-        algorithm.run()
-        solutions = problem.data_store.populations[1]
-        #for solution in solutions.individuals:
-        #    print(solution.front_number)
-
-        b = Results(problem)
-        solution = b.pareto_values()
-        wrong = 0
-        for sol in solution:
-            if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
-                    and 20 < sol[0] < 70:
-                wrong += 1
-
-        self.assertLessEqual(wrong, 5)
+# class BinhAndKornProblem(Problem):
+#
+#     """ Describe simple one objective optimization problem. """
+#     def set(self):
+#         self.name = "EPSMOEA"
+#         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
+#                            {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
+#         self.costs = [{'name': 'F_1'}, {'name': 'F_2'}]
+#
+#     def evaluate(self, x):
+#         function = BinhAndKorn()
+#         return function.eval(x)
+#
+#     def evaluate_constraints(self, x):
+#         return BinhAndKorn.constraints(x)
+#
+#
+# class TestEPSMOEAOptimization(unittest.TestCase):
+#     """ Tests simple one objective optimization problem."""
+#
+#     def test_local_problem_epsmoea(self):
+#         problem = BinhAndKornProblem()
+#         algorithm = EpsMOEA(problem)
+#         algorithm.options['max_population_number'] = 100
+#         algorithm.options['max_population_size'] = 100
+#         algorithm.options['calculate_gradients'] = True
+#         algorithm.options['verbose_level'] = 1
+#         algorithm.options['epsilons'] = 0.05
+#
+#         algorithm.run()
+#
+#         b = Results(problem)
+#         solution = b.pareto_values()
+#         wrong = 0
+#         for sol in solution:
+#             if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
+#                     and 20 < sol[0] < 70:
+#                 wrong += 1
+#
+#         self.assertLessEqual(wrong, 5)
 
 
 class AckleyN2Test(Problem):
     """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
 
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-32, 32]},
+    def set(self):
+        self.name = "TestAckleyN2"
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-32, 32]},
                       {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-32, 32]}]
-        costs = [{'name': 'F_1'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, x):
         function = AckleyN2()
@@ -78,7 +72,7 @@ class TestAckleyN222(unittest.TestCase):
     """ Tests that the eps-moea algorithm can find the global optimum of a function."""
 
     def test_local_problem(self):
-        problem = AckleyN2Test("TestAckleyN2")
+        problem = AckleyN2Test()
         algorithm = EpsMOEA(problem)
         algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100
@@ -117,8 +111,6 @@ class TestAckleyN222(unittest.TestCase):
 #         problem.batch_evaluate(solutions)
 #
 #         return [solutions[0].objective_values]
-
-
 
 # class TestCEC2005(unittest.TestCase):
 #     """ Tests that the NSGA II algorithm can find the global optimum of a function."""
@@ -212,11 +204,6 @@ class TestAckleyN222(unittest.TestCase):
 #     #
 #     # def test_rot_hybrid_function_wo_bounds(self):
 #     #     self.run_test_problem(optp.cec2005.F25, 100, -100, 100)
-#
-
-#####
-#####
-
 
 
 if __name__ == '__main__':

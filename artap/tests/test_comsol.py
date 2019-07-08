@@ -10,12 +10,11 @@ from artap.population import Population
 class ComsolProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
-    def __init__(self, name):
-        parameters = [{'name': 'a', 'initial_value': 10},
+    def set(self):
+        self.name = "ComsolProblem"
+        self.parameters = [{'name': 'a', 'initial_value': 10},
                       {'name': 'b', 'initial_value': 10}]
-        costs = [{'name': 'F1', 'criteria': 'minimize'}]
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
         self.type = ProblemType.comsol
         self.output_files = ["./data/out.txt"]
         self.executor = LocalExecutor(self,
@@ -45,8 +44,7 @@ class ComsolProblem(Problem):
 class TestSimpleComsolOptimization(unittest.TestCase):
     def test_comsol_exec(self):
         """ Tests one calculation of goal function."""
-        problem = ComsolProblem("ComsolProblem")
-
+        problem = ComsolProblem()
         table = [[10, 10]]
         population = Population()
         population.gen_population_from_table(table)

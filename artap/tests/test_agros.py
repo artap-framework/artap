@@ -10,14 +10,15 @@ from agrossuite import agros
 
 
 class AgrosProblem(Problem):
-    def __init__(self, name):
-        parameters = [{'name': 'R2', 'initial_value': 3.0, 'bounds': [2.6, 3.4]},
+
+    def set(self):
+        self.name = "agros problem"
+        self.working_dir = "team_22/"
+        self.parameters = [{'name': 'R2', 'initial_value': 3.0, 'bounds': [2.6, 3.4]},
                       {'name': 'h2', 'initial_value': 1.0, 'bounds': [0.408, 2.2]},
                       {'name': 'd2', 'initial_value': 0.3, 'bounds': [0.1, 0.4]}]
 
-        costs = [{'name': 'F', 'criteria': 'minimize', 'weight': 0}]
-
-        super().__init__(name, parameters, costs, working_dir="team_22/")
+        self.costs = [{'name': 'F', 'criteria': 'minimize', 'weight': 0}]
         self.options['save_level'] = "individual"
 
     def evaluate(self, x: list):
@@ -149,7 +150,7 @@ class AgrosProblem(Problem):
 class TestAgrosOptimization(unittest.TestCase):
 
     def test_agros_exec(self):
-        problem = AgrosProblem("AgrosProblem")
+        problem = AgrosProblem()
         algorithm = NLopt(problem)
         algorithm.options['n_iterations'] = 3
         algorithm.options['algorithm'] = LN_BOBYQA
