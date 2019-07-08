@@ -1,6 +1,6 @@
 import unittest
-from artap.doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
-from artap.individual import Individual
+# from artap.doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
+# from artap.individual import Individual
 from artap.operators import CustomGeneration, RandomGeneration, FullFactorGeneration, PlackettBurmanGeneration, \
     BoxBehnkenGeneration, LHSGeneration, GradientGeneration
 

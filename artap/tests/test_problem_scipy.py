@@ -14,7 +14,8 @@ class MyProblem(Problem):
         self.parameters = [{'name': 'x_1', 'initial_value': 10}]
         self.costs = [{'name': 'F_1'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
+        x = individual.vector
         result = 0
         for i in x:
             result += i*i
@@ -45,9 +46,9 @@ class AckleyN2Problem(Problem):
         self.parameters = {'x': {'initial_value': 2.13}, 'y': {'initial_value': 2.13}}
         self.costs = [{'name': 'F_1'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
         function = AckleyN2()
-        return [function.eval(x)]
+        return [function.eval(individual.vector)]
 
 
 class TestAckleyN2(unittest.TestCase):

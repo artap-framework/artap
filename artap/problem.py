@@ -2,10 +2,10 @@
  Module is dedicated to describe optimization problem.
 """
 
-from .datastore import DataStore, FileDataStore, DummyDataStore
+from .datastore import DataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import logging
 import datetime
@@ -58,11 +58,11 @@ class Problem:
         self.options.declare(name='time_out', default=600,
                              desc='Maximal time for calculation')
 
-        self.name: str = None
-        self.description: str = ""
-        self.parameters: dict = None
-        self.costs: dict = None
-        self.data_store: DataStore = None
+        self.name: str = str()
+        self.description: str = str()
+        self.parameters: dict = dict()
+        self.costs: dict = dict()
+        self.data_store: DataStore
         self.type = "None"
         self.working_dir = None
         self.output_files = None
@@ -150,7 +150,6 @@ class Problem:
                 file_handler.setFormatter(self.formatter)
                 # add FileHandler to logger
                 self.logger.addHandler(file_handler)
-
 
     def _freeze(self):
         self.__is_frozen = True

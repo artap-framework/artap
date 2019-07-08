@@ -28,8 +28,8 @@ class MyProblem(Problem):
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x):
-        return [Booth.eval(x)]
+    def evaluate(self, individual):
+        return [Booth.eval(individual.vector)]
 
 
 class TestNLoptOptimization(unittest.TestCase):
@@ -99,7 +99,8 @@ class SimpleCapacitorProblem(Problem):
                       {'name': 'r2', 'initial_value': 0.04, 'bounds': [0.035, 0.1]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x: list):
+    def evaluate(self, individual):
+        x = individual.vector
         C_req = 80.  # pF
         # problem
         problem = a2d.problem(clear=True)

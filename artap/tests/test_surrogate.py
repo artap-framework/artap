@@ -2,6 +2,8 @@ import math
 import unittest
 
 from artap.problem import Problem
+from artap.individual import Individual
+from artap.individual import Individual
 from artap.benchmark_functions import Booth
 from artap.surrogate import SurrogateModelEval, SurrogateModelRegressor
 from artap.operators import CustomGeneration, LHSGeneration
@@ -20,7 +22,8 @@ class MyProblemSin(Problem):
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 10]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
+        x = individual.vector
         return [x[0] * math.sin(x[0])]
 
 
@@ -31,8 +34,8 @@ class MyProblemBooth(Problem):
                       {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x):
-        return [Booth.eval(x)]
+    def evaluate(self, individual):
+        return [Booth.eval(individual.vector)]
 
 
 class TestSurrogate(unittest.TestCase):
@@ -43,9 +46,9 @@ class TestSurrogate(unittest.TestCase):
 
         # train
         for val in xmeas:
-            problem.surrogate.evaluate([val])
+            problem.surrogate.evaluate(Individual([val]))
 
-        x_ref = [5.1]
+        x_ref = Individual([5.1])
         # eval reference
         value_problem = problem.evaluate(x_ref)[0]
 
@@ -73,7 +76,7 @@ class TestSurrogate(unittest.TestCase):
         problem = MyProblemBooth()
         problem.surrogate = SurrogateModelEval(problem)
 
-        x_ref = [2.5, 1.5]
+        x_ref = Individual([2.5, 1.5])
         # eval reference
         value_problem = problem.evaluate(x_ref)[0]
         # eval surrogate
@@ -128,20 +131,20 @@ class TestSurrogate(unittest.TestCase):
         problem.surrogate.train_step = 12
 
         # train
-        problem.surrogate.evaluate([1.0, 3.1])
-        problem.surrogate.evaluate([1.3, 3.2])
-        problem.surrogate.evaluate([1.8, 2.7])
-        problem.surrogate.evaluate([0.9, 3.3])
-        problem.surrogate.evaluate([0.8, 3.1])
-        problem.surrogate.evaluate([1.4, 2.8])
-        problem.surrogate.evaluate([0.1, 3.0])
-        problem.surrogate.evaluate([0.2, 3.4])
-        problem.surrogate.evaluate([0.95, 3.03])
-        problem.surrogate.evaluate([0.98, 2.96])
-        problem.surrogate.evaluate([1.02, 2.98])
-        problem.surrogate.evaluate([1.01, 2.99])
+        problem.surrogate.evaluate(Individual([1.0, 3.1]))
+        problem.surrogate.evaluate(Individual([1.3, 3.2]))
+        problem.surrogate.evaluate(Individual([1.8, 2.7]))
+        problem.surrogate.evaluate(Individual([0.9, 3.3]))
+        problem.surrogate.evaluate(Individual([0.8, 3.1]))
+        problem.surrogate.evaluate(Individual([1.4, 2.8]))
+        problem.surrogate.evaluate(Individual([0.1, 3.0]))
+        problem.surrogate.evaluate(Individual([0.2, 3.4]))
+        problem.surrogate.evaluate(Individual([0.95, 3.03]))
+        problem.surrogate.evaluate(Individual([0.98, 2.96]))
+        problem.surrogate.evaluate(Individual([1.02, 2.98]))
+        problem.surrogate.evaluate(Individual([1.01, 2.99]))
 
-        x_ref = [1.01, 3.01]
+        x_ref = Individual([1.01, 3.01])
         # eval reference
         value_problem = problem.evaluate(x_ref)[0]
         # eval surrogate
@@ -171,7 +174,7 @@ class TestSurrogate(unittest.TestCase):
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()
 
-        x_ref = [2.00, -2.00]
+        x_ref = Individual([2.00, -2.00])
         # eval reference
         value_problem = problem.evaluate(x_ref)[0]
         # eval surrogate
