@@ -63,9 +63,9 @@ class AckleyN2Test(Problem):
                       {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-32, 32]}]
         self.costs = [{'name': 'F_1'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
         function = AckleyN2()
-        return [function.eval(x)]
+        return [function.eval(individual.vector)]
 
 
 class TestAckleyN222(unittest.TestCase):

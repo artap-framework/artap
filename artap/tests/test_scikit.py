@@ -97,7 +97,8 @@ class MyProblemCoil(Problem):
 
 class MyProblemCoilOne(MyProblemCoil):
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
+        x = individual.vector
         B0 = 2e-3
 
         dxy = 0.5e-3
@@ -149,7 +150,8 @@ class MyProblemCoilMultiTwo2(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1', 'F2'])
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
+        x = individual.vector
         B0 = 2e-3
 
         dxy = 0.5e-3
@@ -182,7 +184,8 @@ class MyProblemCoilMultiThree(MyProblemCoil):
     def __init__(self, name):
         super().__init__(name, costs=['F1', 'F2', 'F3'])
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
+        x = individual.vector
         B0 = 2e-3
 
         dxy = 0.5e-3

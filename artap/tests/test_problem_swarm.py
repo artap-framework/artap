@@ -14,9 +14,9 @@ class PSORosenbrock(Problem):
         self.costs = [{'name': 'F_1'},
                       {'name': 'F_2'}]
 
-    def evaluate(self, x: list):
+    def evaluate(self, individual):
         function = BinhAndKorn()
-        return function.eval(x)
+        return function.eval(individual.vector)
 
 
 class TestPSOptimization(unittest.TestCase):

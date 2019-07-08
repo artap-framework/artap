@@ -33,13 +33,13 @@ class JobSimple(Job):
 
     def evaluate(self, individual):
         # check the constraints
-        constraints = self.problem.evaluate_constraints(individual.vector)
+        constraints = self.problem.evaluate_constraints(individual)
 
         if constraints:
             individual.feasible = sum(map(abs, constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
-        individual.costs = self.problem.surrogate.evaluate(individual.vector)
+        individual.costs = self.problem.surrogate.evaluate(individual)
         # self.problem.surrogate.evaluate(individual)
 
         # add to population
@@ -75,14 +75,14 @@ class JobQueue(Job):
         """
         while not individual_local.is_evaluated:
             # check the constraints
-            constraints = self.problem.evaluate_constraints(individual.vector)
+            constraints = self.problem.evaluate_constraints(individual)
 
             if constraints:
                 individual_local.feasible = sum(map(abs, constraints))
 
             # problem cost function evaluate only in that case when the problem is fits the constraints
             try:
-                individual_local.costs = self.problem.surrogate.evaluate(individual.vector)
+                individual_local.costs = self.problem.surrogate.evaluate(individual)
             except TimeoutError:
                 individual_local.vector = VectorAndNumbers.gen_vector(self.problem.parameters)
                 continue

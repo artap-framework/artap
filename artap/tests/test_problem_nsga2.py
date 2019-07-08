@@ -20,12 +20,12 @@ class BinhAndKornProblem(Problem):
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
         self.costs = [{'name': 'F_1'}, {'name': 'F_2'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
         function = BinhAndKorn()
-        return function.eval(x)
+        return function.eval(individual.vector)
 
-    def evaluate_constraints(self, x):
-        return BinhAndKorn.constraints(x)
+    def evaluate_constraints(self, individual):
+        return BinhAndKorn.constraints(individual.vector)
 
 
 class TestNSGA2Optimization(unittest.TestCase):
@@ -66,9 +66,9 @@ class AckleyN2Test(Problem):
                       {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-32, 32]}]
         self.costs = [{'name': 'F_1'}]
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
         function = AckleyN2()
-        return [function.eval(x)]
+        return [function.eval(individual.vector)]
 
 
 class TestAckleyN2(unittest.TestCase):
