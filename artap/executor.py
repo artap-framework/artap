@@ -4,109 +4,24 @@ import paramiko
 import os
 import datetime
 import time
+import ntpath
 from string import Template
 from xml.dom import minidom
 from artap.environment import Enviroment
 
 from abc import ABCMeta, abstractmethod
 from .utils import ConfigDictionary
-from .problem import ProblemType
+from shutil import copyfile
 
 from logging import NullHandler, getLogger
 getLogger('paramiko.transport').addHandler(NullHandler())
 
 
 class Templates:
-    condor_command = """condor_submit remote.job"""
 
-    comsol_job_template = textwrap.dedent("""\
-        universe = vanilla
-        initialdir = ./
-        executable = $run_file
-        arguments = batch -inputfile $model_name -nosave -pname $param_names -plist $param_values
-        requirements = (OpSys == "LINUX" && Arch == "X86_64")
-
-        input = $model_name
-        output = $log_file
-        log = $$(cluster).condor_log
-        error = $$(cluster)_$$(process).condor_err
-
-        request_cpus = 10
-        request_memory = 10 GB
-        log_xml = true
-        should_transfer_files = yes
-        when_to_transfer_output = ON_EXIT
-        transfer_input_files = $model_name, $run_file
-        transfer_output_files = $output_file
-        transfer_executable = true
-        queue""")
-
-    matlab_job_template = textwrap.dedent("""\
-        universe = vanilla
-        initialdir = ./
-        executable = $run_file
-        arguments = $model_name 
-        requirements = (OpSys == "LINUX" && Arch == "X86_64")
-
-        input = $input_file
-        output = $log_file
-        log = $$(cluster).condor_log
-        error = $$(cluster)_$$(process).condor_err
-
-        request_cpus = 10
-        request_memory = 10 GB
-        log_xml = true
-        should_transfer_files = yes
-        when_to_transfer_output = ON_EXIT
-        transfer_input_files = $model_name, $input_file
-        transfer_output_files = $output_file
-        transfer_executable = true
-        queue""")
-
-    python_job_template = textwrap.dedent("""\
-        universe = vanilla
-        initialdir = ./
-        executable = $run_file
-        arguments = $model_name $param_values
-        requirements = (OpSys == "LINUX" && Arch == "X86_64")
-
-        input = $model_name
-        output = $log_file
-        log = $$(cluster).condor_log
-        error = $$(cluster)_$$(process).condor_err
-
-        request_cpus = 10
-        request_memory = 10 GB
-        log_xml = true
-        should_transfer_files = yes
-        when_to_transfer_output = ON_EXIT
-        transfer_input_files = $model_name
-        transfer_output_files = $output_file 
-        transfer_executable = true
-        queue""")
-
-    python_job_input_template = textwrap.dedent("""\
-        universe = vanilla
-        initialdir = ./
-        executable = $run_file
-        arguments = $model_name $input_file
-        requirements = (OpSys == "LINUX" && Arch == "X86_64")
-
-        input = $model_name
-        output = $log_file
-        log = $$(cluster).condor_log
-        error = $$(cluster)_$$(process).condor_err
-
-        request_cpus = 10
-        request_memory = 10 GB
-        log_xml = true
-        should_transfer_files = yes
-        when_to_transfer_output = ON_EXIT
-        transfer_input_files = $model_name, $input_file
-        transfer_output_files = $output_file
-        transfer_executable = true
-        queue""")
-
+    matlab_arguments = "$run_file"
+    python_job_arguments = "$model_name $param_values"
+    python_job_input_arguments = "$model_name $input_file"
     condor_comsol_run = textwrap.dedent("""\
         #!/bin/sh
         /opt/comsol-5.4/bin/comsol batch $@
@@ -124,8 +39,6 @@ class Templates:
         s=$@
 
         python3 $@""")
-
-    comsol_command = "comsol batch -inputfile {} -nosave -pname {} -plist {}"
 
 
 class Executor(metaclass=ABCMeta):
@@ -179,29 +92,47 @@ class Executor(metaclass=ABCMeta):
 
         return param_values_string
 
+    @staticmethod
+    def _remove_dir(local_dir):
+        files = os.listdir(path=local_dir)
+        for f in files:
+            filepath = os.path.join(local_dir, f)
+            os.remove(filepath)
 
-class LocalExecutor(Executor):
+        os.rmdir(local_dir)
 
-    def __init__(self, problem, problem_file, input_files=[], output_files=[]):
+
+class LocalComsolExecutor(Executor):
+
+    comsol_command = Template("comsol batch -inputfile $input_file -nosave -pname $param_names -plist $param_values")
+
+    def __init__(self, problem, problem_file, input_files=None, output_files=None):
         super().__init__(problem)
+        self.model_file = ntpath.basename(problem_file)
+        copyfile(problem_file, self.problem.working_dir + self.model_file)
 
-        self.problem_file = problem_file
         self.output_files = output_files
         self.input_files = input_files
 
     def eval(self, x):
         super().eval(x)
 
-        run_string = ""
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
         param_values_string = Executor._join_parameters_values(x)
 
-        if self.problem.type == ProblemType.comsol:
-            run_string = Templates.comsol_command.format(self.problem_file,
-                                                         param_names_string, param_values_string)
+        run_string = self.comsol_command.substitute(input_file=self.model_file,
+                                                    param_names=param_names_string,
+                                                    param_values=param_values_string)
+
         # run command
+        current_path = os.getcwd()
+        os.chdir(self.problem.working_dir)
         os.system(run_string)
-        result = self.parse_results()
+        os.chdir(current_path)
+        output_files = []
+        for file in self.output_files:
+            output_files.append(self.problem.working_dir + file)
+        result = self.parse_results(output_files)
         return result
 
     @staticmethod
@@ -267,8 +198,7 @@ class RemoteExecutor(Executor):
 
     # ToDo: Make inheritated classes: Matlab, Comsol ...
 
-    def __init__(self, problem, command,
-                 model_file, output_file, input_file=None, supplementary_files=None):
+    def __init__(self, problem, command, input_files, output_files=None):
         super().__init__(problem)
 
         if problem.working_dir is None:
@@ -283,15 +213,12 @@ class RemoteExecutor(Executor):
         self.options.declare(name='password', default=None,
                              desc='Password')
 
-        remote_dir = ""
-
         # command
         self.command = command
+
         # files
-        self.model_file = model_file
-        self.input_file = input_file
-        self.output_file = output_file
-        self.supplementary_files = supplementary_files
+        self.input_files = input_files
+        self.output_files = output_files
 
     @abstractmethod
     def eval(self, x):
@@ -408,16 +335,11 @@ class RemoteExecutor(Executor):
         return output
 
     def _transfer_files_to_remote(self, remote_dir, client):
-        # transfer supplementary files
-        if self.supplementary_files:
-            for file in self.supplementary_files:
+        # transfer input files
+        if self.input_files:
+            for file in self.input_files:
                 self._transfer_file_to_remote(self.problem.working_dir + os.sep + file, "." + os.sep + file,
                                               remote_dir=remote_dir, client=client)
-
-        # transfer model file
-        if self.model_file:
-            self._transfer_file_to_remote(self.problem.working_dir + os.sep + self.model_file, self.model_file,
-                                          remote_dir=remote_dir, client=client)
 
     def _transfer_files_from_remote(self, client):
         pass
@@ -428,48 +350,41 @@ class CondorJobExecutor(RemoteExecutor):
     Allows distributing of calculation of objective functions.
     """
 
-    def __init__(self, problem, command,
-                 model_file, output_file, input_file=None, supplementary_files=None):
-        super().__init__(problem, command, model_file, output_file, input_file, supplementary_files)
+    condor_command = """condor_submit remote.job"""
+
+    condor_job_template = Template(textwrap.dedent("""\
+        universe = vanilla
+        initialdir = ./
+        executable = $run_file
+        arguments = $arguments
+        requirements = (OpSys == "LINUX" && Arch == "X86_64")
+
+        input = $input_file
+        output = $log_file
+        log = $$(cluster).condor_log
+        error = $$(cluster)_$$(process).condor_err
+
+        request_cpus = 10
+        request_memory = 10 GB
+        log_xml = true
+        should_transfer_files = yes
+        when_to_transfer_output = ON_EXIT
+        transfer_input_files = $input_files
+        transfer_output_files = $output_files
+        transfer_executable = true
+        queue"""))
+
+    def __init__(self, problem, input_files, output_files=None):
+        super().__init__(problem, self.condor_command, input_files, output_files)
 
         # set default host
         self.options["hostname"] = Enviroment.condor_host
+        self.job_file = None
+        self.condor_executable = None
 
+    @abstractmethod
     def _create_job_file(self, remote_dir, x, client):
-        # create job file
-        file = open(self.problem.working_dir + os.sep + "run.sh", "w")
-        if self.problem.type == ProblemType.comsol:
-            job_file = Template(Templates.comsol_job_template)
-            file.write(Templates.condor_comsol_run)
-        if self.problem.type == ProblemType.matlab:
-            job_file = Template(Templates.matlab_job_template)
-            file.write(Templates.condor_matlab_run)
-        if self.problem.type == ProblemType.python:
-            job_file = Template(Templates.python_job_template)
-            if self.input_file:
-                job_file = Template(Templates.python_job_input_template)
-            file.write(Templates.condor_python_run)
-        file.close()
-        # parameters
-        param_names_string = Executor._join_parameters_names(self.problem.parameters)
-        param_values_string = Executor._join_parameters_values(x)
-
-        job_file = job_file.substitute(model_name=os.path.basename(self.model_file),
-                                       run_file=self.command,
-                                       input_file=self.input_file,
-                                       output_file=self.output_file,
-                                       log_file="{}.log".format(self.output_file),
-                                       param_names=param_names_string,
-                                       param_values=param_values_string)
-
-        self._create_file_on_remote("remote.job", job_file, remote_dir=remote_dir, client=client)
-
-        # create input file with parameters
-        if self.input_file:
-            # parameters
-            param_values_string = Executor._join_parameters_values(x, "\n")
-            # create remote file
-            self._create_file_on_remote(self.input_file, param_values_string, remote_dir=remote_dir, client=client)
+        pass
 
     def eval(self, x):
         super().eval(x)
@@ -486,6 +401,11 @@ class CondorJobExecutor(RemoteExecutor):
                 # apply template for remote.job
                 self._create_job_file(remote_dir, x, client)
 
+                # Create
+                self._create_file_on_remote("remote.job", self.job_file, remote_dir=remote_dir, client=client)
+                self._create_file_on_remote("run.sh", self.condor_executable, remote_dir=remote_dir,
+                                            client=client)
+
                 # transfer supplementary files, input and model file
                 self._transfer_files_to_remote(remote_dir, client)
 
@@ -499,7 +419,7 @@ class CondorJobExecutor(RemoteExecutor):
                 start = time.time()
                 while (event != "Completed") and (event != "Held"):
                     content = self._read_file_from_remote("{}.condor_log".format(process_id), remote_dir=remote_dir, client=client)
-                    state = LocalExecutor.parse_condor_log(content)
+                    state = LocalComsolExecutor.parse_condor_log(content)
 
                     if state[1] != event:
                         self.problem.logger.info("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
@@ -512,7 +432,7 @@ class CondorJobExecutor(RemoteExecutor):
                     if (event == "Held") or (event == "JobAbortedEvent"):
                         self.problem.logger.error("Job {} is '{}' at {}".format(state[2], state[1], state[3]))
                         # read log
-                        content_log = self._read_file_from_remote("{}.log".format(self.output_file), remote_dir=remote_dir, client=client)
+                        content_log = self._read_file_from_remote("{}.log".format(self.output_files[0]), remote_dir=remote_dir, client=client)
                         self.problem.logger.error(content_log)
                         # remove job
                         self._run_command_on_remote("condor_rm {}".format(process_id), remote_dir=remote_dir, client=client)
@@ -524,17 +444,61 @@ class CondorJobExecutor(RemoteExecutor):
                         raise TimeoutError
 
                 if event == "Completed":
-                    content = self._read_file_from_remote(self.output_file, remote_dir=remote_dir, client=client)
+                    output_files = []
+                    d = datetime.datetime.now()
+                    ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
+                    path = self.problem.working_dir + 'artap' + ts
+                    os.system("mkdir {0}".format(path))
+
+                    for file in self.output_files:
+                        self._transfer_file_from_remote(file, path + os.sep + file, remote_dir=remote_dir, client=client)
+                        output_files.append(path + os.sep + file)
                     success = True
-                    result = self.parse_results(content)
+                    result = self.parse_results(output_files)
+                    self._remove_remote_dir(remote_dir, client=client)
+
+                    if self.problem.options['save_data_files'] is False:
+                        self._remove_dir(path)
                 else:
                     assert 0
 
                 client.close()
-                
+
                 return result
 
             except ConnectionError as e:
                 print(e)
                 time.sleep(1.0)
                 continue
+
+
+class CondorComsolJobExecutor(CondorJobExecutor):
+    """
+    Allows distributing of calculation of objective functions.
+    """
+    arguments = Template("-inputfile $input_file -nosave -pname $param_names -plist $param_values")
+    condor_comsol_executable = textwrap.dedent("""\
+        #!/bin/sh
+        /opt/comsol-5.4/bin/comsol batch $@
+        """)
+
+    def __init__(self, problem, model_file, output_files=None):
+        self.model_file = ntpath.basename(model_file)
+        super().__init__(problem, [self.model_file], output_files)
+        copyfile(model_file, self.problem.working_dir + self.model_file)
+
+    def _create_job_file(self, remote_dir, x, client):
+        output_files_str = ",".join(self.output_files)
+        param_names_string = Executor._join_parameters_names(self.problem.parameters)
+        param_values_string = Executor._join_parameters_values(x)
+        arguments = self.arguments.substitute(input_file=os.path.basename(self.model_file),
+                                              param_names=param_names_string,
+                                              param_values=param_values_string)
+
+        self.job_file = self.condor_job_template.substitute(input_file=os.path.basename(self.model_file),
+                                                            run_file="run.sh",
+                                                            arguments=arguments,
+                                                            input_files=self.model_file,
+                                                            output_files=output_files_str,
+                                                            log_file="{}.log".format(self.output_files[0]))
+        self.condor_executable = self.condor_comsol_executable

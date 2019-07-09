@@ -9,6 +9,10 @@ from abc import abstractmethod
 
 import logging
 import datetime
+import tempfile
+import os
+import shutil
+
 from enum import Enum
 
 # ToDo: Inhere executors, remove enum
@@ -57,6 +61,8 @@ class Problem:
                              desc='Enable console handler')
         self.options.declare(name='time_out', default=600,
                              desc='Maximal time for calculation')
+        self.options.declare(name='save_data_files', default=False,
+                             desc='Saving data from computation')
 
         self.name: str = str()
         self.description: str = str()
@@ -64,7 +70,7 @@ class Problem:
         self.costs: dict = dict()
         self.data_store: DataStore
         self.type = "None"
-        self.working_dir = None
+        self.working_dir = tempfile.mkdtemp() + os.sep
         self.output_files = None
         self.executor = None
         self.data_store = DummyDataStore(self)
@@ -93,11 +99,6 @@ class Problem:
             # add StreamHandler to logger
             self.logger.addHandler(stream_handler)
 
-        # forbidden_path = os.sep + "data"
-        # if working_dir is not None:
-        #     if forbidden_path in self.working_dir:
-        #         raise IOError('Folder "/data" is read only.')
-
         # self.id = self.data_store.get_id()
 
         self.logger.debug("START")
@@ -109,6 +110,9 @@ class Problem:
         self.surrogate = SurrogateModelEval(self)
         self._freeze()
         self.set()
+
+    def __del__(self):
+        shutil.rmtree(self.working_dir)
 
     @abstractmethod
     def set(self):
