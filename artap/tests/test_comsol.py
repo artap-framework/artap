@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from artap.executor import LocalExecutor
+from artap.executor import LocalComsolExecutor
 from artap.problem import Problem, ProblemType
 from artap.algorithm import DummyAlgorithm
 from artap.population import Population
@@ -16,16 +16,16 @@ class ComsolProblem(Problem):
                       {'name': 'b', 'initial_value': 10}]
         self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
         self.type = ProblemType.comsol
-        self.output_files = ["./data/out.txt"]
-        self.executor = LocalExecutor(self,
-                                      problem_file="./data/elstat.mph",
-                                      output_files=self.output_files)
+        self.output_files = ["out.txt"]
+        self.executor = LocalComsolExecutor(self,
+                                            problem_file="./data/elstat.mph",
+                                            output_files=self.output_files)
 
     def evaluate(self, individual):
         return self.executor.eval(individual.vector)
 
-    def parse_results(self, individual=None):
-        output_file = self.output_files[0]
+    def parse_results(self, output_files):
+        output_file = output_files[0]
         path = output_file
         content = ""
         if os.path.exists(path):
