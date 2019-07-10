@@ -17,30 +17,6 @@ from logging import NullHandler, getLogger
 getLogger('paramiko.transport').addHandler(NullHandler())
 
 
-class Templates:
-
-    matlab_arguments = "$run_file"
-    python_job_arguments = "$model_name $param_values"
-    python_job_input_arguments = "$model_name $input_file"
-    condor_comsol_run = textwrap.dedent("""\
-        #!/bin/sh
-        /opt/comsol-5.4/bin/comsol batch $@
-        """)
-    condor_matlab_run = textwrap.dedent("""\
-        #!/bin/sh
-        # args
-        s=$@
-
-        /opt/matlab-R2018b/bin/matlab -nodisplay -nosplash -nodesktop -r ${s%.m}""")
-
-    condor_python_run = textwrap.dedent("""\
-        #!/bin/sh
-        # args
-        s=$@
-
-        python3 $@""")
-
-
 class Executor(metaclass=ABCMeta):
 
     """
@@ -198,7 +174,7 @@ class RemoteExecutor(Executor):
 
     # ToDo: Make inheritated classes: Matlab, Comsol ...
 
-    def __init__(self, problem, command, input_files, output_files=None):
+    def __init__(self, problem, command, files_to_server, files_from_server=None):
         super().__init__(problem)
 
         if problem.working_dir is None:
@@ -217,12 +193,12 @@ class RemoteExecutor(Executor):
         self.command = command
 
         # files
-        self.input_files = input_files
-        self.output_files = output_files
+        self.input_files = files_to_server
+        self.output_files = files_from_server
 
     @abstractmethod
-    def eval(self, x):
-        super().eval(x)
+    def eval(self, individual):
+        super().eval(individual)
 
     def _create_client(self):
         client = paramiko.SSHClient()
@@ -374,8 +350,8 @@ class CondorJobExecutor(RemoteExecutor):
         transfer_executable = true
         queue"""))
 
-    def __init__(self, problem, input_files, output_files=None):
-        super().__init__(problem, self.condor_command, input_files, output_files)
+    def __init__(self, problem, files_to_condor, files_from_condor=None):
+        super().__init__(problem, self.condor_command, files_to_condor, files_from_condor)
 
         # set default host
         self.options["hostname"] = Enviroment.condor_host
@@ -386,9 +362,9 @@ class CondorJobExecutor(RemoteExecutor):
     def _create_job_file(self, remote_dir, x, client):
         pass
 
-    def eval(self, x):
-        super().eval(x)
-
+    def eval(self, individual):
+        super().eval(individual)
+        x = individual.vector
         # init remote
         remote_dir = self._init_remote(directory="htcondor")
 
@@ -454,7 +430,7 @@ class CondorJobExecutor(RemoteExecutor):
                         self._transfer_file_from_remote(file, path + os.sep + file, remote_dir=remote_dir, client=client)
                         output_files.append(path + os.sep + file)
                     success = True
-                    result = self.parse_results(output_files)
+                    result = self.parse_results(output_files, individual)
                     self._remove_remote_dir(remote_dir, client=client)
 
                     if self.problem.options['save_data_files'] is False:
@@ -474,17 +450,17 @@ class CondorJobExecutor(RemoteExecutor):
 
 class CondorComsolJobExecutor(CondorJobExecutor):
     """
-    Allows distributing of calculation of objective functions.
+
     """
     arguments = Template("-inputfile $input_file -nosave -pname $param_names -plist $param_values")
-    condor_comsol_executable = textwrap.dedent("""\
+    executable = textwrap.dedent("""\
         #!/bin/sh
         /opt/comsol-5.4/bin/comsol batch $@
         """)
 
-    def __init__(self, problem, model_file, output_files=None):
+    def __init__(self, problem, model_file, files_from_condor=None):
         self.model_file = ntpath.basename(model_file)
-        super().__init__(problem, [self.model_file], output_files)
+        super().__init__(problem, [self.model_file], files_from_condor)
         copyfile(model_file, self.problem.working_dir + self.model_file)
 
     def _create_job_file(self, remote_dir, x, client):
@@ -501,4 +477,80 @@ class CondorComsolJobExecutor(CondorJobExecutor):
                                                             input_files=self.model_file,
                                                             output_files=output_files_str,
                                                             log_file="{}.log".format(self.output_files[0]))
-        self.condor_executable = self.condor_comsol_executable
+        self.condor_executable = self.executable
+
+
+class CondorMatlabJobExecutor(CondorJobExecutor):
+
+    executable = textwrap.dedent("""\
+    #!/bin/sh
+    # args
+    s=$@
+
+    /opt/matlab-R2018b/bin/matlab -nodisplay -nosplash -nodesktop -r ${s%.m}""")
+
+    def __init__(self, problem, script, parameter_file, files_from_condor=None):
+        self.script = ntpath.basename(script)
+        super().__init__(problem, [self.script], files_from_condor)
+        self.parameter_file = parameter_file
+        copyfile(script, self.problem.working_dir + self.script)
+
+    def _create_job_file(self, remote_dir, x, client):
+        condor_output_files = ",".join(self.output_files)
+        condor_input_files = self.parameter_file + ", " + self.input_files[0]
+        # create input file with parameters
+
+        if self.parameter_file:
+            # parameters
+            param_values_string = Executor._join_parameters_values(x, "\n")
+            # create remote file
+            self._create_file_on_remote(self.parameter_file, param_values_string, remote_dir=remote_dir, client=client)
+
+        self.job_file = self.condor_job_template.substitute(input_file=os.path.basename(self.script),
+                                                            run_file="run.sh",
+                                                            arguments=self.script,
+                                                            input_files=condor_input_files,
+                                                            output_files=condor_output_files,
+                                                            log_file="{}.log".format(self.output_files[0]))
+        self.condor_executable = self.executable
+
+
+class CondorPythonJobExecutor(CondorJobExecutor):
+
+    executable = textwrap.dedent("""\
+        #!/bin/sh
+        # args
+                      
+        python3 $@""")
+
+    def __init__(self, problem, script, parameter_file, output_files=None):
+        self.script = ntpath.basename(script)
+        super().__init__(problem, [self.script], output_files)
+        self.parameter_file = parameter_file
+        copyfile(script, self.problem.working_dir + self.script)
+
+    def _create_job_file(self, remote_dir, x, client):
+        condor_output_files = ",".join(self.output_files)
+        condor_input_files = self.script
+        # create input file with parameters
+
+        if self.parameter_file:
+            # parameters
+            # create remote file
+            param_values_string = Executor._join_parameters_values(x, "\n")
+            condor_input_files += ", " + self.parameter_file
+            self.arguments = self.script + " " + self.parameter_file
+            self._create_file_on_remote(self.parameter_file, param_values_string, remote_dir=remote_dir,
+                                        client=client)
+        else:
+            param_values_string = Executor._join_parameters_values(x, ",")
+            self.arguments = self.script + " " + param_values_string
+
+        self.job_file = self.condor_job_template.substitute(input_file=os.path.basename(self.script),
+                                                            run_file="run.sh",
+                                                            arguments=self.arguments,
+                                                            input_files=condor_input_files,
+                                                            output_files=condor_output_files,
+                                                            log_file="{}.log".format(self.output_files[0]))
+        self.condor_executable = self.executable
+

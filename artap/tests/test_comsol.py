@@ -13,7 +13,7 @@ class ComsolProblem(Problem):
     def set(self):
         self.name = "ComsolProblem"
         self.parameters = [{'name': 'a', 'initial_value': 10},
-                      {'name': 'b', 'initial_value': 10}]
+                           {'name': 'b', 'initial_value': 10}]
         self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
         self.type = ProblemType.comsol
         self.output_files = ["out.txt"]
