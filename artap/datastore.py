@@ -1,11 +1,8 @@
 import sqlite3
 import shelve
-import tempfile
 import os
 import json
 import time
-from threading import Thread
-import asyncio
 import logging
 
 from abc import abstractmethod
