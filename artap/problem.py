@@ -74,6 +74,7 @@ class Problem:
         self.output_files = None
         self.executor = None
         self.data_store = DummyDataStore(self)
+        self.is_working_dir_set = True
 
         # tmp name
         d = datetime.datetime.now()
@@ -108,11 +109,21 @@ class Problem:
 
         # surrogate model (default - only simple eval)
         self.surrogate = SurrogateModelEval(self)
+        self.signs = []
         self._freeze()
         self.set()
+        for cost in self.costs:
+            if 'criteria' in cost:
+                if cost['criteria'] == 'minimize':
+                    self.signs.append(1)
+                else:
+                    self.signs.append(-1)
+            else:
+                self.signs.append(-1)
 
     def __del__(self):
-        shutil.rmtree(self.working_dir)
+        if not self.is_working_dir_set:
+            shutil.rmtree(self.working_dir)
 
     @abstractmethod
     def set(self):
@@ -154,6 +165,7 @@ class Problem:
                 file_handler.setFormatter(self.formatter)
                 # add FileHandler to logger
                 self.logger.addHandler(file_handler)
+                self.is_working_dir_set = True
 
     def _freeze(self):
         self.__is_frozen = True

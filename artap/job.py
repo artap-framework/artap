@@ -1,12 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from .utils import VectorAndNumbers
-from .individual import Individual, GeneticIndividual
-from .population import Population
-from copy import deepcopy
+from .individual import Individual
 from multiprocessing import Queue
 import os
 
-from random import uniform
 from copy import deepcopy
 
 

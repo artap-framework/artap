@@ -22,7 +22,7 @@ class ComsolProblem(Problem):
                                             output_files=self.output_files)
 
     def evaluate(self, individual):
-        return self.executor.eval(individual.vector)
+        return self.executor.eval(individual)
 
     def parse_results(self, output_files):
         output_file = output_files[0]
