@@ -147,7 +147,7 @@ class NSGAII(GeneticAlgorithm):
             #     population.evaluate_gradients()
 
             # add the parents to the offsprings
-            offsprings.extend(population.individuals)
+            offsprings.extend(deepcopy(population.individuals))
 
             # non-dominated truncate on the guys
             self.selector.sorting(offsprings)

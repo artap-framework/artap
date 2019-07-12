@@ -76,7 +76,7 @@ class TestAckleyN222(unittest.TestCase):
         algorithm = EpsMOEA(problem)
         algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100
-        algorithm.options['epsilons'] = 0.1
+        algorithm.options['epsilons'] = 0.01
         algorithm.run()
 
         b = Results(problem)
