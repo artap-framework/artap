@@ -33,6 +33,12 @@ class Individual(metaclass=ABCMeta):
 
         return string
 
+    def __eq__(self, other):
+        return self.vector == other.vector and self.costs == self.costs
+
+    def __hash__(self):
+        return id(self)
+
     def sync(self, individual):
         self.vector = individual.vector
         self.costs = individual.costs
