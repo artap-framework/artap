@@ -19,7 +19,6 @@ class BinhAndKornProblem(Problem):
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
                            {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
         self.costs = [{'name': 'F_1', 'criteria': 'minimize'}, {'name': 'F_2', 'criteria': 'minimize'}]
-        self.working_dir = './work/'
 
     def evaluate(self, individual):
         function = BinhAndKorn()
@@ -38,7 +37,7 @@ class TestNSGA2Optimization(unittest.TestCase):
 
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 50
-        algorithm.options['max_population_size'] = 50
+        algorithm.options['max_population_size'] = 200
         algorithm.options['calculate_gradients'] = True
         algorithm.options['verbose_level'] = 1
 
@@ -46,6 +45,9 @@ class TestNSGA2Optimization(unittest.TestCase):
         b = Results(problem)
         solution = b.pareto_values()
         wrong = 0
+
+        c = GraphicalResults(problem)
+        c.plot_populations()
 
         for sol in solution:
             if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
