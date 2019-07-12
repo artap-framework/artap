@@ -119,7 +119,7 @@ class Problem:
                 else:
                     self.signs.append(-1)
             else:
-                self.signs.append(-1)
+                self.signs.append(1)
 
     def __del__(self):
         if not self.is_working_dir_set:
