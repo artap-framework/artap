@@ -13,7 +13,7 @@ class PSO(GeneticAlgorithm):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
         self.mutator = SwarmMutation(self.problem.parameters)
-        self.selector = DummySelection(self.problem.parameters)
+        self.selector = DummySelection(self.problem.parameters, self.problem.signs)
 
     def run(self):
         # set random generator

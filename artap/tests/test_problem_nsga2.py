@@ -3,7 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results
+from artap.results import Results, GraphicalResults
 
 # import optproblems as optp
 # import optproblems.cec2005 as cec2005
@@ -17,8 +17,9 @@ class BinhAndKornProblem(Problem):
     def set(self):
         self.name = "TestNSGA2Optimization"
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
-                      {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
-        self.costs = [{'name': 'F_1'}, {'name': 'F_2'}]
+                           {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
+        self.costs = [{'name': 'F_1', 'criteria': 'minimize'}, {'name': 'F_2', 'criteria': 'minimize'}]
+        self.working_dir = './work/'
 
     def evaluate(self, individual):
         function = BinhAndKorn()
@@ -42,13 +43,10 @@ class TestNSGA2Optimization(unittest.TestCase):
         algorithm.options['verbose_level'] = 1
 
         algorithm.run()
-        solutions = problem.data_store.populations[1]
-        #for solution in solutions.individuals:
-        #    print(solution.front_number)
-
         b = Results(problem)
         solution = b.pareto_values()
         wrong = 0
+
         for sol in solution:
             if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
                     and 20 < sol[0] < 70:
@@ -63,8 +61,8 @@ class AckleyN2Test(Problem):
     def set(self):
         self.name = "TestAckleyN2"
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-32, 32]},
-                      {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-32, 32]}]
-        self.costs = [{'name': 'F_1'}]
+                           {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-32, 32]}]
+        self.costs = [{'name': 'F_1', 'criteria': 'minimize'}]
 
     def evaluate(self, individual):
         function = AckleyN2()
