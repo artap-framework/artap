@@ -8,15 +8,14 @@ from agrossuite import agros as a2d
 
 class Capacitor(Problem):
 
-    def __init__(self, name):
-        parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
+    def set(self):
+        self.name = "AgrosProblem"
+        self.parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
                       {'name': 'r2', 'initial_value': 0.04, 'bounds': [0.035, 0.1]}]
-        costs = [{'name': 'F'}]
-        self.C_req = 80.  # pF
-
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F'}]
 
     def evaluate(self, x: list):
+        C_req = 80.  # pF
         # problem
         problem = a2d.problem(clear=True)
         problem.coordinate_type = "planar"
@@ -64,11 +63,11 @@ class Capacitor(Problem):
         C = 4 * 2 * result * 1e12  # pF
         print('Capacitance', C)
 
-        return [abs(C - self.C_req)]
+        return [abs(C - C_req)]
 
 
 def bobyqa():
-    problem = Capacitor("AgrosProblem")
+    problem = Capacitor()
     algorithm = NLopt(problem)
     algorithm.options['n_iterations'] = 30
     algorithm.options['algorithm'] = LN_BOBYQA
@@ -81,7 +80,7 @@ def bobyqa():
 
 
 def bayesopt():
-    problem = Capacitor("AgrosProblem")
+    problem = Capacitor()
     algorithm = BayesOptSerial(problem)
     algorithm.options['n_iterations'] = 10
     algorithm.options['verbose_level'] = 0
@@ -93,7 +92,7 @@ def bayesopt():
 
 
 def nsga2():
-    problem = Capacitor("AgrosProblem")
+    problem = Capacitor()
     algorithm = NSGAII(problem)
     algorithm.options['max_population_number'] = 10
     algorithm.options['max_population_size'] = 10

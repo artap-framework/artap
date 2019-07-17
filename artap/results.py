@@ -274,18 +274,20 @@ class GraphicalResults(Results):
                 for individual in population.individuals:
                     # TODO: Make for more objective values
                     #
+
                     if hasattr(individual, 'front_number'):
-                        if individual.front_number != 0:
-                            scale = 100 / (individual.front_number / 4.)
+                            scale = 100 / (individual.front_number / 1.)
                             ax.scatter(individual.costs[0], individual.costs[1],
                                        scale, c=colors[(individual.front_number - 1) % 6])
-                            ax.plot(individual.costs[0], individual.costs[1], 'o')
-                labels = list(self.problem.costs.keys())
+                labels = []
+                for cost in self.problem.costs:
+                    labels.append(cost['name'])
                 x_label = r'$' + labels[0] + '$'
                 y_label = r'$' + labels[1] + '$'
                 ax.set_xlabel(x_label)
                 ax.set_ylabel(y_label)
                 ax.grid()
+
                 figure.savefig(figure_name)
 
     def plot_gradients(self):
