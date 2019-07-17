@@ -19,22 +19,25 @@ class BiObjectiveTestProblem(Problem):
 
     The Pareto front is a hyperbola-
     """
-    def __init__(self, name):
-        parameters = {'x_1': {'initial_value': .5, 'bounds': [0.1, 1.]},
-                      'x_2': {'initial_value': .5, 'bounds': [0.0, 5.0]}}
 
-        costs = ['F_1', 'F_2']
+    def set(self):
+        self.name = 'Biobjective Test Problem'
+        self.parameters = [{'name':'x_1', 'initial_value': .5, 'bounds': [0.1, 1.]},
+                           {'name':'x_2', 'initial_value': .5, 'bounds': [0.0, 5.0]}]
 
-        super().__init__(name, parameters, costs)
+        self.costs = [{'name': 'F_1', 'criteria': 'minimize'}, {'name': 'F_2', 'criteria': 'minimize'}]
 
-    def evaluate(self, x):
+
+
+    def evaluate(self, individual):
+        x = individual.vector
         f1 = x[0]
         f2 = (1+x[1])/x[0]
         return [f1, f2]
 
 #def test_problem():
 
-problem = BiObjectiveTestProblem("Biobjective Test Problem")
+problem = BiObjectiveTestProblem()
 algorithm = NSGAII(problem)
 algorithm.options['max_population_number'] = 100
 algorithm.options['max_population_size'] = 100

@@ -1,6 +1,4 @@
-# from _ast import Dict
 from abc import abstractmethod, ABC
-from copy import deepcopy
 import sys
 import random
 import math
@@ -25,9 +23,12 @@ class Operation(ABC):
 
 class Generation(Operation):
 
-    def __init__(self, parameters, individual_class=Individual):
+    def __init__(self, problem=None, individual_class=Individual, parameters=None):
         super().__init__()
-        self.parameters = parameters
+        if problem is not None:
+            self.parameters = problem.parameters
+        else:
+            self.parameters = parameters
         self.individual_class = individual_class
 
     def create_individual(self, vector: list=[]):
@@ -40,8 +41,8 @@ class Generation(Operation):
 
 class CustomGeneration(Generation):
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None):
+        super().__init__(problem)
         self.vectors = []
 
     def init(self, vectors):
@@ -56,8 +57,8 @@ class CustomGeneration(Generation):
 
 class RandomGeneration(Generation):
 
-    def __init__(self, parameters, individual_class=Individual):
-        super().__init__(parameters, individual_class)
+    def __init__(self, problem=None, individual_class=Individual, parameters=None):
+        super().__init__(problem, individual_class, parameters=parameters)
         self.number = 0
 
     def init(self, number):
@@ -77,8 +78,8 @@ class FullFactorGeneration(Generation):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
         self.center = False
 
     def init(self, center):
@@ -111,8 +112,8 @@ class PlackettBurmanGeneration(Generation):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
 
     def generate(self):
         dict_vars = {}
@@ -143,6 +144,9 @@ class BoxBehnkenGeneration(Generation):
     https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
     """
 
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
+
     def generate(self):
         dict_vars = {}
         for parameter in self.parameters:
@@ -165,8 +169,8 @@ class LHSGeneration(Generation):
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(problem, parameters=parameters)
         self.number = 0
 
     def init(self, number):
@@ -191,8 +195,8 @@ class LHSGeneration(Generation):
 
 class GradientGeneration(Generation):
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, problem=None, parameters=None):
+        super().__init__(parameters=parameters)
         self.delta = 1e-6
         self.individuals = None
 
@@ -350,9 +354,10 @@ class SwarmMutation(Mutation):
 
 class Selection(Operation):
 
-    def __init__(self, parameters, part_num=2):
+    def __init__(self, parameters, signs, part_num=2):
         super().__init__()
         self.parameters = parameters
+        self.signs = signs
         self.part_num = part_num
         self.comparator = ParetoDominance()
 
@@ -469,7 +474,7 @@ class EpsilonDominance(Dominance):
         or the box is preferred.
     """
 
-    def __init__(self, epsilons):
+    def __init__(self, epsilons, signs=None):
         super(EpsilonDominance, self).__init__()
 
         if hasattr(epsilons, "__getitem__"):
@@ -593,8 +598,9 @@ class ParetoDominance(Dominance):
     Pareto dominance is used to select the preferred solution.
     """
 
-    def __init__(self):
+    def __init__(self, signs, epsilons=None):
         super(ParetoDominance, self).__init__()
+        self.signs = signs
 
     def compare(self, p, q):
         if len(p.costs) != len(q.costs):
@@ -614,14 +620,15 @@ class ParetoDominance(Dominance):
         # Check the pareto dominance on every value of the calculated vectors
         dominate_p = False
         dominate_q = False
-
         for i in range(0, len(p.costs)):
-            if p.costs[i] > q.costs[i]:
+            sign = self.signs[i]
+            if sign * p.costs[i] > sign * q.costs[i]:
                 dominate_q = True
 
                 if dominate_p:
                     return 0
-            if p.costs[i] < q.costs[i]:
+
+            if sign * p.costs[i] < sign * q.costs[i]:
                 dominate_p = True
 
                 if dominate_q:
@@ -637,11 +644,12 @@ class ParetoDominance(Dominance):
 
 class Selection(Operation):
 
-    def __init__(self, parameters, part_num=2, dominance=ParetoDominance()):
+    def __init__(self, parameters, signs=None, part_num=2, dominance=ParetoDominance):
         super().__init__()
         self.parameters = parameters
         self.part_num = part_num
-        self.comparator = dominance #ParetoDominance()
+        self.comparator = dominance(signs=signs)  # ParetoDominance()
+        self.signs = signs
 
     @abstractmethod
     def select(self, population):
@@ -682,8 +690,9 @@ class Selection(Operation):
                     continue
                 if self.comparator.compare(p, q) == 1:          # TODO: simplify
                     p.dominate.add(q)
+                    p.dominate.add(q)
                 elif self.comparator.compare(q, p) == 1:
-                    p.domination_counter = p.domination_counter + 1
+                    p.domination_counter += 1
 
             if p.domination_counter == 0:
                 p.front_number = front_number
@@ -700,7 +709,6 @@ class Selection(Operation):
                         temp_set.append(q)
             pareto_front = temp_set
         return
-
 
     def sort_by_coordinate(self, population, dim):
         population.sort(key=lambda x: x.costs[dim])
@@ -728,8 +736,8 @@ class Selection(Operation):
 
 class DummySelection(Selection):
 
-    def __init__(self, parameters, part_num=2):
-        super().__init__(parameters, part_num)
+    def __init__(self, parameters, signs, part_num=2):
+        super().__init__(parameters, signs, part_num)
 
     def select(self, individuals):
         selection = []
@@ -747,9 +755,10 @@ class DummySelection(Selection):
 
 class TournamentSelection(Selection):
 
-    def __init__(self, parameters, dominance=ParetoDominance()):
-        super().__init__(parameters)
-        self.dominance = dominance
+    def __init__(self, parameters, signs=None, dominance=ParetoDominance, epsilons=None):
+        super().__init__(parameters, signs=signs)
+        self.dominance = dominance(signs=signs, epsilons=epsilons)
+        self.signs = signs
         # self.dominance = EpsilonDominance([0.01])
 
     def select(self, population):
@@ -775,12 +784,13 @@ class TournamentSelection(Selection):
         # participants = random.sample(parents, part_num)
         # return min(participants, key=lambda x: (x.front_number, -x.crowding_distance))
 
+
 class Archive(object):
     """An archive only containing non-dominated solutions."""
 
-    def __init__(self, dominance=ParetoDominance()):
+    def __init__(self, signs, dominance=ParetoDominance):
         super(Archive, self).__init__()
-        self._dominance = dominance
+        self._dominance = dominance(signs=signs)
         self._contents = []
 
     def add(self, solution):
