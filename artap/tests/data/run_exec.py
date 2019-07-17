@@ -1,7 +1,9 @@
 import sys
 
-def eval(x):
+
+def evaluate(x):
     return x[0]**2 + x[1]**2     
+
 
 if __name__ == "__main__":
     # parameters    
@@ -13,7 +15,7 @@ if __name__ == "__main__":
         x.append(float(val))
 
     # eval
-    out = eval(x)
+    out = evaluate(x)
     
     # write
     with open("output.txt", 'w') as file:
