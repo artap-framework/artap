@@ -1,75 +1,16 @@
-from artap import individual
 from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
-from .individual import Individual, GeneticIndividual
-from .operators import RandomGeneration, SimulatedBinaryCrossover,  \
-    PmMutation, TournamentSelection, GradientGeneration
-
+from .individual import GeneticIndividual
 from .operators import RandomGeneration, SimulatedBinaryCrossover, \
     PmMutation, TournamentSelection, GradientGeneration, ParetoDominance, EpsilonDominance
-from copy import deepcopy
+
 import time
 import sys
-from random import uniform
+
 from copy import deepcopy
 
 EPSILON = sys.float_info.epsilon
-#
-
-#
-# class GeneticIndividual(Individual):
-#     def __init__(self, vector: list):
-#         super().__init__(vector)
-#
-#         self.gradient = []
-#         self.feasible = 0.0  # the distance from the feasibility region in min norm
-#         self.dominate = set()
-#         self.domination_counter = 0
-#         self.front_number = None  # TODO: make better
-#         self.crowding_distance = 0  # TODO: deprecated? --
-#         self.depends_on = None  # For calculating gradients
-#         self.modified_param = -1
-#         # For particle swarm optimization
-#         self.velocity_i = [0] * len(vector)  # particle velocity
-#         self.best_parameters = []  # best position individual
-#         self.best_costs = []  # best error individual
-#
-#         for i in range(0, len(self.vector)):
-#             self.velocity_i.append(uniform(-1, 1))
-#
-#     def __repr__(self):
-#         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
-#
-#         string = "{}, ".format(super().__repr__())
-#
-#         string += ", front number: {}".format(self.front_number)
-#         string += ", crowding distance: {}".format(self.crowding_distance)
-#         string += ", gradient: ["
-#         for i, number in enumerate(self.gradient):
-#             string += str(number)
-#             if i < len(self.vector)-1:
-#                 string += ", "
-#         string = string[:len(string) - 1]
-#         string += "]"
-#
-#         return string
-#
-#     def sync(self, individual):
-#         super().sync(individual)
-#
-#         self.gradient = individual.gradient
-#         self.feasible = individual.feasible
-#         self.dominate = individual.dominate
-#         self.domination_counter = individual.domination_counter
-#         self.front_number = individual.front_number
-#         self.crowding_distance = individual.crowding_distance
-#         self.depends_on = individual.depends_on
-#         self.modified_param = individual.modified_param
-#         # For particle swarm optimization
-#         self.velocity_i = individual.velocity_i
-#         self.best_parameters = individual.best_parameters
-#         self.best_costs = individual.best_costs
 
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
@@ -101,10 +42,17 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         self.options.declare(name='max_population_size', default=100, lower=1,
                              desc='Maximal number of individuals in population')
 
-    def generate(self, parents, archive = None):
+    def generate(self, parents, archive=None):
         """ generate two children from two different parents """
 
+        # Preserve bounds of Pareto-Front
         children = []
+        # removed_parents = []
+        # for i in range(len(self.problem.signs)):
+        #     bound = min(parents, key=lambda x: (self.problem.signs[i] * x.costs[i]))
+        #     children.append(deepcopy(bound))
+        #     parents.remove(bound)
+        #     removed_parents.append(deepcopy(bound))
         while len(children) < self.population_size:
             parent1 = self.selector.select(parents)
 
@@ -122,11 +70,13 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
             # mutation
             child1 = self.mutator.mutate(child1)
             child2 = self.mutator.mutate(child2)
+            if not any(child1 == item for item in children):
+                children.append(deepcopy(child1))  # Always create new individual
+            if not any(child1 == item for item in children):
+                children.append(deepcopy(child2))  # Always create new individual
 
-            children.append(child1)
-            children.append(child2)
-
-        return children.copy()
+        # parents.extend(removed_parents)
+        return children
 
     def run(self):
         pass
@@ -149,7 +99,7 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGeneration(self.problem, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         if self.options['calculate_gradients'] is True:
@@ -164,7 +114,7 @@ class NSGAII(GeneticAlgorithm):
         self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
 
         # set selector
-        self.selector = TournamentSelection(self.problem.parameters)
+        self.selector = TournamentSelection(self.problem.parameters, self.problem.signs)
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
@@ -197,7 +147,7 @@ class NSGAII(GeneticAlgorithm):
             #     population.evaluate_gradients()
 
             # add the parents to the offsprings
-            offsprings.extend(population.individuals)
+            offsprings.extend(deepcopy(population.individuals))
 
             # non-dominated truncate on the guys
             self.selector.sorting(offsprings)
@@ -238,19 +188,19 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
+        self.generator = RandomGeneration(self.problem, individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
         self.generator.init(self.options['max_population_size'])
 
         # set crossover
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
         self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
 
-
         # Part A: non-dominated sort of individuals
         # -----
-        Selector_Pareto = TournamentSelection(self.problem.parameters)
-        self.selector = TournamentSelection(self.problem.parameters)  # the same as in the case of NSGA - ii
-        #                                                              # this operator is used to generate the new individuals
+        Selector_Pareto = TournamentSelection(self.problem.parameters, self.problem.signs)
+        self.selector = TournamentSelection(self.problem.parameters, self.problem.signs)
+        # the same as in the case of NSGA - ii
+        # this operator is used to generate the new individuals
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population(True)  # archiving True
@@ -260,7 +210,8 @@ class EpsMOEA(GeneticAlgorithm):
 
         # Part B: eps-dominated sort of the individuals with archiving
         # -----
-        Selector_EpsDom = TournamentSelection(self.problem.parameters, dominance=EpsilonDominance(self.options['epsilons']))
+        Selector_EpsDom = TournamentSelection(self.problem.parameters, self.problem.signs,
+                                              dominance=EpsilonDominance, epsilons=self.options['epsilons'])
         Selector_EpsDom.sorting(population.archives)
         Selector_EpsDom.crowding_distance(population.archives)
 
@@ -289,7 +240,7 @@ class EpsMOEA(GeneticAlgorithm):
             Selector_Pareto.crowding_distance(child)
 
             parents = sorted(child, key=lambda x: (x.front_number, -x.crowding_distance))
-            child = parents[:self.population_size] # truncate
+            child = parents[:self.population_size]  # truncate
 
             # eps dominated truncate on the guys
             Selector_EpsDom.sorting(arch_child)
@@ -298,10 +249,10 @@ class EpsMOEA(GeneticAlgorithm):
             arch_parents = sorted(arch_child, key=lambda x: (x.front_number, -x.crowding_distance))
             arch_child = arch_parents[:self.population_size]  # truncate
 
-
             # write population
             population = Population(child, arch_child)
-            self.problem.data_store.write_population(population) # TODO: modify the database connection to handle the archives
+            # TODO: modify the database connection to handle the archives
+            self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
         self.problem.logger.info("Eps-MOEA: {} s".format(t))

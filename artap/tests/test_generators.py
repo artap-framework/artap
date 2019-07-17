@@ -1,6 +1,6 @@
 import unittest
-from artap.doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
-from artap.individual import Individual
+# from artap.doe import build_box_behnken, build_lhs, build_frac_fact, build_full_fact, build_plackett_burman
+# from artap.individual import Individual
 from artap.operators import CustomGeneration, RandomGeneration, FullFactorGeneration, PlackettBurmanGeneration, \
     BoxBehnkenGeneration, LHSGeneration, GradientGeneration
 
@@ -13,7 +13,7 @@ class TestDOE(unittest.TestCase):
                            {'name': 'x_3','initial_value': 3.5, 'bounds': [6, 10]}]
 
     def test_random_generator(self):
-        gen = RandomGeneration(self.parameters)
+        gen = RandomGeneration(parameters=self.parameters)
         gen.init(3)
         individuals = gen.generate()
         # values
@@ -28,7 +28,7 @@ class TestDOE(unittest.TestCase):
                         self.parameters[2]['bounds'][0] <= individuals[2].vector[2] <= self.parameters[2]['bounds'][1])
 
     def test_custom_generator(self):
-        gen = CustomGeneration(self.parameters)
+        gen = CustomGeneration()
         gen.init([[3, 2, 6], [-1, 3, 8]])
         individuals = gen.generate()
         # values
@@ -42,7 +42,7 @@ class TestDOE(unittest.TestCase):
     # Factorial Designs
     def test_full_fact_generator(self):
         # General Full-Factorial
-        gen = FullFactorGeneration(self.parameters)
+        gen = FullFactorGeneration(parameters=self.parameters)
         gen.init(center=False)
         individuals = gen.generate()
 
@@ -55,7 +55,7 @@ class TestDOE(unittest.TestCase):
         self.assertEqual(individuals[3].vector[1], 3.4)
         self.assertEqual(individuals[7].vector[2], 10.0)
 
-        gen = FullFactorGeneration(self.parameters)
+        gen = FullFactorGeneration(parameters=self.parameters)
         gen.init(center=True)
         individuals = gen.generate()
 
@@ -64,7 +64,7 @@ class TestDOE(unittest.TestCase):
 
     def test_plackett_burman_generator(self):
         # Plackett-Burman
-        gen = PlackettBurmanGeneration(self.parameters)
+        gen = PlackettBurmanGeneration(parameters=self.parameters)
         individuals = gen.generate()
 
         # size
@@ -78,7 +78,7 @@ class TestDOE(unittest.TestCase):
     # Response - Surface Designs
     def test_box_behnken_generator(self):
         # Box-Behnken
-        gen = BoxBehnkenGeneration(self.parameters)
+        gen = BoxBehnkenGeneration(parameters=self.parameters)
         individuals = gen.generate()
 
         # size
@@ -92,7 +92,7 @@ class TestDOE(unittest.TestCase):
     # Randomized Designs
     def test_lhs_generation(self):
         # Latin - Hypercube
-        gen = LHSGeneration(self.parameters)
+        gen = LHSGeneration(parameters=self.parameters)
         gen.init(number=3)
         individuals = gen.generate()
 
@@ -111,7 +111,7 @@ class TestDOE(unittest.TestCase):
 
     def test_gradient_generation(self):
         # gradient
-        gen = LHSGeneration(self.parameters)
+        gen = LHSGeneration(parameters=self.parameters)
         gen.init(number=3)
         individuals = gen.generate()
         gen = GradientGeneration(self.parameters)
