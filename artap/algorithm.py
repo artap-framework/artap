@@ -1,21 +1,21 @@
 from .problem import Problem
 from .utils import ConfigDictionary
-from .job import JobSimple, JobQueue
+from .job import JobSimple
 from .population import Population
 
-from multiprocessing import Process, Manager, Queue, cpu_count
 from abc import ABCMeta, abstractmethod
-import copy
 import numpy as np
 
 from joblib import Parallel, delayed
-import time
+
+
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
 
     def __init__(self, problem: Problem, name="Algorithm"):
         self.name = name
         self.problem = problem
+        self.parameters = problem.parameters
         self.options = ConfigDictionary()
 
         self.options.declare(name='verbose_level', default=1, lower=0,
@@ -33,7 +33,7 @@ class Algorithm(metaclass=ABCMeta):
     def run(self):
         pass
 
-    def gen_initial_population(self, is_archive = False):
+    def gen_initial_population(self, is_archive=False):
         individuals = self.generator.generate()
         # set current size
         self.population_size = len(individuals)
@@ -61,7 +61,8 @@ class Algorithm(metaclass=ABCMeta):
     def evaluate_parallel(self, individuals: list):
         # simple parallel loop
         job = JobSimple(self.problem)
-        Parallel(n_jobs=self.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual) for individual in individuals)
+        Parallel(n_jobs=self.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
+                                                                                       for individual in individuals)
 
         """
         manager = Manager()
