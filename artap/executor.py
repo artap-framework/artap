@@ -530,8 +530,10 @@ class CondorJobExecutor(RemoteExecutor):
                 else:
                     assert 0
 
+                self._remove_remote_dir(remote_dir=remote_dir, client=client)
+
                 client.close()
-                
+
                 return result
 
             except ConnectionError as e:
