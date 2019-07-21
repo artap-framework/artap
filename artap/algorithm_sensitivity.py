@@ -26,8 +26,8 @@ class Sensitivity(Algorithm):
 
             index = 0
             selected_parameter = None
-            for parameter in self.problem.parameters:
-                if parameter['name'] == parameter_name:
+            for parameter in self.parameters:
+                if parameter['name'] == parameter_name['name']:
                     selected_parameter = parameter
                     break
                 index += 1

@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from artap.executor import LocalExecutor
+from artap.executor import LocalComsolExecutor
 from artap.problem import Problem, ProblemType
 from artap.algorithm import DummyAlgorithm
 from artap.population import Population
@@ -10,23 +10,22 @@ from artap.population import Population
 class ComsolProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
-    def __init__(self, name):
-        parameters = [{'name': 'a', 'initial_value': 10},
-                      {'name': 'b', 'initial_value': 10}]
-        costs = [{'name': 'F1', 'criteria': 'minimize'}]
-
-        super().__init__(name, parameters, costs)
+    def set(self):
+        self.name = "ComsolProblem"
+        self.parameters = [{'name': 'a', 'initial_value': 10},
+                           {'name': 'b', 'initial_value': 10}]
+        self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
         self.type = ProblemType.comsol
-        self.output_files = ["./data/out.txt"]
-        self.executor = LocalExecutor(self,
-                                      problem_file="./data/elstat.mph",
-                                      output_files=self.output_files)
+        self.output_files = ["out.txt"]
+        self.executor = LocalComsolExecutor(self,
+                                            problem_file="./data/elstat.mph",
+                                            output_files=self.output_files)
 
-    def evaluate(self, x):
-        return self.executor.eval(x)
+    def evaluate(self, individual):
+        return self.executor.eval(individual)
 
-    def parse_results(self):
-        output_file = self.output_files[0]
+    def parse_results(self, output_files):
+        output_file = output_files[0]
         path = output_file
         content = ""
         if os.path.exists(path):
@@ -45,8 +44,7 @@ class ComsolProblem(Problem):
 class TestSimpleComsolOptimization(unittest.TestCase):
     def test_comsol_exec(self):
         """ Tests one calculation of goal function."""
-        problem = ComsolProblem("ComsolProblem")
-
+        problem = ComsolProblem()
         table = [[10, 10]]
         population = Population()
         population.gen_population_from_table(table)

@@ -2,6 +2,7 @@ from abc import *
 
 from random import uniform
 
+
 class Individual(metaclass=ABCMeta):
     """
        Collects information about one point in design space.
@@ -31,6 +32,12 @@ class Individual(metaclass=ABCMeta):
         string += "]"
 
         return string
+
+    def __eq__(self, other):
+        return self.vector == other.vector and self.costs == self.costs
+
+    def __hash__(self):
+        return id(self)
 
     def sync(self, individual):
         self.vector = individual.vector
@@ -68,6 +75,7 @@ class Individual(metaclass=ABCMeta):
     #     # gradient
     #     out.append(self.gradient)
     #     return out
+
 
 class GeneticIndividual(Individual):
     def __init__(self, vector: list):

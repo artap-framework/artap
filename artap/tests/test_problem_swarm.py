@@ -2,31 +2,28 @@ import unittest
 from artap.problem import Problem
 from artap.algorithm_swarm import PSO
 from artap.benchmark_functions import BinhAndKorn
-# from artap.results import Results
-# from artap.results import GraphicalResults
 
 
 class PSORosenbrock(Problem):
     """ Search the optimal value of the Rosenbrock function in 2d"""
 
-    def __init__(self, name):
-        parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
+    def set(self):
+        self.name = "PSORosenbrock"
+        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
-        costs = [{'name': 'F_1'},
-                 {'name': 'F_2'}]
+        self.costs = [{'name': 'F_1'},
+                      {'name': 'F_2'}]
 
-        super().__init__(name, parameters, costs)
-
-    def evaluate(self, x: list):
+    def evaluate(self, individual):
         function = BinhAndKorn()
-        return function.eval(x)
+        return function.eval(individual.vector)
 
 
 class TestPSOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem_pso(self):
-        problem = PSORosenbrock("PSORosenbrock")
+        problem = PSORosenbrock()
         algorithm = PSO(problem)
         algorithm.options['max_population_number'] = 10
         algorithm.options['max_population_size'] = 100
