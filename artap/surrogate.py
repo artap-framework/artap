@@ -4,6 +4,7 @@ import warnings
 from abc import ABCMeta, abstractmethod
 
 from scipy.spatial import distance
+import numpy as np
 from scipy import arange
 import math
 
@@ -110,9 +111,9 @@ class SurrogateModelRegressor(SurrogateModel):
             parameters = {
                 'solver': ['lbfgs'],
                 'max_iter': [1000, 1500, 2000],
-                'alpha': [1.e-01, 1.e-02, 1.e-05, 1.e-07, 1.e-09],
-                "hidden_layer_sizes": [(3), (10), (15), (20), (50)],
-                'random_state': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                'alpha': [1.e-01, 1.e-05, 1.e-09],
+                "hidden_layer_sizes": [(3), (10), (20), (50)],
+                'random_state': [0, 2, 4, 5, 8, 9],
                 "activation": ['logistic', 'relu']
             }
 
