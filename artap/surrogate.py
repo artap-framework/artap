@@ -55,14 +55,14 @@ class SurrogateModel(metaclass=ABCMeta):
     def predict(self, x, *args):
         if self.trained:
             if self.has_epsilon:
-                return self.regressor.predict([x], return_std=True)
+                return self.regressor.predict([x.vector], return_std=True)
             else:
-                return self.regressor.predict([x])
+                return self.regressor.predict([x.vector])
         else:
             assert 0
 
-    def compute(self, x):
-        return self.problem.evaluate(x)
+    def compute(self, individual):
+        return self.problem.evaluate(individual)
 
     @abstractmethod
     def evaluate(self, x):
@@ -77,12 +77,12 @@ class SurrogateModelEval(SurrogateModel):
     def train(self):
         pass
 
-    def predict(self, x):
-        return self.problem.evaluate(x)
+    def predict(self, individual):
+        return self.problem.evaluate(individual)
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
         self.eval_counter += 1
-        return self.problem.evaluate(x)
+        return self.problem.evaluate(individual)
 
 
 class SurrogateModelRegressor(SurrogateModel):
@@ -303,7 +303,7 @@ class SurrogateModelRegressor(SurrogateModel):
             self.eval_counter += 1
             # add training date to surrogate model
             # self.add_data(np.array(x), np.array(value))
-            self.add_data(x, value)
+            self.add_data(x.vector, value)
 
             if self.eval_counter % self.train_step == 0:
                 # init default regressor
