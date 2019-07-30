@@ -27,9 +27,8 @@ class ArtapProblem(Problem):
         self.W = 1.
         self.L = 1.
 
-        parameters = {'x': {'initial_value': 0.8,
-                            'bounds': [0., self.W]}}
-        costs = ['F_1']
+        parameters = [{'name':'x', 'initial_value': 0.8, 'bounds': [0., self.W]}]
+        costs = [{'name':'F_1'}]
 
         super().__init__(name, parameters, costs)
 
@@ -63,3 +62,5 @@ results_nlm = Results(problem_nlm)
 opt = results_nlm.find_minimum('F_1')
 
 print('Optimal solution (Nelder-Mead):', opt)
+
+# TODO: TEST to check the examples if sg changing
