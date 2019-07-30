@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 class BiObjectiveTestProblem(Problem):
     """
-    From GDE3: The third Evolution Step of Generalized Dierential Evolution
+    From GDE3: The third Evolution Step of Generalized Differential Evolution
     Saku Kukkonen, Jouni Lampinen
 
     Minimize f1 = x1

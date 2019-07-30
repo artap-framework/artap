@@ -24,6 +24,7 @@ class Capacitor(Problem):
         # project parameters
         problem.parameters["r1"] = x[0]
         problem.parameters["r2"] = x[1]
+
         problem.parameters["eps"] = 2.5
 
         # fields
@@ -102,6 +103,6 @@ def nsga2():
     optimum = results.find_minimum('F')
     print(optimum)
 
-#nsga2()
-bobyqa()
+nsga2()
+#bobyqa()
 #bayesopt()
