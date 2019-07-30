@@ -416,8 +416,8 @@ class FileDataStore(DataStore):
         super().write_population(population)
 
         # write to database
-        self.db["populations"].append(population)
-        # self.db["populations"] = self.populations
+        #self.db["populations"].append(population)
+        self.db["populations"] = self.populations
         self.db.sync()
 
     def read_from_datastore(self):
