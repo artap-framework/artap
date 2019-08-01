@@ -7,23 +7,21 @@ from agrossuite import agros as a2d
 
 
 class Capacitor(Problem):
-
     def set(self):
         self.name = "AgrosProblem"
         self.parameters = [{'name': 'r1', 'initial_value': 0.02, 'bounds': [0.01, 0.03]},
                       {'name': 'r2', 'initial_value': 0.04, 'bounds': [0.035, 0.1]}]
         self.costs = [{'name': 'F'}]
 
-    def evaluate(self, x: list):
-        C_req = 80.  # pF
+    def evaluate(self, individual):
         # problem
         problem = a2d.problem(clear=True)
         problem.coordinate_type = "planar"
         problem.mesh_type = "triangle"
 
         # project parameters
-        problem.parameters["r1"] = x[0]
-        problem.parameters["r2"] = x[1]
+        problem.parameters["r1"] = individual.vector[0]
+        problem.parameters["r2"] = individual.vector[1]
         problem.parameters["eps"] = 2.5
 
         # fields
@@ -61,10 +59,11 @@ class Capacitor(Problem):
         solution = computation.solution("electrostatic")
         result = solution.volume_integrals()["We"]
 
-        C = 4 * 2 * result * 1e12  # pF
-        print('Capacitance', C)
+        capacitance_req = 80.  # pF
+        capacitance = 4.0 * 2.0 * result * 1e12  # pF
+        print('Evaluated capacitance: {}, required capacitance: {}, difference: {}'.format(capacitance, capacitance_req, abs(capacitance - capacitance_req)))
 
-        return [abs(C - C_req)]
+        return [abs(capacitance - capacitance_req)]
 
 
 def bobyqa():
@@ -103,6 +102,6 @@ def nsga2():
     optimum = results.find_minimum('F')
     print(optimum)
 
-#nsga2()
+# nsga2()
 bobyqa()
-#bayesopt()
+# bayesopt()
