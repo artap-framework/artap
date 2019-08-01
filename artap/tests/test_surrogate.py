@@ -3,21 +3,20 @@ import unittest
 
 from artap.problem import Problem
 from artap.individual import Individual
-from artap.individual import Individual
 from artap.benchmark_functions import Booth
 from artap.surrogate import SurrogateModelEval, SurrogateModelRegressor
-from artap.operators import CustomGeneration, LHSGeneration
+from artap.operators import LHSGeneration
 from artap.algorithm_sweep import SweepAlgorithm
 
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, WhiteKernel, ConstantKernel, RationalQuadratic, ExpSineSquared
+from sklearn.gaussian_process.kernels import RationalQuadratic, ExpSineSquared
+# from sklearn.gaussian_process.kernels RBF, Matern, DotProduct, WhiteKernel, ConstantKernel
 from sklearn.ensemble import BaggingRegressor, RandomForestRegressor, GradientBoostingRegressor
 
 
-# np.random.seed(1)
-
 class MyProblemSin(Problem):
     """ Describe simple one objective optimization problem. """
+
     def set(self):
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 10]}]
         self.costs = [{'name': 'F'}]
@@ -29,9 +28,10 @@ class MyProblemSin(Problem):
 
 class MyProblemBooth(Problem):
     """ Describe simple one objective optimization problem. """
+
     def set(self):
         self.parameters = [{'name': 'x_1', 'initial_value': 0, 'bounds': [-5, 5]},
-                      {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
+                           {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
         self.costs = [{'name': 'F'}]
 
     def evaluate(self, individual):
@@ -60,10 +60,13 @@ class TestSurrogate(unittest.TestCase):
 
             percent = 100.0 * math.fabs(value_problem - value_surrogate) / math.fabs(value_problem)
             problem.logger.info("{}: surrogate.value: step {})".format(problem.name, step))
-            problem.logger.info("{}: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem, value_surrogate,
-                                                                                                     math.fabs(value_problem - value_surrogate), percent))
+            problem.logger.info(
+                "{}: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem, value_surrogate,
+                                                                    math.fabs(value_problem - value_surrogate),
+                                                                    percent))
             problem.logger.info("{}: score = {}, lml = {}, lml_grad = {}".format(problem.name, problem.surrogate.score,
-                                                                                                      problem.surrogate.lml, problem.surrogate.lml_gradient))
+                                                                                 problem.surrogate.lml,
+                                                                                 problem.surrogate.lml_gradient))
 
             if percent < threshold:
                 self.assertLess(percent, threshold)
@@ -82,8 +85,12 @@ class TestSurrogate(unittest.TestCase):
         # eval surrogate
         value_surrogate = problem.surrogate.predict(x_ref)[0]
 
-        problem.logger.info("{}: surrogate.value: evaluation = {}, prediction = {}, difference = {}".format(problem.name, value_problem, value_surrogate,
-                                                                                                        math.fabs(value_problem - value_surrogate)))
+        problem.logger.info(
+            "{}: surrogate.value: evaluation = {}, prediction = {}, difference = {}".format(problem.name,
+                                                                                            value_problem,
+                                                                                            value_surrogate,
+                                                                                            math.fabs(value_problem -
+                                                                                                      value_surrogate)))
         self.assertLess(math.fabs(value_problem - value_surrogate), 1e-8)
 
     def test_gaussian_process_one(self):
@@ -91,7 +98,8 @@ class TestSurrogate(unittest.TestCase):
         problem.surrogate = SurrogateModelRegressor(problem)
         problem.surrogate.sigma_threshold = 0.1
 
-        kernel = 1.0 * ExpSineSquared(length_scale=1.0, periodicity=3.0, length_scale_bounds=(0.1, 10.0), periodicity_bounds=(1.0, 10.0))
+        kernel = 1.0 * ExpSineSquared(length_scale=1.0, periodicity=3.0, length_scale_bounds=(0.1, 10.0),
+                                      periodicity_bounds=(1.0, 10.0))
         problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel)
 
         self.check_one(problem, 5.0)
@@ -151,8 +159,12 @@ class TestSurrogate(unittest.TestCase):
         value_surrogate = problem.surrogate.predict(x_ref)[0]
 
         percent = 100.0 * math.fabs(value_problem - value_surrogate) / math.fabs(value_problem)
-        problem.logger.info("{}: surrogate.value: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem, value_surrogate,
-                                                                                                 math.fabs(value_problem - value_surrogate), percent))
+        problem.logger.info(
+            "{}: surrogate.value: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem,
+                                                                                 value_surrogate,
+                                                                                 math.fabs(
+                                                                                     value_problem - value_surrogate),
+                                                                                 percent))
 
         self.assertLess(percent, 5.0)
 
@@ -181,8 +193,12 @@ class TestSurrogate(unittest.TestCase):
         value_surrogate = problem.surrogate.predict(x_ref)[0]
 
         percent = 100.0 * math.fabs(value_problem - value_surrogate) / math.fabs(value_problem)
-        problem.logger.info("{}: surrogate.value: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem, value_surrogate,
-                                                                                                 math.fabs(value_problem - value_surrogate), percent))
+        problem.logger.info(
+            "{}: surrogate.value: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem,
+                                                                                 value_surrogate,
+                                                                                 math.fabs(
+                                                                                     value_problem - value_surrogate),
+                                                                                 percent))
 
         self.assertLess(percent, 5.0)
 
