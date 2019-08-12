@@ -1,6 +1,8 @@
 import unittest
 from artap.dynamical_systems import DiscreteLTISystem
-from artap.dynamical_systems import Model, unit_step
+from artap.dynamical_systems import Model
+from artap.dynamical_systems import Gain
+from artap.dynamical_systems import ContinuousLTISystem
 import pylab as pl
 
 
@@ -8,43 +10,45 @@ class TestDynamicalSystems(unittest.TestCase):
 
     def test_discrete_LTI(self):
 
-        A = [[-1, 0],
-             [0, -1]]
+        matrix_a = [[-1, 0],
+                    [0, -1]]
 
-        C = [[1, 0], [0, 1]]
+        matrix_c = [[1, 0], [0, 1]]
 
-        B = [[1], [2]]
-        D = [0]
+        matrix_b = [[1], [2]]
+        matrix_d = [0]
 
         plant = Model(dt=0.1)
-        x0 = [10, 5]
-        system = DiscreteLTISystem(plant, A, B, C, D, x0, dt=1)
-        # system.connect(unit_step)
+        x_0 = [10, 5]
+        system = DiscreteLTISystem(plant, matrix_a, matrix_b, matrix_c, matrix_d, x_0, dt=1)
         plant.run(10)
 
         self.assertEqual(len(system.archive_t), len(system.archive_u))
+        self.assertEqual(len(system.archive_t), len(system.archive_x))
+        self.assertEqual(len(system.archive_t), len(system.archive_y))
+        self.assertEqual(system.archive_x[0][0], x_0[0])
+        self.assertEqual(system.archive_x[0][1], x_0[1])
+        self.assertAlmostEqual(system.archive_x[-2][0], -10)
+        self.assertAlmostEqual(system.archive_x[-2][1], -5)
+
+    def test_continuous_LTI(self):
+        plant = Model(dt=0.1)
+        A = [[-1,  -1],
+             [1,  0]]
+
+        C = [0,  1]
+
+        B = [[1], [1]]
+        D = [0]
+
+        plant = Model(dt=0.01)
+        x0 = [10, 5]
+        system = ContinuousLTISystem(plant, A, B, C, D, x0)
+        plant.run(10)
+        system.plot('output')
+        pl.show()
 
 
-# plant = Model(dt=0.1)
-# pi = PI(plant, 1, 1)A = [[-1,  1],
-#      [0,  -1]]
-#
-# C = [[1,  0], [0,  1]]
-#
-# B = [[1, 1], [2, 2]]
-# D = [0, 0]
-#
-# plant = Model(dt=0.01)
-# x0 = [10, 5]
-# system = ContinuousLTISystem(plant, A, B, C, D, x0)
-# multiplier = Gain(plant, -0.33)
-# multiplier.connect(system.output, output_index=0, input_index=0)
-# system.connect(multiplier.output, output_index=0, input_index=0)
-# plant.run(10)
-# multiplier.plot('output')
-# system.plot('state')
-# pl.show()
-#
 # A = [[-1, 0],
 #      [0, -1]]
 #
