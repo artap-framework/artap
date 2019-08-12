@@ -375,7 +375,6 @@ def unit_impulse(t):
 
 
 def programme_control(t):
-
     u = 5.5
     if t > 4:
         u = u * 0.6
