@@ -105,7 +105,7 @@ class DataStore:
     def get_id(self):
         return 0
 
-
+"""
 class SqliteDataStore(DataStore):
     def __init__(self, problem, database_name=None, remove_existing=True):
         super().__init__(problem)
@@ -364,7 +364,7 @@ class SqliteDataStore(DataStore):
                 self.populations.append(population)
                 population = Population()
                 current_population = row[1]
-
+"""
 
 class FileDataStore(DataStore):
 
