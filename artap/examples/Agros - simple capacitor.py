@@ -3,7 +3,10 @@ from artap.results import Results
 from artap.algorithm_bayesopt import BayesOptSerial
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA, LN_COBYLA
 from artap.algorithm_genetic import NSGAII
-from agrossuite import agros as a2d
+import os
+
+
+from agros import agros as a2d
 
 
 class Capacitor(Problem):
@@ -30,7 +33,7 @@ class Capacitor(Problem):
         electrostatic.analysis_type = "steadystate"
         electrostatic.matrix_solver = "umfpack"
         electrostatic.number_of_refinements = 1
-        electrostatic.polynomial_order = 2
+        electrostatic.polynomial_order = 1
         electrostatic.adaptivity_type = "disabled"
         electrostatic.solver = "linear"
 
