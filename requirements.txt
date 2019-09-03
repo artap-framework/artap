@@ -8,3 +8,4 @@ sklearn>=0.0
 paramiko
 matplotlib>1.5.1
 optproblems
+smt
