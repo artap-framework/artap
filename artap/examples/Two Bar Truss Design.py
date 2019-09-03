@@ -37,7 +37,7 @@ class TwoBarTrussDesignProblem(Problem):
     """
     def set(self):
         self.parameters = [{'name': 'x_1', 'bounds': [0.0, 0.01]},
-                           {'name': 'x_2', 'bounds': [0.035, 0.1]},
+                           {'name': 'x_2', 'bounds': [0.0, 0.1]},
                            {'name': 'y', 'bounds': [1.0, 3.0]}]
         self.costs = [{'name': 'F_1'},
                       {'name': 'F_2'}]
@@ -71,8 +71,8 @@ print(solution)
 
 # plot solution
 plt.scatter([s[0] for s in solution],
-            [s[1] * 1e-3 for s in solution])
-plt.xlim([0, 0.06])
+            [s[1]*1e-3 for s in solution])
+plt.xlim([0, 0.1])
 plt.ylim([0, 100.])
 plt.xlabel("Volume [m3]")
 plt.ylabel("Maximum stress [MPa]")
