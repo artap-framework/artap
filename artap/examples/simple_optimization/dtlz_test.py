@@ -1,30 +1,52 @@
 from artap.problem import Problem
-from artap.algorithm_genetic import NSGAII, EpsMOEA
-from artap.results import Results, GraphicalResults
+from artap.algorithm_genetic import NSGAII
+from artap.results import Results
 
 import optproblems as optp
 import optproblems.dtlz as dtlz
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+#
+# TODO::: No module named : diversipy
+#
 
 class DTLZ2_TEST_Problems(Problem):
+    """
+    This example shows the solution of a DTLZ test example. This name is an abbreviation of the
+    authors Deb -- Thiele -- Laumanns -- Zitzler (I -- VII). The definition and the solution of
+    these multiobjective optimization test problems defined in [Deb2002] and in the optproblems
+    library.
 
-    def __init__(self, name):
-        parameters = {'x_1': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_2': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_3': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_4': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_5': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_6': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_7': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_8': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_9': {'initial_value': .5, 'bounds': [0, 1]},
-                      'x_10': {'initial_value': .5, 'bounds': [0, 1]}}
+    Here, the DTLZ -- 2 problem was solved for 10 independent parameters. The solution, the Pareto-front
+    of this example is placed on a 3 dimensional sphere.
+    NSGA - II algorithm is used to solve this example.
 
-        costs = ['F_1', 'F_2']
+    References
+    ----------
 
-        super().__init__(name, parameters, costs)
+    .. [Deb2002] Deb, K.; Thiele, L.; Laumanns, M.; Zitzler, E. (2002).
+        Scalable multi-objective optimization test problems, Proceedings of
+        the IEEE Congress on Evolutionary Computation, pp. 825-830
+
+    """
+
+
+    def set(self):
+
+        self.name = "DTLZ -- 2 test problem"
+
+        self.parameters = [{'name':'x_1', 'bounds': [0, 1]},
+                           {'name':'x_2', 'bounds': [0, 1]},
+                           {'name':'x_3', 'bounds': [0, 1]},
+                           {'name':'x_4', 'bounds': [0, 1]},
+                           {'name': 'x_5', 'bounds': [0, 1]},
+                           {'name': 'x_6', 'bounds': [0, 1]},
+                           {'name': 'x_7', 'bounds': [0, 1]},
+                           {'name': 'x_8', 'bounds': [0, 1]},
+                           {'name': 'x_9', 'bounds': [0, 1]},
+                           {'name': 'x_10', 'bounds': [0, 1]}]
+
+        self.costs = [{'name': 'F_1'},{'name': 'F_2'}]
 
     def evaluate(self, x):
         # objective values were stored together with decision variables
@@ -32,12 +54,12 @@ class DTLZ2_TEST_Problems(Problem):
         solutions = [optp.Individual(x)]
 
         problem.batch_evaluate(solutions)
-        #print(x, solutions[0].objective_values)
         return solutions[0].objective_values.copy()
+
 
 def test_problem_2():
 
-    problem = DTLZ2_TEST_Problems("DTLZ")
+    problem = DTLZ2_TEST_Problems()
     algorithm = NSGAII(problem)
     algorithm.options['max_population_number'] = 1000
     algorithm.options['max_population_size'] = 100
@@ -70,10 +92,7 @@ def test_problem_1():
     algorithm.run()
 
     b = Results(problem)
-    #b.find_pareto('F_1','F_2')
-    #solutions = problem.data_store.populations[5]
-    #for solution in solutions.individuals:
-    #    print(solution.vector)
+
     solution = b.pareto_values()
 
     fig = plt.figure()
@@ -87,7 +106,6 @@ def test_problem_1():
 
     plt.xlabel("$f_1(x)$")
     plt.ylabel("$f_2(x)$")
-    #plt.zlabel("$f_3(x)$")
 
     ax.view_init(elev=30.0, azim=15.0)
     plt.show()
