@@ -7,8 +7,7 @@ from artap.results import Results
 from artap.algorithm_nlopt import NLopt
 from artap.algorithm_nlopt import LN_BOBYQA
 
-from agrossuite import agros
-
+from agrossuite import agros as a2d
 
 class AgrosProblem(Problem):
 

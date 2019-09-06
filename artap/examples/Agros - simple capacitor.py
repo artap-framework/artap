@@ -3,10 +3,8 @@ from artap.results import Results
 from artap.algorithm_bayesopt import BayesOptSerial
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA, LN_COBYLA
 from artap.algorithm_genetic import NSGAII
-import os
 
-
-from agros import agros as a2d
+from agrossuite import agros as a2d
 
 
 class Capacitor(Problem):
