@@ -112,7 +112,6 @@ class Results:
         for population in self.problem.data_store.populations:
             for individual in population.individuals:
                 out.append(individual.vector)
-
         return out
 
     def costs(self):
@@ -120,7 +119,6 @@ class Results:
         for population in self.problem.data_store.populations:
             for individual in population.individuals:
                 out.append(individual.costs)
-
         return out
 
 class GraphicalResults(Results):

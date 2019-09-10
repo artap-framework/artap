@@ -12,8 +12,6 @@ The problem formulated as a single optimization problem, free optimization probl
 
 Problem parameters are the edges of the cuboid: H, W, L
 """
-import numpy as np
-import pylab as pl
 
 from artap.problem import Problem
 from artap.results import Results
@@ -27,7 +25,7 @@ L = 1.
 class ArtapProblem(Problem):
     """
     The solution of this problem needs to find the minimum of a one parametered (x_1) goal function.
-    The problem solved, by the Nelder-Mead method, therefore an initial value has to be defined
+    The problem solved, by the Nelder-Mead method, therefore an initial value has to be defined, anyway it is set to 0.
     """
 
     def set(self):
