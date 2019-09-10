@@ -1010,7 +1010,9 @@ class SimulatedBinaryCrossover(Crossover):
                     lb = param['bounds'][0]
                     ub = param['bounds'][1]
 
-                    if param['parameter_type']:
+                    if not 'parameter_type' in param:
+                        continue
+                    else:
                         p_type = param['parameter_type']
 
                     x1, x2 = self.sbx(x1, x2, lb, ub, p_type)
