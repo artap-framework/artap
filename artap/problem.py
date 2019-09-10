@@ -15,8 +15,8 @@ import shutil
 
 from enum import Enum
 
-# ToDo: Inhere executors, remove enum
 
+# ToDo: Inhere executors, remove enum
 
 class ProblemType(Enum):
     comsol = 0
@@ -24,7 +24,6 @@ class ProblemType(Enum):
     agros = 2
     matlab = 3
     python = 4
-
 
 CRITICAL = logging.CRITICAL
 FATAL = logging.FATAL
@@ -132,6 +131,7 @@ class Problem:
     def parameters_len(self):
         return len(self.parameters)
 
+    # search for and defines the initial values for the optimization problem
     def get_initial_values(self):
         values = []
         for parameter in self.parameters:
@@ -140,6 +140,26 @@ class Problem:
             else:
                 values.append(0)
         return values
+
+    def get_parameter_types(self):
+        # TODO: is it important? or a typecheck is enough?
+        p_types = []
+        for parameter in self.parameters:
+
+            if 'parameter_type' in parameter:
+                if parameter['parameter_type'].lower == 'real':
+                    p_types.append('real')
+
+                if parameter['parameter_type'].lower == 'integer':
+                    p_types.append('integer')
+
+                if parameter['parameter_type'].lower == 'boolean':
+                    p_types.append('boolean')
+
+            else:
+                p_types.append('real')
+
+        return p_types
 
     @abstractmethod
     def evaluate(self, x: list):
@@ -152,7 +172,7 @@ class Problem:
 
     def __setattr__(self, key, value):
         if self.__is_frozen and not hasattr(self, key):
-            raise TypeError(" %r is a frozen class" % self )
+            raise TypeError(" %r is a frozen class" % self)
         object.__setattr__(self, key, value)
 
         # working dir must be set

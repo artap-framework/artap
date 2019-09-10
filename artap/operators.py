@@ -98,7 +98,6 @@ class FullFactorGeneration(Generation):
                 dict_vars[name] = [l_b, u_b]
 
         df = build_full_fact(dict_vars)
-        # print(df)
 
         individuals = []
         for vector in df:
@@ -255,27 +254,52 @@ class SimpleMutation(Mutation):
 
 
 class PmMutation(Mutation):
+    """
+    PmMutation -- for nsga2 and epsMoEA
+
+    This operator can handle real, integer and boolean optimization parameters.
+    The class contains two-kind of operators as the original (Deb's [...]) implementation .
+
+    This is a difference between Artap and Platypus, where the Integer numbers are encoded (Gray-encoding) and handled
+    as binary numbers with the Bitflip operator.
+    """
 
     def __init__(self, parameters, probability, distribution_index=20):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
-    def mutate(self, p):
+    def mutate(self, parent):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
-            if random.uniform(0, 1) < self.probability:
-                l_b = parameter['bounds'][0]
-                u_b = parameter['bounds'][1]
+            if isinstance(parent.vector[i], list):
+                vector.append(self.bitflip(parent.vector[i]))
 
-                vector.append(self.pm_mutation(p.vector[i], l_b, u_b))
             else:
-                vector.append(p.vector[i])
+                if random.uniform(0, 1) < self.probability:
+                    l_b = parameter['bounds'][0]
+                    u_b = parameter['bounds'][1]
 
-        p_new = p.__class__(vector)
+                    if isinstance(parent.vector[i], float):
+                        vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
+
+                    if isinstance(parent.vector[i], int):
+                        vector.append(int(self.pm_mutation(parent.vector[i], l_b, u_b)))
+                else:
+                    vector.append(parent.vector[i])
+
+        p_new = parent.__class__(vector)
         return p_new
 
     def pm_mutation(self, x, lb, ub):
+        """
+        Polynomial mutation for float and integer parameters.
+
+        :param x: represents one parameter of the problem
+        :param lb: lower bound
+        :param ub: upper bound
+        :return:
+        """
         u = random.uniform(0, 1)
         dx = ub - lb
 
@@ -290,6 +314,14 @@ class PmMutation(Mutation):
 
         x = x + delta * dx
         x = self.clip(x, lb, ub)
+
+        return x
+
+    def bitflip(self, x:list):
+
+        for j in range(1,len(x)):
+            if random.uniform(0.0, 1.0) <= self.probability:
+                x[j] = not x[j]
 
         return x
 
@@ -909,8 +941,10 @@ class SimulatedBinaryCrossover(Crossover):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
-    def sbx(self, x1, x2, lb, ub):
+    def sbx(self, x1, x2, lb, ub, p_type="real"):
+
         dx = x2 - x1
+
         if dx > EPSILON:
             if x2 > x1:
                 y2 = x2
@@ -952,11 +986,15 @@ class SimulatedBinaryCrossover(Crossover):
             x1 = self.clip(x1, lb, ub)
             x2 = self.clip(x2, lb, ub)
 
+            if p_type == "integer":
+                x1 = int(x1)
+                x2 = int(x2)
+
         return x1, x2
 
     def cross(self, p1, p2):
-        """Create an offspring using simulated binary crossover.
-
+        """
+        Create an offspring using simulated binary crossover.
         :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
@@ -972,7 +1010,10 @@ class SimulatedBinaryCrossover(Crossover):
                     lb = param['bounds'][0]
                     ub = param['bounds'][1]
 
-                    x1, x2 = self.sbx(x1, x2, lb, ub)
+                    if param['parameter_type']:
+                        p_type = param['parameter_type']
+
+                    x1, x2 = self.sbx(x1, x2, lb, ub, p_type)
 
                     parent_a[i] = x1
                     parent_b[i] = x2
