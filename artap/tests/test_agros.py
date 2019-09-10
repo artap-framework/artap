@@ -24,7 +24,7 @@ class AgrosProblem(Problem):
     def evaluate(self, individual: Individual):
         # problem
         x = individual.vector
-        problem = agros.problem(clear=True)
+        problem = a2d.problem(clear=True)
         problem.coordinate_type = "axisymmetric"
         problem.mesh_type = "triangle"
         problem.parameters["J1"] = 2.25e+7
