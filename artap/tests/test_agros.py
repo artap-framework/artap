@@ -1,4 +1,5 @@
 import unittest
+import sys
 import math
 
 from artap.problem import Problem
@@ -150,6 +151,7 @@ class AgrosProblem(Problem):
 
 class TestAgrosOptimization(unittest.TestCase):
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
     def test_agros_exec(self):
         problem = AgrosProblem()
         algorithm = NLopt(problem)
