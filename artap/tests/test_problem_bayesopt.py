@@ -1,4 +1,5 @@
 import unittest
+import sys
 
 from artap.problem import Problem
 from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
@@ -34,6 +35,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         optimum = results.find_minimum(name='F')
         self.assertAlmostEqual(optimum.costs[0], 0, places=2)
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
     def test_local_problem_bayesopt_serial(self):
         problem = MyProblem()
         algorithm = BayesOptSerial(problem)
