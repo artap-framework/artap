@@ -1,33 +1,29 @@
 import math
 
 from artap.problem import Problem
+from artap.individual import Individual
 from artap.results import Results
-from artap.algorithm_nlopt import NLopt, LN_BOBYQA
-from artap.algorithm_bayesopt import BayesOptSerial
-import sys
-import os
+from artap.algorithm_nlopt import NLopt
+from artap.algorithm_nlopt import LN_BOBYQA
 
-old_path = os.getcwd()
-os.chdir("../../3rdparty/agros/")
-old_path = os.getcwd()
-print(os.getcwd())
-from agrossuite import agros
+from agrossuite import agros as a2d
 
-os.chdir(old_path)
+class AgrosProblem(Problem):
 
+    def set(self):
+        self.name = "agros problem"
+        self.working_dir = "team_22/"
+        self.parameters = [{'name': 'R2', 'initial_value': 3.0, 'bounds': [2.6, 3.4]},
+                           {'name': 'h2', 'initial_value': 1.0, 'bounds': [0.408, 2.2]},
+                           {'name': 'd2', 'initial_value': 0.3, 'bounds': [0.1, 0.4]}]
 
-class TestProblem(Problem):
-    def __init__(self, name):
-        parameters = [{'name': 'R2', 'initial_value': 3.0, 'bounds': [2.6, 3.4]},
-                      {'name': 'h2', 'initial_value': 1.0, 'bounds': [0.408, 2.2]},
-                      {'name': 'd2', 'initial_value': 0.3, 'bounds': [0.1, 0.4]}]
-        costs = [{'name': 'F'}]
+        self.costs = [{'name': 'F', 'criteria': 'minimize', 'weight': 0}]
+        self.options['save_level'] = "individual"
 
-        super().__init__(name, parameters, costs)
-
-    def evaluate(self, x: list):
+    def evaluate(self, individual: Individual):
         # problem
-        problem = agros.problem(clear=True)
+        x = individual.vector
+        problem = a2d.problem(clear=True)
         problem.coordinate_type = "axisymmetric"
         problem.mesh_type = "triangle"
         problem.parameters["J1"] = 2.25e+7
@@ -121,40 +117,38 @@ class TestProblem(Problem):
 
         solution = computation.solution("magnetic")
 
-        B00 = solution.local_values(0, 10)["Br"]
-        B01 = solution.local_values(1, 10)["Br"]
-        B02 = solution.local_values(2, 10)["Br"]
-        B03 = solution.local_values(3, 10)["Br"]
-        B04 = solution.local_values(4, 10)["Br"]
-        B05 = solution.local_values(5, 10)["Br"]
-        B06 = solution.local_values(6, 10)["Br"]
-        B07 = solution.local_values(7, 10)["Br"]
-        B08 = solution.local_values(8, 10)["Br"]
-        B09 = solution.local_values(9, 10)["Br"]
+        B00 = solution.local_values( 0, 10)["Br"]
+        B01 = solution.local_values( 1, 10)["Br"]
+        B02 = solution.local_values( 2, 10)["Br"]
+        B03 = solution.local_values( 3, 10)["Br"]
+        B04 = solution.local_values( 4, 10)["Br"]
+        B05 = solution.local_values( 5, 10)["Br"]
+        B06 = solution.local_values( 6, 10)["Br"]
+        B07 = solution.local_values( 7, 10)["Br"]
+        B08 = solution.local_values( 8, 10)["Br"]
+        B09 = solution.local_values( 9, 10)["Br"]
         B10 = solution.local_values(10, 10)["Br"]
         B11 = solution.local_values(10, 10)["Br"]
-        B12 = solution.local_values(10, 9)["Br"]
-        B13 = solution.local_values(10, 8)["Br"]
-        B14 = solution.local_values(10, 7)["Br"]
-        B15 = solution.local_values(10, 6)["Br"]
-        B16 = solution.local_values(10, 5)["Br"]
-        B17 = solution.local_values(10, 4)["Br"]
-        B18 = solution.local_values(10, 3)["Br"]
-        B19 = solution.local_values(10, 2)["Br"]
-        B20 = solution.local_values(10, 1)["Br"]
-        B21 = solution.local_values(10, 0)["Br"]
+        B12 = solution.local_values(10,  9)["Br"]
+        B13 = solution.local_values(10,  8)["Br"]
+        B14 = solution.local_values(10,  7)["Br"]
+        B15 = solution.local_values(10,  6)["Br"]
+        B16 = solution.local_values(10,  5)["Br"]
+        B17 = solution.local_values(10,  4)["Br"]
+        B18 = solution.local_values(10,  3)["Br"]
+        B19 = solution.local_values(10,  2)["Br"]
+        B20 = solution.local_values(10,  1)["Br"]
+        B21 = solution.local_values(10,  0)["Br"]
 
         Wm = solution.volume_integrals()["Wm"]
 
-        of = (
-                     B00 ** 2 + B01 ** 2 + B02 ** 2 + B03 ** 2 + B04 ** 2 + B05 ** 2 + B06 ** 2 + B07 ** 2 + B08 ** 2 + B09 ** 2 + B10 ** 2 + B11 ** 2 + B12 ** 2 + B13 ** 2 + B14 ** 2 + B15 ** 2 + B16 ** 2 + B17 ** 2 + B18 ** 2 + B19 ** 2 + B20 ** 2 + B21 ** 2) / 22 / 9e-6 + math.fabs(
-            2 * Wm - 180e6) / 180e6
+        of = (B00**2 + B01**2 + B02**2 + B03**2 + B04**2 + B05**2 + B06**2 + B07**2 + B08**2 + B09**2 + B10**2 + B11**2 + B12**2 + B13**2 + B14**2 + B15**2 + B16**2 + B17**2 + B18**2 + B19**2 + B20**2 + B21**2)/22/9e-6 + math.fabs(2*Wm - 180e6) / 180e6
 
         return [of]
 
 
 def bobyqa():
-    problem = TestProblem("AgrosProblem")
+    problem = AgrosProblem()
     algorithm = NLopt(problem)
     algorithm.options['n_iterations'] = 10
     algorithm.options['algorithm'] = LN_BOBYQA
@@ -166,17 +160,4 @@ def bobyqa():
     print(optimum)
 
 
-def bayesopt():
-    problem = TestProblem("AgrosProblem")
-    algorithm = BayesOptSerial(problem)
-    algorithm.options['n_iterations'] = 20
-    algorithm.options['verbose_level'] = 1
-    algorithm.run()
-
-    results = Results(problem)
-    optimum = results.find_minimum('F')
-    print(optimum)
-
-
 bobyqa()
-# bayesopt()
