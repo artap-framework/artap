@@ -9,7 +9,7 @@ import time
 
 class PSO(GeneticAlgorithm):
 
-    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
+    def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
         self.mutator = SwarmMutation(self.problem.parameters)
