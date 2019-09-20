@@ -3,7 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results, GraphicalResults
+from artap.results import Results
 
 # import optproblems as optp
 # import optproblems.cec2005 as cec2005
@@ -45,9 +45,6 @@ class TestNSGA2Optimization(unittest.TestCase):
         b = Results(problem)
         solution = b.pareto_values()
         wrong = 0
-
-        c = GraphicalResults(problem)
-        c.plot_populations()
 
         for sol in solution:
             if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \

@@ -36,8 +36,15 @@ class JobSimple(Job):
             individual.feasible = sum(map(abs, constraints))
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
-        individual.costs = self.problem.surrogate.evaluate(individual)
-        # self.problem.surrogate.evaluate(individual)
+        try:
+            individual.costs = self.problem.surrogate.evaluate(individual)
+            # self.problem.surrogate.evaluate(individual)
+
+            individual.state = individual.State.EVALUATED
+
+        except (TimeoutError, RuntimeError) as e:
+            # individual.vector = VectorAndNumbers.gen_vector(self.problem.parameters)
+            individual.state = Individual.State.FAILED
 
         # add to population
         if self.population is not None:
@@ -46,8 +53,6 @@ class JobSimple(Job):
         # write to datastore
         if self.problem.options["save_level"] == "individual":
             self.problem.data_store.write_individual(individual)
-
-        individual.is_evaluated = True
 
 
 class JobQueue(Job):
@@ -70,21 +75,19 @@ class JobQueue(Job):
         else:
             individual = Individual(x)
         """
-        while not individual_local.is_evaluated:
-            # check the constraints
-            constraints = self.problem.evaluate_constraints(individual)
+        # check the constraints
+        constraints = self.problem.evaluate_constraints(individual)
 
-            if constraints:
-                individual_local.feasible = sum(map(abs, constraints))
+        if constraints:
+            individual_local.feasible = sum(map(abs, constraints))
 
-            # problem cost function evaluate only in that case when the problem is fits the constraints
-            try:
-                individual_local.costs = self.problem.surrogate.evaluate(individual)
-            except TimeoutError:
-                individual_local.vector = VectorAndNumbers.gen_vector(self.problem.parameters)
-                continue
-
-            individual_local.is_evaluated = True
+        # problem cost function evaluate only in that case when the problem is fits the constraints
+        try:
+            individual_local.costs = self.problem.surrogate.evaluate(individual)
+            individual_local.state = Individual.State.EVALUATED
+        except (TimeoutError, RuntimeError) as e:
+            # individual_local.vector = VectorAndNumbers.gen_vector(self.problem.parameters)
+            individual_local.state = Individual.State.FAILED
 
         if self.queue is not None:
             self.queue.put(individual_local)
