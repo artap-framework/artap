@@ -5,7 +5,6 @@ import os
 import datetime
 import time
 import ntpath
-import enum
 from string import Template
 from xml.dom import minidom
 from artap.environment import Enviroment
@@ -103,7 +102,7 @@ class LocalComsolExecutor(Executor):
         output_files = []
         for file in self.output_files:
             output_files.append(self.problem.working_dir + file)
-        result = self.parse_results(output_files)
+        result = self.parse_results(output_files, individual)
         return result
 
     @staticmethod
@@ -406,7 +405,7 @@ class CondorJobExecutor(RemoteExecutor):
                         self._run_command_on_remote("condor_rm {}".format(process_id),
                                                     remote_dir=remote_dir, client=client)
                         # TODO: abort computation - no success?
-                        assert 0
+                        raise RuntimeError
 
                     end = time.time()
                     if (end - start) > self.problem.options["time_out"]:
