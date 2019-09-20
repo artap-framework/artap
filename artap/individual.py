@@ -1,6 +1,6 @@
 from abc import *
-
 from random import uniform
+from enum import Enum
 
 
 class Individual(metaclass=ABCMeta):
@@ -8,10 +8,15 @@ class Individual(metaclass=ABCMeta):
        Collects information about one point in design space.
     """
 
+    class State(Enum):
+        EMPTY = 0
+        EVALUATED = 1
+        FAILED = 2
+
     def __init__(self, vector: list):
         self.vector = vector.copy()
         self.costs = []
-        self.is_evaluated = False
+        self.state = self.State.EMPTY
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
@@ -42,7 +47,7 @@ class Individual(metaclass=ABCMeta):
     def sync(self, individual):
         self.vector = individual.vector
         self.costs = individual.costs
-        self.is_evaluated = individual.is_evaluated
+        self.state = individual.state
 
     # deprecated
     # def to_list(self):
