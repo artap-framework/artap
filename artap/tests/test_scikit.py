@@ -10,20 +10,11 @@ from artap.algorithm_genetic import NSGAII
 from artap.algorithm_sweep import SweepAlgorithm
 from artap.benchmark_functions import Booth
 from artap.results import Results
-from artap.operators import CustomGeneration, LHSGeneration
-from artap.surrogate import SurrogateModelRegressor
+from artap.operators import LHSGeneration
+from artap.surrogate_scikit import SurrogateModelScikit
 
-# from sklearn.svm import SVR
-# from sklearn.neural_network import MLPRegressor
-# from sklearn.linear_model import BayesianRidge
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor, ExtraTreesRegressor
-# from sklearn.kernel_ridge import KernelRidge
-# from sklearn.model_selection import GridSearchCV
-# from sklearn.neighbors import KNeighborsRegressor
-# from sklearn.gaussian_process import GaussianProcessRegressor
-# from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, WhiteKernel, ConstantKernel,
-# RationalQuadratic, ExpSineSquared
+from sklearn.ensemble import ExtraTreesRegressor
 
 
 class MyProblemCoil(Problem):
@@ -233,7 +224,7 @@ class TestSimpleOptimization(unittest.TestCase):
     def xtest_local_problem_booth(self):
         problem = MyProblemBooth("MyProblemBooth")
 
-        problem.surrogate = SurrogateModelRegressor(problem)
+        problem.surrogate = SurrogateModelScikit(problem)
         #kernel = 1.0 * RationalQuadratic(length_scale=1.0, alpha=0.1)
         #problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel)
         #problem.surrogate.has_epsilon = True
@@ -278,7 +269,7 @@ class TestSimpleOptimization(unittest.TestCase):
         for kernel in kernels:
             print(kernel)
 
-            problem.surrogate = SurrogateModelRegressor(problem)
+            problem.surrogate = SurrogateModelScikit(problem)
             # problem.surrogate.regressor = GaussianProcessRegressor(kernel=kernel)
             # set threshold
             problem.surrogate.sigma_threshold = 0.1
@@ -297,7 +288,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem = MyProblemCoilOne("MyProblemCoilOne")
 
         # enable surrogate
-        problem.surrogate = SurrogateModelRegressor(problem)
+        problem.surrogate = SurrogateModelScikit(problem)
         problem.surrogate.regressor = DecisionTreeRegressor()
         problem.surrogate.train_step = 30
         problem.surrogate.score_threshold = 0.0

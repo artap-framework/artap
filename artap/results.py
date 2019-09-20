@@ -23,8 +23,16 @@ class Results:
 
         try:
             # try costs
-            ind = list(self.problem.costs.keys()).index(name)
-            val = individual.costs[ind]
+            # get the index of the required parameter
+            index = 0  # default - one parameter
+            for i in range(len(self.problem.costs)):
+                cost = self.problem.costs[i]
+                if cost['name'] == name:
+                    index = i
+                    break
+
+            # ind = list(self.problem.costs.keys()).index(name)
+            val = individual.costs[index]
         except ValueError:
             # try parameters
             ind = list(self.problem.parameters.keys()).index(name)
@@ -51,10 +59,11 @@ class Results:
         #if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
         #else:
-        if self.problem.data_store.populations[-1].archives is not None:
-            min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
-        else:
+        if len(self.problem.data_store.populations[-1].archives) > 0:
             min_l = [min(self.problem.data_store.populations[-1].archives, key=lambda x: x.costs[index])]
+        else:
+            if len(self.problem.data_store.populations[-1].individuals) is not 0:
+                min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
         # for population in self.problem.data_store.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
@@ -98,6 +107,19 @@ class Results:
                     l_sol.append(individual.costs)
         return l_sol
 
+    def parameters(self):
+        out = []
+        for population in self.problem.data_store.populations:
+            for individual in population.individuals:
+                out.append(individual.vector)
+        return out
+
+    def costs(self):
+        out = []
+        for population in self.problem.data_store.populations:
+            for individual in population.individuals:
+                out.append(individual.costs)
+        return out
 
 class GraphicalResults(Results):
 
@@ -140,7 +162,14 @@ class GraphicalResults(Results):
         ax = pl.gca()
         # ax.set_yscale('log')
         # ax.set_xscale('log')
-        # ax.set_xlim(1e-2, 1e1)
+        #ax.set_xlim(-1.5, -0.9)
+        #ax.set_ylim(0.3, 0.8)
+        #ax.set_xlim(0.00000, 0.0004)
+        #ax.set_ylim(50, 200)
+        #ax.set_xlim(0.00000, 0.001)
+        #ax.set_ylim(60, 300)
+        ax.set_xlim(0.00000, 0.00125)
+        ax.set_ylim(-0.00001, 0.0002)
 
         # labels
         pl.grid()
@@ -241,6 +270,7 @@ class GraphicalResults(Results):
         pl.grid()
         pl.xlabel("$N$")
         pl.ylabel("${}$".format(name))
+        # pl.ylim(0, 0.0003)
 
         if filename is not None:
             pl.savefig(filename)
