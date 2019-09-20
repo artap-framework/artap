@@ -225,7 +225,7 @@ class ConfigDictionary(object):
 
 class VectorAndNumbers:
     @classmethod
-    def gen_number(cls, bounds=None, precision=0, distribution="uniform"):
+    def gen_number(cls, bounds=None, precision=0, distribution="uniform", p_type="real"):
 
         number = 0
         if bounds is None:
@@ -242,6 +242,9 @@ class VectorAndNumbers:
             mean = (bounds[0] + bounds[1]) / 2
             std = (bounds[1] - bounds[0]) / 6
             number = normal(mean, std)
+
+        if p_type == "integer":
+            number = int(number)
 
         return number
 
@@ -261,16 +264,21 @@ class VectorAndNumbers:
             else:
                 precision = parameter['precision']
 
+            if not ('parameter_type' in parameter):
+                p_type = "real"
+            else:
+                p_type = parameter['parameter_type']
+
             if (precision is None) and (bounds is None):
-                parameters_vector.append(cls.gen_number())
+                parameters_vector.append(cls.gen_number(p_type=p_type))
                 continue
 
             if precision is None:
-                parameters_vector.append(cls.gen_number(bounds=bounds))
+                parameters_vector.append(cls.gen_number(bounds=bounds, p_type=p_type))
                 continue
 
             if bounds is None:
-                parameters_vector.append(cls.gen_number(precision=precision))
+                parameters_vector.append(cls.gen_number(precision=precision, p_type=p_type))
                 continue
 
             parameters_vector.append(cls.gen_number(bounds, precision))

@@ -1,5 +1,4 @@
 import sqlite3
-import shelve
 import os
 import json
 import time
@@ -105,7 +104,7 @@ class DataStore:
     def get_id(self):
         return 0
 
-
+"""
 class SqliteDataStore(DataStore):
     def __init__(self, problem, database_name=None, remove_existing=True):
         super().__init__(problem)
@@ -364,26 +363,55 @@ class SqliteDataStore(DataStore):
                 self.populations.append(population)
                 population = Population()
                 current_population = row[1]
-
+"""
 
 class FileDataStore(DataStore):
 
-    def __init__(self, problem, database_name=None, remove_existing=True, mode="write"):
+    def __init__(self, problem, database_name=None, remove_existing=True, mode="write", backend="shelve"):
         super().__init__(problem)
 
         self.database_name = database_name
 
-        if mode == "write":
-            if remove_existing:
-                if os.path.exists(self.database_name):
-                    os.remove(self.database_name)
-            self.db = shelve.open(self.database_name, flag='c', writeback=True)
-            # remove database and create structure
-            if remove_existing and os.path.exists(self.database_name):
-                self.create_structure()
+        if remove_existing and mode == "write":
+            if os.path.exists(self.database_name):
+                os.remove(self.database_name)
+
+        if backend == "shelve":
+            import shelve
+
+            if mode == "write":
+                self.db = shelve.open(self.database_name, flag='c', writeback=True)
+                # remove database and create structure
+                if remove_existing and os.path.exists(self.database_name):
+                    self.create_structure()
+            else:
+                self.db = shelve.open(self.database_name, flag='r')
+                self.read_from_datastore()
+        elif backend == "diskcache":
+            import diskcache
+
+            self.db = diskcache.Cache(directory=self.database_name)
+            if mode == "write":
+                # remove database and create structure
+                if remove_existing and os.path.exists(self.database_name):
+                    self.create_structure()
+            else:
+                self.read_from_datastore()
+        elif backend == "sqlitedict":
+            from .environment import Enviroment
+            import sys
+            sys.path.append(Enviroment.artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict")
+            from sqlitedict import SqliteDict
+
+            self.db = SqliteDict(self.database_name, autocommit=True)
+            if mode == "write":
+                # remove database and create structure
+                if remove_existing and os.path.exists(self.database_name):
+                    self.create_structure()
+            else:
+                self.read_from_datastore()
         else:
-            self.db = shelve.open(self.database_name, flag='r')
-            self.read_from_datastore()
+            assert 1
 
         # set datastore to problem
         self.problem.data_store = self
@@ -406,19 +434,25 @@ class FileDataStore(DataStore):
         # TODO: check this hack
         populations = self.db["populations"]
         if len(populations) == 0:
-            self.db["populations"].append(Population())
+            populations.append(Population())
+            self.db["populations"] = populations
 
         # add individual
-        self.db["populations"][-1].individuals.append(individual)
-        self.db.sync()
+        populations = self.db["populations"]
+        populations[-1].individuals.append(individual)
+        self.db["populations"] = populations
+        # self.db["populations"][-1].append(individual)
+        # self.db.sync()
 
     def write_population(self, population):
         super().write_population(population)
 
         # write to database
-        self.db["populations"].append(population)
-        # self.db["populations"] = self.populations
-        self.db.sync()
+        populations = self.db["populations"]
+        populations.append(Population())
+        self.db["populations"] = populations
+        # self.db["populations"].append(population)
+        # self.db.sync()
 
     def read_from_datastore(self):
         self.problem.name = self.db["name"]
