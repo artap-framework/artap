@@ -33,7 +33,8 @@ setuptools.setup(
                       'sklearn',
                       "paramiko",
                       'matplotlib',
-                      'optproblems'],
+                      'optproblems',
+                      'smt'],
     scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",

@@ -1,4 +1,5 @@
 import unittest
+import sys
 import math
 
 from artap.problem import Problem
@@ -7,8 +8,7 @@ from artap.results import Results
 from artap.algorithm_nlopt import NLopt
 from artap.algorithm_nlopt import LN_BOBYQA
 
-from agrossuite import agros
-
+from agrossuite import agros as a2d
 
 class AgrosProblem(Problem):
 
@@ -25,7 +25,7 @@ class AgrosProblem(Problem):
     def evaluate(self, individual: Individual):
         # problem
         x = individual.vector
-        problem = agros.problem(clear=True)
+        problem = a2d.problem(clear=True)
         problem.coordinate_type = "axisymmetric"
         problem.mesh_type = "triangle"
         problem.parameters["J1"] = 2.25e+7
@@ -151,6 +151,7 @@ class AgrosProblem(Problem):
 
 class TestAgrosOptimization(unittest.TestCase):
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
     def test_agros_exec(self):
         problem = AgrosProblem()
         algorithm = NLopt(problem)
