@@ -2,6 +2,7 @@ from .problem import Problem
 from .utils import ConfigDictionary
 from .job import JobSimple
 from .population import Population
+from .individual import Individual
 
 from abc import ABCMeta, abstractmethod
 import numpy as np
@@ -51,11 +52,16 @@ class Algorithm(metaclass=ABCMeta):
             self.evaluate_parallel(individuals)
         else:
             self.evaluate_serial(individuals)
+        n_failed = 0
+        for individual in individuals:
+            if individual.state == Individual.State.FAILED:
+                n_failed += 1
+                individuals.remove(individual)
 
     def evaluate_serial(self, individuals: list):
         job = JobSimple(self.problem)
         for individual in individuals:
-            if not individual.is_evaluated:
+            if individual.state == Individual.State.EMPTY:
                 job.evaluate(individual)
 
     def evaluate_parallel(self, individuals: list):
@@ -63,6 +69,8 @@ class Algorithm(metaclass=ABCMeta):
         job = JobSimple(self.problem)
         Parallel(n_jobs=self.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
                                                                                        for individual in individuals)
+
+
 
         """
         manager = Manager()
