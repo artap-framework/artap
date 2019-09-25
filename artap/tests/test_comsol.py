@@ -22,9 +22,10 @@ class ComsolProblem(Problem):
                                             output_files=self.output_files)
 
     def evaluate(self, individual):
+        individual.dep_param = 0
         return self.executor.eval(individual)
 
-    def parse_results(self, output_files):
+    def parse_results(self, output_files, individual):
         output_file = output_files[0]
         path = output_file
         content = ""
