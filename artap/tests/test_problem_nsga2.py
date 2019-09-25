@@ -3,7 +3,7 @@ import unittest
 from artap.problem import Problem
 from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results, GraphicalResults
+from artap.results import Results
 
 # import optproblems as optp
 # import optproblems.cec2005 as cec2005
@@ -31,6 +31,29 @@ class BinhAndKornProblem(Problem):
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
+<<<<<<< HEAD
+    def test_local_problem_nsga2(self):
+
+        problem = BinhAndKornProblem()
+
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 50
+        algorithm.options['max_population_size'] = 200
+        algorithm.options['calculate_gradients'] = True
+        algorithm.options['verbose_level'] = 1
+
+        algorithm.run()
+        b = Results(problem)
+        solution = b.pareto_values()
+        wrong = 0
+
+        for sol in solution:
+            if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
+                    and 20 < sol[0] < 70:
+                wrong += 1
+
+        self.assertLessEqual(wrong, 5)
+=======
     def test_local_problem_nsga2(self, population_number=5):
         try:
             problem = BinhAndKornProblem()
@@ -58,6 +81,7 @@ class TestNSGA2Optimization(unittest.TestCase):
             # stochastic
             print("TestNSGA2Optimization::test_local_problem_nsga2", population_number)
             self.test_local_problem_nsga2(int(1.5 * population_number))
+>>>>>>> 67d613f4a3d65887d47051fb5e17913667e32fa5
 
 
 class AckleyN2Test(Problem):
