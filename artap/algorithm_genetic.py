@@ -153,8 +153,8 @@ class NSGAII(GeneticAlgorithm):
             self.selector.sorting(offsprings)
             self.selector.crowding_distance(offsprings)
 
-            # sort offsprings
-            parents = sorted(offsprings, key=lambda x: (x.front_number, -x.crowding_distance))
+            # sort offsprings and ### remove duplicates by set!!!
+            parents = sorted(set(offsprings), key=lambda x: (x.front_number, -x.crowding_distance))
 
             # truncate
             offsprings = parents[:self.population_size]
@@ -239,14 +239,14 @@ class EpsMOEA(GeneticAlgorithm):
             self.selector.sorting(child)
             Selector_Pareto.crowding_distance(child)
 
-            parents = sorted(child, key=lambda x: (x.front_number, -x.crowding_distance))
+            parents = sorted(set(child), key=lambda x: (x.front_number, -x.crowding_distance))
             child = parents[:self.population_size]  # truncate
 
             # eps dominated truncate on the guys
             Selector_EpsDom.sorting(arch_child)
             Selector_EpsDom.crowding_distance(arch_child)
 
-            arch_parents = sorted(arch_child, key=lambda x: (x.front_number, -x.crowding_distance))
+            arch_parents = sorted(set(arch_child), key=lambda x: (x.front_number, -x.crowding_distance))
             arch_child = arch_parents[:self.population_size]  # truncate
 
             # write population
