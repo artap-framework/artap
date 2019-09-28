@@ -31,8 +31,7 @@ class BinhAndKornProblem(Problem):
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-<<<<<<< HEAD
-    def test_local_problem_nsga2(self):
+   def test_local_problem_nsga2(self):
 
         problem = BinhAndKornProblem()
 
