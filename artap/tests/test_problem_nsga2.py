@@ -5,15 +5,14 @@ from artap.benchmark_functions import BinhAndKorn, AckleyN2
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
-# import optproblems as optp
-# import optproblems.cec2005 as cec2005
-# import optproblems.dtlz as dtlz
-
-# from math import pi
+import optproblems as optp
+import optproblems.cec2005 as cec2005
+#import optproblems.dtlz as dtlz
 
 
 class BinhAndKornProblem(Problem):
     """ Describe simple one objective optimization problem. """
+
     def set(self):
         self.name = "TestNSGA2Optimization"
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
@@ -31,7 +30,7 @@ class BinhAndKornProblem(Problem):
 class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-   def test_local_problem_nsga2(self):
+    def test_local_problem_nsga2(self):
 
         problem = BinhAndKornProblem()
 
@@ -52,7 +51,7 @@ class TestNSGA2Optimization(unittest.TestCase):
                 wrong += 1
 
         self.assertLessEqual(wrong, 5)
-=======
+
     def test_local_problem_nsga2(self, population_number=5):
         try:
             problem = BinhAndKornProblem()
@@ -67,8 +66,8 @@ class TestNSGA2Optimization(unittest.TestCase):
             solution = b.pareto_values()
             wrong = 0
 
-            #c = GraphicalResults(problem)
-            #c.plot_populations()
+            # c = GraphicalResults(problem)
+            # c.plot_populations()
 
             for sol in solution:
                 if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
@@ -80,7 +79,6 @@ class TestNSGA2Optimization(unittest.TestCase):
             # stochastic
             print("TestNSGA2Optimization::test_local_problem_nsga2", population_number)
             self.test_local_problem_nsga2(int(1.5 * population_number))
->>>>>>> 67d613f4a3d65887d47051fb5e17913667e32fa5
 
 
 class AckleyN2Test(Problem):
@@ -115,6 +113,7 @@ class TestAckleyN2(unittest.TestCase):
             # stochastic
             self.test_local_problem(int(1.5 * population_number))
 
+
 #####
 #####
 # class CEC2005_TEST_Problems(Problem):
@@ -144,7 +143,6 @@ class TestAckleyN2(unittest.TestCase):
 #         problem.batch_evaluate(solutions)
 #
 #         return [solutions[0].objective_values]
-
 
 
 # class TestCEC2005(unittest.TestCase):
