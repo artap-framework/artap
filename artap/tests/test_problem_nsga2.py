@@ -1,7 +1,7 @@
 import unittest
 
 from artap.problem import Problem
-from artap.benchmark_functions import BinhAndKorn, AckleyN2
+from artap.benchmark_functions import BinhAndKorn
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
