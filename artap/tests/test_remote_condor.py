@@ -40,7 +40,7 @@ class CondorComsolProblem(Problem):
         self.costs = [{'name': 'F_1'}]
         self.type = ProblemType.comsol
         self.executor = CondorComsolJobExecutor(self, model_file="./data/elstat.mph",
-                                                files_from_condor=["out.txt", "elstat.mph"], )
+                                                files_from_condor=["out.txt", "elstat.mph"])
 
     def evaluate(self, individual):
         return self.executor.eval(individual)
@@ -94,7 +94,7 @@ class PythonInputProblem(Problem):
             content = file.readlines()
         return [float(content[0])]
 
-
+#
 class TestCondor(TestCase):
     """ Tests simple optimization problem where calculation of
         goal function is submitted as a job on HtCondor.
