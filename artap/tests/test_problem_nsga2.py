@@ -1,17 +1,19 @@
 import unittest
 
 from artap.problem import Problem
-from artap.benchmark_functions import BinhAndKorn, AckleyN2
+from artap.benchmark_functions import BinhAndKorn
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
 import optproblems as optp
 import optproblems.cec2005 as cec2005
-#import optproblems.dtlz as dtlz
 
 
 class BinhAndKornProblem(Problem):
-    """ Describe simple one objective optimization problem. """
+    """
+    Describe simple one objective optimization problem.
+    Note: This test is not removed, because its not part of the cec2005 library.
+    """
 
     def set(self):
         self.name = "TestNSGA2Optimization"
@@ -81,165 +83,86 @@ class TestNSGA2Optimization(unittest.TestCase):
             self.test_local_problem_nsga2(int(1.5 * population_number))
 
 
-class AckleyN2Test(Problem):
-    """Test the convergence in a one objective example with a simple 2 variable Ackley N2 formula"""
+class CEC2005_TEST_Problems(Problem):
+    """
+    Template class to initialize the different test problems these problems working for 2, 10, 30 variables.
+
+    There are 25 test problems, which were compiled for the Special Session on Real-Parameter Optimization at the
+    Congress on Evolutionary Computation (CEC), Edinburgh, UK, 2-5 Sept. 2005. The mathematical definitions are given in
+    [Suganthan2005]. Additionally, implementations in C, Java, and Matlab were provided for the participants.
+    Artap uses the optproblems test library to run these test. This template class is made to invoke them.
+    """
 
     def set(self):
-        self.name = "TestAckleyN2"
-        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-32, 32]},
-                           {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-32, 32]}]
-        self.costs = [{'name': 'F_1', 'criteria': 'minimize'}]
+        # two variables
+        self.parameters = [{'name': 'x_1', 'bounds': [func.min_bounds[0], func.max_bounds[0]]},
+                           {'name': 'x_2', 'bounds': [func.min_bounds[1], func.max_bounds[1]]}]
 
-    def evaluate(self, individual):
-        function = AckleyN2()
-        return [function.eval(individual.vector)]
+        self.costs = [{'name':'F_1'}]
 
 
-class TestAckleyN2(unittest.TestCase):
-    """ Tests that the NSGA II algorithm can find the global optimum of a function."""
+    def evaluate(self, x):
+        problem = optp.Problem(func, num_objectives=1)
+        solutions = [optp.Individual(x.vector)]
 
-    def test_local_problem(self, population_number=20):
-        try:
-            problem = AckleyN2Test()
-            algorithm = NSGAII(problem)
-            algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 100
-            algorithm.run()
+        problem.batch_evaluate(solutions)
 
-            b = Results(problem)
-            optimum = b.find_minimum('F_1')  # Takes last cost function
-            self.assertAlmostEqual(optimum.costs[0], -200, 0)
-        except AssertionError:
-            # stochastic
-            self.test_local_problem(int(1.5 * population_number))
+        return [solutions[0].objective_values]
 
 
-#####
-#####
-# class CEC2005_TEST_Problems(Problem):
-#
-#     # these problems working for 2, 10, 30 variables in every case
-#
-#     def __init__(self, name, test_function, ub, lb):
-#
-#         #ub = 100
-#         #lb = -100
-#
-#         parameters = {'x_1', 'initial_value': 2.5, 'bounds': [lb, ub]},
-#                       'x_2', 'initial_value': 2.5, 'bounds': [lb, ub]}}
-#
-#         costs = ['F_1']
-#         self.function = test_function(2)
-#
-#         super().__init__(name, parameters, costs)
-#
-#
-#     def evaluate(self, x):
-#
-#         #function = optp.cec2005.F1(2)
-#         problem = optp.Problem(self.function, num_objectives = 1)
-#         solutions = [optp.Individual(x)]
-#
-#         problem.batch_evaluate(solutions)
-#
-#         return [solutions[0].objective_values]
+class TestCEC2005(unittest.TestCase):
+    """Tests from CEC2005 library"""
 
+    def run_test_problem(self, nr_gen, function):
+        global func
+        func = function
+        problem = CEC2005_TEST_Problems()
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = nr_gen
+        algorithm.options['max_population_size'] = 100
+        algorithm.run()
 
-# class TestCEC2005(unittest.TestCase):
-#     """ Tests that the NSGA II algorithm can find the global optimum of a function."""
-#
-#     def run_test_problem(self, method, ub, lb, gen_nr):
-#         problem = CEC2005_TEST_Problems("CEC2005",method, ub, lb)
-#         algorithm = NSGAII(problem)
-#         algorithm.options['max_population_number'] = gen_nr
-#         algorithm.options['max_population_size'] = 100
-#         algorithm.run()
-#
-#         b = Results(problem)
-#         optimum = b.find_minimum('F_1')  # Takes last cost function
-#         self.assertAlmostEqual(optimum.costs[0], method.bias, 0)
-#
-#     # unimodal problems
-#
-#     def test_shifted_sphere(self):
-#         self.run_test_problem(optp.cec2005.F1, 100, -100, 100)
-#
-#     def test_shifted_double_sum(self):
-#         self.run_test_problem(optp.cec2005.F2, 100, -100, 100)
-#
-#     # def test_shifted_rotated_elliptic(self): # wrong with platypus also
-#     #     self.run_test_problem(optp.cec2005.F3, 100, -100, 10000)
-#     #
-#     #def test_shifted_schwefel(self): # wrong with platypus also
-#     #    self.run_test_problem(optp.cec2005.F4, 100, -100, 10000)
-#
-#     def test_schwefel(self): # !
-#         self.run_test_problem(optp.cec2005.F5, 100, -100, 100)
-#
-#     def test_shifted_rosenbrock(self):
-#         self.run_test_problem(optp.cec2005.F6, 100, -100, 1000)
-#
-#     # multimodal problems
-#     #def test_shifted_rot_griewank(self):
-#     #    self.run_test_problem(optp.cec2005.F7, 100, -100, 10000)
-#
-#     #def test_shifted_rot_ackley(self):
-#     #    self.run_test_problem(optp.cec2005.F8, 32, -32, 100)
-#
-#     def test_shifted_rastrigin(self):
-#         self.run_test_problem(optp.cec2005.F9, 5, -5, 100)
-#
-#     def test_shifted_rot_rastrigin(self):
-#         self.run_test_problem(optp.cec2005.F10, 5, -5, 1000)
-#
-#     def test_shifted_rot_weierstrass(self):
-#         self.run_test_problem(optp.cec2005.F11, 0.5, -0.5, 100)
-#
-#     def test_fletcherpowell(self): #schwefel
-#         self.run_test_problem(optp.cec2005.F12, pi, -pi, 100)
-#
-#     def test_f8f2(self):
-#         self.run_test_problem(optp.cec2005.F13, 1, -3, 100)
-#
-#     def test_expanded_f6(self):
-#         self.run_test_problem(optp.cec2005.F14, 100, -100, 100)
-#
-#     #####
-#     def test_hybrid_composition(self):
-#         self.run_test_problem(optp.cec2005.F15, 5, -5, 100)
-#
-#     def test_rotated_f15(self):
-#         self.run_test_problem(optp.cec2005.F16, 5, -5, 100)
-#
-#     def test_f16_with_noise(self):
-#         self.run_test_problem(optp.cec2005.F17, 5, -5, 250)
-#
-#     # def test_rot_hybrid_function(self):
-#     #     self.run_test_problem(optp.cec2005.F18, 5, -5, 1000)
-#     #
-#     # def test_rot_hybrid_function_2(self):
-#     #     self.run_test_problem(optp.cec2005.F19, 5, -5, 1000)
-#     #
-#     # def test_rot_hybrid_function_3(self):
-#     #     self.run_test_problem(optp.cec2005.F20, 5, -5, 1000)
-#     #
-#     # def test_rot_hybrid_function_4(self):
-#     #     self.run_test_problem(optp.cec2005.F21, 5, -5, 1000)
-#     #
-#     # def test_rot_hybrid_function_5(self):
-#     #     self.run_test_problem(optp.cec2005.F22, 5, -5, 1000)
-#     #
-#     # def test_rot_hybrid_function_6(self):
-#     #     self.run_test_problem(optp.cec2005.F23, 5, -5, 1000)
-#     #
-#     # def test_rot_hybrid_function_7(self):
-#     #     self.run_test_problem(optp.cec2005.F24, 5, -5, 1000)
-#     #
-#     # def test_rot_hybrid_function_wo_bounds(self):
-#     #     self.run_test_problem(optp.cec2005.F25, 100, -100, 100)
-#
+        b = Results(problem)
+        optimum = b.find_minimum('F_1')  # Takes last cost function
+        self.assertAlmostEqual(optimum.costs[0], func.bias, 0)
+        del func
 
-#####
+    def test_shifted_sphere(self):
+        self.run_test_problem(50, optp.cec2005.F1(2))
+
+    def test_shifted_double_sum(self):
+        self.run_test_problem(50, optp.cec2005.F2(2))
+
+    def test_schwefel(self):  # !
+        self.run_test_problem(100, optp.cec2005.F5(2))
+
+    def test_shifted_rosenbrock(self):
+        self.run_test_problem(100, optp.cec2005.F6(2))
+
+    def test_shifted_rastrigin(self):
+        self.run_test_problem(100, optp.cec2005.F9(2))
+
+    def test_shifted_rot_weierstrass(self):
+        self.run_test_problem(100, optp.cec2005.F11(2))
+
+    def test_fletcherpowell(self):  # schwefel
+        self.run_test_problem(100, optp.cec2005.F12(2))
+
+    def test_f8f2(self):
+        self.run_test_problem(100, optp.cec2005.F13(2))
+
+    def test_expanded_f6(self):
+        self.run_test_problem(100, optp.cec2005.F14(2))
+
+    def test_hybrid_composition(self):
+        self.run_test_problem(100, optp.cec2005.F15(2))
+
+    def test_rotated_f15(self):
+        self.run_test_problem(100, optp.cec2005.F16(2))
+
+    def test_f17_with_noise(self):
+        self.run_test_problem(250, optp.cec2005.F17(2))
+
 
 if __name__ == '__main__':
     unittest.main()
