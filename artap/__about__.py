@@ -1,4 +1,4 @@
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 __author__ = u"Artap Team"
 __author_email__ = "artap.team@gmail.com"
 __copyright__ = u"Copyright (c) 2018-2019, {} <{}>".format(__author__, __author_email__)
