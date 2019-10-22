@@ -90,7 +90,7 @@ class TestCEC2005(unittest.TestCase):
 #        self.run_test_problem(300, optp.cec2005.F16(2))
 
     def test_f17_with_noise(self):
-        self.run_test_problem(1000, optp.cec2005.F17(2))
+        self.run_test_problem(2000, optp.cec2005.F17(2))
 
 if __name__ == '__main__':
     unittest.main()
