@@ -5,7 +5,7 @@ dash-core-components>=0.43.1
 dash-html-components>=0.13.5
 dash-table>=3.5.0
 sklearn>=0.0
-paramiko
+rpyc
 matplotlib>1.5.1
 optproblems
 smt

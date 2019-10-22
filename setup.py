@@ -31,7 +31,7 @@ setuptools.setup(
                       'dash-html-components>=0.14.0',
                       'dash-table>=3.4.0',
                       'sklearn',
-                      "paramiko",
+                      "rpyc",
                       'matplotlib',
                       'optproblems',
                       'smt'],
