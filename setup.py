@@ -19,7 +19,7 @@ setuptools.setup(
     description="Platform for robust design optimization",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://edison.fel.zcu.cz:444/agros/RDOLab/Artap",
+    url="http://www.agros2d.org/artap/",
     python_requires='>3.6',
     license=about["__license__"],
     data_files=[('artap', ['artap/environment.json']), ('artap/lib', ['artap/lib/bayesopt.so']),
