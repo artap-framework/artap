@@ -4,7 +4,10 @@ from artap.executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, Con
 from artap.problem import Problem, ProblemType
 from artap.population import Population
 from artap.algorithm import DummyAlgorithm
+from artap.individual import Individual
+from artap.algorithm_sweep import SweepAlgorithm
 
+import random
 
 class CondorMatlabProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -21,7 +24,7 @@ class CondorMatlabProblem(Problem):
                                                 files_from_condor=["output.txt"])
 
     def evaluate(self, individual):
-        return self.executor.eval(individual)    # ToDo: could be passed individual?
+        return self.executor.eval(individual)
 
     def parse_results(self, output_files, individual):
         with open(output_files[0]) as file:
@@ -94,7 +97,7 @@ class PythonInputProblem(Problem):
             content = file.readlines()
         return [float(content[0])]
 
-#
+
 class TestCondor(TestCase):
     """ Tests simple optimization problem where calculation of
         goal function is submitted as a job on HtCondor.
@@ -134,6 +137,22 @@ class TestCondor(TestCase):
         evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(5, population.individuals[0].costs[0])
+
+    def xtest_condor_python_exec_full_load(self):
+        problem = PythonExecProblem()
+
+        n = 5
+        individuals = []
+        for i in range(n):
+            individuals.append(Individual([random.randrange(1, 100), random.randrange(1, 100)]))
+
+        algorithm = DummyAlgorithm(problem)
+        algorithm.options['max_processes'] = 5
+        algorithm.evaluate(individuals)
+
+        for i in range(n):
+            print(individuals[i])
+            self.assertEqual(int(individuals[i].costs[0]), individuals[i].vector[0]**2 + individuals[i].vector[1]**2)
 
     def test_condor_python_input(self):
         problem = PythonInputProblem()
