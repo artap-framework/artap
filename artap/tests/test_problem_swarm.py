@@ -54,8 +54,8 @@ class TestCEC2005(unittest.TestCase):
     def test_shifted_sphere(self):
         self.run_test_problem(300, optp.cec2005.F1(2))
 
-    def test_shifted_double_sum(self):
-        self.run_test_problem(500, optp.cec2005.F2(2))
+    #def test_shifted_double_sum(self):
+    #    self.run_test_problem(500, optp.cec2005.F2(2))
 
     #def test_schwefel(self):  # !
     #    self.run_test_problem(400, optp.cec2005.F5(2))
@@ -68,8 +68,8 @@ class TestCEC2005(unittest.TestCase):
     #def test_shifted_griewank(self):
     #    self.run_test_problem(300, optp.cec2005.F7(2))
 
-    def test_shifted_rastrigin(self):
-        self.run_test_problem(300, optp.cec2005.F9(2))
+    #def test_shifted_rastrigin(self):
+    #    self.run_test_problem(300, optp.cec2005.F9(2))
 
     def test_shifted_rot_weierstrass(self):
         self.run_test_problem(300, optp.cec2005.F11(2))
