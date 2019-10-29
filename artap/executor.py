@@ -130,7 +130,7 @@ class RemoteExecutor(Executor):
                              desc='Hostname')
         self.options.declare(name='username', default=Enviroment.ssh_login,
                              desc='Username')
-        self.options.declare(name='port', default=18862, lower=0,
+        self.options.declare(name='port', default=15900, lower=0,
                              desc='Port')
 
         # command
@@ -174,14 +174,14 @@ class RemoteExecutor(Executor):
         source = source_file
         dest = remote_dir + os.sep + destination_file
 
-        upload_file(client, localpath=source, remotepath=client.root.condor_dir + os.sep + dest)
+        upload_file(client, localpath=source, remotepath=client.root.artap_dir + os.sep + dest)
 
     @staticmethod
     def _transfer_file_from_remote(source_file, destination_file, remote_dir, client):
         dest = destination_file
         source = remote_dir + os.sep + source_file
 
-        download_file(client, remotepath=client.root.condor_dir + os.sep + source, localpath=dest)
+        download_file(client, remotepath=client.root.artap_dir + os.sep + source, localpath=dest)
 
     @staticmethod
     def _create_dir_on_remote(directory, client):
