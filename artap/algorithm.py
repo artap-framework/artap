@@ -70,49 +70,6 @@ class Algorithm(metaclass=ABCMeta):
         Parallel(n_jobs=self.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
                                                                                        for individual in individuals)
 
-
-
-        """
-        manager = Manager()
-        processes = []
-        i = 0
-        n = len(individuals)
-        while i < n:
-            j = 0
-            shared_list = manager.list([])
-            queue = Queue()
-            job = JobQueue(self.problem, shared_list, queue)
-            while (j < self.options["max_processes"]) and ((i + j) < n):
-                individual = individuals[i + j]
-                if not individual.is_evaluated:
-                    p = Process(target=job.evaluate, args=(individual,))
-                    processes.append(p)
-                    p.start()
-                    shared_list.append([p.pid, individual])
-                # increment index
-                j += 1
-
-            for process in processes:
-                process.join()
-
-            processes = []
-            i += j
-
-            for item in range(queue.qsize()):
-                local_individual = queue.get()
-                # TODO: rewrite !!! - very slow
-                for individual in individuals:
-                    if local_individual.vector == individual.vector:
-                        # update individual
-                        individual.sync(local_individual)
-
-                        # write to datastore
-                        if self.problem.options["save_level"] == "individual":
-                            self.problem.data_store.write_individual(individual)
-            queue.close()
-            queue.join_thread()
-        """
-
     def evaluate_gradient(self, individuals: list, gradient_individuals: list):
         # Todo: Make operator Gradient consisting of current gradient generator and evaluate_gradient
         # individuals.sort(key=lambda x: abs(x.depends_on))
