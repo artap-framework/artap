@@ -1,4 +1,4 @@
-rom artap.problem import Problem
+from artap.problem import Problem
 from artap.algorithm_genetic import NSGAII, EpsMOEA
 from artap.results import Results, GraphicalResults
 
@@ -24,6 +24,6 @@ class SpringDesignProblem(Problem):
         super().__init__(name, parameters, costs)
 
     def evaluate(self, x):
-        f1 =
-        f2 =
+        #f1 =
+        #f2 =
         return [f1, f2]

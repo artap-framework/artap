@@ -1,4 +1,5 @@
 import setuptools
+from setuptools.command.build_ext import build_ext as _build_ext
 import os
 
 
@@ -15,13 +16,14 @@ setuptools.setup(
     version=about["__version__"],
     author=about["__author__"],
     author_email=about["__author_email__"],
-    packages=setuptools.find_packages(),
     description="Platform for robust design optimization",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="http://www.agros2d.org/artap/",
     python_requires='>3.6',
     license=about["__license__"],
+    packages=setuptools.find_packages(),
+    include_package_data=True,
     data_files=[('artap', ['artap/environment.json']), ('artap/lib', ['artap/lib/bayesopt.so']),
                 ('artap/lib', ['artap/lib/_nlopt.so'])],
     install_requires=['numpy',
@@ -31,10 +33,13 @@ setuptools.setup(
                       'dash-html-components>=0.14.0',
                       'dash-table>=3.4.0',
                       'sklearn',
-                      "rpyc",
+                      'paramiko',
+                      'rpyc',
                       'matplotlib',
                       'optproblems',
-                      'smt'],
+                      'smt',
+                      'cython',
+                      'joblib'],
     scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",
