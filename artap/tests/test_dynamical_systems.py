@@ -46,7 +46,7 @@ class TestDynamicalSystems(unittest.TestCase):
         system = ContinuousLTISystem(plant, A, B, C, D, x0)
         plant.run(10)
         system.plot('output')
-        pl.show()
+        # pl.show()
 
 
 # A = [[-1, 0],
