@@ -83,14 +83,15 @@ class TestCEC2005(unittest.TestCase):
     def test_expanded_f6(self):
         self.run_test_problem(300, optp.cec2005.F14(2))
 
-#    def test_hybrid_composition(self):
-#        self.run_test_problem(300, optp.cec2005.F15(2))
+    # def test_hybrid_composition(self):
+    #     self.run_test_problem(300, optp.cec2005.F15(2))
 
-#    def test_rotated_f15(self):
-#        self.run_test_problem(300, optp.cec2005.F16(2))
+    # def test_rotated_f15(self):
+    #     self.run_test_problem(300, optp.cec2005.F16(2))
 
-    def test_f17_with_noise(self):
-        self.run_test_problem(2000, optp.cec2005.F17(2))
+    # def test_f17_with_noise(self):
+    #     self.run_test_problem(2000, optp.cec2005.F17(2))
+
 
 if __name__ == '__main__':
     unittest.main()
