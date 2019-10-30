@@ -160,8 +160,8 @@ class TestCEC2005(unittest.TestCase):
     def test_rotated_f15(self):
         self.run_test_problem(100, optp.cec2005.F16(2))
 
-    def test_f17_with_noise(self):
-        self.run_test_problem(250, optp.cec2005.F17(2))
+    # def test_f17_with_noise(self):
+    #    self.run_test_problem(250, optp.cec2005.F17(2))
 
 
 if __name__ == '__main__':
