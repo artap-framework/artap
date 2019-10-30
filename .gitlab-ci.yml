@@ -13,6 +13,9 @@ build:
     # get packages
     - pip install -r requirements.txt
 
+    # agrossuite
+    - ln -s 3rdparty/agros/ env/lib/python3.7/agrossuite
+
     # tests
     - cd artap/tests
     - pytest --disable-warnings --durations=0 -v
