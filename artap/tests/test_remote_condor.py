@@ -9,6 +9,7 @@ from artap.algorithm_sweep import SweepAlgorithm
 
 import random
 
+
 class CondorMatlabProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
@@ -138,20 +139,20 @@ class TestCondor(TestCase):
 
         self.assertAlmostEqual(5, population.individuals[0].costs[0])
 
-    def xtest_condor_python_exec_full_load(self):
+    def test_condor_python_exec_full_load(self):
         problem = PythonExecProblem()
 
-        n = 5
+        n = 50
         individuals = []
         for i in range(n):
             individuals.append(Individual([random.randrange(1, 100), random.randrange(1, 100)]))
 
         algorithm = DummyAlgorithm(problem)
-        algorithm.options['max_processes'] = 5
+        algorithm.options['max_processes'] = 20
         algorithm.evaluate(individuals)
 
         for i in range(n):
-            print(individuals[i])
+            # print(individuals[i])
             self.assertEqual(int(individuals[i].costs[0]), individuals[i].vector[0]**2 + individuals[i].vector[1]**2)
 
     def test_condor_python_input(self):

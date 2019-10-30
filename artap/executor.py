@@ -1,6 +1,7 @@
 import textwrap
 import re
 import rpyc
+from rpyc.core.async_ import AsyncResultTimeout
 from rpyc.utils.classic import upload_file, download_file
 import asyncio
 import tempfile
@@ -241,16 +242,23 @@ class CondorJobExecutor(RemoteExecutor):
                 self._transfer_files_to_remote(remote_dir, client)
 
                 # submit job
-                #print("_create_job_file -      {}".format(remote_dir))
-                clusterID = self._create_job_file(remote_dir, individual, client)
-                #print("_create_job_file - OK - {} - {}".format(remote_dir, clusterID))
+                # print("_create_job_file -      {}".format(remote_dir))
+                try:
+                    self._create_job_file(remote_dir, individual, client)
+                except AsyncResultTimeout as e:
+                    print("ERROR - {} - try again ({})".format(e, remote_dir))
+                    # remove job dir
+                    client.root.remove_job_dir(remote_dir)
+                    client.close()
+                    # resubmit
+                    return self.eval(individual)
 
                 start = time.time()
 
                 events = []
                 cnt = 0
                 return_value = -1
-                delay = 0.1
+                delay = 0.5
 
                 run = True
                 while run:
@@ -302,7 +310,7 @@ class CondorJobExecutor(RemoteExecutor):
                             if len(args) > 0:
                                 args = args[:-2]
 
-                            self.problem.logger.info("Job {} ({}) is '{}' at {}".format(clusterID, remote_dir, event.type, args))
+                            self.problem.logger.info("Job {}.{} ({}) is '{}' at {}".format(event.cluster, event.proc, remote_dir, event.type, args))
                             # print("{}: {} ({})".format(eventlog[i].timestamp, eventlog[i].type, args))
 
                     if run:
@@ -383,13 +391,11 @@ class CondorPythonJobExecutor(CondorJobExecutor):
         # create executable
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
-        clusterID = client.root.submit_job(remote_dir=remote_dir,
-                                           executable="run.sh",
-                                           arguments=arguments,
-                                           input_files=condor_input_files,
-                                           output_files=condor_output_files)
-
-        return clusterID
+        client.root.submit_job(remote_dir=remote_dir,
+                               executable="run.sh",
+                               arguments=arguments,
+                               input_files=condor_input_files,
+                               output_files=condor_output_files)
 
 
 class CondorMatlabJobExecutor(CondorJobExecutor):
@@ -420,13 +426,11 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
         # create executable
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
-        clusterID = client.root.submit_job(remote_dir=remote_dir,
-                                           executable="run.sh",
-                                           arguments=self.script,
-                                           input_files=condor_input_files,
-                                           output_files=condor_output_files)
-
-        return clusterID
+        client.root.submit_job(remote_dir=remote_dir,
+                               executable="run.sh",
+                               arguments=self.script,
+                               input_files=condor_input_files,
+                               output_files=condor_output_files)
 
 
 class CondorComsolJobExecutor(CondorJobExecutor):
@@ -452,10 +456,8 @@ class CondorComsolJobExecutor(CondorJobExecutor):
         # create executable
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
-        clusterID = client.root.submit_job(remote_dir=remote_dir,
-                                           executable="run.sh",
-                                           arguments=arguments,
-                                           input_files=[self.model_file],
-                                           output_files=condor_output_files)
-
-        return clusterID
+        client.root.submit_job(remote_dir=remote_dir,
+                               executable="run.sh",
+                               arguments=arguments,
+                               input_files=[self.model_file],
+                               output_files=condor_output_files)
