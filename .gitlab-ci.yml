@@ -1,12 +1,18 @@
 build:
   tags:
     - linux
-  script: 
+  script:
     # build deps
     - cd 3rdparty
     - ./submodules.sh
     - cd ..
 
+    # create environment
+    - python3 -m venv env
+    - source env/bin/activate
+    # get packages
+    - pip install -r requirements.txt
+
     # tests
     - cd artap/tests
-    - pytest-3 --disable-warnings --durations=0 -v
+    - pytest --disable-warnings --durations=0 -v
