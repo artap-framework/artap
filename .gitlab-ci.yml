@@ -14,7 +14,7 @@ build:
     - pip install -r requirements.txt
 
     # agrossuite
-    - ln -s 3rdparty/agros/ env/lib/python3.7/site-packages/agrossuite
+    - ln -s ../../../../3rdparty/agros/ env/lib/python3.7/site-packages/agrossuite
 
     # tests
     - cd artap/tests
