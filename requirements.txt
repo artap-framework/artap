@@ -7,4 +7,5 @@ cython
 smt
 joblib
 rpyc
+SALib
 pytest
