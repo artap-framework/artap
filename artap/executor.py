@@ -147,8 +147,12 @@ class RemoteExecutor(Executor):
         super().eval(individual)
 
     def _create_client(self):
-        client = rpyc.classic.connect(self.options["hostname"], self.options["port"])
-        # client = rpyc.classic.connect("localhost", self.options["port"])
+        key = os.path.join(os.path.dirname(__file__), "cert/artap.key")
+        cert = os.path.join(os.path.dirname(__file__), "cert/artap.crt")
+
+        # client = rpyc.classic.connect(self.options["hostname"], self.options["port"])
+        client = rpyc.classic.ssl_connect(self.options["hostname"], self.options["port"], keyfile=key, certfile=cert)
+
         return client
 
     def _init_remote(self, client):
@@ -392,7 +396,7 @@ class CondorPythonJobExecutor(CondorJobExecutor):
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable="run.sh",
+                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=arguments,
                                input_files=condor_input_files,
                                output_files=condor_output_files)
@@ -427,7 +431,7 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable="run.sh",
+                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=self.script,
                                input_files=condor_input_files,
                                output_files=condor_output_files)
@@ -457,7 +461,7 @@ class CondorComsolJobExecutor(CondorJobExecutor):
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable="run.sh",
+                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=arguments,
                                input_files=[self.model_file],
                                output_files=condor_output_files)
