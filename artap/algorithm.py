@@ -3,6 +3,7 @@ from .utils import ConfigDictionary
 from .job import JobSimple
 from .population import Population
 from .individual import Individual
+from .operators import RandomGeneration
 
 from abc import ABCMeta, abstractmethod
 import numpy as np
@@ -29,6 +30,10 @@ class Algorithm(metaclass=ABCMeta):
 
         # initial population size
         self.population_size = 0
+
+        # set random generator
+        self.generator = RandomGeneration(self.problem)
+        self.generator.init(10)
 
     @abstractmethod
     def run(self):

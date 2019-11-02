@@ -1,6 +1,5 @@
 from .algorithm import Algorithm
 from .job import JobSimple
-from .operators import RandomGeneration
 from .operators import GradientGeneration
 from .population import Population
 import time
@@ -14,11 +13,7 @@ class SweepAlgorithm(Algorithm):
     def __init__(self, problem, generator=None, name='SweepAlgorithm'):
         super().__init__(problem, name)
 
-        if generator is None:
-            # set random generator
-            self.generator = RandomGeneration(self.problem.parameters)
-            self.generator.init(10)
-        else:
+        if generator is not None:
             self.generator = generator
 
         self.job = JobSimple(self.problem)
