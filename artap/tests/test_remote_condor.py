@@ -142,13 +142,13 @@ class TestCondor(TestCase):
     def test_condor_python_exec_full_load(self):
         problem = PythonExecProblem()
 
-        n = 500
+        n = 200
         individuals = []
         for i in range(n):
             individuals.append(Individual([random.randrange(1, 100), random.randrange(1, 100)]))
 
         algorithm = DummyAlgorithm(problem)
-        algorithm.options['max_processes'] = 300
+        algorithm.options['max_processes'] = 70
         algorithm.evaluate(individuals)
 
         for i in range(n):
