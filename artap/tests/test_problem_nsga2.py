@@ -121,6 +121,7 @@ class TestCEC2005(unittest.TestCase):
             algorithm = NSGAII(problem)
             algorithm.options['max_population_number'] = nr_gen
             algorithm.options['max_population_size'] = 100
+            algorithm.options['max_processes'] = 10
             algorithm.run()
 
             b = Results(problem)
@@ -142,8 +143,8 @@ class TestCEC2005(unittest.TestCase):
     def test_schwefel(self):  # !
         self.run_test_problem(50, optp.cec2005.F5(2))
 
-    def test_shifted_rosenbrock(self):
-        self.run_test_problem(100, optp.cec2005.F6(2))
+    # def test_shifted_rosenbrock(self):
+    #     self.run_test_problem(100, optp.cec2005.F6(2))
 
     def test_shifted_rastrigin(self):
         self.run_test_problem(50, optp.cec2005.F9(2))
