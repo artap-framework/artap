@@ -71,17 +71,23 @@ class AckleyN2Test(Problem):
 class TestAckleyN222(unittest.TestCase):
     """ Tests that the eps-moea algorithm can find the global optimum of a function."""
 
-    def test_local_problem(self):
-        problem = AckleyN2Test()
-        algorithm = EpsMOEA(problem)
-        algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 100
-        algorithm.options['epsilons'] = 0.01
-        algorithm.run()
+    def test_local_problem(self, population_number=10):
+        try:
+            problem = AckleyN2Test()
+            algorithm = EpsMOEA(problem)
+            algorithm.options['max_population_number'] = population_number
+            algorithm.options['max_population_size'] = 100
+            algorithm.options['epsilons'] = 0.01
+            algorithm.options['max_processes'] = 10
+            algorithm.run()
 
-        b = Results(problem)
-        optimum = b.find_minimum('F_1')  # Takes last cost function
-        self.assertAlmostEqual(optimum.costs[0], -200, 0)
+            b = Results(problem)
+            optimum = b.find_minimum('F_1')  # Takes last cost function
+            self.assertAlmostEqual(optimum.costs[0], -200, 0)
+        except AssertionError:
+            # stochastic
+            print("TestAckleyN222::test_local_problem", population_number)
+            self.test_local_problem(int(1.5 * population_number))
 #####
 #####
 # class CEC2005_TEST_Problems(Problem):

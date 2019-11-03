@@ -47,12 +47,6 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
         # Preserve bounds of Pareto-Front
         children = []
-        # removed_parents = []
-        # for i in range(len(self.problem.signs)):
-        #     bound = min(parents, key=lambda x: (self.problem.signs[i] * x.costs[i]))
-        #     children.append(deepcopy(bound))
-        #     parents.remove(bound)
-        #     removed_parents.append(deepcopy(bound))
         while len(children) < self.population_size:
             parent1 = self.selector.select(parents)
 
@@ -87,8 +81,6 @@ class NSGAII(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
         super().__init__(problem, name)
 
-        self.problem.options["save_level"] = "population"
-
         self.options.declare(name='prob_cross', default=0.6, lower=0,
                              desc='prob_cross')
         self.options.declare(name='prob_mutation', default=0.2, lower=0,
@@ -99,11 +91,11 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem, individual_class=GeneticIndividual)
+        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         if self.options['calculate_gradients'] is True:
-            self.gradient_generator = GradientGeneration(self.problem.parameters)
+            self.gradient_generator = GradientGeneration(self.problem.parameters, individual_class=GeneticIndividual)
 
         # set crossover
         # self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
@@ -121,16 +113,15 @@ class NSGAII(GeneticAlgorithm):
         # non-dominated sort of individuals
         self.selector.sorting(population.individuals)
         self.selector.crowding_distance(population.individuals)
-        # write to data store
-
-        self.problem.data_store.write_population(population)
 
         if self.options['calculate_gradients'] is True:
             self.gradient_generator.init(population.individuals)
             gradient_population = Population(self.gradient_generator.generate())
             self.evaluate(gradient_population.individuals)
             self.evaluate_gradient(population.individuals, gradient_population.individuals)
-            self.problem.data_store.write_population(population)
+
+        # write to data store
+        self.problem.data_store.write_population(population)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -161,14 +152,15 @@ class NSGAII(GeneticAlgorithm):
 
             # write population
             population = Population(offsprings)
-            self.problem.data_store.write_population(population)
 
             if self.options['calculate_gradients'] is True:
                 self.gradient_generator.init(population.individuals)
                 gradient_population = Population(self.gradient_generator.generate())
                 self.evaluate(gradient_population.individuals)
                 self.evaluate_gradient(population.individuals, gradient_population.individuals)
-                self.problem.data_store.write_population(population)
+
+            # write popultation
+            self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
@@ -188,7 +180,7 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem, individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
+        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
         self.generator.init(self.options['max_population_size'])
 
         # set crossover
@@ -197,7 +189,7 @@ class EpsMOEA(GeneticAlgorithm):
 
         # Part A: non-dominated sort of individuals
         # -----
-        Selector_Pareto = TournamentSelection(self.problem.parameters, self.problem.signs)
+        selector_pareto = TournamentSelection(self.problem.parameters, self.problem.signs)
         self.selector = TournamentSelection(self.problem.parameters, self.problem.signs)
         # the same as in the case of NSGA - ii
         # this operator is used to generate the new individuals
@@ -205,15 +197,15 @@ class EpsMOEA(GeneticAlgorithm):
         # create initial population and evaluate individuals
         population = self.gen_initial_population(True)  # archiving True
 
-        Selector_Pareto.sorting(population.individuals)
-        Selector_Pareto.crowding_distance(population.individuals)
+        selector_pareto.sorting(population.individuals)
+        selector_pareto.crowding_distance(population.individuals)
 
         # Part B: eps-dominated sort of the individuals with archiving
         # -----
-        Selector_EpsDom = TournamentSelection(self.problem.parameters, self.problem.signs,
+        selector_epsdom = TournamentSelection(self.problem.parameters, self.problem.signs,
                                               dominance=EpsilonDominance, epsilons=self.options['epsilons'])
-        Selector_EpsDom.sorting(population.archives)
-        Selector_EpsDom.crowding_distance(population.archives)
+        selector_epsdom.sorting(population.archives)
+        selector_epsdom.crowding_distance(population.archives)
 
         # write to data store
         self.problem.data_store.write_population(population) # TODO: modify the database connection to handle the archives
@@ -224,7 +216,6 @@ class EpsMOEA(GeneticAlgorithm):
 
         # optimization
         for it in range(self.options['max_population_number']):
-
             # generate and evaluate the next generation
             child = self.generate(population.individuals, population.archives)
             self.evaluate(child)
@@ -233,18 +224,18 @@ class EpsMOEA(GeneticAlgorithm):
             # PART A
             # non-dominated sorting of the newly generated and the older guys like in NSGA-ii
             # add the parents to the offsprings
-            child.extend(population.individuals)
+            child.extend(deepcopy(population.individuals))
 
             # non-dominated truncate on the guys
             self.selector.sorting(child)
-            Selector_Pareto.crowding_distance(child)
+            selector_pareto.crowding_distance(child)
 
             parents = sorted(set(child), key=lambda x: (x.front_number, -x.crowding_distance))
             child = parents[:self.population_size]  # truncate
 
             # eps dominated truncate on the guys
-            Selector_EpsDom.sorting(arch_child)
-            Selector_EpsDom.crowding_distance(arch_child)
+            selector_epsdom.sorting(arch_child)
+            selector_epsdom.crowding_distance(arch_child)
 
             arch_parents = sorted(set(arch_child), key=lambda x: (x.front_number, -x.crowding_distance))
             arch_child = arch_parents[:self.population_size]  # truncate

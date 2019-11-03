@@ -85,13 +85,11 @@ class SALibAlgorithm(Algorithm):
         self.evaluate(individuals)
 
         for individual in individuals:
-            self.samples_y.append(individual.costs)
+            self.samples_y.append(individual.costs[0]) # TODO: fix index [0]
         self.samples_y = np.array(self.samples_y)
 
         population = Population(individuals)
-
-        if self.problem.options['save_level'] == 'population':
-            self.problem.data_store.write_population(population)
+        self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))

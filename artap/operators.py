@@ -23,12 +23,9 @@ class Operation(ABC):
 
 class Generation(Operation):
 
-    def __init__(self, problem=None, individual_class=Individual, parameters=None):
+    def __init__(self, parameters=None, individual_class=Individual):
         super().__init__()
-        if problem is not None:
-            self.parameters = problem.parameters
-        else:
-            self.parameters = parameters
+        self.parameters = parameters
         self.individual_class = individual_class
 
     def create_individual(self, vector: list=[]):
@@ -41,8 +38,8 @@ class Generation(Operation):
 
 class CustomGeneration(Generation):
 
-    def __init__(self, problem=None):
-        super().__init__(problem)
+    def __init__(self, parameters=None, individual_class=Individual):
+        super().__init__(parameters, individual_class)
         self.vectors = []
 
     def init(self, vectors):
@@ -57,8 +54,8 @@ class CustomGeneration(Generation):
 
 class RandomGeneration(Generation):
 
-    def __init__(self, problem=None, individual_class=Individual, parameters=None):
-        super().__init__(problem, individual_class, parameters=parameters)
+    def __init__(self, parameters=None, individual_class=Individual):
+        super().__init__(parameters, individual_class)
         self.number = 0
 
     def init(self, number):
@@ -78,8 +75,8 @@ class FullFactorGeneration(Generation):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, problem=None, parameters=None):
-        super().__init__(problem, parameters=parameters)
+    def __init__(self, parameters=None, individual_class=Individual):
+        super().__init__(parameters, individual_class)
         self.center = False
 
     def init(self, center):
@@ -111,8 +108,8 @@ class PlackettBurmanGeneration(Generation):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, problem=None, parameters=None):
-        super().__init__(problem, parameters=parameters)
+    def __init__(self, parameters=None, individual_class=Individual):
+        super().__init__(parameters, individual_class)
 
     def generate(self):
         dict_vars = {}
@@ -143,8 +140,8 @@ class BoxBehnkenGeneration(Generation):
     https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
     """
 
-    def __init__(self, problem=None, parameters=None):
-        super().__init__(problem, parameters=parameters)
+    def __init__(self, parameters=None, individual_class=Individual):
+        super().__init__(parameters, individual_class,)
 
     def generate(self):
         dict_vars = {}
@@ -168,8 +165,8 @@ class LHSGeneration(Generation):
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
 
-    def __init__(self, problem=None, parameters=None):
-        super().__init__(problem, parameters=parameters)
+    def __init__(self, parameters=None, individual_class=Individual):
+        super().__init__(parameters, individual_class)
         self.number = 0
 
     def init(self, number):
@@ -194,8 +191,8 @@ class LHSGeneration(Generation):
 
 class GradientGeneration(Generation):
 
-    def __init__(self, problem=None, parameters=None):
-        super().__init__(parameters=parameters)
+    def __init__(self, parameters=None, individual_class=Individual):
+        super().__init__(parameters, individual_class)
         self.delta = 1e-6
         self.individuals = None
 
@@ -515,7 +512,6 @@ class EpsilonDominance(Dominance):
             self.epsilons = [epsilons]
 
     def same_box(self, p, q):
-
         # first check constraint violation
         if p.feasible != q.feasible:
             if p.feasible == 0:
@@ -561,7 +557,6 @@ class EpsilonDominance(Dominance):
             return False
 
     def compare(self, p, q):
-
         # first check constraint violation
         if p.feasible != q.feasible:
             if p.feasible == 0:
@@ -635,8 +630,7 @@ class ParetoDominance(Dominance):
         self.signs = signs
 
     def compare(self, p, q):
-        if len(p.costs) != len(q.costs):
-            print("Len {} - {}".format(len(p.costs), len(p.costs)))
+        # assert(len(p.costs) == len(q.costs))
         # first check constraint violation
         if p.feasible != q.feasible:
             if p.feasible == 0:

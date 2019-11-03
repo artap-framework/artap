@@ -97,6 +97,9 @@ class SurrogateModelSMT(SurrogateModel):
 
         if self.trained:
             p = self.predict(individual.vector)
+            # REMOVE
+            # p_value = self.problem.evaluate(individual)
+            # print(individual.vector, p, p_value, abs(p - p_value))
             if self.regressor.supports["variances"]:
                 sigma = self.regressor.predict_variances(np.array([individual.vector]))
             else:
@@ -114,6 +117,7 @@ class SurrogateModelSMT(SurrogateModel):
             value = flatten(p[0])
 
             # check distance increase counter
+            # print(dist)
             if dist <= self.distance_threshold:
                 self.predict_counter += 1
                 evaluate = False
@@ -122,8 +126,10 @@ class SurrogateModelSMT(SurrogateModel):
             if not evaluate:
                 m = float("inf")
                 for i in range(len(self.y_data)):
-                    m = min(self.y_data[i][1], m)
-                if value[1] < m:
+                    m = min(self.y_data[i][0], m)
+                    # m = min(self.y_data[i], m)
+                if value[0] < m:
+                # if value < m:
                     self.predict_counter -= 1
                     evaluate = True
 
@@ -145,7 +151,7 @@ class SurrogateModelSMT(SurrogateModel):
                 self.train()
 
         # print("Evaluate = {}, \t value = {}".format(evaluate, value))
-        self.problem.logger.info("surrogate: predict / eval counter: {0:5.0f} / {1:5.0f}, total: {2:5.0f}".format(self.problem.surrogate.predict_counter, self.problem.surrogate.eval_counter,
-                                                                                                                  self.problem.surrogate.predict_counter + self.problem.surrogate.eval_counter))
+        #self.problem.logger.info("surrogate: predict / eval counter: {0:5.0f} / {1:5.0f}, total: {2:5.0f}".format(self.problem.surrogate.predict_counter, self.problem.surrogate.eval_counter,
+        #                                                                                                          self.problem.surrogate.predict_counter + self.problem.surrogate.eval_counter))
 
         return value
