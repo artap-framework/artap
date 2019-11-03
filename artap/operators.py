@@ -542,12 +542,10 @@ class EpsilonDominance(Dominance):
 
             if i1 < i2:
                 dominate1 = True
-
                 if dominate2:
                     return False
             elif i1 > i2:
                 dominate2 = True
-
                 if dominate1:
                     return False
 
