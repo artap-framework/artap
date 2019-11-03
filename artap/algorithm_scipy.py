@@ -17,7 +17,6 @@ class ScipyOpt(Algorithm):
     def __init__(self, problem: Problem, name="ScipyOpt"):
         super().__init__(problem, name)
 
-        self.problem.options['save_level'] = 'individual'
         self.options.declare(name='algorithm', default='Nelder-Mead', values=_algorithm,
                              desc='Algorithm')
         self.options.declare(name='tol', default=1e-6, lower=0.0,

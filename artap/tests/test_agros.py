@@ -20,7 +20,6 @@ class AgrosProblem(Problem):
                            {'name': 'd2', 'initial_value': 0.3, 'bounds': [0.1, 0.4]}]
 
         self.costs = [{'name': 'F', 'criteria': 'minimize', 'weight': 0}]
-        self.options['save_level'] = "individual"
 
     def evaluate(self, individual: Individual):
         # problem
