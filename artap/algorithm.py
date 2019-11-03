@@ -32,7 +32,7 @@ class Algorithm(metaclass=ABCMeta):
         self.population_size = 0
 
         # set random generator
-        self.generator = RandomGeneration(self.problem)
+        self.generator = RandomGeneration(self.problem.parameters)
         self.generator.init(10)
 
     @abstractmethod

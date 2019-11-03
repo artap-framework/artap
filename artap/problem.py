@@ -48,8 +48,6 @@ class Problem:
         # options
         self.options.declare(name='calculate_gradients', default=False,
                              desc='calculate gradient for individuals')
-        self.options.declare(name='save_level', default="population",
-                             desc='Save level')
         self.options.declare(name='log_level', default=logging.INFO, values=_log_level,
                              desc='Log level')
         self.options.declare(name='log_file_handler', default=False,

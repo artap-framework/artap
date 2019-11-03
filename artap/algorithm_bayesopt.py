@@ -127,7 +127,7 @@ class BayesOptSerial(BayesOpt):
 
     def __init__(self, problem: Problem, name="BayesOpt"):
         super().__init__(problem, name)
-        self.problem.options['save_level'] = "individual"
+
         self.bo = BayesOptClassSerial(self)
 
     def run(self):
