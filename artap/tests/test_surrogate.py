@@ -182,7 +182,7 @@ class TestSurrogate(unittest.TestCase):
         problem.surrogate.train_step = 100
 
         # sweep analysis (for training)
-        gen = LHSGeneration(problem)
+        gen = LHSGeneration(problem.parameters)
         gen.init(problem.surrogate.train_step)
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()
