@@ -646,19 +646,30 @@ class ParetoDominance(Dominance):
         # Check the pareto dominance on every value of the calculated vectors
         dominate_p = False
         dominate_q = False
-        for i in range(0, len(p.costs)):
-            sign = self.signs[i]
-            if sign * p.costs[i] > sign * q.costs[i]:
-                dominate_q = True
 
+        for p_costs, q_costs, sign in zip(p.costs, q.costs, self.signs):
+            if sign * p_costs > sign * q_costs:
+                dominate_q = True
                 if dominate_p:
                     return 0
-
-            if sign * p.costs[i] < sign * q.costs[i]:
+            else:
                 dominate_p = True
-
                 if dominate_q:
                     return 0
+
+        # for i in range(0, len(p.costs)):
+        #     sign = self.signs[i]
+        #     if sign * p.costs[i] > sign * q.costs[i]:
+        #         dominate_q = True
+        #
+        #         if dominate_p:
+        #             return 0
+        #
+        #     if sign * p.costs[i] < sign * q.costs[i]:
+        #         dominate_p = True
+        #
+        #         if dominate_q:
+        #             return 0
 
         if dominate_q == dominate_p:
             return 0
@@ -687,15 +698,21 @@ class Selection(Operation):
         :param q: candidate
         :return: True if the candidate is better than the current solution
         """
-        dominate = False
-
         # The cost function can be a float or a list of floats
-        for i in range(0, len(p.costs)):
-            if p.costs[i] > q.costs[i]:
+        for p_costs, q_costs in zip(p.costs, q.costs):
+            if p_costs > q_costs:
                 return False
-            if p.costs[i] <= q.costs[i]:
-                dominate = True
-        return dominate
+            else:
+                return True
+
+        # dominate = False
+        # for i in range(0, len(p.costs)):
+        #     if p.costs[i] > q.costs[i]:
+        #         return False
+        #     if p.costs[i] <= q.costs[i]:
+        #         dominate = True
+        #
+        # return dominate
 
     def sorting(self, generation):
         """
@@ -715,7 +732,6 @@ class Selection(Operation):
                 if p is q:
                     continue
                 if self.comparator.compare(p, q) == 1:          # TODO: simplify
-                    p.dominate.add(q)
                     p.dominate.add(q)
                 elif self.comparator.compare(q, p) == 1:
                     p.domination_counter += 1
