@@ -1,10 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from .utils import VectorAndNumbers
 from .individual import Individual
-from multiprocessing import Queue
-import os
-
-from copy import deepcopy
 
 
 class Job(metaclass=ABCMeta):
@@ -37,9 +32,13 @@ class JobSimple(Job):
 
         # problem cost function evaluate only in that case when the problem is fits the constraints
         try:
-            individual.costs = self.problem.surrogate.evaluate(individual)
-            # self.problem.surrogate.evaluate(individual)
+            costs = self.problem.surrogate.evaluate(individual)
+            if isinstance(costs, list):
+                individual.costs = costs
+            else:
+                raise AssertionError("Costs type must be list.")
 
+            # set evaluated
             individual.state = individual.State.EVALUATED
 
         except (TimeoutError, RuntimeError) as e:
