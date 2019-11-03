@@ -27,7 +27,6 @@ class SweepAlgorithm(Algorithm):
         population = self.gen_initial_population()
 
         if self.options['calculate_gradients'] is True:
-            self.problem.options['save_level'] = 'population'
             # TODO: Move to Algorithm class here only call calculate_gradients(individuals)
             gradient_generator = GradientGeneration(self.problem.parameters)
             gradient_generator.init(population.individuals)
@@ -35,8 +34,8 @@ class SweepAlgorithm(Algorithm):
             gradient_population.individuals = self.evaluate(gradient_population.individuals)
             population.individuals = self.evaluate_gradient(population.individuals, gradient_population.individuals)
 
-        if self.problem.options['save_level'] == 'population':
-            self.problem.data_store.write_population(population)
+        # write population
+        self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))

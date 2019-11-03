@@ -26,7 +26,7 @@ class TestJob(unittest.TestCase):
 
     def test_sweep_evaluate_parallel(self):
         problem = SweepProblem()
-        gen = LHSGeneration(problem)
+        gen = LHSGeneration(problem.parameters)
         gen.init(4)
 
         algorithm = SweepAlgorithm(problem, generator=gen)
@@ -48,7 +48,7 @@ class TestJob(unittest.TestCase):
     def test_sweep_evaluate_serial(self):
         problem = SweepProblem()
 
-        gen = CustomGeneration(problem)
+        gen = CustomGeneration(problem.parameters)
         gen.init([[1, 2, 2], [3, 3, 2]])
 
         algorithm = SweepAlgorithm(problem, generator=gen)
