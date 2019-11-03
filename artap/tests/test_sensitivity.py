@@ -18,8 +18,8 @@ class SensitivitySALibProblem(Problem):
         #                                        files_from_condor=["temp.txt"])
 
     def evaluate(self, individual):
-        return math.sin(individual.vector[0]) + 7.0 * math.pow(math.sin(individual.vector[1]), 2) + \
-               0.1 * math.pow(individual.vector[2], 4) * math.sin(individual.vector[0])
+        return [math.sin(individual.vector[0]) + 7.0 * math.pow(math.sin(individual.vector[1]), 2) + \
+                0.1 * math.pow(individual.vector[2], 4) * math.sin(individual.vector[0])]
 
 
 class TestSALibSensitivity(unittest.TestCase):
