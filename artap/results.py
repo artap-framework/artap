@@ -107,6 +107,31 @@ class Results:
                     l_sol.append(individual.costs)
         return l_sol
 
+    def table(self):
+        out = []
+        if len(self.problem.data_store.populations) > 0:
+            population = self.problem.data_store.populations[0]
+            if len(population.individuals) > 0:
+                # init array
+                individual = population.individuals[0]
+                for v in individual.vector:
+                    out.append([])
+                for c in individual.costs:
+                    out.append([])
+
+                for population in self.problem.data_store.populations:
+                        for individual in population.individuals:
+                            i = 0
+                            for v in individual.vector:
+                                out[i].append(v)
+                                i += 1
+                            for c in individual.costs:
+                                out[i].append(c)
+                                i += 1
+
+        return out
+
+
     def parameters(self):
         out = []
         for population in self.problem.data_store.populations:
@@ -154,10 +179,11 @@ class GraphicalResults(Results):
         values2 = []
         population = populations[-1]
         for individual in population.individuals:
-            if individual.front_number == 1:
-                values1.append(self.value(individual, name1))
-                values2.append(self.value(individual, name2))
-            pl.scatter(values1, values2, c='k')
+            if hasattr(individual, 'front_number'):
+                if individual.front_number == 1:
+                    values1.append(self.value(individual, name1))
+                    values2.append(self.value(individual, name2))
+                pl.scatter(values1, values2, c='k')
 
         ax = pl.gca()
         # ax.set_yscale('log')
@@ -168,8 +194,8 @@ class GraphicalResults(Results):
         #ax.set_ylim(50, 200)
         #ax.set_xlim(0.00000, 0.001)
         #ax.set_ylim(60, 300)
-        ax.set_xlim(0.00000, 0.00125)
-        ax.set_ylim(-0.00001, 0.0002)
+        #ax.set_xlim(0.00000, 0.00125)
+        #ax.set_ylim(-0.00001, 0.0002)
 
         # labels
         pl.grid()

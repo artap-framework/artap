@@ -6,7 +6,6 @@ import logging
 
 from abc import abstractmethod
 
-from .individual import Individual
 from .population import Population
 
 
@@ -111,6 +110,7 @@ class FileDataStore(DataStore):
         super().__init__(problem)
 
         self.database_name = database_name
+        self.mode = mode
 
         if remove_existing and mode == "write":
             if os.path.exists(self.database_name):
@@ -119,7 +119,7 @@ class FileDataStore(DataStore):
         if backend == "shelve":
             import shelve
 
-            if mode == "write":
+            if self.mode == "write":
                 self.db = shelve.open(self.database_name, flag='c', writeback=True)
                 # remove database and create structure
                 if remove_existing and os.path.exists(self.database_name):
@@ -131,7 +131,7 @@ class FileDataStore(DataStore):
             import diskcache
 
             self.db = diskcache.Cache(directory=self.database_name)
-            if mode == "write":
+            if self.mode == "write":
                 # remove database and create structure
                 if remove_existing and os.path.exists(self.database_name):
                     self.create_structure()
@@ -144,7 +144,7 @@ class FileDataStore(DataStore):
             from sqlitedict import SqliteDict
 
             self.db = SqliteDict(self.database_name, autocommit=True)
-            if mode == "write":
+            if self.mode == "write":
                 # remove database and create structure
                 if remove_existing and os.path.exists(self.database_name):
                     self.create_structure()
@@ -171,28 +171,24 @@ class FileDataStore(DataStore):
         # add individual
         super().write_individual(individual)
 
-        # TODO: check this hack
-        populations = self.db["populations"]
-        if len(populations) == 0:
-            populations.append(Population())
-            self.db["populations"] = populations
+        if self.mode == "write":
+            # TODO: check this hack
+            populations = self.db["populations"]
+            if len(populations) == 0:
+                populations.append(Population())
 
-        # add individual
-        populations = self.db["populations"]
-        populations[-1].individuals.append(individual)
-        self.db["populations"] = populations
-        # self.db["populations"][-1].append(individual)
-        # self.db.sync()
+            # add individual
+            populations[-1].individuals.append(individual)
+            self.db["populations"] = populations
 
     def write_population(self, population):
         super().write_population(population)
 
-        # write to database
-        populations = self.db["populations"]
-        populations.append(Population())
-        self.db["populations"] = populations
-        # self.db["populations"].append(population)
-        # self.db.sync()
+        if self.mode == "write":
+            # write to database
+            populations = self.db["populations"]
+            populations.append(Population())
+            self.db["populations"] = populations
 
     def read_from_datastore(self):
         self.problem.name = self.db["name"]
