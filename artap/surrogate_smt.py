@@ -73,6 +73,9 @@ class SurrogateModelSMT(SurrogateModel):
 
     def train(self):
         self.trained = False
+        assert(len(self.x_data) == len(self.y_data))
+
+        # print(self.x_data)
 
         self.regressor.options["print_global"] = False
         self.regressor.set_training_values(np.array(self.x_data), np.array(self.y_data))
@@ -117,21 +120,21 @@ class SurrogateModelSMT(SurrogateModel):
             value = flatten(p[0])
 
             # check distance increase counter
-            # print(dist)
+            # print("dist = {}".format(dist))
             if dist <= self.distance_threshold:
                 self.predict_counter += 1
                 evaluate = False
 
             # HACK
-            if not evaluate:
-                m = float("inf")
-                for i in range(len(self.y_data)):
-                    m = min(self.y_data[i][0], m)
-                    # m = min(self.y_data[i], m)
-                if value[0] < m:
-                # if value < m:
-                    self.predict_counter -= 1
-                    evaluate = True
+            # if not evaluate:
+            #     m = float("inf")
+            #     for i in range(len(self.y_data)):
+            #         m = min(self.y_data[i][0], m)
+            #         # m = min(self.y_data[i], m)
+            #     if value[0] < m:
+            #     # if value < m:
+            #         self.predict_counter -= 1
+            #         evaluate = True
 
         if evaluate:
             # evaluate problem
@@ -139,7 +142,6 @@ class SurrogateModelSMT(SurrogateModel):
             # increase counter
             self.eval_counter += 1
             # add training date to surrogate model
-            # self.add_data(np.array(x), np.array(value))
             self.add_data(individual.vector, value)
 
             if self.eval_counter % self.train_step == 0:
@@ -151,7 +153,6 @@ class SurrogateModelSMT(SurrogateModel):
                 self.train()
 
         # print("Evaluate = {}, \t value = {}".format(evaluate, value))
-        #self.problem.logger.info("surrogate: predict / eval counter: {0:5.0f} / {1:5.0f}, total: {2:5.0f}".format(self.problem.surrogate.predict_counter, self.problem.surrogate.eval_counter,
-        #                                                                                                          self.problem.surrogate.predict_counter + self.problem.surrogate.eval_counter))
-
+        self.problem.logger.info("surrogate: predict / eval counter: {0:5.0f} / {1:5.0f}, total: {2:5.0f}".format(self.problem.surrogate.predict_counter, self.problem.surrogate.eval_counter,
+                                                                                                                self.problem.surrogate.predict_counter + self.problem.surrogate.eval_counter))
         return value

@@ -57,6 +57,7 @@ class Algorithm(metaclass=ABCMeta):
             self.evaluate_parallel(individuals)
         else:
             self.evaluate_serial(individuals)
+
         n_failed = 0
         for individual in individuals:
             if individual.state == Individual.State.FAILED:
