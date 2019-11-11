@@ -150,8 +150,8 @@ class RemoteExecutor(Executor):
         key = os.path.join(os.path.dirname(__file__), "cert/artap.key")
         cert = os.path.join(os.path.dirname(__file__), "cert/artap.crt")
 
-        # client = rpyc.classic.connect(self.options["hostname"], self.options["port"])
-        client = rpyc.classic.ssl_connect(self.options["hostname"], self.options["port"], keyfile=key, certfile=cert)
+        client = rpyc.classic.connect(self.options["hostname"], self.options["port"])
+        # client = rpyc.classic.ssl_connect(self.options["hostname"], self.options["port"], keyfile=key, certfile=cert)
 
         return client
 
@@ -342,7 +342,8 @@ class CondorJobExecutor(RemoteExecutor):
                         result = self.parse_results(output_files, individual)
 
                     # remove job dir
-                    client.root.remove_job_dir(remote_dir)
+                    if result is not None:
+                        client.root.remove_job_dir(remote_dir)
 
                     if self.problem.options['save_data_files'] is False:
                         self._remove_dir(path)
@@ -464,4 +465,6 @@ class CondorComsolJobExecutor(CondorJobExecutor):
                                executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=arguments,
                                input_files=[self.model_file],
-                               output_files=condor_output_files)
+                               output_files=condor_output_files,
+                               request_cpus=2,
+                               request_memory=30)
