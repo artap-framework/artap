@@ -27,9 +27,10 @@ class Enviroment:
             
     condor_host = environment["condor_host"]
     condor_login = environment["condor_login"]
-                
-    ssh_host = environment["ssh_host"]
-    ssh_login = environment["ssh_login"]
+    # get system user name
+    if condor_login is None:
+        import getpass
+        condor_login = getpass.getuser()
 
     comsol_path = environment["comsol_path"]
 
