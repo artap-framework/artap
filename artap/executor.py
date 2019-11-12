@@ -128,9 +128,9 @@ class RemoteExecutor(Executor):
         if problem.working_dir is None:
             raise Exception('RemoteExecutor: Problem working directory must be set.')
 
-        self.options.declare(name='hostname', default=Enviroment.ssh_host,
+        self.options.declare(name='hostname', default=Enviroment.condor_host,
                              desc='Hostname')
-        self.options.declare(name='username', default=Enviroment.ssh_login,
+        self.options.declare(name='username', default=Enviroment.condor_login,
                              desc='Username')
         self.options.declare(name='port', default=15900, lower=0,
                              desc='Port')
@@ -147,13 +147,19 @@ class RemoteExecutor(Executor):
         super().eval(individual)
 
     def _create_client(self):
-        key = os.path.join(os.path.dirname(__file__), "cert/artap.key")
-        cert = os.path.join(os.path.dirname(__file__), "cert/artap.crt")
+        # key = os.path.join(os.path.dirname(__file__), "cert/artap.key")
+        # cert = os.path.join(os.path.dirname(__file__), "cert/artap.crt")
 
-        client = rpyc.classic.connect(self.options["hostname"], self.options["port"])
-        # client = rpyc.classic.ssl_connect(self.options["hostname"], self.options["port"], keyfile=key, certfile=cert)
+        channel = rpyc.Channel(rpyc.SocketStream.connect(self.options["hostname"], self.options["port"]))
+        channel.send(self.options["username"].encode('utf-8'))
+        response = channel.recv()
+        AUTH_ERROR = b'authentication error'
+        if response == AUTH_ERROR:
+            raise rpyc.utils.authenticators.AuthenticationError('Invalid username for daemon')
 
-        return client
+        return rpyc.utils.factory.connect_channel(channel, service=rpyc.core.ClassicService)
+        # return rpyc.classic.connect(self.options["hostname"], self.options["port"])
+        # return rpyc.classic.ssl_connect(self.options["hostname"], self.options["port"], keyfile=key, certfile=cert)
 
     def _init_remote(self, client):
         try:
