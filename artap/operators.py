@@ -324,12 +324,23 @@ class PmMutation(Mutation):
 
 
 class SwarmMutation(Mutation):
+    """
+    This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
+
+    PSO shares many similarities with evolutionary computation. Both algorithms start with a group of a randomly
+    generated population. Both update the population iteratively and search for the optimum with stochastic techniques.
+    The main difference between them is in the information sharing mechanism. In EA, only the individuals of current
+    generation share information with each other, and any individual has a chance to give out information to others.
+    In PSO, actually not the current individuals share information with each other, but the individuals of previous
+    generation (the optimal particles) give out information to the current ones. In other words, the information sharing
+    is one-way in PSO.
+    """
 
     def __init__(self, parameters, probability=1):
         super().__init__(parameters, probability)
         self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
-        self.c1 = 2  # cognitive constant
-        self.c2 = 1  # social constant
+        self.c1 = 2.  # cognitive constant
+        self.c2 = 1.  # social constant
         self.best_individual = None
 
     # evaluate current fitness
@@ -379,6 +390,141 @@ class SwarmMutation(Mutation):
         self.update_velocity(p)
         self.update_position(p)
         return p
+
+
+class SwarmMutationTVIW(SwarmMutation):
+    """
+    This is an improvement of the original PSO algorithm with Time Varying Inertia Weight operators.
+
+    Empirical study of particle swarm optimization,” in Proc. IEEE Int. Congr. Evolutionary Computation, vol. 3,
+    1999, pp. 101–106.
+
+    Shi and Eberhart have observed that the optimal solution can be improved by varying the inertia weight value from
+    0.9 (at the beginning of the search) to 0.4 (at the end of the search) for most problems. This modification to the
+    original PSO concept has been considered as the basis for two novel strategies introduced in this paper. Hereafter,
+    in this paper, this version of PSO is referred to as time-varying inertia weight factor method
+
+    Contras:
+    -------
+    - PSO-TVIW concept is not very effective for tracking dynamic systems
+
+    - its ability to fine tune the optimum solution is comparatively weak, mainly due
+      to the lack of diversity at the end of the search
+
+    R. C. Eberhart and Y. Shi, “Tracking and optimizing dynamic systems with particle swarms,” in Proc. IEEE Congr.
+    Evolutionary Computation 2001, Seoul, Korea, 2001, pp. 94–97
+    """
+
+    def __init__(self, parameters, probability=1):
+        super().__init__(parameters, probability)
+        self.w1 = 0.9  # inertia weight is calculated from w1 and w2
+        self.w2 = 0.4
+        self.c1 = 2.  # cognitive constant
+        self.c2 = 1.  # social constant
+        self.best_individual = None
+
+    # update new particle velocity
+    def update_velocity(self, individual, nr_generations, iteration_nr):
+        """
+        :param nr_generations: total number of generations, during the calculation, MAXITER
+        :param iteration_nr: actual generation
+        """
+        for i in range(0, len(individual.vector)):
+
+            r1 = 0.1 * random.random()
+            r2 = 0.1 * random.random()
+
+            # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
+            w = (self.w1-self.w2) * (nr_generations - iteration_nr)/nr_generations + self.w2
+
+            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+            individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+
+
+class SwarmMutationRandIW(SwarmMutation):
+    """
+    In this variation, the inertia weght is changing randomly,the mean value of the inertia weight is 0.75.
+    This modification was inspired by Clerc’s constriction factor concept,  in which the inertia weight is
+    kept constant at 0.729 and both acceleration coefficients are kept constant at 1.494.
+    Therefore, when random inertia weight factor method is used the acceleration coefficients are kept constant at 1.494.
+
+    Contras:
+    -------
+    """
+
+    def __init__(self, parameters, probability=1):
+        super().__init__(parameters, probability)
+        self.w = 0.5  # inertia weight -> changed randomly
+        self.c1 = 2.  # cognitive constant
+        self.c2 = 1.  # social constant
+        self.best_individual = None
+
+    # update new particle velocity
+    def update_velocity(self, individual):
+        """
+        :param nr_generations: total number of generations, during the calculation, MAXITER
+        :param iteration_nr: actual generation
+        """
+        for i in range(0, len(individual.vector)):
+
+            r1 = 0.1 * random.random()
+            r2 = 0.1 * random.random()
+
+            # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
+            w = self.w * random.random()/2.
+
+            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+            individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+
+
+class SwarmMutationTVAC(SwarmMutation):
+    """
+    Time-varying acceleration coefficients as a new parameter automation strategy for the PSO concept.
+
+    An improved optimum solution for most of the benchmarks was observed when changing c1 from 2.5 to 0.5
+    and changing c2 from 0.5 to 2.5, over the full range of the search.
+    Therefore, these values are used for the rest of the work. With this modification, a significant improvement of
+    the optimum value and the rate of convergence were observed, particularly for unimodal functions, compared with
+    the PSO-TVIW. However, it has been observed that the performance of the PSO-TVAC method is similar or poor
+    for multimodal functions. In contrast, compared with the PSO-RANDIW method an improved performance has been
+    observed with the PSO-TVAC for multimodal functions.
+    However, for unimodal functions, the PSO-RANDIW method showed significantly quick convergence to a good solution
+    compared with the PSO-TVAC method. The results are presented and discussed in Section V.
+
+    Pros: improved convergence rate in case of multi-modal functions
+
+    Cons: significantly slower convergence rate than PSO-RandIW for unimodal functions
+    """
+
+    def __init__(self, parameters, probability=1):
+        super().__init__(parameters, probability)
+        self.w = 0.9  # inertia weight
+        self.c1i = 0.5  # cognitive constant initial value
+        self.c1f = 2.5  # cognitive constant final value
+        self.c2i = 2.5  # social constant initial value
+        self.c2f = 0.5  # social constant final value
+        self.best_individual = None
+
+    # update new particle velocity
+    def update_velocity(self, individual, nr_generations, iteration_nr):
+        """
+        :param nr_generations: total number of generations, during the calculation, MAXITER
+        :param iteration_nr: actual generation
+        """
+        for i in range(0, len(individual.vector)):
+
+            r1 = 0.1 * random.random()
+            r2 = 0.1 * random.random()
+
+            # (c1f-c1i)*(MAX_ITER-iter)/MAX_ITER +
+            c1 =  (self.c1f - self.c1i) * (nr_generations-iteration_nr)/nr_generations + self.c1i
+            c2 = (self.c2f - self.c2i) * (nr_generations - iteration_nr) / nr_generations + self.c2i
+
+            vel_cognitive = c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_social = c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+            individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
 
 class Selection(Operation):
