@@ -106,7 +106,7 @@ class NSGAII(GeneticAlgorithm):
         self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
 
         # set selector
-        self.selector = TournamentSelection(self.problem.parameters, self.problem.signs)
+        self.selector = TournamentSelection(self.problem.parameters)
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()

@@ -2,7 +2,9 @@ from abc import abstractmethod, ABC
 import sys
 import random
 import math
+from numba import jit, jitclass
 import itertools
+import numpy as np
 
 from .individual import Individual
 from .utils import VectorAndNumbers
@@ -529,10 +531,10 @@ class SwarmMutationTVAC(SwarmMutation):
 
 class Selection(Operation):
 
-    def __init__(self, parameters, signs, part_num=2):
+    def __init__(self, parameters, part_num=2):
         super().__init__()
         self.parameters = parameters
-        self.signs = signs
+        #self.signs = signs
         self.part_num = part_num
         self.comparator = ParetoDominance()
 
@@ -649,7 +651,7 @@ class EpsilonDominance(Dominance):
         or the box is preferred.
     """
 
-    def __init__(self, epsilons, signs=None):
+    def __init__(self, epsilons):
         super(EpsilonDominance, self).__init__()
 
         if hasattr(epsilons, "__getitem__"):
@@ -759,7 +761,6 @@ class EpsilonDominance(Dominance):
         else:
             return 1
 
-
 class ParetoDominance(Dominance):
     # from platypus core
     """Pareto dominance with constraints.
@@ -769,30 +770,93 @@ class ParetoDominance(Dominance):
     Pareto dominance is used to select the preferred solution.
     """
 
-    def __init__(self, signs, epsilons=None):
+    def __init__(self, epsilons=None):
         super(ParetoDominance, self).__init__()
-        self.signs = signs
+        #self.signs = signs deprecated
 
-    def compare(self, p, q):
-        # assert(len(p.costs) == len(q.costs))
+    #@jit
+    def compare(self, p:list, q:list):
+        """
+        Here, p and q are tuples, which contains the (feasibility index, cost vector)
+        """
+
         # first check constraint violation
-        if p.feasible != q.feasible:
-            if p.feasible == 0:
+        if p[-1] != q[-1]:
+            if p[-1] == 0:
                 return 1
-            elif q.feasible == 0:
+            elif q[-1] == 0:
                 return 2
-            elif p.feasible < q.feasible:
+            elif p[-1] < q[0]:
                 return 1
-            elif q.feasible < p.feasible:
+            elif q[-1] < p[0]:
                 return 2
+
+        # if p.feasible != q.feasible:
+        #     if p.feasible == 0:
+        #         return 1
+        #     elif q.feasible == 0:
+        #         return 2
+        #     elif p.feasible < q.feasible:
+        #         return 1
+        #     elif q.feasible < p.feasible:
+        #         return 2
 
         # The cost function can be a float or a list of floats
         # Check the pareto dominance on every value of the calculated vectors
+
+        # numpy makes the calculation elementwise, so we are calculating the result vector at first
+        # and checks that is p can dominate q
+        # res = p>q
+        #
+        # dominate_p = False
+        # dominate_q = False
+        #
+        # for i in res[:-1]:
+        #     if i:
+        #         dominate_q = True
+        #         if dominate_p:
+        #             return 0
+        #     else:
+        #         dominate_p = True
+        #         if dominate_q:
+        #             return 0
+        #
+        # if dominate_p == dominate_q:
+        #     return 0
+        #
+        # elif dominate_p:
+        #     return 1
+        # else:
+        #     return 2
+
+        # the old solution
+        # dominate_p = False
+        # dominate_q = False
+        #
+        # for (p_costs, q_costs, sign) in zip(p.costs, q.costs, self.signs):
+        #
+        #     if sign * p_costs > sign * q_costs:
+        #         dominate_q = True
+        #         if dominate_p:
+        #             return 0
+        #     else:
+        #         dominate_p = True
+        #         if dominate_q:
+        #             return 0
+        #
+        # if dominate_q == dominate_p:
+        #     return 0
+        # elif dominate_p:
+        #     return 1
+        # else:
+        #     return 2
+
         dominate_p = False
         dominate_q = False
 
-        for p_costs, q_costs, sign in zip(p.costs, q.costs, self.signs):
-            if sign * p_costs > sign * q_costs:
+        for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
+
+            if p_costs > q_costs:
                 dominate_q = True
                 if dominate_p:
                     return 0
@@ -801,20 +865,6 @@ class ParetoDominance(Dominance):
                 if dominate_q:
                     return 0
 
-        # for i in range(0, len(p.costs)):
-        #     sign = self.signs[i]
-        #     if sign * p.costs[i] > sign * q.costs[i]:
-        #         dominate_q = True
-        #
-        #         if dominate_p:
-        #             return 0
-        #
-        #     if sign * p.costs[i] < sign * q.costs[i]:
-        #         dominate_p = True
-        #
-        #         if dominate_q:
-        #             return 0
-
         if dominate_q == dominate_p:
             return 0
         elif dominate_p:
@@ -822,15 +872,21 @@ class ParetoDominance(Dominance):
         else:
             return 2
 
-
 class Selection(Operation):
 
-    def __init__(self, parameters, signs=None, part_num=2, dominance=ParetoDominance):
+    def __init__(self, parameters, sign=None, part_num=2, dominance=ParetoDominance):
+        """
+
+        :param parameters:
+        :param sign: one value from now, because its goal is to tell the direction of the optimum min or max
+        :param part_num:
+        :param dominance:
+        """
         super().__init__()
         self.parameters = parameters
         self.part_num = part_num
-        self.comparator = dominance(signs=signs)  # ParetoDominance()
-        self.signs = signs
+        self.comparator = dominance()  # ParetoDominance()
+        self.signs = sign
 
     @abstractmethod
     def select(self, population):
@@ -849,15 +905,6 @@ class Selection(Operation):
             else:
                 return True
 
-        # dominate = False
-        # for i in range(0, len(p.costs)):
-        #     if p.costs[i] > q.costs[i]:
-        #         return False
-        #     if p.costs[i] <= q.costs[i]:
-        #         dominate = True
-        #
-        # return dominate
-
     def sorting(self, generation):
         """
         This shoring can be dominated or non-dominated.
@@ -875,9 +922,9 @@ class Selection(Operation):
             for q in generation:
                 if p is q:
                     continue
-                if self.comparator.compare(p, q) == 1:          # TODO: simplify
+                if self.comparator.compare(p.signed_costs, q.signed_costs) == 1:          # TODO: simplify
                     p.dominate.add(q)
-                elif self.comparator.compare(q, p) == 1:
+                elif self.comparator.compare(q.signed_costs, p.signed_costs) == 1:
                     p.domination_counter += 1
 
             if p.domination_counter == 0:
@@ -922,8 +969,8 @@ class Selection(Operation):
 
 class DummySelection(Selection):
 
-    def __init__(self, parameters, signs, part_num=2):
-        super().__init__(parameters, signs, part_num)
+    def __init__(self, parameters, sign, part_num=2):
+        super().__init__(parameters, sign, part_num)
 
     def select(self, individuals):
         selection = []
@@ -941,10 +988,10 @@ class DummySelection(Selection):
 
 class TournamentSelection(Selection):
 
-    def __init__(self, parameters, signs=None, dominance=ParetoDominance, epsilons=None):
-        super().__init__(parameters, signs=signs)
-        self.dominance = dominance(signs=signs, epsilons=epsilons)
-        self.signs = signs
+    def __init__(self, parameters, dominance=ParetoDominance, epsilons=None):
+        super().__init__(parameters)
+        self.dominance = dominance(epsilons=epsilons)
+        #self.signs = sign
         # self.dominance = EpsilonDominance([0.01])
 
     def select(self, population):
@@ -960,7 +1007,8 @@ class TournamentSelection(Selection):
 
         for _ in range(self.part_num - 1):
             candidate = random.choice(population)
-            flag = self.dominance.compare(winner, candidate)
+
+            flag = self.dominance.compare(winner.signed_costs, candidate.signed_costs)
 
             if flag > 0:
                 winner = candidate
