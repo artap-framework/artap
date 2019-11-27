@@ -36,15 +36,21 @@ class TestCrossover(unittest.TestCase):
         self.assertEqual(len(offsprings), 2)
 
     def test_dominates(self):
-        dominance = ParetoDominance(self.signs)
+        dominance = ParetoDominance()
         i1 = GeneticIndividual([0, 0])
         i1.costs = [1, 1]
+
+        i1.transform_data(self.signs)
+
         i2 = GeneticIndividual([2, 2])
         i2.costs = [2, 2]
-        result = dominance.compare(i1, i2)
+
+        i2.transform_data(self.signs)
+
+        result = dominance.compare(i1.signed_costs, i2.signed_costs)
         self.assertEqual(result, 1)
 
-        result = dominance.compare(i2, i1)
+        result = dominance.compare(i2.signed_costs, i1.signed_costs)
         self.assertEqual(result, 2)
 
     def test_pareto(self):
@@ -64,7 +70,9 @@ class TestCrossover(unittest.TestCase):
         individuals[7].costs = [2, 1]
         individuals[8].costs = [3, 0]
 
-        selector = TournamentSelection(self.parameters, signs=self.signs)
+        _ = [ind.transform_data(self.signs) for ind in individuals]
+
+        selector = TournamentSelection(self.parameters)
         selector.sorting(individuals)
 
         for individual in individuals:

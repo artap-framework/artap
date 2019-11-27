@@ -10,3 +10,4 @@ joblib
 rpyc
 SALib
 pytest
+numba
