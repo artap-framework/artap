@@ -1,7 +1,8 @@
 from abc import *
 from random import uniform
 from enum import Enum
-
+#from numpy import  asarray, float64, append
+from copy import deepcopy
 
 class Individual(metaclass=ABCMeta):
     """ Collects information about one point in design space. """
@@ -52,7 +53,7 @@ class GeneticIndividual(Individual):
         super().__init__(vector)
 
         self.gradient = []
-        self.feasible = 0.0  # the distance from the feasibility region in min norm
+        self.feasible = 0.0  # the distance from the feasibility region in min norm, its an index, not a
         self.dominate = set()
         self.domination_counter = 0
         self.front_number = None  # TODO: make better
@@ -64,8 +65,32 @@ class GeneticIndividual(Individual):
         self.best_parameters = []  # best position individual
         self.best_costs = []  # best error individual
 
+        # transformed data, like a cache for the signed values of the calculation results in ndarray
+        self.signed_costs = []
+
         for i in range(0, len(self.vector)):
             self.velocity_i.append(uniform(-1, 1))
+
+    def transform_data(self, signs):
+        """
+        Tha aim of this function is to transform the data into a numpy array, which can make a faster
+        comparison during the sorting of the data.
+
+        :param signs: this is the list of the signs of every value, which shows that the minimum or the maximum
+        of the values are calculated. This list is stored in the Problem class
+
+        :return: nothing but calculates np array from the data
+        """
+
+        #svec = asarray(signs,dtype=float64)
+        #cvec = asarray(self.costs, dtype=float64)
+
+        #self.signed_costs = svec*cvec
+        #self.signed_costs = append(self.signed_costs, self.feasible)
+
+        self.signed_costs = list(map(lambda x,y:x*y,signs,self.costs))
+        self.signed_costs.append(self.feasible)
+        return
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """

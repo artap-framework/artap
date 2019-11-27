@@ -34,7 +34,8 @@ setuptools.setup(
                       'optproblems',
                       'smt',
                       'cython',
-                      'joblib'],
+                      'joblib',
+                      'numba'],
     scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",
