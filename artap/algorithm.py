@@ -2,7 +2,7 @@ from .problem import Problem
 from .utils import ConfigDictionary
 from .job import JobSimple
 from .population import Population
-from .individual import Individual
+from .individual import Individual,GeneticIndividual
 from .operators import RandomGeneration
 
 from abc import ABCMeta, abstractmethod
@@ -62,7 +62,10 @@ class Algorithm(metaclass=ABCMeta):
         for individual in individuals:
             if individual.state == Individual.State.FAILED:
                 n_failed += 1
-                individuals.remove(individual)
+                individuals.remove(individual)   # TODO: is can be not feasible?
+            if isinstance(individual, GeneticIndividual):
+                individual.transform_data(self.problem.signs)
+
 
     def evaluate_serial(self, individuals: list):
         job = JobSimple(self.problem)
