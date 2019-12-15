@@ -5,7 +5,7 @@ import math
 from numba import jit, jitclass
 import itertools
 import numpy as np
-
+from math import exp
 from .individual import Individual
 from .utils import VectorAndNumbers
 from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
@@ -30,7 +30,7 @@ class Generation(Operation):
         self.parameters = parameters
         self.individual_class = individual_class
 
-    def create_individual(self, vector: list=[]):
+    def create_individual(self, vector: list = []):
         return self.individual_class(vector)
 
     @abstractmethod
@@ -143,7 +143,7 @@ class BoxBehnkenGeneration(Generation):
     """
 
     def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class,)
+        super().__init__(parameters, individual_class, )
 
     def generate(self):
         dict_vars = {}
@@ -316,9 +316,9 @@ class PmMutation(Mutation):
 
         return x
 
-    def bitflip(self, x:list):
+    def bitflip(self, x: list):
 
-        for j in range(1,len(x)):
+        for j in range(1, len(x)):
             if random.uniform(0.0, 1.0) <= self.probability:
                 x[j] = not x[j]
 
@@ -363,7 +363,6 @@ class SwarmMutation(Mutation):
     def update_velocity(self, individual):
 
         for i in range(0, len(individual.vector)):
-
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
 
@@ -417,7 +416,7 @@ class SwarmMutationTVIW(SwarmMutation):
     Evolutionary Computation 2001, Seoul, Korea, 2001, pp. 94–97
     """
 
-    def __init__(self, parameters, probability=1):
+    def __init__(self, parameters, probability=1, nr_maxgen=100):
         super().__init__(parameters, probability)
         self.w1 = 0.9  # inertia weight is calculated from w1 and w2
         self.w2 = 0.4
@@ -425,23 +424,28 @@ class SwarmMutationTVIW(SwarmMutation):
         self.c2 = 1.  # social constant
         self.best_individual = None
 
+        # new parameters
+        self.max_nr_generations = nr_maxgen
+        self.current_iter = 0.
+
     # update new particle velocity
-    def update_velocity(self, individual, nr_generations, iteration_nr):
+    def update_velocity(self, individual):
         """
         :param nr_generations: total number of generations, during the calculation, MAXITER
         :param iteration_nr: actual generation
         """
         for i in range(0, len(individual.vector)):
-
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
 
             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
-            w = (self.w1-self.w2) * (nr_generations - iteration_nr)/nr_generations + self.w2
+            w = (self.w1 - self.w2) * (self.max_nr_generations - self.current_iter) / self.max_nr_generations + self.w2
 
             vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+
+            self.current_iter += 1.
 
 
 class SwarmMutationRandIW(SwarmMutation):
@@ -469,16 +473,101 @@ class SwarmMutationRandIW(SwarmMutation):
         :param iteration_nr: actual generation
         """
         for i in range(0, len(individual.vector)):
-
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
 
             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
-            w = self.w * random.random()/2.
+            w = self.w * random.random() / 2.
 
             vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+
+
+class FireflyMutation(SwarmMutation):
+    """
+    Firefly algorithm is a modification of the original pso algorithms. The idea is that it mimics the behaviour of
+    the fireflies, which uses specfic light combinations for hunting and dating. This algorithm mimics the dating
+    behaviour of these bugs. The algorithm is originally published by [1]
+
+    The brightest individual attracts the darkest ones, this starts to go to that direction, if there is not an
+    existing brighter solutions, the algorithm randomly steps one into another direction.
+
+    This operator makes the following
+    ---------------------------------
+
+    - calculates the distance between two points, because its correlates with that value.
+    - the brightness of the other point
+    - the mutator constant, which contains a damping factor [2]?
+
+    The k+1 th position of the j(th) individual is calculated by the following formula
+    ---------------------------------------------------------------------------
+
+        b0=2;               # Attraction Coefficient Base Value
+        a=0.2;              # Mutation Coefficient
+        ad=0.98;            # Mutation Coefficient Damping Ratio -- decreases the initial value of a after each
+                              iteration step
+        gamma = 1.          # light absorbtion coefficient
+
+        x(j,k+1) = x(j,k) + b0*exp(-gamma*r^2) + sum_{i<j}[x(j,k) - x(i,k)] + a*(rand[0,1] - 0.5)
+
+    [1] Yang, Xin-She. "Firefly algorithms for multimodal optimization." International symposium on stochastic algorithms.
+        Springer, Berlin, Heidelberg, 2009.
+    [2] firefly algorithm implementation from www.Yarpiz.com
+
+    [3] https://nl.mathworks.com/matlabcentral/fileexchange/29693-firefly-algorithm
+
+     Similarly, alpha should also be linked with scales, the steps should not too large or too small, often steps
+     are about 1/10 to 1/100 of the domain size. In addition, alpha should be reduced gradually using
+     alpha=alpha_0 delta^t during eteration t.  Typically, delta=0.9 to 0.99 will be a good choice.
+    """
+
+    def __init__(self, parameters, probability=0.05):
+        super().__init__(parameters, probability)
+
+        self.beta = 2.0
+        self.alpha = 0.2
+        self.ad = 0.98
+        self.gamma = 1.
+
+        self.best_individual = None
+
+    def update_coefficient_a(self):
+        """ Updates the mutation coefficient with the damping factor, after each iteration step """
+        self.alpha *= self.ad
+        return
+
+    # update new particle velocity
+    def update_velocity(self, individual, others:list):
+        """
+        :param nr_generations: total number of generations, during the calculation, MAXITER
+        :param iteration_nr: actual generation
+        :param others: represents the list of another individuals in the solution space.
+        """
+        for i, param in enumerate(self.parameters):
+            for j in range(len(others)):
+                other = others[j]
+                if individual.signed_costs[i] > other.signed_costs[i]:
+
+                    v_individual = individual.vector[i]
+                    v_others = other.vector[i]
+
+                    lb = param['bounds'][0]
+                    ub = param['bounds'][1]
+
+                    # elementary distance of the particle (to do not )
+                    e = self.probability*(ub-lb)
+                    v_rd = self.alpha*(random.random()-0.5)*e
+
+                    # distance between the two individuals
+                    r2 = v_individual**2. + v_others**2.
+
+                    vel_attraction = self.beta*exp(-self.gamma*r2**2.)
+                    individual.velocity_i[i] += vel_attraction + v_rd
+
+                    self.update_position(individual)
+
+        return
 
 
 class SwarmMutationTVAC(SwarmMutation):
@@ -516,12 +605,11 @@ class SwarmMutationTVAC(SwarmMutation):
         :param iteration_nr: actual generation
         """
         for i in range(0, len(individual.vector)):
-
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
 
             # (c1f-c1i)*(MAX_ITER-iter)/MAX_ITER +
-            c1 =  (self.c1f - self.c1i) * (nr_generations-iteration_nr)/nr_generations + self.c1i
+            c1 = (self.c1f - self.c1i) * (nr_generations - iteration_nr) / nr_generations + self.c1i
             c2 = (self.c2f - self.c2i) * (nr_generations - iteration_nr) / nr_generations + self.c2i
 
             vel_cognitive = c1 * r1 * (individual.best_vector[i] - individual.vector[i])
@@ -534,7 +622,7 @@ class Selection(Operation):
     def __init__(self, parameters, part_num=2):
         super().__init__()
         self.parameters = parameters
-        #self.signs = signs
+        # self.signs = signs
         self.part_num = part_num
         self.comparator = ParetoDominance()
 
@@ -570,7 +658,7 @@ class Selection(Operation):
             for q in population:
                 if p is q:
                     continue
-                if self.comparator.compare(p, q) == 1:          # TODO: simplify
+                if self.comparator.compare(p, q) == 1:  # TODO: simplify
                     p.dominate.add(q)
                 elif self.comparator.compare(q, p) == 1:
                     p.domination_counter = p.domination_counter + 1
@@ -622,7 +710,6 @@ class DummySelection(Selection):
     def select(self, individuals):
         selection = []
         for individual in individuals:
-
             candidate = individual.__class__(individual.vector)
             candidate.costs = individual.costs
             candidate.front_number = individual.front_number
@@ -761,6 +848,7 @@ class EpsilonDominance(Dominance):
         else:
             return 1
 
+
 class ParetoDominance(Dominance):
     # from platypus core
     """Pareto dominance with constraints.
@@ -772,10 +860,10 @@ class ParetoDominance(Dominance):
 
     def __init__(self, epsilons=None):
         super(ParetoDominance, self).__init__()
-        #self.signs = signs deprecated
+        # self.signs = signs deprecated
 
-    #@jit
-    def compare(self, p:list, q:list):
+    # @jit
+    def compare(self, p: list, q: list):
         """
         Here, p and q are tuples, which contains the (feasibility index, cost vector)
         """
@@ -872,6 +960,7 @@ class ParetoDominance(Dominance):
         else:
             return 2
 
+
 class Selection(Operation):
 
     def __init__(self, parameters, sign=None, part_num=2, dominance=ParetoDominance):
@@ -922,7 +1011,7 @@ class Selection(Operation):
             for q in generation:
                 if p is q:
                     continue
-                if self.comparator.compare(p.signed_costs, q.signed_costs) == 1:          # TODO: simplify
+                if self.comparator.compare(p.signed_costs, q.signed_costs) == 1:  # TODO: simplify
                     p.dominate.add(q)
                 elif self.comparator.compare(q.signed_costs, p.signed_costs) == 1:
                     p.domination_counter += 1
@@ -975,7 +1064,6 @@ class DummySelection(Selection):
     def select(self, individuals):
         selection = []
         for individual in individuals:
-
             candidate = individual.__class__(individual.vector)
             candidate.costs = individual.costs
             candidate.front_number = individual.front_number
@@ -991,7 +1079,7 @@ class TournamentSelection(Selection):
     def __init__(self, parameters, dominance=ParetoDominance, epsilons=None):
         super().__init__(parameters)
         self.dominance = dominance(epsilons=epsilons)
-        #self.signs = sign
+        # self.signs = sign
         # self.dominance = EpsilonDominance([0.01])
 
     def select(self, population):
