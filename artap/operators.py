@@ -2,13 +2,13 @@ from abc import abstractmethod, ABC
 import sys
 import random
 import math
-from numba import jit, jitclass
 import itertools
 import numpy as np
 from math import exp
 from .individual import Individual
 from .utils import VectorAndNumbers
 from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
+from copy import copy
 
 EPSILON = sys.float_info.epsilon
 
@@ -345,9 +345,8 @@ class SwarmMutation(Mutation):
         self.c2 = 1.  # social constant
         self.best_individual = None
 
-    # evaluate current fitness
-    def evaluate_pso(self, individual):
-
+    def evaluate_best_individual(self, individual):
+        """ Determines the best individual in the swarm """
         dominates = True
 
         for i in range(len(individual.best_costs)):
@@ -532,41 +531,94 @@ class FireflyMutation(SwarmMutation):
 
         self.best_individual = None
 
+    def dominate(self, current, other):
+        """True if other dominates over current """
+        dominates = True
+
+        for i in range(len(current.costs)):
+            if other.signed_costs[i] > current.signed_costs[i]:
+                dominates = False
+
+        return dominates
+
     def update_coefficient_a(self):
         """ Updates the mutation coefficient with the damping factor, after each iteration step """
         self.alpha *= self.ad
         return
 
     # update new particle velocity
-    def update_velocity(self, individual, others:list):
+    def update_velocity_ij(self, current, other):
         """
-        :param nr_generations: total number of generations, during the calculation, MAXITER
-        :param iteration_nr: actual generation
-        :param others: represents the list of another individuals in the solution space.
+        This algorithm has a two-layered hierarchy, because every individual calculates an approximative next position
+        from the light intensity between two selected points.
         """
+        r2 = 0.  # euclidean distance
+
         for i, param in enumerate(self.parameters):
-            for j in range(len(others)):
-                other = others[j]
-                if individual.signed_costs[i] > other.signed_costs[i]:
 
-                    v_individual = individual.vector[i]
-                    v_others = other.vector[i]
+            lb = param['bounds'][0]
+            ub = param['bounds'][1]
 
-                    lb = param['bounds'][0]
-                    ub = param['bounds'][1]
+            # elementary distance of the particle
+            e = self.probability * (ub - lb)
+            # distance between the two individuals
+            r2 += current.vector[i] ** 2. + other.vector[i] ** 2.
+            vel_attraction = self.beta * exp(-self.gamma * r2 ** 2.)
 
-                    # elementary distance of the particle (to do not )
-                    e = self.probability*(ub-lb)
-                    v_rd = self.alpha*(random.random()-0.5)*e
+            v_rd = self.alpha * (random.random() - 0.5) * e
+            current.velocity_i[i] = vel_attraction + v_rd
 
-                    # distance between the two individuals
-                    r2 = v_individual**2. + v_others**2.
+            # for individual in offsprings:
+            #     for other in offsprings:
+            #         dominates = False
+            #
+            #         if individual is not other:
+            #             dominates = True
+            #
+            #         for i in range(len(individual.signed_costs)):
+            #             if individual.signed_costs[i] > offsprings.signed_costs[i]:
+            #                 dominates = False
+            #
+            #         if dominates:
+            #
+            #             r2 = 0
+            #             for i, param in enumerate(self.parameters):
+            #                 l_b = param['bounds'][0]
+            #                 u_b = param['bounds'][1]
+            #
+            #                 # elementary distance of the particle (to do not )
+            #                 e = self.probability*(u_b-l_b)
+            #                 # distance between the two individuals
+            #                 r2 += individual.vector[i]**2. + other.vector[i]**2.
+            #
+            #                 vel_attraction = self.beta*exp(-self.gamma*r2**2.)
+            #
+            #                 v_rd = self.alpha * (random.random() - 0.5) * e
+            #                 individual.velocity_i[i] = vel_attraction + v_rd
+            #
+            #                 temp = copy(individual)
+            #                 self.evaluate(temp)
+            #
+            #                 dom = True
+            #                 for j in range(len(individual.best_costs)):
+            #                     if individual.signed_costs[j] > offsprings.signed_costs[j]:
+            #                         dom = False
+            #
+            #                 if dom is True:
+            #                     individual = copy(temp)
 
-                    vel_attraction = self.beta*exp(-self.gamma*r2**2.)
-                    individual.velocity_i[i] += vel_attraction + v_rd
+            return
 
-                    self.update_position(individual)
+    def mutate_ij(self, p, q):
+        """
+        For firefly algorithm, because of the two-layered hierarchy.
 
+        :param p:
+        :param q:
+        :return:
+        """
+        self.update_velocity_ij(p,q)
+        self.update_position(p)
         return
 
 
