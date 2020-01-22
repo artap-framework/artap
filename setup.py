@@ -35,7 +35,7 @@ setuptools.setup(
                       'smt',
                       'cython',
                       'joblib',
-                      'numba'],
+                      'python-gdm'],
     scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",
