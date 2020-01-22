@@ -68,9 +68,8 @@ algorithm.run()
 # Post - processing the results
 # reads in the result values into the b, results class
 b = Results(problem)
-# finding the pareto values
+print(b.parameters())
 solution = b.pareto_values()
-
 # Plotting out the resulting hyperbola with matplotlib
 plt.scatter([s[0] for s in solution],
             [s[1] for s in solution])

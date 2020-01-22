@@ -92,6 +92,10 @@ class GeneticIndividual(Individual):
         self.signed_costs.append(self.feasible)
         return
 
+    def weighted_cost(self, signs, weights):
+
+        return
+
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
 
