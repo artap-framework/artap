@@ -17,9 +17,6 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from numpy import exp
 import numpy as np
 
-import optproblems as optp
-from optproblems import cec2005
-
 
 def eval_2d_synthetic(x1, x2):
     """
@@ -219,18 +216,6 @@ def plot_2d_ackley():
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
     plt.show()
-
-
-# def eval(individual):
-#     """ Calculates the cost functions of the individual """
-#     # shifted rotated Ackley function
-#     func = cec2005.F8(2)
-#     problem = optp.Problem(func, num_objectives=1)
-#     solutions = [optp.Individual(individual.params)]
-#
-#     problem.batch_evaluate(solutions)
-#     individual.costs = [solutions[0].objective_values]
-#     return
 
 
 if __name__ == "__main__":
