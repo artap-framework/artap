@@ -3,7 +3,6 @@ import os
 import json
 import time
 import logging
-
 from abc import abstractmethod
 
 from .population import Population
