@@ -9,6 +9,7 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 mpl_logger.setLevel(logging.WARNING)
 
+import csv
 
 class Results:
     MINIMIZE = -1
@@ -145,6 +146,30 @@ class Results:
             for individual in population.individuals:
                 out.append(individual.costs)
         return out
+
+    def write_out_populations(self):
+        """
+        Writes out every population into a
+        :return:
+        """
+        for population in self.problem.data_store.populations:
+            out_file = self.problem.working_dir + "population_" + \
+                          str(self.problem.data_store.populations.index(population)) + "_costs.csv"
+
+            with open(out_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+
+                for index, individual in enumerate(population.individuals):
+                    out = []
+                    for i in individual.costs:
+                        out.append(i)
+                    for j in individual.vector:
+                        out.append(j)
+
+                    #print(index, out)
+                    writer.writerows([out])
+
+        return
 
 class GraphicalResults(Results):
 
