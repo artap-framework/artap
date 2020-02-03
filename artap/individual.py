@@ -1,8 +1,9 @@
 from abc import *
 from random import uniform
 from enum import Enum
-#from numpy import  asarray, float64, append
+# from numpy import  asarray, float64, append
 from copy import deepcopy
+
 
 class Individual(metaclass=ABCMeta):
     """ Collects information about one point in design space. """
@@ -48,6 +49,7 @@ class Individual(metaclass=ABCMeta):
         self.costs = individual.costs
         self.state = individual.state
 
+
 class GeneticIndividual(Individual):
     def __init__(self, vector: list):
         super().__init__(vector)
@@ -82,17 +84,23 @@ class GeneticIndividual(Individual):
         :return: nothing but calculates np array from the data
         """
 
-        #svec = asarray(signs,dtype=float64)
-        #cvec = asarray(self.costs, dtype=float64)
+        # svec = asarray(signs,dtype=float64)
+        # cvec = asarray(self.costs, dtype=float64)
 
-        #self.signed_costs = svec*cvec
-        #self.signed_costs = append(self.signed_costs, self.feasible)
+        # self.signed_costs = svec*cvec
+        # self.signed_costs = append(self.signed_costs, self.feasible)
 
-        self.signed_costs = list(map(lambda x,y:x*y,signs,self.costs))
+        self.signed_costs = list(map(lambda x, y: x * y, signs, self.costs))
         self.signed_costs.append(self.feasible)
         return
 
-    def weighted_cost(self, signs, weights):
+    def weighted_cost(self, weights):
+        """
+        Calculates a single best solution
+
+        :param weights:
+        :return:
+        """
 
         return
 
