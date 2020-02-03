@@ -34,7 +34,7 @@ class BiObjectiveTestProblem(Problem):
 
         # Not mandatory to give a name for the test problem
         self.name = 'Biobjective Test Problem'
-
+        self.working_dir = '.'
         # Defines x_1 and x_2, which are the optimized parameters
         # and the bounds 'defines' the constraints of the optimization problem
         # nsga -- ii algorithm doesn't need an initial value for the definition
@@ -61,14 +61,15 @@ problem = BiObjectiveTestProblem()
 
 # Perform the optimization iterating over 100 times on 100 individuals.
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 100
-algorithm.options['max_population_size'] = 100
+algorithm.options['max_population_number'] = 3
+algorithm.options['max_population_size'] = 10
 algorithm.run()
 
 # Post - processing the results
 # reads in the result values into the b, results class
 b = Results(problem)
-print(b.parameters())
+#print(b.parameters())
+b.write_out_populations()
 solution = b.pareto_values()
 # Plotting out the resulting hyperbola with matplotlib
 plt.scatter([s[0] for s in solution],
