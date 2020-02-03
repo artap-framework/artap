@@ -156,7 +156,7 @@ def plot_MMF2(selector):
 
 
 if __name__ == "__main__":
-    #plot_MMF1(0)
-    #plot_MMF1(1)
+    plot_MMF1(0)
+    plot_MMF1(1)
 
-    plot_MMF2(0)
+    #plot_MMF2(0)
