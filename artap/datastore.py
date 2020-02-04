@@ -1,12 +1,11 @@
 import sqlite3
 import os
-import json
 import time
 import logging
 from abc import abstractmethod
 
 from .population import Population
-
+from .config import artap_root
 
 class SqliteHandler(logging.Handler):
     """
@@ -137,9 +136,8 @@ class FileDataStore(DataStore):
             else:
                 self.read_from_datastore()
         elif backend == "sqlitedict":
-            from .environment import Enviroment
             import sys
-            sys.path.append(Enviroment.artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict")
+            sys.path.append(artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict")
             from sqlitedict import SqliteDict
 
             self.db = SqliteDict(self.database_name, autocommit=True)
