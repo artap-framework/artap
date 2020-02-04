@@ -1,7 +1,6 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .population import Population
-from .environment import Enviroment
+from .config import artap_root
 from .job import JobSimple
 
 import time
@@ -10,7 +9,7 @@ import numpy as np
 import os
 
 import sys
-sys.path.append(Enviroment.artap_root + os.sep + "lib" + os.sep)
+sys.path.append(artap_root + os.sep + "lib" + os.sep)
 import bayesopt
 
 from multiprocessing import Process, Pipe, Queue, Manager
