@@ -8,8 +8,13 @@ about = {}
 with open(os.path.join(base_dir, "artap", "__about__.py"), "rb") as f:
     exec(f.read(), about)
 
+# long description
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+# requirements
+with open("requirements.txt", "r") as fh:
+    requirements = fh.read().split("\n")
 
 setuptools.setup(
     name="artap",
@@ -26,17 +31,8 @@ setuptools.setup(
     include_package_data=True,
     data_files=[('artap', ['artap/environment.json']), ('artap/lib', ['artap/lib/bayesopt.so']),
                 ('artap/lib', ['artap/lib/_nlopt.so'])],
-    install_requires=['numpy',
-                      'scipy',
-                      'sklearn',
-                      'rpyc',
-                      'matplotlib',
-                      'optproblems',
-                      'smt',
-                      'cython',
-                      'joblib',
-                      'python-gdm'],
-    scripts=['3rdparty/submodules.sh'],
+    install_requires=requirements,
+    # scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",
         "Operating System :: POSIX :: Linux",

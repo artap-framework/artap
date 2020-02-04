@@ -7,6 +7,7 @@ from artap.algorithm_nlopt import LN_BOBYQA
 
 from artap.results import Results
 from artap.benchmark_functions import Booth
+from artap.config import artap_root
 
 import tempfile
 
@@ -95,9 +96,8 @@ class TestDataStoreFile(unittest.TestCase):
         problem.data_store.db.close()
 
         # check db
-        from artap.environment import Enviroment
         import sys
-        sys.path.append(Enviroment.artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict")
+        sys.path.append(artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict")
         from sqlitedict import SqliteDict
 
         db = SqliteDict(database_name, autocommit=True)

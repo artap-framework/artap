@@ -1,12 +1,12 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .environment import Enviroment
+from .config import artap_root
 from .job import JobSimple
 
 import time
 
 import sys
-sys.path.append(Enviroment.artap_root + "/lib/")
+sys.path.append(artap_root + "/lib/")
 
 import _nlopt
 
