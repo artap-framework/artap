@@ -2,7 +2,6 @@ import setuptools
 from setuptools.command.build_ext import build_ext as _build_ext
 import os
 
-
 base_dir = os.path.abspath(os.path.dirname(__file__))
 about = {}
 with open(os.path.join(base_dir, "artap", "__about__.py"), "rb") as f:
@@ -18,18 +17,18 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="artap",
-    version=about["__version__"],
-    author=about["__author__"],
-    author_email=about["__author_email__"],
+    version="2020.2.4",
+    author=u"Artap Team",
+    author_email="artap.framework@gmail.com",
     description="Platform for robust design optimization",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="http://www.agros2d.org/artap/",
     python_requires='>3.6',
-    license=about["__license__"],
+    license="License :: OSI Approved :: MIT License",
     packages=setuptools.find_packages(),
     include_package_data=True,
-    data_files=[('artap', ['artap/environment.json']), ('artap/lib', ['artap/lib/bayesopt.so']),
+    data_files=[('artap/lib', ['artap/lib/bayesopt.so']),
                 ('artap/lib', ['artap/lib/_nlopt.so'])],
     install_requires=requirements,
     # scripts=['3rdparty/submodules.sh'],
