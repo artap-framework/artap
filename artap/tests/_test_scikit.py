@@ -4,8 +4,6 @@ import unittest
 from scipy import integrate
 
 from artap.problem import Problem
-from artap.algorithm_nlopt import NLopt, LN_BOBYQA
-from artap.algorithm_bayesopt import BayesOptSerial
 from artap.algorithm_genetic import NSGAII
 from artap.algorithm_sweep import SweepAlgorithm
 from artap.benchmark_functions import Booth

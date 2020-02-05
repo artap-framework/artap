@@ -3,9 +3,6 @@ from setuptools.command.build_ext import build_ext as _build_ext
 import os
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
-about = {}
-with open(os.path.join(base_dir, "artap", "__about__.py"), "rb") as f:
-    exec(f.read(), about)
 
 # long description
 with open("README.md", "r") as fh:
