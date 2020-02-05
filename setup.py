@@ -1,11 +1,6 @@
 import setuptools
 from setuptools.command.build_ext import build_ext as _build_ext
 import os
-import subprocess
-import sys
-
-
-subprocess.check_call([sys.executable, "-m", "pip", "install", 'numpy'])
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
