@@ -5,7 +5,11 @@ from artap.problem import Problem
 from artap.individual import Individual
 from artap.results import Results
 
+
+
 try:
+    __nlopt__ = True
+    __agros__ = True
     from artap.algorithm_nlopt import NLopt
     from artap.algorithm_nlopt import LN_BOBYQA
 except ImportError:
