@@ -57,19 +57,19 @@ class TestCEC2005(unittest.TestCase):
             # print("Try again with more populations: {}".format(max_pop))
             self.run_test_problem(max_pop, function)
 
-    def xtest_shifted_sphere(self):
+    def test_shifted_sphere(self):
         self.run_test_problem(50, optp.cec2005.F1(2))
 
-    def xtest_shifted_rot_weierstrass(self):
+    def test_shifted_rot_weierstrass(self):
         self.run_test_problem(50, optp.cec2005.F11(2))
 
-    def xtest_fletcherpowell(self):  # schwefel
+    def test_fletcherpowell(self):  # schwefel
         self.run_test_problem(50, optp.cec2005.F12(2))
 
-    def xtest_f8f2(self):
+    def test_f8f2(self):
         self.run_test_problem(50, optp.cec2005.F13(2))
 
-    def xtest_expanded_f6(self):
+    def test_expanded_f6(self):
         self.run_test_problem(50, optp.cec2005.F14(2))
 
 
