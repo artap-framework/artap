@@ -2,11 +2,7 @@ import unittest
 import sys
 
 from artap.problem import Problem
-try:
-    from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
-except ImportError:
-    __bayes_opt__= False
-
+from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
 
 from artap.results import Results
 from artap.benchmark_functions import Booth
@@ -39,7 +35,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         optimum = results.find_minimum(name='F')
         self.assertAlmostEqual(optimum.costs[0], 0, places=2)
 
-    @unittest.skipIf(__bayes_opt__ is False, "requires module Bayespt")
+    @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
     def test_local_problem_bayesopt_serial(self):
         problem = MyProblem()
         algorithm = BayesOptSerial(problem)
