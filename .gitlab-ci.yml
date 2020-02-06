@@ -13,7 +13,7 @@ build:
     # get packages
     - pip install numpy
     - pip install cython		
-    - pip install artap
+    - pip install -r requirements.txt
 
     # agrossuite
     - ln -s ../../../../3rdparty/agros/ env/lib/python3.7/site-packages/agrossuite
