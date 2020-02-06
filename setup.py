@@ -19,7 +19,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="artap",
-    version="2020.2.4",
+    version="2020.2.5",
     author=u"Artap Team",
     author_email="artap.framework@gmail.com",
     description="Platform for robust design optimization",
