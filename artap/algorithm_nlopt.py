@@ -6,7 +6,8 @@ from .job import JobSimple
 import time
 
 import sys
-sys.path.append(artap_root + "/lib/")
+import os
+sys.path.append(artap_root + os.sep + "lib")
 
 import _nlopt
 

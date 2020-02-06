@@ -5,21 +5,21 @@ from artap.problem import Problem
 from artap.individual import Individual
 from artap.results import Results
 
-
-
 try:
-    __nlopt__ = True
-    __agros__ = True
     from artap.algorithm_nlopt import NLopt
     from artap.algorithm_nlopt import LN_BOBYQA
+
+    __nlopt__ = True
 except ImportError:
     print("NLopt is not present test skiped")
     __nlopt__ = False
 
 try:
     from agrossuite import agros as a2d
+
+    __agros__ = True
 except ImportError:
-    print("Agros is not present test skiped")
+    print("Agros is not present test skipped")
     __agros__ = False
 
 
@@ -165,7 +165,7 @@ class AgrosProblem(Problem):
 
 class TestAgrosOptimization(unittest.TestCase):
 
-    @unittest.skipIf(__agros__ is False or __nlopt__ is False, "requires linux")
+    @unittest.skipIf(__agros__ is False or __nlopt__ is False, "requires Agros Suite")
     def test_agros_exec(self):
         problem = AgrosProblem()
         algorithm = NLopt(problem)
