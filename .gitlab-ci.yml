@@ -11,9 +11,9 @@ build:
     - python3 -m venv env
     - source env/bin/activate
     # get packages
-    - pip install numpy
-    - pip install cython		
-    - pip install -r requirements.txt
+    # - pip install numpy
+    # - pip install cython		
+    - pip install artap
 
     # agrossuite
     - ln -s ../../../../3rdparty/agros/ env/lib/python3.7/site-packages/agrossuite

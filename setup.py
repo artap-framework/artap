@@ -1,8 +1,11 @@
 import setuptools
-from setuptools.command.build_ext import build_ext as _build_ext
 import os
 
+
 base_dir = os.path.abspath(os.path.dirname(__file__))
+os.system('pip3 install numpy')
+os.system('pip3 install cython')
+
 
 # long description
 with open("README.md", "r") as fh:
@@ -11,6 +14,8 @@ with open("README.md", "r") as fh:
 # requirements
 with open("requirements.txt", "r") as fh:
     requirements = fh.read().split("\n")
+
+
 
 setuptools.setup(
     name="artap",
