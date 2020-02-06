@@ -1,15 +1,16 @@
 import os
 import getpass
 from appdirs import user_config_dir
-import pathlib
 
 # internal variables
-__id__ = "artap"
-path = str(pathlib.Path(__file__).parent.absolute())
-path = path.replace("/artap", "")
+
+path = __file__
+path = path.replace("config.py", "")
 
 artap_root = path
 tests_root = os.path.abspath(path + "." + os.sep + "tests" + os.sep)
+
+__artap__root = ""
 
 # config
 config = {}
@@ -29,3 +30,4 @@ config["server_keep_live_delay"] = 0.1
 fn = "{}/config.py".format(user_config_dir(__id__))
 if os.path.exists(fn):
     exec(open(fn).read())
+
