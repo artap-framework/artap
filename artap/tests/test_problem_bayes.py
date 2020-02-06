@@ -1,12 +1,8 @@
 import unittest
 
 from artap.problem import Problem
-
-try:
-    from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
-    from artap.algorithm_bayes import Bayes, BayesianOptimization
-except ImportError:
-   __bayes_opt__ = False
+from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
+from artap.algorithm_bayes import Bayes, BayesianOptimization
 
 from artap.results import Results
 from artap.benchmark_functions import Booth
@@ -101,7 +97,6 @@ class TestBayesOptOptimization(unittest.TestCase):
         optimum = results.find_minimum(name='F')
         print(optimum)
 
-    @unittest.skipIf(__bayes_opt__ is False, "requires module BayesOpt")
     def test_bayesoptimization(self):
         optimizer = BayesianOptimization(f=target_func,
                                          pbounds=PBOUNDS,
