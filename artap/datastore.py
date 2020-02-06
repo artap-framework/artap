@@ -137,7 +137,7 @@ class FileDataStore(DataStore):
                 self.read_from_datastore()
         elif backend == "sqlitedict":
             import sys
-            sys.path.append(artap_root + os.sep + "3rdparty" + os.sep + "sqlitedict" + os.sep)
+            sys.path.append(artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict")
             from sqlitedict import SqliteDict
 
             self.db = SqliteDict(self.database_name, autocommit=True)

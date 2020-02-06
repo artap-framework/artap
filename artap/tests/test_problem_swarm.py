@@ -74,8 +74,8 @@ class TestCEC2005(unittest.TestCase):
     #def test_shifted_griewank(self):
     #    self.run_test_problem(50,  optp.cec2005.F7(2))
 
-    # def test_shifted_ackley(self):
-    #   self.run_test_problem(50,  optp.cec2005.F8(2))
+    def test_shifted_ackley(self):
+       self.run_test_problem(50,  optp.cec2005.F8(2))
 
     #def test_shifted_griewank(self):
     #   self.run_test_problem(50,  optp.cec2005.F7(2))
