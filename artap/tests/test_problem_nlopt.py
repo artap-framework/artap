@@ -14,6 +14,8 @@ try:
     from artap.algorithm_nlopt import LN_SBPLX
     from artap.algorithm_nlopt import LN_PRAXIS
     from artap.algorithm_nlopt import LN_AUGLAG_EQ
+
+    __nlopt__ = True
 except ImportError:
     __nlopt__ = False
 
@@ -56,7 +58,7 @@ class TestNLoptOptimization(unittest.TestCase):
             # try again with more iterations - NLopt - 3rd party library
             self.run_test(method, int(1.5 * n_iterations))
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_GN_DIRECT_L(self):
         self.run_test(GN_DIRECT_L, 400)
 
@@ -64,15 +66,15 @@ class TestNLoptOptimization(unittest.TestCase):
     # def test_local_problem_nlopt_GN_DIRECT_L_RAND(self):
     #    self.run_test(GN_DIRECT_L_RAND, 100)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_GN_MLSL(self):
         self.run_test(GN_MLSL, 500)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_GN_CRS2_LM(self):
         self.run_test(GN_CRS2_LM, 1000)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_GN_ISRES(self):
         self.run_test(GN_ISRES, 1000)
 
@@ -80,27 +82,27 @@ class TestNLoptOptimization(unittest.TestCase):
     # def test_local_problem_nlopt_GN_ESCH(self):
     #     self.run_test(GN_ESCH, 5000)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_LN_BOBYQA(self):
         self.run_test(LN_BOBYQA)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_LN_COBYLA(self):
         self.run_test(LN_COBYLA)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_LN_NELDERMEAD(self):
         self.run_test(LN_NELDERMEAD)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_LN_SBPLX(self):
         self.run_test(LN_SBPLX, 200)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_LN_AUGLAG_EQ(self):
         self.run_test(LN_AUGLAG_EQ)
 
-    @unittest.skipUnless(__nlopt__ == True, "requires NLpt")
+    @unittest.skipIf(__nlopt__ is False, "requires NLopt")
     def test_local_problem_nlopt_LN_PRAXIS(self):
         self.run_test(LN_PRAXIS)
 

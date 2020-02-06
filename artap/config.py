@@ -6,10 +6,9 @@ import pathlib
 # internal variables
 __id__ = "artap"
 path = str(pathlib.Path(__file__).parent.absolute())
-path = path.replace("/artap", "")
 
 artap_root = path
-tests_root = os.path.abspath(path + "." + os.sep + "tests" + os.sep)
+tests_root = os.path.abspath(path + os.sep + "tests" + os.sep)
 
 # config
 config = {}
