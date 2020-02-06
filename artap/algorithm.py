@@ -28,9 +28,6 @@ class Algorithm(metaclass=ABCMeta):
         self.options.declare(name='max_processes', default=1,
                              desc='Max running processes')
 
-        self.options.declare(name='n_iterations', default=10,
-                             desc='Max number of iterations')
-
         # initial population size
         self.population_size = 0
 

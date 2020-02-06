@@ -71,7 +71,7 @@ class AckleyN2Test(Problem):
 class TestAckleyN222(unittest.TestCase):
     """ Tests that the eps-moea algorithm can find the global optimum of a function."""
 
-    def xtest_local_problem(self, population_number=10):
+    def test_local_problem(self, population_number=10):
         try:
             problem = AckleyN2Test()
             algorithm = EpsMOEA(problem)
