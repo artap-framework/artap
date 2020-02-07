@@ -9,6 +9,10 @@ from artap.config import artap_root
 
 import tempfile
 
+from sys import platform
+if platform == "win32":
+    __platform__ = 'WINDOWS'
+
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -25,7 +29,7 @@ class MyProblem(Problem):
 
 
 class TestDataStoreFile(unittest.TestCase):
-
+    @unittest.skipIf(__platform__ == "WINDOWS", "for Linux platform only")
     def test_read_dbm_data_store(self):
         problem = Problem()
         results = Results(problem)
@@ -46,6 +50,7 @@ class TestDataStoreFile(unittest.TestCase):
         self.assertAlmostEqual(individual.vector[1], 0, 5)
         self.assertAlmostEqual(individual.costs[0], 0, 5)
 
+    @unittest.skipIf(__platform__ == "WINDOWS", "for Linux platform only")
     def test_write_dbm_data_store(self):
         problem = MyProblem()
 
