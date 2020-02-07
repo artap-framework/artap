@@ -12,7 +12,8 @@ import tempfile
 from sys import platform
 if platform == "win32":
     __platform__ = 'WINDOWS'
-
+else:
+    __platform__ = 'Linux'
 
 class MyProblem(Problem):
     """ Describe simple one objective optimization problem. """
