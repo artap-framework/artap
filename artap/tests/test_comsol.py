@@ -6,6 +6,11 @@ from artap.problem import Problem, ProblemType
 from artap.algorithm import DummyAlgorithm
 from artap.population import Population
 
+__comsol__ = True
+result = os.system('comsol')
+if result != 0:
+    __comsol__ = False
+
 
 class ComsolProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -43,6 +48,8 @@ class ComsolProblem(Problem):
 
 
 class TestSimpleComsolOptimization(unittest.TestCase):
+
+    @unittest.skipIf(__comsol__ is False, "require Comsol Multiphysics")
     def test_comsol_exec(self):
         """ Tests one calculation of goal function."""
         problem = ComsolProblem()

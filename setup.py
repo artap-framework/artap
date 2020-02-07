@@ -8,6 +8,7 @@ class CustomInstallCommand(install):
     """Custom install setup to help run shell commands (outside shell) before installation"""
 
     def run(self):
+        print('------------------------OK-------------------------------')
         os.system('pip3 install numpy')
         os.system('pip3 install cython')
         install.run(self)
