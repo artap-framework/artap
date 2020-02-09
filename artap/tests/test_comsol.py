@@ -7,7 +7,7 @@ from artap.algorithm import DummyAlgorithm
 from artap.population import Population
 
 __comsol__ = True
-result = os.system('comsol')
+result = os.system('comsol --version')
 if result != 0:
     __comsol__ = False
 
