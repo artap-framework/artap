@@ -38,8 +38,8 @@ setuptools.setup(
     cmdclass={'install': CustomInstallCommand},
     packages=setuptools.find_packages(),
     include_package_data=True,
-    data_files=[('artap/lib', ['artap/lib/bayesopt.so']),
-                ('artap/lib', ['artap/lib/_nlopt.so'])],
+    # data_files=[('artap/lib', ['artap/lib/bayesopt.so']),
+    #             ('artap/lib', ['artap/lib/_nlopt.so'])],
     install_requires=requirements,
     # scripts=['3rdparty/submodules.sh'],
     classifiers=[
