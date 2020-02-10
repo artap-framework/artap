@@ -5,7 +5,8 @@ import logging
 from abc import abstractmethod
 
 from .population import Population
-from .config import artap_root
+from .other.sqlitedict.sqlitedict import SqliteDict
+
 
 class SqliteHandler(logging.Handler):
     """
@@ -136,10 +137,6 @@ class FileDataStore(DataStore):
             else:
                 self.read_from_datastore()
         elif backend == "sqlitedict":
-            import sys
-            sys.path.append(artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict" + os.sep)
-            from sqlitedict import SqliteDict
-
             self.db = SqliteDict(self.database_name, autocommit=True)
             if self.mode == "write":
                 # remove database and create structure

@@ -1,5 +1,6 @@
 import os
 import unittest
+import tempfile
 from artap.problem import Problem
 from artap.datastore import FileDataStore
 from artap.algorithm_scipy import ScipyOpt
@@ -7,7 +8,7 @@ from artap.algorithm_scipy import ScipyOpt
 from artap.results import Results
 from artap.config import artap_root
 
-import tempfile
+from artap.other.sqlitedict.sqlitedict import SqliteDict
 
 from sys import platform
 if platform == "win32":
@@ -104,11 +105,6 @@ class TestDataStoreFile(unittest.TestCase):
         problem.data_store.db.close()
 
         # check db
-        import sys
-        sys.path.append(artap_root + os.sep + "3rdparty" + os.sep + "sqlitedict")
-
-        from sqlitedict import SqliteDict
-
         db = SqliteDict(database_name, autocommit=True)
 
         populations = db["populations"]
