@@ -1,4 +1,2 @@
 include README.md
-include artap/environment.json
 include artap/lib/*.so
-include 3rdparty/submodules.sh
