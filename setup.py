@@ -26,7 +26,7 @@ with open("requirements.txt", "r") as fh:
 
 setuptools.setup(
     name="artap",
-    version="2020.2.10.2",
+    version="2020.2.10.3",
     author=u"Artap Team",
     author_email="artap.framework@gmail.com",
     description="Platform for robust design optimization",
@@ -39,7 +39,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     # data_files=[('artap/lib', ['artap/lib/bayesopt.so']),
-    #             ('artap/lib', ['artap/lib/_nlopt.so'])],
     install_requires=requirements,
     # scripts=['3rdparty/submodules.sh'],
     classifiers=[
