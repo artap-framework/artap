@@ -11,3 +11,4 @@ smt
 SALib
 pytest
 appdirs
+nlopt
