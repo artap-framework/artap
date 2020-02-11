@@ -12,3 +12,4 @@ SALib
 pytest
 appdirs
 nlopt
+sqlitedict
