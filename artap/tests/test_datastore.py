@@ -2,16 +2,14 @@ import os
 import unittest
 import tempfile
 import time
-import shutil
+from sqlitedict import SqliteDict
+
 from artap.problem import Problem
 from artap.datastore import FileDataStore
 from artap.algorithm_scipy import ScipyOpt
 from artap.algorithm_sweep import SweepAlgorithm
 
 from artap.results import Results
-
-from artap.other.sqlitedict.sqlitedict import SqliteDict
-
 from artap.operators import RandomGeneration
 
 from sys import platform

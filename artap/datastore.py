@@ -3,9 +3,9 @@ import os
 import time
 import logging
 from abc import abstractmethod
+from sqlitedict import SqliteDict
 
 from .population import Population
-from .other.sqlitedict.sqlitedict import SqliteDict
 
 
 class SqliteHandler(logging.Handler):
