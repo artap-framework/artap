@@ -11,7 +11,7 @@ import time
 import ntpath
 from string import Template
 from xml.dom import minidom
-from artap.environment import Enviroment
+from artap.config import config
 
 from abc import ABCMeta, abstractmethod
 from .utils import ConfigDictionary
@@ -128,9 +128,9 @@ class RemoteExecutor(Executor):
         if problem.working_dir is None:
             raise Exception('RemoteExecutor: Problem working directory must be set.')
 
-        self.options.declare(name='hostname', default=Enviroment.condor_host,
+        self.options.declare(name='hostname', default=config["condor_host"],
                              desc='Hostname')
-        self.options.declare(name='username', default=Enviroment.condor_login,
+        self.options.declare(name='username', default=config["condor_login"],
                              desc='Username')
         self.options.declare(name='port', default=15900, lower=0,
                              desc='Port')
@@ -153,7 +153,7 @@ class RemoteExecutor(Executor):
         channel = rpyc.Channel(rpyc.SocketStream.connect(self.options["hostname"], self.options["port"]))
         channel.send(self.options["username"].encode('utf-8'))
         response = channel.recv()
-        AUTH_ERROR = b'authentication error'
+        AUTH_ERROR = b'error'
         if response == AUTH_ERROR:
             raise rpyc.utils.authenticators.AuthenticationError('Invalid username for daemon')
 
@@ -229,13 +229,16 @@ class CondorJobExecutor(RemoteExecutor):
         super().__init__(problem, "", files_to_condor, files_from_condor)
 
         # set default host
-        self.options["hostname"] = Enviroment.condor_host
+        self.options["hostname"] = config["condor_host"]
 
     @abstractmethod
     def _create_job_file(self, remote_dir, individual, client):
         pass
 
     def eval(self, individual):
+        if config["condor_host"] is None:
+            raise Exception("Condor host is not defined.")
+
         super().eval(individual)
 
         success = False
