@@ -149,7 +149,8 @@ class Results:
 
     def write_out_populations(self):
         """
-        Writes out every population into a
+        Writes out every population into a a csv file, the file contains the costs and the parameters and the
+        auxiliary variables if they are exist.
         :return:
         """
         for population in self.problem.data_store.populations:
@@ -166,7 +167,9 @@ class Results:
                     for j in individual.vector:
                         out.append(j)
 
-                    #print(index, out)
+                    if hasattr(individual, 'auxvar'):
+                        for k in individual.auxvar:
+                            out.append(k)
                     writer.writerows([out])
 
         return
