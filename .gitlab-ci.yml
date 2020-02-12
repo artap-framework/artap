@@ -11,11 +11,14 @@ build:
     - python3 -m venv env
     - source env/bin/activate
     # get packages
+    - pip install numpy
+    - pip install cython		
     - pip install -r requirements.txt
 
     # agrossuite
-    - ln -s ../../../../3rdparty/agros/ env/lib/python3.7/site-packages/agrossuite
+    - ln -s ~/.local/lib/python3.7/site-packages/agrossuite env/lib/python3.7/site-packages/agrossuite
 
     # tests
     - cd artap/tests
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gitlab-runner/.local/lib/python3.7/site-packages/agrossuite/libs/
     - pytest --disable-warnings --durations=0 -v
