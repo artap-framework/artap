@@ -1,9 +1,9 @@
 import sqlite3
 import os
-import json
 import time
 import logging
 from abc import abstractmethod
+from sqlitedict import SqliteDict
 
 from .population import Population
 
@@ -105,7 +105,7 @@ class DataStore:
 
 class FileDataStore(DataStore):
 
-    def __init__(self, problem, database_name=None, remove_existing=True, mode="write", backend="shelve"):
+    def __init__(self, problem, database_name=None, remove_existing=True, mode="write", backend="sqlitedict"):
         super().__init__(problem)
 
         self.database_name = database_name
@@ -115,7 +115,15 @@ class FileDataStore(DataStore):
             if os.path.exists(self.database_name):
                 os.remove(self.database_name)
 
-        if backend == "shelve":
+        if backend == "sqlitedict":
+            self.db = SqliteDict(self.database_name, autocommit=True)
+            if self.mode == "write":
+                # remove database and create structure
+                if remove_existing and os.path.exists(self.database_name):
+                    self.create_structure()
+            else:
+                self.read_from_datastore()
+        elif backend == "shelve":
             import shelve
 
             if self.mode == "write":
@@ -125,29 +133,6 @@ class FileDataStore(DataStore):
                     self.create_structure()
             else:
                 self.db = shelve.open(self.database_name, flag='r')
-                self.read_from_datastore()
-        elif backend == "diskcache":
-            import diskcache
-
-            self.db = diskcache.Cache(directory=self.database_name)
-            if self.mode == "write":
-                # remove database and create structure
-                if remove_existing and os.path.exists(self.database_name):
-                    self.create_structure()
-            else:
-                self.read_from_datastore()
-        elif backend == "sqlitedict":
-            from .environment import Enviroment
-            import sys
-            sys.path.append(Enviroment.artap_root + os.sep + "../3rdparty" + os.sep + "sqlitedict")
-            from sqlitedict import SqliteDict
-
-            self.db = SqliteDict(self.database_name, autocommit=True)
-            if self.mode == "write":
-                # remove database and create structure
-                if remove_existing and os.path.exists(self.database_name):
-                    self.create_structure()
-            else:
                 self.read_from_datastore()
         else:
             assert 1

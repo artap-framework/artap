@@ -1,3 +1,4 @@
+import unittest
 from unittest import TestCase, main
 
 from artap.executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor
@@ -5,7 +6,7 @@ from artap.problem import Problem, ProblemType
 from artap.population import Population
 from artap.algorithm import DummyAlgorithm
 from artap.individual import Individual
-from artap.algorithm_sweep import SweepAlgorithm
+from artap.config import config
 
 import random
 
@@ -103,6 +104,8 @@ class TestCondor(TestCase):
     """ Tests simple optimization problem where calculation of
         goal function is submitted as a job on HtCondor.
     """
+
+    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_matlab_input(self):
         """ Tests one calculation of goal function."""
         problem = CondorMatlabProblem()
@@ -115,6 +118,7 @@ class TestCondor(TestCase):
 
         self.assertAlmostEqual(5, population.individuals[0].costs[0])
 
+    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_comsol_exec(self):
         """ Tests one calculation of goal function."""
         problem = CondorComsolProblem()
@@ -128,6 +132,7 @@ class TestCondor(TestCase):
         self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0])
         self.assertAlmostEqual(124.23499735221547, population.individuals[1].costs[0])
 
+    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_exec(self):
         problem = PythonExecProblem()
 
@@ -139,6 +144,7 @@ class TestCondor(TestCase):
 
         self.assertAlmostEqual(5, population.individuals[0].costs[0])
 
+    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_exec_full_load(self):
         problem = PythonExecProblem()
 
@@ -155,6 +161,7 @@ class TestCondor(TestCase):
             # print(individuals[i])
             self.assertEqual(int(individuals[i].costs[0]), individuals[i].vector[0]**2 + individuals[i].vector[1]**2)
 
+    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_input(self):
         problem = PythonInputProblem()
 

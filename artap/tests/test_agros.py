@@ -1,14 +1,27 @@
 import unittest
-import sys
 import math
 
 from artap.problem import Problem
 from artap.individual import Individual
 from artap.results import Results
-from artap.algorithm_nlopt import NLopt
-from artap.algorithm_nlopt import LN_BOBYQA
 
-from agrossuite import agros as a2d
+try:
+    from artap.algorithm_nlopt import NLopt
+    from artap.algorithm_nlopt import LN_BOBYQA
+
+    __nlopt__ = True
+except ImportError:
+    print("NLopt is not present test skiped")
+    __nlopt__ = False
+
+try:
+    from agrossuite import agros as a2d
+
+    __agros__ = True
+except ImportError:
+    print("Agros is not present test skipped")
+    __agros__ = False
+
 
 class AgrosProblem(Problem):
 
@@ -118,39 +131,41 @@ class AgrosProblem(Problem):
 
         solution = computation.solution("magnetic")
 
-        B00 = solution.local_values( 0, 10)["Br"]
-        B01 = solution.local_values( 1, 10)["Br"]
-        B02 = solution.local_values( 2, 10)["Br"]
-        B03 = solution.local_values( 3, 10)["Br"]
-        B04 = solution.local_values( 4, 10)["Br"]
-        B05 = solution.local_values( 5, 10)["Br"]
-        B06 = solution.local_values( 6, 10)["Br"]
-        B07 = solution.local_values( 7, 10)["Br"]
-        B08 = solution.local_values( 8, 10)["Br"]
-        B09 = solution.local_values( 9, 10)["Br"]
+        B00 = solution.local_values(0, 10)["Br"]
+        B01 = solution.local_values(1, 10)["Br"]
+        B02 = solution.local_values(2, 10)["Br"]
+        B03 = solution.local_values(3, 10)["Br"]
+        B04 = solution.local_values(4, 10)["Br"]
+        B05 = solution.local_values(5, 10)["Br"]
+        B06 = solution.local_values(6, 10)["Br"]
+        B07 = solution.local_values(7, 10)["Br"]
+        B08 = solution.local_values(8, 10)["Br"]
+        B09 = solution.local_values(9, 10)["Br"]
         B10 = solution.local_values(10, 10)["Br"]
         B11 = solution.local_values(10, 10)["Br"]
-        B12 = solution.local_values(10,  9)["Br"]
-        B13 = solution.local_values(10,  8)["Br"]
-        B14 = solution.local_values(10,  7)["Br"]
-        B15 = solution.local_values(10,  6)["Br"]
-        B16 = solution.local_values(10,  5)["Br"]
-        B17 = solution.local_values(10,  4)["Br"]
-        B18 = solution.local_values(10,  3)["Br"]
-        B19 = solution.local_values(10,  2)["Br"]
-        B20 = solution.local_values(10,  1)["Br"]
-        B21 = solution.local_values(10,  0)["Br"]
+        B12 = solution.local_values(10, 9)["Br"]
+        B13 = solution.local_values(10, 8)["Br"]
+        B14 = solution.local_values(10, 7)["Br"]
+        B15 = solution.local_values(10, 6)["Br"]
+        B16 = solution.local_values(10, 5)["Br"]
+        B17 = solution.local_values(10, 4)["Br"]
+        B18 = solution.local_values(10, 3)["Br"]
+        B19 = solution.local_values(10, 2)["Br"]
+        B20 = solution.local_values(10, 1)["Br"]
+        B21 = solution.local_values(10, 0)["Br"]
 
         Wm = solution.volume_integrals()["Wm"]
 
-        of = (B00**2 + B01**2 + B02**2 + B03**2 + B04**2 + B05**2 + B06**2 + B07**2 + B08**2 + B09**2 + B10**2 + B11**2 + B12**2 + B13**2 + B14**2 + B15**2 + B16**2 + B17**2 + B18**2 + B19**2 + B20**2 + B21**2)/22/9e-6 + math.fabs(2*Wm - 180e6) / 180e6
+        of = (
+                     B00 ** 2 + B01 ** 2 + B02 ** 2 + B03 ** 2 + B04 ** 2 + B05 ** 2 + B06 ** 2 + B07 ** 2 + B08 ** 2 + B09 ** 2 + B10 ** 2 + B11 ** 2 + B12 ** 2 + B13 ** 2 + B14 ** 2 + B15 ** 2 + B16 ** 2 + B17 ** 2 + B18 ** 2 + B19 ** 2 + B20 ** 2 + B21 ** 2) / 22 / 9e-6 + math.fabs(
+            2 * Wm - 180e6) / 180e6
 
         return [of]
 
 
 class TestAgrosOptimization(unittest.TestCase):
 
-    @unittest.skipUnless(sys.platform.startswith("linux"), "requires linux")
+    @unittest.skipIf(__agros__ is False or __nlopt__ is False, "requires Agros Suite")
     def test_agros_exec(self):
         problem = AgrosProblem()
         algorithm = NLopt(problem)
