@@ -125,7 +125,8 @@ class NSGAII(GeneticAlgorithm):
 
         t_s = time.time()
         self.problem.logger.info(
-            "NSGA_II: {}/{}".format(self.options['max_population_number'], self.options['max_population_number'] * self.population_size))
+            "NSGA_II: {}/{}".format(self.options['max_population_number'],
+                                    self.options['max_population_number'] * self.population_size))
 
         # optimization
         for it in range(self.options['max_population_number']):
@@ -180,7 +181,8 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
+        self.generator = RandomGeneration(self.problem.parameters,
+                                          individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
         self.generator.init(self.options['max_population_size'])
 
         # set crossover
@@ -189,8 +191,8 @@ class EpsMOEA(GeneticAlgorithm):
 
         # Part A: non-dominated sort of individuals
         # -----
-        selector_pareto = TournamentSelection(self.problem.parameters, self.problem.signs)
-        self.selector = TournamentSelection(self.problem.parameters, self.problem.signs)
+        selector_pareto = TournamentSelection(self.problem.parameters)
+        self.selector = TournamentSelection(self.problem.parameters)
         # the same as in the case of NSGA - ii
         # this operator is used to generate the new individuals
 
@@ -202,13 +204,14 @@ class EpsMOEA(GeneticAlgorithm):
 
         # Part B: eps-dominated sort of the individuals with archiving
         # -----
-        selector_epsdom = TournamentSelection(self.problem.parameters, self.problem.signs,
+        selector_epsdom = TournamentSelection(self.problem.parameters,
                                               dominance=EpsilonDominance, epsilons=self.options['epsilons'])
         selector_epsdom.sorting(population.archives)
         selector_epsdom.crowding_distance(population.archives)
 
         # write to data store
-        self.problem.data_store.write_population(population) # TODO: modify the database connection to handle the archives
+        self.problem.data_store.write_population(
+            population)  # TODO: modify the database connection to handle the archives
 
         t_s = time.time()
         self.problem.logger.info(
