@@ -16,6 +16,7 @@ class Individual(metaclass=ABCMeta):
     def __init__(self, vector: list):
         self.vector = vector.copy()
         self.costs = []
+        self.custom = {}
         self.state = self.State.EMPTY
 
     def __repr__(self):
@@ -36,6 +37,14 @@ class Individual(metaclass=ABCMeta):
                 string += ", "
         string += "]"
 
+        if len(self.custom) > 0:
+            string += "; custom:["
+            for i, number in enumerate(self.custom):
+                string += str(number)
+                if i < len(self.custom) - 1:
+                    string += ", "
+            string += "]"
+
         return string
 
     def __eq__(self, other):
@@ -47,6 +56,7 @@ class Individual(metaclass=ABCMeta):
     def sync(self, individual):
         self.vector = individual.vector
         self.costs = individual.costs
+        self.custom = individual.custom
         self.state = individual.state
 
 
