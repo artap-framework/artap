@@ -841,42 +841,42 @@ class EpsilonDominance(Dominance):
         else:
             return False
 
-    def compare(self, p, q):
-        # first check constraint violation
-        if p.feasible != q.feasible:
-            if p.feasible == 0:
-                return 2
-            elif q.feasible == 0:
-                return 1
-            elif p.feasible < q.feasible:
-                return 2
-            elif q.feasible < p.feasible:
-                return 1
+    def compare(self, p: list, q: list):
+
+        # first check constraint violation, the last item is the feasibility, which is a real number if its zero,
+        # it means that the solution is feasible
+        if p[-1] != q[-1]:
+            if p[-1] == 0:
+                return 1 # p dominates
+            elif q[-1] == 0:
+                return 2 # q is dominates
+            elif p[-1] < q[-1]:
+                return 1 # p is dominates
+            elif q[-1] < p[-1]:
+                return 2 # q is dominates
 
         # then use epsilon dominance on the objectives
-        dominate1 = False
-        dominate2 = False
+        dominate_p = False
+        dominate_q = False
 
-        for i in range(len(p.costs)):
-            o1 = p.costs[i]
-            o2 = q.costs[i]
+        for i,(p_costs, q_costs) in enumerate(p[:-1], q[:-1]):
 
             epsilon = float(self.epsilons[i % len(self.epsilons)])
-            i1 = math.floor(o1 / epsilon)
-            i2 = math.floor(o2 / epsilon)
 
-            if i1 < i2:
-                dominate1 = True
+            pepsi = math.floor(p_costs / epsilon)
+            qepsi = math.floor(q_costs / epsilon)
 
-                if dominate2:
+            if pepsi > qepsi:
+                dominate_q = True
+                if dominate_p:
                     return 0
-            elif i1 > i2:
-                dominate2 = True
-
-                if dominate1:
+            else:
+                dominate_p = True
+                if dominate_q:
                     return 0
 
-        if not dominate1 and not dominate2:
+
+        if not dominate_p and not dominate_q:
             dist1 = 0.0
             dist2 = 0.0
 
@@ -892,17 +892,16 @@ class EpsilonDominance(Dominance):
                 dist2 += math.pow(o2 - i2 * epsilon, 2.0)
 
             if dist1 < dist2:
-                return -1
-            else:
                 return 1
-        elif dominate1:
-            return -1
-        else:
+            else:
+                return 2
+        elif dominate_p:
             return 1
+        else:
+            return 2
 
 
 class ParetoDominance(Dominance):
-    # from platypus core
     """Pareto dominance with constraints.
 
     If either solution violates constraints, then the solution with a smaller
@@ -914,82 +913,20 @@ class ParetoDominance(Dominance):
         super(ParetoDominance, self).__init__()
         # self.signs = signs deprecated
 
-    # @jit
     def compare(self, p: list, q: list):
         """
         Here, p and q are tuples, which contains the (feasibility index, cost vector)
         """
-
-        # first check constraint violation
+        # first check constraint violation, the feasibility is written to the last place in the list
         if p[-1] != q[-1]:
             if p[-1] == 0:
                 return 1
             elif q[-1] == 0:
                 return 2
-            elif p[-1] < q[0]:
+            elif p[-1] < q[-1]:
                 return 1
-            elif q[-1] < p[0]:
+            elif q[-1] < p[-1]:
                 return 2
-
-        # if p.feasible != q.feasible:
-        #     if p.feasible == 0:
-        #         return 1
-        #     elif q.feasible == 0:
-        #         return 2
-        #     elif p.feasible < q.feasible:
-        #         return 1
-        #     elif q.feasible < p.feasible:
-        #         return 2
-
-        # The cost function can be a float or a list of floats
-        # Check the pareto dominance on every value of the calculated vectors
-
-        # numpy makes the calculation elementwise, so we are calculating the result vector at first
-        # and checks that is p can dominate q
-        # res = p>q
-        #
-        # dominate_p = False
-        # dominate_q = False
-        #
-        # for i in res[:-1]:
-        #     if i:
-        #         dominate_q = True
-        #         if dominate_p:
-        #             return 0
-        #     else:
-        #         dominate_p = True
-        #         if dominate_q:
-        #             return 0
-        #
-        # if dominate_p == dominate_q:
-        #     return 0
-        #
-        # elif dominate_p:
-        #     return 1
-        # else:
-        #     return 2
-
-        # the old solution
-        # dominate_p = False
-        # dominate_q = False
-        #
-        # for (p_costs, q_costs, sign) in zip(p.costs, q.costs, self.signs):
-        #
-        #     if sign * p_costs > sign * q_costs:
-        #         dominate_q = True
-        #         if dominate_p:
-        #             return 0
-        #     else:
-        #         dominate_p = True
-        #         if dominate_q:
-        #             return 0
-        #
-        # if dominate_q == dominate_p:
-        #     return 0
-        # elif dominate_p:
-        #     return 1
-        # else:
-        #     return 2
 
         dominate_p = False
         dominate_q = False
