@@ -30,6 +30,10 @@ class MyProblem(Problem):
     def evaluate(self, individual):
         x_1 = individual.vector[0]
         x_2 = individual.vector[1]
+
+        # set custom properties
+        individual.custom["functions"] = [x_1**2, x_2**2]
+
         return [x_1**2 + x_2**2]
 
 
@@ -56,7 +60,9 @@ class TestDataStoreFile(unittest.TestCase):
 
         populations = db["populations"]
 
-        self.assertAlmostEqual(populations[-1].individuals[9].costs[0], 0, 3) # result
+        individual = populations[-1].individuals[9]
+        self.assertAlmostEqual(individual.costs[0], 0, 3) # result
+        self.assertAlmostEqual(individual.custom["functions"][0], individual.vector[0]**2)
         db.close()
 
         # remove file
