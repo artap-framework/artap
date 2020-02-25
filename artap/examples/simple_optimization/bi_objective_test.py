@@ -30,7 +30,7 @@ class BiObjectiveTestProblem(Problem):
 
     """
 
-    def set(self):
+    def  set(self):
 
         # Not mandatory to give a name for the test problem
         self.name = 'Biobjective Test Problem'
