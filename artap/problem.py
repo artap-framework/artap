@@ -160,12 +160,12 @@ class Problem:
         return p_types
 
     @abstractmethod
-    def evaluate(self, x: list):
-        """ :param x: list of the variables """
+    def evaluate(self, x):
+        """ :param x: individual """
         pass
 
-    def evaluate_constraints(self, x: list):
-        """ :param x: list of the variables """
+    def evaluate_constraints(self, x):
+        """ :param x: individual """
         pass
 
     def __setattr__(self, key, value):

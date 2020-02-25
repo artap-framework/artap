@@ -1,3 +1,4 @@
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
 # matplotlib.use('Agg')
@@ -10,12 +11,21 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 from numpy import exp, cos, sin, sqrt, linspace
 
+
 from sklearn.model_selection import train_test_split
 
 
 class BenchmarkFunction:
     """
-    The general class
+    The general class for standardized artap benchmarks:
+
+     - contains the information from the global optimum of the function
+     - bounds and the dimensionality of the problem
+     - some references for the origin
+
+    The functions should defined by the eval and the eval constraints functions, which mimics the structure of a
+    standardized artap problem.
+
     """
 
     def __init__(self):
@@ -30,20 +40,47 @@ class BenchmarkFunction:
     def eval_constraints(self, x: list):
         pass
 
-    def plot_2d(self):
+    def plot_1d(self, px):
+        """
 
+        :param px:
+        :return:
+        """
+        x = linspace(self.bounds[px][0], self.bounds[px][1])
+        y = np.zeros([len(x)])
+
+        for i, xi in enumerate(x):
+            y[i] = self.eval([x[i, j]])
+
+        plt.figure()
+        plt.plot(x, y, 'black', '--')
+        plt.xlabel("x")
+        plt.ylabel("f(x)")
+        plt.grid(True)
+        plt.show()
+
+        return
+
+    def plot_2d(self, px=0, py=1):
+        """
+        Makes a 3 dimensional surface plot from a 2 variable function.
+
+        :param px: the parameter x, the default value is 0
+        :param py: the parameter y, the default value is 1
+        :return:
+        """
         fig = plt.figure()
         ax = fig.gca(projection='3d')
 
         # Make data.
-        x = linspace(self.bounds[0][0], self.bounds[0][1])
-        y = linspace(self.bounds[1][0], self.bounds[1][1])
+        x = linspace(self.bounds[px][0], self.bounds[px][1])
+        y = linspace(self.bounds[py][0], self.bounds[py][1])
         x, y = np.meshgrid(x, y)
         z = np.zeros([len(x), len(y)])
 
-        for i,xi in enumerate(x):
-            for j,zj in enumerate(y):
-                z[i,j] = self.eval([x[i, j], y[i, j]])
+        for i, xi in enumerate(x):
+            for j, zj in enumerate(y):
+                z[i, j] = self.eval([x[i, j], y[i, j]])
 
         # Plot the surface
         surf = ax.plot_surface(x, y, z, cmap=cmaps.viridis,
@@ -57,6 +94,7 @@ class BenchmarkFunction:
         fig.colorbar(surf, shrink=0.5, aspect=5)
 
         plt.show()
+
 
 class Rosenbrock(BenchmarkFunction):
     """
