@@ -11,11 +11,13 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 from numpy import exp, cos, sin, sqrt, linspace
 
-
+from problem import Problem
 from sklearn.model_selection import train_test_split
+from operators import FullFactorGeneration, RandomGeneration
+from individual import GeneticIndividual
 
 
-class BenchmarkFunction:
+class BenchmarkFunction(Problem):
     """
     The general class for standardized artap benchmarks:
 
@@ -29,16 +31,11 @@ class BenchmarkFunction:
     """
 
     def __init__(self):
+        super().__init__()
+
         self.dimension: int
-        self.bounds = []
         self.global_optimum: float
         self.global_optimum_coords: list
-
-    def eval(self, x: list):
-        pass
-
-    def eval_constraints(self, x: list):
-        pass
 
     def plot_1d(self, px):
         """
@@ -61,26 +58,27 @@ class BenchmarkFunction:
 
         return
 
-    def plot_2d(self, px=0, py=1):
+    def plot_2d(self, px=0, py=1, cz=0):
         """
         Makes a 3 dimensional surface plot from a 2 variable function.
 
-        :param px: the parameter x, the default value is 0
-        :param py: the parameter y, the default value is 1
+        :param px: defines the examined parameter: x, the default value is 0
+        :param py: defines the examined parameter: y, the default value is 1
+
         :return:
         """
         fig = plt.figure()
         ax = fig.gca(projection='3d')
 
-        # Make data.
-        x = linspace(self.bounds[px][0], self.bounds[px][1])
-        y = linspace(self.bounds[py][0], self.bounds[py][1])
-        x, y = np.meshgrid(x, y)
-        z = np.zeros([len(x), len(y)])
+        # use the generator functions
+        # TODO: make a simple algorithm which can solve this
+        x = linspace(self.parameters[px]['bounds'][0],
+                     self.parameters[px]['bounds'][1], num=1000)
+        y = linspace(self.parameters[py]['bounds'][0],
+                     self.parameters[py]['bounds'][1], num=1000)
 
-        for i, xi in enumerate(x):
-            for j, zj in enumerate(y):
-                z[i, j] = self.eval([x[i, j], y[i, j]])
+        x, y = np.meshgrid(x, y)
+        z = self.evaluate([x, y])
 
         # Plot the surface
         surf = ax.plot_surface(x, y, z, cmap=cmaps.viridis,
@@ -98,43 +96,48 @@ class BenchmarkFunction:
 
 class Rosenbrock(BenchmarkFunction):
     """
+    Complexity: difficult, unimodal function
+    Implementation is based on [4]
+
     The unconstrained Rosenbrock function --also known as Rosenbrock's valley or Rosenbrock's banana function --
     The global minimum is inside a long, narrow, parabolic shaped flat valley. To find the valley is trivial
     f*(X) = f(X*) is at the point X* = (1,1). However to converge to hte global minimum is difficult.
+    Algorithms that cannot find the good directions, underperforms this problem.
 
-    $f(X) = 0.5*(100*(x-y^2)^2.+ (1-x)^2)$
+    General settings:
+    n = [5,30] dimensions
+    -5.0 <= xi <= 10.0
 
-    Search domain: -30 <= (x, y) <= 30
+    Sources:
+    [1] https://en.wikipedia.org/wiki/Rosenbrock_function
+    [2] J. G. Digalakis and K. G. Margaritis, “On benchmarking functions for genetic algorithms,”
+        Int. J. Comput. Math., vol. 77, no. 4, pp. 481–506, 2001, doi: 10.1080/00207160108805080.
+    [3] K. Hussain, M. N. Mohd Salleh, S. Cheng, and R. Naseem, “Common Benchmark Functions
+        for Metaheuristic Evaluation: A Review,” JOIV  Int. J. Informatics Vis., vol. 1, no. 4–2,
+        p. 218, 2017, doi: 10.30630/joiv.1.4-2.65.
+    [4] http://benchmarkfcns.xyz/benchmarkfcns/rosenbrockfcn.html
     """
 
-    def __init__(self):
-        super().__init__()
-        self.bounds = [[-30, 30],
-                       [-30, 30]]
+    def set(self):
+        self.name = 'Rosenbrock function'
 
-    def eval(self, x):
+        self.parameters = [{'name': '0', 'bounds': [-5., 10.]},
+                           {'name': '1', 'bounds': [-5., 10.]}]
+
+        # The two, separate optimization functions and the direction of the optimization
+        # is set to minimization. It is also possible to use the maximize keyword.
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
+                      {'name': 'f_2', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
         """
         :param x: a two dimensional array/list/tuple, which contains the X[x,y]
         :return: f(X)
         """
-
         a = 1. - x[0]
-        b = x[1] - x[0] * x[0]
+        b = x[1] - x[0] ** 2.
 
         return 0.5 * (a * a + b * b * 100.0)
-
-    def eval_constraints(self, x):
-        """
-        :param x: a two dimensional array/list/tuple, which contains the X[x,y]
-        :return:
-        """
-        violate_constraints = False
-        if (x[0] > self.bounds[0][1]) or (x[0] < self.bounds[0][0]):
-            violate_constraints = True
-        if (x[1] > self.bounds[1][1]) or (x[1] < self.bounds[1][0]):
-            violate_constraints = True
-
-        return violate_constraints
 
 
 class AckleyN2(BenchmarkFunction):
@@ -10512,6 +10515,7 @@ class SurrogateBenchmarkBooth(SurrogateBenchmarkData):
 
 if __name__ == '__main__':
     test = Rosenbrock()
+
     test.plot_2d()
     test = AckleyN2()
     test.plot_2d()
