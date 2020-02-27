@@ -2,9 +2,9 @@
  Module is dedicated to describe optimization problem.
 """
 
-from .datastore import DataStore, DummyDataStore
-from .utils import ConfigDictionary
-from .surrogate import SurrogateModelEval
+from artap.datastore import DataStore, DummyDataStore
+from artap.utils import ConfigDictionary
+from artap.surrogate import SurrogateModelEval
 from abc import abstractmethod
 
 import logging
@@ -107,7 +107,9 @@ class Problem:
         # surrogate model (default - only simple eval)
         self.surrogate = SurrogateModelEval(self)
         self.signs = []
-        self._freeze()
+
+        # TODO: not possible to inherit --> benchmarks, hierarchial algorithms
+        #self._freeze()
         self.set()
         for cost in self.costs:
             if 'criteria' in cost:
