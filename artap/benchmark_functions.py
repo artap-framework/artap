@@ -30,12 +30,27 @@ class BenchmarkFunction(Problem):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
 
         self.dimension: int
-        self.global_optimum: float
-        self.global_optimum_coords: list
+        # self.global_optimum: float
+        # self.global_optimum_coords: list
+
+    def set(self,**kwargs):
+
+        return
+
+    def generate_paramlist(self, dimension, lb, ub):
+        """Defines an n-dimensional list for the optimization"""
+
+        param_list = []
+        for i in range(0, dimension):
+            dict = {'name': str(i), 'bounds': [lb, ub]}
+            param_list.append(dict)
+
+        return param_list
 
     def plot_1d(self, px):
         """
@@ -64,6 +79,7 @@ class BenchmarkFunction(Problem):
 
         :param px: defines the examined parameter: x, the default value is 0
         :param py: defines the examined parameter: y, the default value is 1
+        :param cz: in case of multi-objective test functions to select the optimal values
 
         :return:
         """
@@ -96,6 +112,9 @@ class BenchmarkFunction(Problem):
 
 class Rosenbrock(BenchmarkFunction):
     """
+    .. math::
+        f(x, y)=\sum_{i=1}^{n}[b (x_{i+1} - x_i^2)^ 2 + (a - x_i)^2]
+
     Complexity: difficult, unimodal function
     Implementation is based on [4]
 
@@ -118,26 +137,36 @@ class Rosenbrock(BenchmarkFunction):
     [4] http://benchmarkfcns.xyz/benchmarkfcns/rosenbrockfcn.html
     """
 
-    def set(self):
+    def __init__(self, dimension=2, **kwargs):
+        kwargs = {'dimension': dimension}
+        super().__init__(**kwargs)
+        # self.dimension = dimension  # the dimension should be [2,100]
+        # self.global_optimum = 0.
+        # self.global_optimum_coords = 1.
+
+    def set(self,**kwargs):
         self.name = 'Rosenbrock function'
+        print(kwargs['dimension'])
+        self.dimension = kwargs['dimension']
+        # self.parameters = [{'name': '0', 'bounds': [-5., 10.]},
+        #                    {'name': '1', 'bounds': [-5., 10.]}]
+        self.parameters = self.generate_paramlist(self.dimension, lb=-5., ub=10.)
 
-        self.parameters = [{'name': '0', 'bounds': [-5., 10.]},
-                           {'name': '1', 'bounds': [-5., 10.]}]
-
-        # The two, separate optimization functions and the direction of the optimization
-        # is set to minimization. It is also possible to use the maximize keyword.
-        self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
-                      {'name': 'f_2', 'criteria': 'minimize'}]
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
         """
         :param x: a two dimensional array/list/tuple, which contains the X[x,y]
         :return: f(X)
         """
-        a = 1. - x[0]
-        b = x[1] - x[0] ** 2.
 
-        return 0.5 * (a * a + b * b * 100.0)
+        scores = 0
+        for i in range(0, self.dimension - 1):
+            a = 1. - x[i]
+            b = x[i + 1] - x[i] ** 2.
+            scores += (a * a + b * b * 100.0)
+        return scores
 
 
 class AckleyN2(BenchmarkFunction):
