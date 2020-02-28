@@ -42,7 +42,7 @@ class Problem:
 
     __is_frozen = False
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         self.options = ConfigDictionary()
         # options
@@ -108,9 +108,8 @@ class Problem:
         self.surrogate = SurrogateModelEval(self)
         self.signs = []
 
-        # TODO: not possible to inherit --> benchmarks, hierarchial algorithms
         #self._freeze()
-        self.set()
+        self.set(**kwargs)
         for cost in self.costs:
             if 'criteria' in cost:
                 if cost['criteria'] == 'minimize':
@@ -125,7 +124,7 @@ class Problem:
             shutil.rmtree(self.working_dir)
 
     @abstractmethod
-    def set(self):
+    def set(self, **kwargs):
         pass
 
     def parameters_len(self):
