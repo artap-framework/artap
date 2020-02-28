@@ -1,16 +1,12 @@
 from mpl_toolkits.mplot3d import Axes3D
-import matplotlib
-# matplotlib.use('Agg')
-
 import sys
 
 import matplotlib.pyplot as plt
-import colormaps as cmaps
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 from numpy import exp, cos, sin, sqrt, linspace
-
-from problem import Problem
+import artap.colormaps as cmaps
+from artap.problem import Problem
 from sklearn.model_selection import train_test_split
 
 
