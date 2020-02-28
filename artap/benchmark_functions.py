@@ -1,4 +1,3 @@
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
 # matplotlib.use('Agg')
@@ -13,8 +12,6 @@ from numpy import exp, cos, sin, sqrt, linspace
 
 from problem import Problem
 from sklearn.model_selection import train_test_split
-from operators import FullFactorGeneration, RandomGeneration
-from individual import GeneticIndividual
 
 
 class BenchmarkFunction(Problem):
@@ -108,7 +105,6 @@ class BenchmarkFunction(Problem):
     def set_dimension(self, **kwargs):
 
         if 'dimension' in kwargs:
-            print(kwargs['dimension'])
             self.dimension = kwargs['dimension']
 
 class Rosenbrock(BenchmarkFunction):
@@ -138,21 +134,14 @@ class Rosenbrock(BenchmarkFunction):
     [4] http://benchmarkfcns.xyz/benchmarkfcns/rosenbrockfcn.html
     """
 
-    # def __init__(self, dimension=2, **kwargs):
-    #     kwargs = {'dimension': dimension}
-    #     super().__init__(**kwargs)
-    #     # self.dimension = dimension  # the dimension should be [2,100]
-    #     # self.global_optimum = 0.
-    #     # self.global_optimum_coords = 1.
-
     def set(self,**kwargs):
         self.name = 'Rosenbrock function'
 
         self.set_dimension(**kwargs)
-        #self.dimension = kwargs['dimension']
-        # self.parameters = [{'name': '0', 'bounds': [-5., 10.]},
-        #                    {'name': '1', 'bounds': [-5., 10.]}]
         self.parameters = self.generate_paramlist(self.dimension, lb=-5., ub=10.)
+
+        self.global_optimum = 0.
+        self.global_optimum_coords = [1.0 for x in range(self.dimension)]
 
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
@@ -10547,7 +10536,6 @@ class SurrogateBenchmarkBooth(SurrogateBenchmarkData):
 if __name__ == '__main__':
 
     test = Rosenbrock(**{'dimension':2})
-
     test.plot_2d()
     test = AckleyN2()
     test.plot_2d()
