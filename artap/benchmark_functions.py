@@ -30,17 +30,13 @@ class BenchmarkFunction(Problem):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self,**kwargs):
 
         super().__init__(**kwargs)
 
         self.dimension: int
-        # self.global_optimum: float
-        # self.global_optimum_coords: list
-
-    def set(self,**kwargs):
-
-        return
+        self.global_optimum: float
+        self.global_optimum_coords: list
 
     def generate_paramlist(self, dimension, lb, ub):
         """Defines an n-dimensional list for the optimization"""
@@ -109,6 +105,11 @@ class BenchmarkFunction(Problem):
 
         plt.show()
 
+    def set_dimension(self, **kwargs):
+
+        if 'dimension' in kwargs:
+            print(kwargs['dimension'])
+            self.dimension = kwargs['dimension']
 
 class Rosenbrock(BenchmarkFunction):
     """
@@ -137,17 +138,18 @@ class Rosenbrock(BenchmarkFunction):
     [4] http://benchmarkfcns.xyz/benchmarkfcns/rosenbrockfcn.html
     """
 
-    def __init__(self, dimension=2, **kwargs):
-        kwargs = {'dimension': dimension}
-        super().__init__(**kwargs)
-        # self.dimension = dimension  # the dimension should be [2,100]
-        # self.global_optimum = 0.
-        # self.global_optimum_coords = 1.
+    # def __init__(self, dimension=2, **kwargs):
+    #     kwargs = {'dimension': dimension}
+    #     super().__init__(**kwargs)
+    #     # self.dimension = dimension  # the dimension should be [2,100]
+    #     # self.global_optimum = 0.
+    #     # self.global_optimum_coords = 1.
 
     def set(self,**kwargs):
         self.name = 'Rosenbrock function'
-        print(kwargs['dimension'])
-        self.dimension = kwargs['dimension']
+
+        self.set_dimension(**kwargs)
+        #self.dimension = kwargs['dimension']
         # self.parameters = [{'name': '0', 'bounds': [-5., 10.]},
         #                    {'name': '1', 'bounds': [-5., 10.]}]
         self.parameters = self.generate_paramlist(self.dimension, lb=-5., ub=10.)
@@ -10543,7 +10545,8 @@ class SurrogateBenchmarkBooth(SurrogateBenchmarkData):
 
 
 if __name__ == '__main__':
-    test = Rosenbrock()
+
+    test = Rosenbrock(**{'dimension':2})
 
     test.plot_2d()
     test = AckleyN2()
