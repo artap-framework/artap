@@ -5,9 +5,9 @@ import math
 import itertools
 import numpy as np
 from math import exp
-from .individual import Individual
-from .utils import VectorAndNumbers
-from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
+from artap.individual import Individual
+from artap.utils import VectorAndNumbers
+from artap.doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
 from copy import copy
 
 EPSILON = sys.float_info.epsilon

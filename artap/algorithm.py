@@ -111,3 +111,4 @@ class DummyAlgorithm(Algorithm):
 
     def run(self):
         pass
+
