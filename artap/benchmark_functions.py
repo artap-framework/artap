@@ -197,8 +197,6 @@ class Ackley(BenchmarkFunction):
         n = float(len(x))
         return -20.0 * np.exp(-0.2 * np.sqrt(firstSum / n)) - np.exp(secondSum / n) + 20.0 + np.e
 
-        # return -200. * exp(-0.02 * (x[0] ** 2 + x[1] ** 2) ** 0.5)
-
 
 # class Ackley4Modified:
 #     """
@@ -235,6 +233,44 @@ class Ackley(BenchmarkFunction):
 #             value += exp(-0.2) * sqrt(x[i] ** 2. + x[i + 1] ** 2.) + 3. * (cos(2 * x[i]) + sin(2 * x[i + 1]))
 #
 #         return value
+
+class Sphere(BenchmarkFunction):
+    """
+    Sphere function is declared by the following formula [1]:
+
+    .. math::
+        f(\textbf{x}) = f(x_1, x_2, ..., x_n) = {\sum_{i=1}^{n} x_i^{2}}
+
+
+        -5,12 \leq x_i \leq 5.12$$
+
+        \text{minimum at }f(0, \cdots, 0) = 0$$
+
+    minimum: x = 0...0
+             f(x) = 0
+
+    [1] http://www.sfu.ca/~ssurjano/spheref.html
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Sphere function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-5.12, ub=5.12)
+
+        self.global_optimum = 0.
+        self.global_optimum_coords = [0.0 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        sum = 0.0
+        for c in x:
+            sum += c ** 2.0
+
+        return sum
+
 
 
 class BinhAndKorn:
@@ -10540,7 +10576,9 @@ class SurrogateBenchmarkBooth(SurrogateBenchmarkData):
 
 
 if __name__ == '__main__':
-    test = Rosenbrock(**{'dimension': 2})
-    test.plot_2d()
-    test = Ackley(**{'dimension': 2})
+    # test = Rosenbrock(**{'dimension': 2})
+    # test.plot_2d()
+    # test = Ackley(**{'dimension': 2})
+    # test.plot_2d()
+    test = Sphere(**{'dimension': 2})
     test.plot_2d()
