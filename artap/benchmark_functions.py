@@ -272,6 +272,46 @@ class Sphere(BenchmarkFunction):
         return sum
 
 
+class Schwefel(BenchmarkFunction):
+    """
+    Schwefel function is declared by the following formula [1]:
+
+    .. math::
+        f(\textbf{x}) = f(x_1, x_2, ..., x_n) = 418.9829d -{\sum_{i=1}^{n} x_i sin(\sqrt{|x_i|})}
+
+
+        -500 \leq x_i \leq 500$$
+
+        \text{minimum at }f(0, \cdots, 0) = 0$$
+
+    minimum: x = 420.9687,...,420.9687
+             f(x) = 0
+
+    [1] http://benchmarkfcns.xyz/benchmarkfcns/schwefelfcn.html
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Schwefel function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-500., ub=500.)
+
+        self.global_optimum = 0.
+        self.global_optimum_coords = [420.9687 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        alpha = 418.982887
+        fitness = 0
+
+        fitness = 0.0
+        for c in x:
+            fitness -= c * np.sin(np.sqrt(np.abs(c)))
+            fitness += alpha
+        return fitness
+
 
 class BinhAndKorn:
     """
@@ -10580,5 +10620,7 @@ if __name__ == '__main__':
     # test.plot_2d()
     # test = Ackley(**{'dimension': 2})
     # test.plot_2d()
-    test = Sphere(**{'dimension': 2})
+    # test = Sphere(**{'dimension': 2})
+    # test.plot_2d()
+    test = Schwefel(**{'dimension': 2})
     test.plot_2d()
