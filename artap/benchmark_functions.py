@@ -23,7 +23,7 @@ class BenchmarkFunction(Problem):
 
     """
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
 
@@ -103,6 +103,7 @@ class BenchmarkFunction(Problem):
         if 'dimension' in kwargs:
             self.dimension = kwargs['dimension']
 
+
 class Rosenbrock(BenchmarkFunction):
     """
     .. math::
@@ -130,7 +131,7 @@ class Rosenbrock(BenchmarkFunction):
     [4] http://benchmarkfcns.xyz/benchmarkfcns/rosenbrockfcn.html
     """
 
-    def set(self,**kwargs):
+    def set(self, **kwargs):
         self.name = 'Rosenbrock function'
 
         self.set_dimension(**kwargs)
@@ -156,75 +157,84 @@ class Rosenbrock(BenchmarkFunction):
         return scores
 
 
-class AckleyN2(BenchmarkFunction):
+class Ackley(BenchmarkFunction):
     """
-    Ackley Nr. 2 test function is declared by the following formula:
+    Ackley function is declared by the following formula [1]:
 
-    minimize:
-         $f(x,y) = -200*exp(-0.2*sqrt(x^2+y^2))$
-
-
-    search domain:
-        -32 <= x,y <= 32
+    .. math::
+        f(\textbf{x}) = f(x_1, ..., x_n)= -a.exp(-b\sqrt{\frac{1}{n}\sum_{i=1}^{n}x_i^2})-exp(\frac{1}{n}\sum_{i=1}^{n}cos(cx_i))+ a + exp(1)
 
 
-    Description and Features
+        -32 \leq x_i \leq 32$$
 
-        - convex
-        - defined on 2-dimensional space
-        - non-separable
-        - differentiable
+        \text{minimum at }f(0, \cdots, 0) = 0$$
 
-    Solution
+    minimum: x = 0...0
+             f(x) = 0
 
-    The function has a global minimum at f(x∗)=−200
-    located at x∗=(0,0)
+    [1] https://www.cs.unm.edu/~neal.holts/dga/benchmarkFunction/ackley.html
    """
 
-    def __init__(self):
-        super().__init__()
-        self.bounds = [[-32, 32],
-                       [-32, 32]]
+    def set(self, **kwargs):
+        self.name = 'Ackley function'
 
-    def eval(self, x):
-        return -200. * exp(-0.02 * (x[0] ** 2 + x[1] ** 2) ** 0.5)
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-32., ub=32.)
+
+        self.global_optimum = 0.
+        self.global_optimum_coords = [0.0 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        firstSum = 0.0
+        secondSum = 0.0
+
+        for c in x:
+            firstSum += c ** 2.0
+            secondSum += np.cos(2.0 * np.pi * c)
+        n = float(len(x))
+        return -20.0 * np.exp(-0.2 * np.sqrt(firstSum / n)) - np.exp(secondSum / n) + 20.0 + np.e
+
+        # return -200. * exp(-0.02 * (x[0] ** 2 + x[1] ** 2) ** 0.5)
 
 
-class Ackley4Modified:
-    """
-    Ackley 4 or Modified Ackley Function (Continuous, Differentiable, Non-Separable, Scalable, Multimodal)
-
-    f(x)=\sum_{i=1}^{n-1}( e^{-0.2}\sqrt{x_i^2+x_{i+1}^2} + 3(cos(2x_i) + sin(2x_{i+1})))
-
-    Description:
-
-        - not convex
-        - defined on n-dimensional space
-        - non-separable
-        - differentiable
-        - continuous
-        - scalable
-
-    Search Domain
-
-        The function can be defined on any input domain but it is usually evaluated on xi∈[−35,35] for i=1,…,n
-
-    Solution
-
-    On the 2-dimensional space, the function has one global minima at f(x∗)=−4.590101633799122
-    located at x∗=(−1.51,−0.755)
-
-    """
-
-    @classmethod
-    def eval(cls, x):
-        dim = len(x)
-
-        value = 0.
-        for i in range(0, dim - 1):
-            value += exp(-0.2) * sqrt(x[i] ** 2. + x[i + 1] ** 2.) + 3. * (cos(2 * x[i]) + sin(2 * x[i + 1]))
-
-        return value
+# class Ackley4Modified:
+#     """
+#     Ackley 4 or Modified Ackley Function (Continuous, Differentiable, Non-Separable, Scalable, Multimodal)
+#
+#     f(x)=\sum_{i=1}^{n-1}( e^{-0.2}\sqrt{x_i^2+x_{i+1}^2} + 3(cos(2x_i) + sin(2x_{i+1})))
+#
+#     Description:
+#
+#         - not convex
+#         - defined on n-dimensional space
+#         - non-separable
+#         - differentiable
+#         - continuous
+#         - scalable
+#
+#     Search Domain
+#
+#         The function can be defined on any input domain but it is usually evaluated on xi∈[−35,35] for i=1,…,n
+#
+#     Solution
+#
+#     On the 2-dimensional space, the function has one global minima at f(x∗)=−4.590101633799122
+#     located at x∗=(−1.51,−0.755)
+#
+#     """
+#
+#     @classmethod
+#     def eval(cls, x):
+#         dim = len(x)
+#
+#         value = 0.
+#         for i in range(0, dim - 1):
+#             value += exp(-0.2) * sqrt(x[i] ** 2. + x[i + 1] ** 2.) + 3. * (cos(2 * x[i]) + sin(2 * x[i + 1]))
+#
+#         return value
 
 
 class BinhAndKorn:
@@ -10530,8 +10540,7 @@ class SurrogateBenchmarkBooth(SurrogateBenchmarkData):
 
 
 if __name__ == '__main__':
-
-    test = Rosenbrock(**{'dimension':2})
+    test = Rosenbrock(**{'dimension': 2})
     test.plot_2d()
-    test = AckleyN2()
+    test = Ackley(**{'dimension': 2})
     test.plot_2d()
