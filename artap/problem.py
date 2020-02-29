@@ -2,9 +2,9 @@
  Module is dedicated to describe optimization problem.
 """
 
-from .datastore import DataStore, DummyDataStore
-from .utils import ConfigDictionary
-from .surrogate import SurrogateModelEval
+from artap.datastore import DataStore, DummyDataStore
+from artap.utils import ConfigDictionary
+from artap.surrogate import SurrogateModelEval
 from abc import abstractmethod
 
 import logging
@@ -42,7 +42,7 @@ class Problem:
 
     __is_frozen = False
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         self.options = ConfigDictionary()
         # options
@@ -107,8 +107,9 @@ class Problem:
         # surrogate model (default - only simple eval)
         self.surrogate = SurrogateModelEval(self)
         self.signs = []
-        self._freeze()
-        self.set()
+
+        #self._freeze()
+        self.set(**kwargs)
         for cost in self.costs:
             if 'criteria' in cost:
                 if cost['criteria'] == 'minimize':
@@ -123,7 +124,7 @@ class Problem:
             shutil.rmtree(self.working_dir)
 
     @abstractmethod
-    def set(self):
+    def set(self, **kwargs):
         pass
 
     def parameters_len(self):
@@ -160,12 +161,12 @@ class Problem:
         return p_types
 
     @abstractmethod
-    def evaluate(self, x: list):
-        """ :param x: list of the variables """
+    def evaluate(self, x):
+        """ :param x: individual """
         pass
 
-    def evaluate_constraints(self, x: list):
-        """ :param x: list of the variables """
+    def evaluate_constraints(self, x):
+        """ :param x: individual """
         pass
 
     def __setattr__(self, key, value):
