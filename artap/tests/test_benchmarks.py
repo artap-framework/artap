@@ -1,5 +1,5 @@
 import unittest
-from artap.benchmark_functions import Rosenbrock, Ackley, Schwefel, Sphere
+from artap.benchmark_functions import Rosenbrock, Ackley, Schwefel, Sphere, ModifiedEasom
 
 
 class TestRosenbrock(unittest.TestCase):
@@ -40,6 +40,13 @@ class TestSchwefel(unittest.TestCase):
 
         test10d = Schwefel(**{'dimension': 10})
         self.assertAlmostEqual(test2d.evaluate(test2d.global_optimum_coords), 0, 4)
+
+
+class TestModifiedEasom(unittest.TestCase):
+
+    def test_measom(self):
+        test2d = ModifiedEasom(**{'dimension': 2})
+        self.assertAlmostEqual(test2d.evaluate(test2d.global_optimum_coords), -1., 4)
 
 
 if __name__ == '__main__':
