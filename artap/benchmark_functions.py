@@ -313,6 +313,41 @@ class Schwefel(BenchmarkFunction):
         return fitness
 
 
+class ModifiedEasom(BenchmarkFunction):
+    """
+    Generalized Easom's funcion, or Xin-She Yangs extended function [1]:
+
+    .. math::
+        f(\mathbf x)=f(x_1, ..., x_n) =exp(-\sum_{i=1}^{n}(x_i / \beta)^{2m}) - 2exp(-\sum_{i=1}^{n}x_i^2) \prod_{i=1}^{n}cos^ 2(x_i)
+
+        -2.pi \leq x_i \leq 2pi$$
+
+    [1]X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Modified Easom'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-2. * np.pi, ub=2. * np.pi)
+
+        self.global_optimum = -1.
+        self.global_optimum_coords = [np.pi for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        summa = 0.0
+        product = -1.0
+
+        for c in x:
+            product *= -1. * np.cos(c) ** 2.
+            summa += (c - np.pi) ** 2.
+        return product * np.exp(-summa)
+
+
 class BinhAndKorn:
     """
     This problem is often attributed to Binh and Korn, but is also mentioned in A Osyczka, H Tamura,
@@ -10622,5 +10657,8 @@ if __name__ == '__main__':
     # test.plot_2d()
     # test = Sphere(**{'dimension': 2})
     # test.plot_2d()
-    test = Schwefel(**{'dimension': 2})
+    #test = Schwefel(**{'dimension': 2})
+    #test.plot_2d()
+
+    test = ModifiedEasom(**{'dimension': 2})
     test.plot_2d()
