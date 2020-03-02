@@ -13,3 +13,4 @@ pytest
 appdirs
 nlopt
 sqlitedict
+agrossuite
