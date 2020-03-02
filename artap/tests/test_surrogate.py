@@ -172,6 +172,7 @@ class TestSurrogate(unittest.TestCase):
 
     def test_scikit_gaussian_process_lhs_two(self):
         problem = Booth()
+        problem.set_init_values(**{'initial_value':[0.,0.]})
         problem.surrogate = SurrogateModelScikit(problem)
         # set custom regressor
         kernel = 1.0 * RationalQuadratic(length_scale=1.0)
