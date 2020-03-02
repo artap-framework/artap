@@ -774,75 +774,75 @@ class XinSheYang3(BenchmarkFunction):
         return [f1]
 
 
-# class BinhAndKorn:
-#     """
-#     This problem is often attributed to Binh and Korn, but is also mentioned in A Osyczka, H Tamura,
-#     Pareto set distribution method for multicriteria optimization using genetic algorithm.
-#
-#     The problem is searching the minimum of the following function:
-#
-#     $min(f_{1}(x,y),f_{2}(x,y))$
-#
-#     where
-#
-#         $f_{1}(x,y) = 4x^2 + 4y^2$
-#         $f_{2}(x,y) = (x-5)^2 + (y-5)^2 $
-#
-#     subject to the following constraints:
-#
-#     $g_{1}(x,y) = (x-5)^2 + y^2 \leq 25$
-#     $g_{2}(x,y) = (x-8)^2 + (y+3)^2 \leq 7.7$
-#
-#     search domain: 0 <= x <=5, 0 <= y <= 3
-#
-#     """
-#
-#     @staticmethod
-#     def approx(x):
-#         """
-#         Estimates the pareto front of the Binh_and_Korn function in the following domain: [10;100]
-#
-#         The approximate function is:
-#
-#         f = a0+a1*x+a2*x^2+a3*x^3+a4*x^4+a5*x^5
-#
-#         a0 = 4.564170954344949e+01 +/- 2.827448422117511e-01
-#         a1 = -1.939843031431697e+00 +/- 5.958429263576211e-02
-#         a2 = 5.327835893656892e-02 +/- 3.214348835707173e-03
-#         a3 = -7.960654974842228e-04 +/- 6.602271055507837e-05
-#         a4 = 5.666751361667045e-06 +/- 5.691036855808526e-07
-#         a5 = -1.505297721151948e-08 +/- 1.733740155631940e-09
-#
-#         fitted on a platypus calculation: algorithm nsga II, 10 000 evaluations
-#
-#         :param x: the value of the f1 function
-#         :return:
-#         """
-#
-#         a0 = 4.564170954344949e+01
-#         a1 = -1.939843031431697e+00
-#         a2 = 5.327835893656892e-02
-#         a3 = -7.960654974842228e-04
-#         a4 = 5.666751361667045e-06
-#         a5 = -1.505297721151948e-08
-#
-#         return a0 + a1 * x + a2 * x ** 2. + a3 * x ** 3. + a4 * x ** 4. + a5 * x ** 5.
-#
-#     @classmethod
-#     def eval(cls, x):
-#         f1 = 4 * pow(x[0], 2) + 4 * pow(x[1], 2)
-#         f2 = pow(x[0] - 5, 2) + pow(x[1] - 5, 2)
-#         target = [f1, f2]
-#
-#         return target
-#
-#     @classmethod
-#     def constraints(cls, x):
-#         # 0 <= x <=5, 0 <= y <= 3
-#         g1 = min(0, 25 - pow(x[0] - 5, 2) - pow(x[1], 2))
-#         g2 = min(0, pow(x[0] - 8, 2) + pow(x[1] + 3, 2) - 7.7)
-#         violation = [g1, g2]
-#         return violation
+class BinhAndKorn:
+    """
+    This problem is often attributed to Binh and Korn, but is also mentioned in A Osyczka, H Tamura,
+    Pareto set distribution method for multicriteria optimization using genetic algorithm.
+
+    The problem is searching the minimum of the following function:
+
+    $min(f_{1}(x,y),f_{2}(x,y))$
+
+    where
+
+        $f_{1}(x,y) = 4x^2 + 4y^2$
+        $f_{2}(x,y) = (x-5)^2 + (y-5)^2 $
+
+    subject to the following constraints:
+
+    $g_{1}(x,y) = (x-5)^2 + y^2 \leq 25$
+    $g_{2}(x,y) = (x-8)^2 + (y+3)^2 \leq 7.7$
+
+    search domain: 0 <= x <=5, 0 <= y <= 3
+
+    """
+
+    @staticmethod
+    def approx(x):
+        """
+        Estimates the pareto front of the Binh_and_Korn function in the following domain: [10;100]
+
+        The approximate function is:
+
+        f = a0+a1*x+a2*x^2+a3*x^3+a4*x^4+a5*x^5
+
+        a0 = 4.564170954344949e+01 +/- 2.827448422117511e-01
+        a1 = -1.939843031431697e+00 +/- 5.958429263576211e-02
+        a2 = 5.327835893656892e-02 +/- 3.214348835707173e-03
+        a3 = -7.960654974842228e-04 +/- 6.602271055507837e-05
+        a4 = 5.666751361667045e-06 +/- 5.691036855808526e-07
+        a5 = -1.505297721151948e-08 +/- 1.733740155631940e-09
+
+        fitted on a platypus calculation: algorithm nsga II, 10 000 evaluations
+
+        :param x: the value of the f1 function
+        :return:
+        """
+
+        a0 = 4.564170954344949e+01
+        a1 = -1.939843031431697e+00
+        a2 = 5.327835893656892e-02
+        a3 = -7.960654974842228e-04
+        a4 = 5.666751361667045e-06
+        a5 = -1.505297721151948e-08
+
+        return a0 + a1 * x + a2 * x ** 2. + a3 * x ** 3. + a4 * x ** 4. + a5 * x ** 5.
+
+    @classmethod
+    def eval(cls, x):
+        f1 = 4 * pow(x[0], 2) + 4 * pow(x[1], 2)
+        f2 = pow(x[0] - 5, 2) + pow(x[1] - 5, 2)
+        target = [f1, f2]
+
+        return target
+
+    @classmethod
+    def constraints(cls, x):
+        # 0 <= x <=5, 0 <= y <= 3
+        g1 = min(0, 25 - pow(x[0] - 5, 2) - pow(x[1], 2))
+        g2 = min(0, pow(x[0] - 8, 2) + pow(x[1] + 3, 2) - 7.7)
+        violation = [g1, g2]
+        return violation
 
 
 class Booth(BenchmarkFunction):

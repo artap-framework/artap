@@ -28,16 +28,16 @@ class MyProblemSin(Problem):
         return [x[0] * math.sin(x[0])]
 
 
-class MyProblemBooth(Problem):
-    """ Describe simple one objective optimization problem. """
-
-    def set(self):
-        self.parameters = [{'name': 'x_1', 'initial_value': 0, 'bounds': [-5, 5]},
-                           {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
-        self.costs = [{'name': 'F'}]
-
-    def evaluate(self, individual):
-        return [Booth.eval(individual.vector)]
+# class MyProblemBooth(Problem):
+#     """ Describe simple one objective optimization problem. """
+#
+#     def set(self):
+#         self.parameters = [{'name': 'x_1', 'initial_value': 0, 'bounds': [-5, 5]},
+#                            {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
+#         self.costs = [{'name': 'F'}]
+#
+#     def evaluate(self, individual):
+#         return [Booth.eval(individual.vector)]
 
 
 class TestSurrogate(unittest.TestCase):
@@ -78,7 +78,7 @@ class TestSurrogate(unittest.TestCase):
                 step += 1
 
     def test_eval(self):
-        problem = MyProblemBooth()
+        problem = Booth()#MyProblemBooth()
         problem.surrogate = SurrogateModelEval(problem)
 
         x_ref = Individual([2.5, 1.5])
@@ -131,7 +131,7 @@ class TestSurrogate(unittest.TestCase):
         self._check_scikit_one(problem, 10.0)
 
     def test_scikit_gaussian_process_two(self):
-        problem = MyProblemBooth()
+        problem = Booth()
         problem.surrogate = SurrogateModelScikit(problem)
         # set custom regressor
         kernel = 1.0 * RationalQuadratic(length_scale=1.0, alpha=0.1)
@@ -171,7 +171,7 @@ class TestSurrogate(unittest.TestCase):
         self.assertLess(percent, 5.0)
 
     def test_scikit_gaussian_process_lhs_two(self):
-        problem = MyProblemBooth()
+        problem = Booth()
         problem.surrogate = SurrogateModelScikit(problem)
         # set custom regressor
         kernel = 1.0 * RationalQuadratic(length_scale=1.0)
@@ -204,7 +204,7 @@ class TestSurrogate(unittest.TestCase):
         self.assertLess(percent, 5.0)
 
     def _check_smt(self, regressor, percent=1.0):
-        problem = MyProblemBooth()
+        problem = Booth()
         problem.surrogate = SurrogateModelSMT(problem)
         # set custom regressor
         problem.surrogate.regressor = regressor
