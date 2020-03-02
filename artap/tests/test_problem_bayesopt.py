@@ -43,7 +43,7 @@ class TestBayesOptOptimization(unittest.TestCase):
 
     @unittest.skipIf(__bayes_opt__ is False, "requires module BayesOpt")
     def test_local_problem_bayesopt_serial(self):
-        problem = MyProblem()
+        problem = Booth()
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 200
