@@ -1,7 +1,7 @@
 import unittest
 import sys
 
-from artap.problem import Problem
+#from artap.problem import Problem
 try:
     from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
 
@@ -14,23 +14,23 @@ from artap.results import Results
 from artap.benchmark_functions import Booth
 
 
-class MyProblem(Problem):
-    """ Describe simple one objective optimization problem. """
-    def set(self):
-        self.name = "TestBayesOptParallel"
-        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
-                      {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
-        self.costs = [{'name': 'F'}]
-
-    def evaluate(self, individual):
-        return [Booth.eval(individual.vector)]
+# class MyProblem(Problem):
+#     """ Describe simple one objective optimization problem. """
+#     def set(self):
+#         self.name = "TestBayesOptParallel"
+#         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
+#                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
+#         self.costs = [{'name': 'F'}]
+#
+#     def evaluate(self, individual):
+#         return [Booth.eval(individual.vector)]
 
 
 class TestBayesOptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def xtest_local_problem_bayesopt_parallel(self):
-        problem = MyProblem()
+        problem = Booth()
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
         algorithm.options['n_iterations'] = 100
