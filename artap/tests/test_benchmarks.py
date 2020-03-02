@@ -1,5 +1,5 @@
 import unittest
-from individual import Individual
+from artap.individual import Individual
 from artap.benchmark_functions import Rosenbrock, Ackley, Schwefel, Sphere, ModifiedEasom, Michaelwicz, Perm, Rastrigin, \
     SixHump, EqualityConstr, Griewank, Schubert, Zakharov, XinSheYang, XinSheYang2, XinSheYang3, Booth
 
