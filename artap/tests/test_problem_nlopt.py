@@ -23,16 +23,16 @@ from artap.results import Results
 from artap.benchmark_functions import Booth
 
 
-class MyProblem(Problem):
-    """ Describe simple one objective optimization problem. """
-    def set(self):
-        self.name = "Booth Problem"
-        self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
-                      {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
-        self.costs = [{'name': 'F'}]
-
-    def evaluate(self, individual):
-        return [Booth.eval(individual.vector)]
+# class MyProblem(Problem):
+#     """ Describe simple one objective optimization problem. """
+#     def set(self):
+#         self.name = "Booth Problem"
+#         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
+#                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
+#         self.costs = [{'name': 'F'}]
+#
+#     def evaluate(self, individual):
+#         return [Booth.eval(individual.vector)]
 
 
 class TestNLoptOptimization(unittest.TestCase):
@@ -40,7 +40,7 @@ class TestNLoptOptimization(unittest.TestCase):
 
     def run_test(self, method, n_iterations=100):
         try:
-            problem = MyProblem()
+            problem = Booth()
             algorithm = NLopt(problem)
             algorithm.options['verbose_level'] = 0
             algorithm.options['algorithm'] = method
