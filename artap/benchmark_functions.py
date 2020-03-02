@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from random import uniform
 from artap.individual import Individual
 
+
 class BenchmarkFunction(Problem):
     """
     The general class for standardized artap benchmarks:
@@ -32,12 +33,16 @@ class BenchmarkFunction(Problem):
         self.global_optimum: float
         self.global_optimum_coords: list
 
-    def generate_paramlist(self, dimension, lb, ub):
+    def generate_paramlist(self, dimension, lb, ub, **kwargs):
         """Defines an n-dimensional list for the optimization"""
 
         param_list = []
         for i in range(0, dimension):
-            dict = {'name': str(i), 'bounds': [lb, ub]}
+
+            if 'dimension' in kwargs:
+                dict = {'name': str(i), 'bounds': [lb, ub], 'initial_value': kwargs['initial_value']}
+            else:
+                dict = {'name': str(i), 'bounds': [lb, ub]}
             param_list.append(dict)
 
         return param_list
@@ -98,6 +103,12 @@ class BenchmarkFunction(Problem):
         fig.colorbar(surf, shrink=0.5, aspect=5)
 
         plt.show()
+
+    def set_init_values(self, **kwargs):
+        if 'initial_value' in kwargs:
+
+            for elem in self.parameters:
+                elem.update({'initial_value':kwargs['initial_value']})
 
     def set_dimension(self, **kwargs):
 
@@ -579,7 +590,7 @@ class SixHump(BenchmarkFunction):
         x = x.vector
 
         return [((4 - 2.1 * x[0] ** 2 + x[0] ** 4 / 3.) * x[0] ** 2 + x[0] * x[1]
-                - 4 * x[1] ** 2 + 4 * x[1] ** 4)]
+                 - 4 * x[1] ** 2 + 4 * x[1] ** 4)]
 
 
 class Schubert(BenchmarkFunction):
@@ -764,7 +775,6 @@ class XinSheYang3(BenchmarkFunction):
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
-
         f1 = 0.0
         x = x.vector
 
@@ -855,11 +865,11 @@ class Booth(BenchmarkFunction):
     """
 
     def set(self, **kwargs):
-        self.name = 'Schubert Function'
+        self.name = 'Booth Function'
 
         self.set_dimension = 2.0
-        self.parameters = [{'name': 'x', 'bounds': [-10., 10.]},
-                           {'name': 'y', 'bounds': [-10., 10.]}]
+        self.parameters = [{'name': 'x', 'bounds': [-5., 5.]},  # the search space reduced because of the surrogate test
+                           {'name': 'y', 'bounds': [-5., 5.]}]
 
         self.global_optimum = 0.0
         self.global_optimum_coords = [1., 3.]
@@ -11123,8 +11133,8 @@ if __name__ == '__main__':
     # test.plot_2d()
     # test = Perm(**{'dimension': 2})
     # test.plot_2d()
-    #test = Michaelwicz(**{'dimension': 2})
-    #test.plot_2d()
+    # test = Michaelwicz(**{'dimension': 2})
+    # test.plot_2d()
 
     test = Booth(**{'dimension': 2})
     test.plot_2d()
