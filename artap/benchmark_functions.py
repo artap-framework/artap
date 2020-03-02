@@ -8,6 +8,7 @@ from numpy import exp, cos, sin, sqrt, linspace
 import artap.colormaps as cmaps
 from artap.problem import Problem
 from sklearn.model_selection import train_test_split
+from random import uniform
 
 
 class BenchmarkFunction(Problem):
@@ -348,85 +349,486 @@ class ModifiedEasom(BenchmarkFunction):
         return product * np.exp(-summa)
 
 
-class BinhAndKorn:
+class EqualityConstr(BenchmarkFunction):
     """
-    This problem is often attributed to Binh and Korn, but is also mentioned in A Osyczka, H Tamura,
-    Pareto set distribution method for multicriteria optimization using genetic algorithm.
+    Equality Constrained Function [1] eq 7-8:
 
-    The problem is searching the minimum of the following function:
+    .. math::
+        f(\mathbf x)= 
 
-    $min(f_{1}(x,y),f_{2}(x,y))$
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+   """
 
-    where
+    def set(self, **kwargs):
+        self.name = 'Equality Constrained Function'
 
-        $f_{1}(x,y) = 4x^2 + 4y^2$
-        $f_{2}(x,y) = (x-5)^2 + (y-5)^2 $
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
 
-    subject to the following constraints:
+        self.global_optimum = -1.
+        self.global_optimum_coords = [1. / np.sqrt(self.dimension) for x in range(self.dimension)]
 
-    $g_{1}(x,y) = (x-5)^2 + y^2 \leq 25$
-    $g_{2}(x,y) = (x-8)^2 + (y+3)^2 \leq 7.7$
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
-    search domain: 0 <= x <=5, 0 <= y <= 3
+    def evaluate(self, x):
+        product = 1.0
+        summa = 0.0
+        for c in x:
+            product *= c * np.sqrt(self.dimension)
+            summa += c * c
+        if summa.any() == 1.:
+            return -1.0 * product
+        else:
+            return 0.
 
+
+class Griewank(BenchmarkFunction):
+    """
+    Griewank function strongly multimodal:
+
+    A minimization problem [1-2]:
+
+    .. math::
+        $$f(x_1 \cdots x_n) = 1 + \frac{1}{4000} \sum_{i=1}^n x^2_i - \prod_{i=1}^n cos(\frac{x_i}{\sqrt{i}})$$
+
+        $$-512 \leq x_i \leq 512$$
+
+        $$\text{minimum at }f(0, \cdots, 0) = 0$$
+
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+    [2] https://www.cs.unm.edu/~neal.holts/dga/benchmarkFunction/griewank.html
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Griewank Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-512.0, ub=512.0)
+
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [0.0 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        """F6 Griewank's function
+        multimodal, symmetric, inseparable"""
+        summa = 0
+        produkt = 1.
+        for i, c in enumerate(x):
+            summa += c ** 2 / 4000.0
+            produkt *= np.cos(c / np.sqrt(i + 1))
+        return summa - produkt + 1.
+
+
+class Michaelwicz(BenchmarkFunction):
+    """
+    Works for 2, 5 and 10 dimensions only.
+
+    Michalewicz function has d! local minima, and it is multimodal. The parameter m defines the steepness of they
+    valleys and ridges; a larger m leads to a more difficult search. The recommended value of m is m = 10.
+
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+    [2] http://www.sfu.ca/~ssurjano/michal.html
+    [3] http://www.smaree.com/2016/09/30/global-minimum-of-the-michalewicz-function/
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Michaelwicz Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=np.pi)
+
+        if self.dimension == 2:
+            self.global_optimum = -1.8013
+            self.global_optimum_coords = [2.20, 1.57]
+
+        elif self.dimension == 5:
+            self.global_optimum = -4.687658
+
+        elif self.dimension == 10:
+            self.global_optimum = -9.66015
+
+        else:
+            raise ValueError  # shorthand for 'raise ValueError()'
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        f = 0.
+        m = 10 # m is generally selected to 10
+        for i,c in enumerate(x):
+            f += np.sin(c)*np.sin((i+1)*c*c/np.pi)**(2.*m)
+        return -f
+
+
+class Perm(BenchmarkFunction):
     """
 
-    @staticmethod
-    def approx(x):
-        """
-        Estimates the pareto front of the Binh_and_Korn function in the following domain: [10;100]
+    Usually, evaluated on a hypercube, which relates to the d-dimension. 
+    The global minima is 0, located in (1, 1/2, ...1/d) point in d dimensions [2] is the correct reference now.
 
-        The approximate function is:
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+    [2] http://www.sfu.ca/~ssurjano/perm0db.html
+   """
 
-        f = a0+a1*x+a2*x^2+a3*x^3+a4*x^4+a5*x^5
+    def set(self, **kwargs):
+        self.name = 'Perm Function'
 
-        a0 = 4.564170954344949e+01 +/- 2.827448422117511e-01
-        a1 = -1.939843031431697e+00 +/- 5.958429263576211e-02
-        a2 = 5.327835893656892e-02 +/- 3.214348835707173e-03
-        a3 = -7.960654974842228e-04 +/- 6.602271055507837e-05
-        a4 = 5.666751361667045e-06 +/- 5.691036855808526e-07
-        a5 = -1.505297721151948e-08 +/- 1.733740155631940e-09
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-float(self.dimension), ub=float(self.dimension))
 
-        fitted on a platypus calculation: algorithm nsga II, 10 000 evaluations
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [1. / float(x + 1) for x in range(self.dimension)]
 
-        :param x: the value of the f1 function
-        :return:
-        """
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
-        a0 = 4.564170954344949e+01
-        a1 = -1.939843031431697e+00
-        a2 = 5.327835893656892e-02
-        a3 = -7.960654974842228e-04
-        a4 = 5.666751361667045e-06
-        a5 = -1.505297721151948e-08
-
-        return a0 + a1 * x + a2 * x ** 2. + a3 * x ** 3. + a4 * x ** 4. + a5 * x ** 5.
-
-    @classmethod
-    def eval(cls, x):
-        f1 = 4 * pow(x[0], 2) + 4 * pow(x[1], 2)
-        f2 = pow(x[0] - 5, 2) + pow(x[1] - 5, 2)
-        target = [f1, f2]
-
-        return target
-
-    @classmethod
-    def constraints(cls, x):
-        # 0 <= x <=5, 0 <= y <= 3
-        g1 = min(0, 25 - pow(x[0] - 5, 2) - pow(x[1], 2))
-        g2 = min(0, pow(x[0] - 8, 2) + pow(x[1] + 3, 2) - 7.7)
-        violation = [g1, g2]
-        return violation
+    def evaluate(self, x):
+        b = 10  # optional, with the default value of 10
+        f = 0.
+        for i in range(1, self.dimension + 1):
+            for j, d in enumerate(x):
+                f += (j + 1 + b) * (d ** i - 1. / ((j + 1.) ** i)) ** 2.
+        return f
 
 
-class Booth(BenchmarkFunction):
+class Rastrigin(BenchmarkFunction):
     """
-    Booth function
-    """
+    Rastrigin function  is multimodal, symmetric, separable:
 
-    @classmethod
-    def eval(cls, x):
-        return (x[0] + 2 * x[1] - 7) ** 2 + (2 * x[0] + x[1] - 5) ** 2
+    .. math::
+
+     $$f(x_1 \cdots x_n) = 10n + \sum_{i=1}^n (x_i^2 -10cos(2\pi x_i))$$
+
+     $$-5.12 \leq x_i \leq 5.12$$
+
+     $$\text{minimum at }f(0, \cdots, 0) = 0$$
+
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+    [2] https://www.cs.unm.edu/~neal.holts/dga/benchmarkFunction/rastrigin.html
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Rastrigin Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-5.120, ub=5.120)
+
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [0.0 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        fitness = 10 * self.dimension
+        for c in x:
+            fitness += c ** 2 - (10 * np.cos(2 * np.pi * c))
+        return fitness
+
+
+class SixHump(BenchmarkFunction):
+    """
+    Six Hump Camel Back function  is a two variable function with two separate optimum:
+
+
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+    [2] https://www.cs.unm.edu/~neal.holts/dga/benchmarkFunction/rastrigin.html
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Six hump camel back Function'
+
+        self.set_dimension = 2.0
+        self.parameters = [{'name': 'x', 'bounds': [-3., 3.]},
+                           {'name': 'y', 'bounds': [-2., 2.]}]
+
+        # there are 2 global optimums!!!
+        self.global_optimum = -1.0316
+        self.global_optimum_coords = [0.0898, -0.7126] # [-0.0898, 0.7126]]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        return ((4 - 2.1 * x[0] ** 2 + x[0] ** 4 / 3.) * x[0] ** 2 + x[0] * x[1]
+                - 4 * x[1] ** 2 + 4 * x[1] ** 4)
+
+
+class Schubert(BenchmarkFunction):
+    """
+    It is a two variable function, which has 18 global optimums for n=5:
+
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+    [2] http://www.sfu.ca/~ssurjano/shubert.html
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Schubert Function'
+
+        self.set_dimension = 2.0
+        self.parameters = [{'name': 'x', 'bounds': [-10., 10.]},
+                           {'name': 'y', 'bounds': [-10., 10.]}]
+
+        self.global_optimum = -186.7309
+        # self.global_optimum_coords =  TODO: find these coorcdinates
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        n = 5
+        f1 = 0.0
+        f2 = 0.0
+        for i in range(1, n + 1):
+            f1 += i * np.cos(i + (i + 1) * x[0])
+            f2 += i * np.cos(i + (i + 1) * x[1])
+        return f1 * f2
+
+
+class Zakharov(BenchmarkFunction):
+    """
+    Zakharov function [1]:
+
+    .. math::
+
+     $$f(x_1 \cdots x_n) = 10n + \sum_{i=1}^n (x_i^2 -10cos(2\pi x_i))$$
+
+     $$-5.12 \leq x_i \leq 5.12$$
+
+     $$\text{minimum at }f(0, \cdots, 0) = 0$$
+
+    [1] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+       Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+   """
+
+    def set(self, **kwargs):
+        self.name = 'Zakharov Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-5.0, ub=10.0)
+
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [0.0 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        f1 = 0.0
+        f2 = 0.0
+        f3 = 0.0
+
+        for i, c in enumerate(x):
+            f1 += c ** 2
+            f2 += 0.5 * (i + 1) * c
+            f3 += 0.5 * (i + 1) * c
+        return f1 + f2 ** 2. + f3 ** 2.
+
+
+class XinSheYang(BenchmarkFunction):
+    """
+        Xin She Yang function [1-2]:
+
+        .. math::
+            f(\mathbf{x})=f(x_1, ..., x_n)=(\sum_{i=1}^{n}|x_i|)exp(-\sum_{i=1}^{n}sin(x_i^2))
+
+        [1] Momin Jamil and Xin-She Yang, A literature survey of benchmark functions for global optimization problems,
+            Int. Journal of Mathematical Modelling and Numerical Optimisation}, Vol. 4, No. 2, pp. 150–194 (2013),
+            arXiv:1308.4008
+        [2] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+            Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+       """
+
+    def set(self, **kwargs):
+        self.name = 'Xin She Yang - 1  Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-2.0 * np.pi, ub=2.0 * np.pi)
+
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [0.0 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        f1 = 0.0
+        f2 = 0.0
+
+        for c in x:
+            f1 = np.fabs(c)
+            f2 = np.sin(c ** 2.)
+        return f1 * np.exp(-f2)
+
+
+class XinSheYang2(BenchmarkFunction):
+    """
+        Xin She Yang function [1-2]:
+
+        .. math::
+
+
+       [1] Momin Jamil and Xin-She Yang, A literature survey of benchmark functions for global optimization problems,
+           Int. Journal of Mathematical Modelling and Numerical Optimisation}, Vol. 4, No. 2, pp. 150–194 (2013),
+           arXiv:1308.4008
+       [2] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+           Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+
+       """
+
+    def set(self, **kwargs):
+        self.name = 'Xin She Yang - 2  Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-20.0, ub=20.0)
+
+        self.global_optimum = -1.0
+        self.global_optimum_coords = [0.0 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        f1 = 0.0
+        f2 = 0.0
+        f3 = 1.0
+        beta = 15.
+        m = 5.
+
+        for c in x:
+            f1 = -1. * (c / beta) ** (2. * m)
+            f2 = -1. * c ** 2.
+            f3 = np.cos(c) ** 2.
+        return (np.exp(f1) - 2. * np.exp(f2)) * f3
+
+
+class XinSheYang3(BenchmarkFunction):
+    """
+        Xin She Yang function [1-2]:
+
+        .. math::
+            f(\mathbf x)=f(x_1, ...,x_n)=\sum_{i=1}^{n}\epsilon_i|x_i|^i
+
+       [1] Momin Jamil and Xin-She Yang, A literature survey of benchmark functions for global optimization problems,
+           Int. Journal of Mathematical Modelling and Numerical Optimisation}, Vol. 4, No. 2, pp. 150–194 (2013),
+           arXiv:1308.4008
+       [2] X. S. Yang, “Test Problems in Optimization,” Engineering Optimization: An Introduction with Metaheuristic
+           Applications John Wliey & Sons, 2010. [Available Online]: http://arxiv.org/abs/1008.0549
+
+       """
+
+    def set(self, **kwargs):
+        self.name = 'Xin She Yang - 3  Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=-5.0, ub=5.0)
+
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [1./float(x+1) for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        f1 = 0.0
+
+        for i, c in enumerate(x):
+            eps = uniform(0, 1)
+            f1 = eps * np.fabs(c - 1. / (i + 1.))
+        return f1
+
+
+# class BinhAndKorn:
+#     """
+#     This problem is often attributed to Binh and Korn, but is also mentioned in A Osyczka, H Tamura,
+#     Pareto set distribution method for multicriteria optimization using genetic algorithm.
+#
+#     The problem is searching the minimum of the following function:
+#
+#     $min(f_{1}(x,y),f_{2}(x,y))$
+#
+#     where
+#
+#         $f_{1}(x,y) = 4x^2 + 4y^2$
+#         $f_{2}(x,y) = (x-5)^2 + (y-5)^2 $
+#
+#     subject to the following constraints:
+#
+#     $g_{1}(x,y) = (x-5)^2 + y^2 \leq 25$
+#     $g_{2}(x,y) = (x-8)^2 + (y+3)^2 \leq 7.7$
+#
+#     search domain: 0 <= x <=5, 0 <= y <= 3
+#
+#     """
+#
+#     @staticmethod
+#     def approx(x):
+#         """
+#         Estimates the pareto front of the Binh_and_Korn function in the following domain: [10;100]
+#
+#         The approximate function is:
+#
+#         f = a0+a1*x+a2*x^2+a3*x^3+a4*x^4+a5*x^5
+#
+#         a0 = 4.564170954344949e+01 +/- 2.827448422117511e-01
+#         a1 = -1.939843031431697e+00 +/- 5.958429263576211e-02
+#         a2 = 5.327835893656892e-02 +/- 3.214348835707173e-03
+#         a3 = -7.960654974842228e-04 +/- 6.602271055507837e-05
+#         a4 = 5.666751361667045e-06 +/- 5.691036855808526e-07
+#         a5 = -1.505297721151948e-08 +/- 1.733740155631940e-09
+#
+#         fitted on a platypus calculation: algorithm nsga II, 10 000 evaluations
+#
+#         :param x: the value of the f1 function
+#         :return:
+#         """
+#
+#         a0 = 4.564170954344949e+01
+#         a1 = -1.939843031431697e+00
+#         a2 = 5.327835893656892e-02
+#         a3 = -7.960654974842228e-04
+#         a4 = 5.666751361667045e-06
+#         a5 = -1.505297721151948e-08
+#
+#         return a0 + a1 * x + a2 * x ** 2. + a3 * x ** 3. + a4 * x ** 4. + a5 * x ** 5.
+#
+#     @classmethod
+#     def eval(cls, x):
+#         f1 = 4 * pow(x[0], 2) + 4 * pow(x[1], 2)
+#         f2 = pow(x[0] - 5, 2) + pow(x[1] - 5, 2)
+#         target = [f1, f2]
+#
+#         return target
+#
+#     @classmethod
+#     def constraints(cls, x):
+#         # 0 <= x <=5, 0 <= y <= 3
+#         g1 = min(0, 25 - pow(x[0] - 5, 2) - pow(x[1], 2))
+#         g2 = min(0, pow(x[0] - 8, 2) + pow(x[1] + 3, 2) - 7.7)
+#         violation = [g1, g2]
+#         return violation
+
+
+# class Booth(BenchmarkFunction):
+#     """
+#     Booth function
+#     """
+#
+#     @classmethod
+#     def eval(cls, x):
+#         return (x[0] + 2 * x[1] - 7) ** 2 + (2 * x[0] + x[1] - 5) ** 2
 
 
 class SurrogateBenchmarkData:
@@ -10657,8 +11059,29 @@ if __name__ == '__main__':
     # test.plot_2d()
     # test = Sphere(**{'dimension': 2})
     # test.plot_2d()
-    #test = Schwefel(**{'dimension': 2})
+    # test = Schwefel(**{'dimension': 2})
+    # test.plot_2d()
+    # test = ModifiedEasom(**{'dimension': 2})
+    # test.plot_2d()
+    # test = EqualityConstr(**{'dimension': 2})
+    # test.plot_2d()
+    # test = Griewank(**{'dimension': 2})
+    # test.plot_2d()
+    # test = Rastrigin(**{'dimension': 2})
+    # test.plot_2d()
+    # test = SixHump()
+    # test.plot_2d()
+    # test = Zakharov(**{'dimension': 2})
+    # test.plot_2d()
+    # test = XinSheYang(**{'dimension': 2})
+    # test.plot_2d()
+    # test = XinSheYang2(**{'dimension': 2})
+    # test.plot_2d()
+    # test = XinSheYang3(**{'dimension': 2})
+    # test.plot_2d()
+    # test = Schubert()
+    # test.plot_2d()
+    #test = Perm(**{'dimension': 2})
     #test.plot_2d()
-
-    test = ModifiedEasom(**{'dimension': 2})
+    test = Michaelwicz(**{'dimension': 2})
     test.plot_2d()
