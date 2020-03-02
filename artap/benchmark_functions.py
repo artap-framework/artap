@@ -9,7 +9,7 @@ import artap.colormaps as cmaps
 from artap.problem import Problem
 from sklearn.model_selection import train_test_split
 from random import uniform
-
+from artap.individual import Individual
 
 class BenchmarkFunction(Problem):
     """
@@ -84,7 +84,7 @@ class BenchmarkFunction(Problem):
                      self.parameters[py]['bounds'][1], num=1000)
 
         x, y = np.meshgrid(x, y)
-        z = self.evaluate([x, y])
+        z = self.evaluate(Individual([x, y]))[0]
 
         # Plot the surface
         surf = ax.plot_surface(x, y, z, cmap=cmaps.viridis,
@@ -149,13 +149,13 @@ class Rosenbrock(BenchmarkFunction):
         :param x: a two dimensional array/list/tuple, which contains the X[x,y]
         :return: f(X)
         """
-
+        x = x.vector
         scores = 0
         for i in range(0, self.dimension - 1):
             a = 1. - x[i]
             b = x[i + 1] - x[i] ** 2.
             scores += (a * a + b * b * 100.0)
-        return scores
+        return [scores]
 
 
 class Ackley(BenchmarkFunction):
@@ -191,12 +191,13 @@ class Ackley(BenchmarkFunction):
     def evaluate(self, x):
         firstSum = 0.0
         secondSum = 0.0
+        x = x.vector
 
         for c in x:
             firstSum += c ** 2.0
             secondSum += np.cos(2.0 * np.pi * c)
         n = float(len(x))
-        return -20.0 * np.exp(-0.2 * np.sqrt(firstSum / n)) - np.exp(secondSum / n) + 20.0 + np.e
+        return [-20.0 * np.exp(-0.2 * np.sqrt(firstSum / n)) - np.exp(secondSum / n) + 20.0 + np.e]
 
 
 # class Ackley4Modified:
@@ -267,10 +268,12 @@ class Sphere(BenchmarkFunction):
 
     def evaluate(self, x):
         sum = 0.0
+        x = x.vector
+
         for c in x:
             sum += c ** 2.0
 
-        return sum
+        return [sum]
 
 
 class Schwefel(BenchmarkFunction):
@@ -306,12 +309,13 @@ class Schwefel(BenchmarkFunction):
     def evaluate(self, x):
         alpha = 418.982887
         fitness = 0
+        x = x.vector
 
         fitness = 0.0
         for c in x:
             fitness -= c * np.sin(np.sqrt(np.abs(c)))
             fitness += alpha
-        return fitness
+        return [fitness]
 
 
 class ModifiedEasom(BenchmarkFunction):
@@ -342,11 +346,12 @@ class ModifiedEasom(BenchmarkFunction):
     def evaluate(self, x):
         summa = 0.0
         product = -1.0
+        x = x.vector
 
         for c in x:
             product *= -1. * np.cos(c) ** 2.
             summa += (c - np.pi) ** 2.
-        return product * np.exp(-summa)
+        return [product * np.exp(-summa)]
 
 
 class EqualityConstr(BenchmarkFunction):
@@ -373,15 +378,17 @@ class EqualityConstr(BenchmarkFunction):
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
+        x = x.vector
+
         product = 1.0
         summa = 0.0
         for c in x:
             product *= c * np.sqrt(self.dimension)
             summa += c * c
         if summa.any() == 1.:
-            return -1.0 * product
+            return [-1.0 * product]
         else:
-            return 0.
+            return [0.]
 
 
 class Griewank(BenchmarkFunction):
@@ -419,10 +426,12 @@ class Griewank(BenchmarkFunction):
         multimodal, symmetric, inseparable"""
         summa = 0
         produkt = 1.
+        x = x.vector
+
         for i, c in enumerate(x):
             summa += c ** 2 / 4000.0
             produkt *= np.cos(c / np.sqrt(i + 1))
-        return summa - produkt + 1.
+        return [summa - produkt + 1.]
 
 
 class Michaelwicz(BenchmarkFunction):
@@ -462,10 +471,12 @@ class Michaelwicz(BenchmarkFunction):
 
     def evaluate(self, x):
         f = 0.
-        m = 10 # m is generally selected to 10
-        for i,c in enumerate(x):
-            f += np.sin(c)*np.sin((i+1)*c*c/np.pi)**(2.*m)
-        return -f
+        m = 10  # m is generally selected to 10
+        x = x.vector
+
+        for i, c in enumerate(x):
+            f += np.sin(c) * np.sin((i + 1) * c * c / np.pi) ** (2. * m)
+        return [-f]
 
 
 class Perm(BenchmarkFunction):
@@ -494,10 +505,12 @@ class Perm(BenchmarkFunction):
     def evaluate(self, x):
         b = 10  # optional, with the default value of 10
         f = 0.
+        x = x.vector
+
         for i in range(1, self.dimension + 1):
             for j, d in enumerate(x):
                 f += (j + 1 + b) * (d ** i - 1. / ((j + 1.) ** i)) ** 2.
-        return f
+        return [f]
 
 
 class Rastrigin(BenchmarkFunction):
@@ -531,9 +544,11 @@ class Rastrigin(BenchmarkFunction):
 
     def evaluate(self, x):
         fitness = 10 * self.dimension
+        x = x.vector
+
         for c in x:
             fitness += c ** 2 - (10 * np.cos(2 * np.pi * c))
-        return fitness
+        return [fitness]
 
 
 class SixHump(BenchmarkFunction):
@@ -555,14 +570,16 @@ class SixHump(BenchmarkFunction):
 
         # there are 2 global optimums!!!
         self.global_optimum = -1.0316
-        self.global_optimum_coords = [0.0898, -0.7126] # [-0.0898, 0.7126]]
+        self.global_optimum_coords = [0.0898, -0.7126]  # [-0.0898, 0.7126]]
 
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
-        return ((4 - 2.1 * x[0] ** 2 + x[0] ** 4 / 3.) * x[0] ** 2 + x[0] * x[1]
-                - 4 * x[1] ** 2 + 4 * x[1] ** 4)
+        x = x.vector
+
+        return [((4 - 2.1 * x[0] ** 2 + x[0] ** 4 / 3.) * x[0] ** 2 + x[0] * x[1]
+                - 4 * x[1] ** 2 + 4 * x[1] ** 4)]
 
 
 class Schubert(BenchmarkFunction):
@@ -591,10 +608,12 @@ class Schubert(BenchmarkFunction):
         n = 5
         f1 = 0.0
         f2 = 0.0
+        x = x.vector
+
         for i in range(1, n + 1):
             f1 += i * np.cos(i + (i + 1) * x[0])
             f2 += i * np.cos(i + (i + 1) * x[1])
-        return f1 * f2
+        return [f1 * f2]
 
 
 class Zakharov(BenchmarkFunction):
@@ -629,12 +648,13 @@ class Zakharov(BenchmarkFunction):
         f1 = 0.0
         f2 = 0.0
         f3 = 0.0
+        x = x.vector
 
         for i, c in enumerate(x):
             f1 += c ** 2
             f2 += 0.5 * (i + 1) * c
             f3 += 0.5 * (i + 1) * c
-        return f1 + f2 ** 2. + f3 ** 2.
+        return [f1 + f2 ** 2. + f3 ** 2.]
 
 
 class XinSheYang(BenchmarkFunction):
@@ -666,11 +686,12 @@ class XinSheYang(BenchmarkFunction):
     def evaluate(self, x):
         f1 = 0.0
         f2 = 0.0
+        x = x.vector
 
         for c in x:
             f1 = np.fabs(c)
             f2 = np.sin(c ** 2.)
-        return f1 * np.exp(-f2)
+        return [f1 * np.exp(-f2)]
 
 
 class XinSheYang2(BenchmarkFunction):
@@ -706,12 +727,13 @@ class XinSheYang2(BenchmarkFunction):
         f3 = 1.0
         beta = 15.
         m = 5.
+        x = x.vector
 
         for c in x:
             f1 = -1. * (c / beta) ** (2. * m)
             f2 = -1. * c ** 2.
             f3 = np.cos(c) ** 2.
-        return (np.exp(f1) - 2. * np.exp(f2)) * f3
+        return [(np.exp(f1) - 2. * np.exp(f2)) * f3]
 
 
 class XinSheYang3(BenchmarkFunction):
@@ -736,18 +758,20 @@ class XinSheYang3(BenchmarkFunction):
         self.parameters = self.generate_paramlist(self.dimension, lb=-5.0, ub=5.0)
 
         self.global_optimum = 0.0
-        self.global_optimum_coords = [1./float(x+1) for x in range(self.dimension)]
+        self.global_optimum_coords = [1. / float(x + 1) for x in range(self.dimension)]
 
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
+
         f1 = 0.0
+        x = x.vector
 
         for i, c in enumerate(x):
             eps = uniform(0, 1)
             f1 = eps * np.fabs(c - 1. / (i + 1.))
-        return f1
+        return [f1]
 
 
 # class BinhAndKorn:
@@ -821,14 +845,30 @@ class XinSheYang3(BenchmarkFunction):
 #         return violation
 
 
-# class Booth(BenchmarkFunction):
-#     """
-#     Booth function
-#     """
-#
-#     @classmethod
-#     def eval(cls, x):
-#         return (x[0] + 2 * x[1] - 7) ** 2 + (2 * x[0] + x[1] - 5) ** 2
+class Booth(BenchmarkFunction):
+    """
+    Booth function:
+    .. math::
+        f(x,y)=(x+2y-7)^2+(2x+y-5)^2
+
+    [1] http://benchmarkfcns.xyz/benchmarkfcns/boothfcn.html
+    """
+
+    def set(self, **kwargs):
+        self.name = 'Schubert Function'
+
+        self.set_dimension = 2.0
+        self.parameters = [{'name': 'x', 'bounds': [-10., 10.]},
+                           {'name': 'y', 'bounds': [-10., 10.]}]
+
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [1., 3.]
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        x = x.vector
+        return [(x[0] + 2 * x[1] - 7) ** 2 + (2 * x[0] + x[1] - 5) ** 2]
 
 
 class SurrogateBenchmarkData:
@@ -11055,8 +11095,8 @@ class SurrogateBenchmarkBooth(SurrogateBenchmarkData):
 if __name__ == '__main__':
     # test = Rosenbrock(**{'dimension': 2})
     # test.plot_2d()
-    # test = Ackley(**{'dimension': 2})
-    # test.plot_2d()
+    test = Ackley(**{'dimension': 2})
+    test.plot_2d()
     # test = Sphere(**{'dimension': 2})
     # test.plot_2d()
     # test = Schwefel(**{'dimension': 2})
@@ -11081,7 +11121,10 @@ if __name__ == '__main__':
     # test.plot_2d()
     # test = Schubert()
     # test.plot_2d()
-    #test = Perm(**{'dimension': 2})
+    # test = Perm(**{'dimension': 2})
+    # test.plot_2d()
+    #test = Michaelwicz(**{'dimension': 2})
     #test.plot_2d()
-    test = Michaelwicz(**{'dimension': 2})
+
+    test = Booth(**{'dimension': 2})
     test.plot_2d()
