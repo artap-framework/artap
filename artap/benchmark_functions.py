@@ -37,27 +37,28 @@ class BenchmarkFunction(Problem):
         """Defines an n-dimensional list for the optimization"""
 
         param_list = []
+
         for i in range(0, dimension):
 
             if 'dimension' in kwargs:
                 dict = {'name': str(i), 'bounds': [lb, ub], 'initial_value': kwargs['initial_value']}
             else:
                 dict = {'name': str(i), 'bounds': [lb, ub]}
+
             param_list.append(dict)
 
         return param_list
 
-    def plot_1d(self, px):
+    def plot_1d(self, px=0):
         """
 
         :param px:
         :return:
         """
-        x = linspace(self.bounds[px][0], self.bounds[px][1])
-        y = np.zeros([len(x)])
-
+        x = linspace(self.parameters[px]['bounds'][0], self.parameters[px]['bounds'][1], num=1000)
+        y = np.zeros([1000])
         for i, xi in enumerate(x):
-            y[i] = self.eval([x[i, j]])
+            y[i] = self.evaluate(Individual([xi]))[0]
 
         plt.figure()
         plt.plot(x, y, 'black', '--')
@@ -108,7 +109,7 @@ class BenchmarkFunction(Problem):
         if 'initial_value' in kwargs:
 
             for elem in self.parameters:
-                elem.update({'initial_value':kwargs['initial_value']})
+                elem.update({'initial_value': kwargs['initial_value']})
 
     def set_dimension(self, **kwargs):
 
@@ -879,6 +880,68 @@ class Booth(BenchmarkFunction):
     def evaluate(self, x):
         x = x.vector
         return [(x[0] + 2 * x[1] - 7) ** 2 + (2 * x[0] + x[1] - 5) ** 2]
+
+
+class GramacyLee(BenchmarkFunction):
+    """
+    Gramacy  & Lee function is a simple 1D, not convex test function:
+    .. math::
+        f(x) = \frac{sin(10\pi x)}{2x} + (x-1)^4
+    [1] http://benchmarkfcns.xyz/benchmarkfcns/gramacyleefcn.html
+    [2] https://al-roomi.org/benchmarks/unconstrained/1-dimension/258-gramacy-lee-s-function-no-1
+    """
+
+    def set(self, **kwargs):
+        self.name = 'Gramacy and Lee Function'
+
+        self.set_dimension = 2.0
+        self.parameters = [{'name': 'x', 'bounds': [0.5, 2.5]}]
+
+        self.global_optimum = -0.869011134989500
+        self.global_optimum_coords = [0.548563444114526]
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        x = x.vector
+        f = np.sin(10.0 * np.pi * x[0]) / (2. * x[0]) + (x[0] - 1.) ** 4
+        return [f]
+
+
+class AlpineFunction(BenchmarkFunction):
+    """
+        Alpine function is a simple n dimension test problem [1-3]:
+
+        .. math::
+            f(\mathbf x)=f(x_1, ..., x_n) = \sum{i=1}^{n}|x_i sin(x_i)+0.1x_i|
+
+    [1] Momin Jamil and Xin-She Yang, A literature survey of benchmark functions for global optimization problems,
+        Int. Journal of Mathematical Modelling and Numerical Optimisation}, Vol. 4, No. 2, pp. 150–194 (2013),
+        arXiv:1308.4008
+    [2] M. Clerc, “The Swarm and the Queen, Towards a Deterministic and Adaptive Particle Swarm Optimization, ”
+        IEEE Congress on Evolutionary Computation, Washington DC, USA, pp. 1951-1957, 1999.
+    [3] http://benchmarkfcns.xyz/benchmarkfcns/alpinen1fcn.html
+    """
+
+    def set(self, **kwargs):
+        self.name = 'Xin She Yang - 3  Function'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=10.0)
+
+        self.global_optimum = 0.0
+        self.global_optimum_coords = [0. for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        f1 = 0.0
+        x = x.vector
+
+        for c in x:
+            f1 += np.abs(c * np.sin(c) + 0.1 * c)
+        return [f1]
 
 
 class SurrogateBenchmarkData:
@@ -11105,8 +11168,8 @@ class SurrogateBenchmarkBooth(SurrogateBenchmarkData):
 if __name__ == '__main__':
     # test = Rosenbrock(**{'dimension': 2})
     # test.plot_2d()
-    test = Ackley(**{'dimension': 2})
-    test.plot_2d()
+    # test = Ackley(**{'dimension': 2})
+    # test.plot_2d()
     # test = Sphere(**{'dimension': 2})
     # test.plot_2d()
     # test = Schwefel(**{'dimension': 2})
@@ -11136,5 +11199,10 @@ if __name__ == '__main__':
     # test = Michaelwicz(**{'dimension': 2})
     # test.plot_2d()
 
-    test = Booth(**{'dimension': 2})
+    # test = Booth(**{'dimension': 2})
+    # test.plot_2d()
+    # test = GramacyLee()
+    # test.plot_1d()
+
+    test = AlpineFunction(**{'dimension': 2})
     test.plot_2d()
