@@ -5,8 +5,8 @@ from artap.benchmark_functions import BinhAndKorn, Ackley
 from artap.algorithm_genetic import EpsMOEA
 from artap.results import Results, GraphicalResults
 
-import optproblems as optp
-import optproblems.cec2005 as cec2005
+# import optproblems as optp
+# import optproblems.cec2005 as cec2005
 
 # class BinhAndKornProblem(Problem):
 #
