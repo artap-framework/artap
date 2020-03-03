@@ -1,7 +1,8 @@
 import unittest
 from artap.individual import Individual
 from artap.benchmark_functions import Rosenbrock, Ackley, Schwefel, Sphere, ModifiedEasom, Michaelwicz, Perm, Rastrigin, \
-    SixHump, EqualityConstr, Griewank, Schubert, Zakharov, XinSheYang, XinSheYang2, XinSheYang3, Booth
+    SixHump, EqualityConstr, Griewank, Schubert, Zakharov, XinSheYang, XinSheYang2, XinSheYang3, Booth, GramacyLee, \
+    AlpineFunction
 
 
 class TestRosenbrock(unittest.TestCase):
@@ -109,11 +110,11 @@ class TestGriewank(unittest.TestCase):
         self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
 
 
-#class TestSchubert(unittest.TestCase):
-    # only 2d
-    # def test_schubert(self):
-    #     test2d = Schubert(**{'dimension': 2})
-    #     self.assertAlmostEqual(test2d.evaluate(test2d.global_optimum_coords), test2d.global_optimum, 3)
+# class TestSchubert(unittest.TestCase):
+# only 2d
+# def test_schubert(self):
+#     test2d = Schubert(**{'dimension': 2})
+#     self.assertAlmostEqual(test2d.evaluate(test2d.global_optimum_coords), test2d.global_optimum, 3)
 
 class TestZacharov(unittest.TestCase):
 
@@ -136,6 +137,7 @@ class TestXinSheYang(unittest.TestCase):
         test2d = XinSheYang(**{'dimension': 10})
         self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
 
+
 class TestXinSheYang2(unittest.TestCase):
 
     def test_xinsheyang22(self):
@@ -145,6 +147,7 @@ class TestXinSheYang2(unittest.TestCase):
     def test_xinsheyang210(self):
         test2d = XinSheYang2(**{'dimension': 10})
         self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
+
 
 class TestXinSheYang3(unittest.TestCase):
 
@@ -156,10 +159,25 @@ class TestXinSheYang3(unittest.TestCase):
         test2d = XinSheYang3(**{'dimension': 10})
         self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
 
+
 class TestBooth(unittest.TestCase):
 
     def test_booth(self):
         test2d = Booth()
+        self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
+
+
+class TestGramacyLee(unittest.TestCase):
+
+    def test_booth(self):
+        test2d = GramacyLee()
+        self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
+
+
+class TestAlpine(unittest.TestCase):
+
+    def test_alpine(self):
+        test2d = AlpineFunction(**{'dimension': 10})
         self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
 
 
