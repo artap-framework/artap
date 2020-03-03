@@ -2,32 +2,32 @@ import unittest
 
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
-from artap.benchmark_functions import Ackley
+from artap.benchmark_functions import Ackley,GramacyLee,AlpineFunction
 from artap.results import Results
 
 
-class MyProblem(Problem):
-    """ Describe simple one objective optimization problem. """
-
-    def set(self):
-        self.name = "TestSimpleOptimization"
-        self.parameters = [{'name': 'x_1', 'initial_value': 10}]
-        self.costs = [{'name': 'F_1'}]
-
-    def evaluate(self, individual):
-        x = individual.vector
-        result = 0
-        for i in x:
-            result += i*i
-
-        return [result]
+# class MyProblem(Problem):
+#     """ Describe simple one objective optimization problem. """
+#
+#     def set(self):
+#         self.name = "TestSimpleOptimization"
+#         self.parameters = [{'name': 'x_1', 'initial_value': 10}]
+#         self.costs = [{'name': 'F_1'}]
+#
+#     def evaluate(self, individual):
+#         x = individual.vector
+#         result = 0
+#         for i in x:
+#             result += i*i
+#
+#         return [result]
 
 
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = MyProblem()
+        problem = AlpineFunction(**{'dimension':1, 'initial_value': 1.})
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4
