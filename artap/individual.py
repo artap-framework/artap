@@ -1,8 +1,6 @@
 from abc import *
 from random import uniform
 from enum import Enum
-# from numpy import  asarray, float64, append
-from copy import deepcopy
 
 
 class Individual(metaclass=ABCMeta):

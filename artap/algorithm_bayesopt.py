@@ -169,9 +169,13 @@ class BayesOptSerial(BayesOpt):
 
 
 class BayesOptClassParallel(Process, BayesOptContinuous):
-    def __init__(self, pipe, n, problem: Problem):
+    def __init__(self, pipe, algorithm):
+        n = len(algorithm.problem.parameters)
         Process.__init__(self)
         BayesOptContinuous.__init__(self, n)
+
+        # algorithm
+        self.algorithm = algorithm
 
         # output
         self.mvalue = -1.0
@@ -179,12 +183,13 @@ class BayesOptClassParallel(Process, BayesOptContinuous):
         self.error = 0
 
         self.pipe = pipe
-        self.problem = problem
 
         # Size design variables.
         self.lb = np.empty((n,))
         self.ub = np.empty((n,))
         self.params = {}
+
+        self.job = JobSimple(self.algorithm.problem)
 
     def run(self):
         mvalue, x_out, error = self.optimize()
@@ -196,6 +201,7 @@ class BayesOptClassParallel(Process, BayesOptContinuous):
         self.error = error
 
         # output
+        print("output")
         print(self.mvalue)
         print(self.x_out)
         print(self.error)
@@ -206,18 +212,6 @@ class BayesOptClassParallel(Process, BayesOptContinuous):
         return result
 
 
-def worker(pipe, problem):
-    x = None
-    while True:
-        x = pipe.recv()
-        if str(x) == 'STOP':
-            break
-
-        job = JobSimple(problem)
-        result = job.evaluate_scalar(x)
-        pipe.send(result)
-
-
 class BayesOptParallel(BayesOpt):
     """ BayesOpt algorithms """
 
@@ -225,13 +219,23 @@ class BayesOptParallel(BayesOpt):
         super().__init__(problem, name)
 
         self.pipe_par, self.pipe_child = Pipe()
-        self.bo = BayesOptClassParallel(self.pipe_child, len(self.problem.parameters), problem)
+        self.bo = BayesOptClassParallel(self.pipe_child, self)
+
+    def worker(self, pipe):
+        x = None
+        while True:
+            x = pipe.recv()
+            if str(x) == 'STOP':
+                break
+
+            result = self.bo.job.evaluate_scalar(x)
+            pipe.send(result)
 
     def run(self):
         # Figure out bounds vectors.
         i = 0
-        for id in self.problem.parameters:
-            bounds = self.problem.parameters[id]['bounds']
+        for parameter in self.problem.parameters:
+            bounds = parameter['bounds']
 
             self.bo.lb[i] = bounds[0]
             self.bo.ub[i] = bounds[1]
@@ -249,7 +253,8 @@ class BayesOptParallel(BayesOpt):
         self.bo.params['sc_type'] = self.options['sc_type']
         self.bo.params['verbose_level'] = self.options['verbose_level']
 
-        process = Process(target=worker, args=(self.pipe_par, self.problem))
+        # process = Process(target=self.worker, args=(self.pipe_par, self.problem, ))
+        process = Process(target=self.worker, args=(self.pipe_par, ))
 
         self.bo.start()
         process.start()
@@ -260,6 +265,9 @@ class BayesOptParallel(BayesOpt):
         print(self.bo.mvalue)
         print(self.bo.x_out)
         print(self.bo.error)
+        print()
+        print(self.problem.data_store, len(self.problem.data_store.populations[-1].individuals))
+
 
         # self.result = self.mvalue
         """
