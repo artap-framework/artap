@@ -14,7 +14,7 @@ from artap.benchmark_functions import Booth
 class TestBayesOptOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-    def test_local_problem_bayesopt_parallel(self):
+    def xtest_local_problem_bayesopt_parallel(self):
         problem = Booth()
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
@@ -27,7 +27,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         self.assertAlmostEqual(optimum.costs[0], 0, places=2)
 
     @unittest.skipIf(__bayes_opt__ is False, "requires module BayesOpt")
-    def xtest_local_problem_bayesopt_serial(self):
+    def test_local_problem_bayesopt_serial(self):
         problem = Booth()
         algorithm = BayesOptSerial(problem)
         algorithm.options['verbose_level'] = 0
