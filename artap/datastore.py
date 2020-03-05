@@ -93,6 +93,7 @@ class DataStore:
             self.populations.append(Population())
 
         # add individual
+        print(self, len(self.populations[-1].individuals))
         self.populations[-1].individuals.append(individual)
 
     @abstractmethod
