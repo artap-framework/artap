@@ -91,7 +91,8 @@ class DataStore:
 
     @abstractmethod
     def write_population(self, population):
-        self.populations.append(population)
+        if population not in self.populations:
+            self.populations.append(population)
 
     def get_id(self):
         return 0

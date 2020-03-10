@@ -22,6 +22,12 @@ class Population:
             string += "\t{},\n".format(individual.__str__())
         return string
 
+    def __eq__(self, other):
+        if not isinstance(other, Population):
+            return NotImplemented
+
+        return self.individuals == other.individuals and self.archives == other.archives and self.pareto_vectors == other.pareto_vectors and self.pareto_costs == other.pareto_costs
+
     def gen_population_from_table(self, table):
         for parameters in table:
             individual = Individual(parameters)
