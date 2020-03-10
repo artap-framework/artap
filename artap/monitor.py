@@ -11,8 +11,7 @@ class ArtapMonitorService(ClassicService):
 
     def on_connect(self, conn):
         super().on_connect(conn)
-        # self._conn._config.update(dict(allow_attrs=True))
-        print("Connected (ArtapMonitorService): ", self, conn)
+        # print("Connected (ArtapMonitorService): ", self, conn)
 
     def populations(self):
         return self.problem.data_store.populations
@@ -27,6 +26,7 @@ class MonitorService:
         self.port = self.server.port
         self.server.logger.quiet = False
         self.server._start_in_thread()
+
 
     def __del__(self):
         self.server.close()
