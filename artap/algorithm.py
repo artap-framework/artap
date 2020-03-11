@@ -31,30 +31,6 @@ class Algorithm(metaclass=ABCMeta):
         self.options.declare(name='n_iterations', default=10,
                              desc='Max number of iterations')
 
-        # initial population size
-        self.population_size = 0
-
-        # set random generator
-        self.generator = RandomGeneration(self.problem.parameters)
-        self.generator.init(10)
-
-    @abstractmethod
-    def run(self):
-        pass
-
-    def gen_initial_population(self, is_archive=False):
-        individuals = self.generator.generate()
-        # set current size
-        self.population_size = len(individuals)
-        # evaluate individuals
-        self.evaluate(individuals)
-
-        if is_archive:
-            population = Population(individuals, individuals)
-        else:
-            population = Population(individuals)
-        return population
-
     def evaluate(self, individuals: list):
         if self.options["max_processes"] > 1:
             self.evaluate_parallel(individuals)
@@ -68,7 +44,6 @@ class Algorithm(metaclass=ABCMeta):
                 individuals.remove(individual)   # TODO: is can be not feasible?
             if isinstance(individual, GeneticIndividual):
                 individual.transform_data(self.problem.signs)
-
 
     def evaluate_serial(self, individuals: list):
         job = JobSimple(self.problem)
