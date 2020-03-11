@@ -10,6 +10,7 @@ from artap.problem import Problem
 from sklearn.model_selection import train_test_split
 from random import uniform
 from artap.individual import Individual
+from abc import abstractmethod
 
 
 class BenchmarkFunction(Problem):
@@ -49,6 +50,22 @@ class BenchmarkFunction(Problem):
 
         return param_list
 
+    def generate_objective_functions(self, criteria='minimize', **kwargs):
+        """Defines an n-dimensional objective function"""
+
+        objective_functions = []
+
+        if 'm' in kwargs:
+            for i in range(0,kwargs['m']):
+                dict = {'name': 'f_' + str(i), 'criteria': criteria}
+                objective_functions.append(dict)
+
+        else:
+            dict = {'name': 'f_1', 'criteria': criteria}
+            objective_functions.append(dict)
+
+        return objective_functions
+
     def plot_1d(self, px=0):
         """
 
@@ -68,6 +85,10 @@ class BenchmarkFunction(Problem):
         plt.show()
 
         return
+
+    @abstractmethod
+    def pareto_front(self, x):
+        pass
 
     def plot_2d(self, px=0, py=1, cz=0):
         """
