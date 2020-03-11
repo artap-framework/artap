@@ -64,13 +64,6 @@ class DataStore:
     def __init__(self, problem):
         self.problem = problem
 
-        # create the new loop and worker thread
-        # self.worker_loop = asyncio.new_event_loop()
-        # worker = Thread(target=self._start_worker, args=(self.worker_loop,))
-        # worker.daemon = True
-        # # Start the thread
-        # worker.start()
-
         # populations
         self.populations = []
 
@@ -93,11 +86,13 @@ class DataStore:
             self.populations.append(Population())
 
         # add individual
+        # print(self, len(self.populations[-1].individuals))
         self.populations[-1].individuals.append(individual)
 
     @abstractmethod
     def write_population(self, population):
-        self.populations.append(population)
+        if population not in self.populations:
+            self.populations.append(population)
 
     def get_id(self):
         return 0

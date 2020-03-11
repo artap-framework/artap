@@ -120,8 +120,6 @@ class RemoteExecutor(Executor):
         Allows distributing of calculation of objective functions.
         """
 
-    # ToDo: Make inheritated classes: Matlab, Comsol ...
-
     def __init__(self, problem, command, files_to_server, files_from_server=None):
         super().__init__(problem)
 

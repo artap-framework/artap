@@ -10,8 +10,6 @@ import sys
 
 from copy import deepcopy
 
-EPSILON = sys.float_info.epsilon
-
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
@@ -24,6 +22,26 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         self.selector = None
         self.mutator = None
         self.crossover = None
+
+        # initial population size
+        self.population_size = 0
+
+        # set random generator
+        self.generator = RandomGeneration(self.problem.parameters)
+        # self.generator.init(10)
+
+    def gen_initial_population(self, is_archive=False):
+        individuals = self.generator.generate()
+        # set current size
+        self.population_size = len(individuals)
+        # evaluate individuals
+        self.evaluate(individuals)
+
+        if is_archive:
+            population = Population(individuals, individuals)
+        else:
+            population = Population(individuals)
+        return population
 
     def run(self):
         pass
