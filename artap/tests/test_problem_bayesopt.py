@@ -1,5 +1,4 @@
 import unittest
-import sys
 
 try:
     from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
@@ -7,7 +6,6 @@ try:
     __bayes_opt__ = True
 except ImportError:
     __bayes_opt__ = False
-
 
 from artap.results import Results
 from artap.benchmark_functions import Booth
@@ -20,7 +18,7 @@ class TestBayesOptOptimization(unittest.TestCase):
         problem = Booth()
         algorithm = BayesOptParallel(problem)
         algorithm.options['verbose_level'] = 0
-        algorithm.options['n_iterations'] = 100
+        algorithm.options['n_iterations'] = 50
         algorithm.run()
         # TODO - multiprocess test
 
