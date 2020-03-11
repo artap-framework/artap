@@ -24,6 +24,7 @@ import numpy as np
 
 _method = ['rbd_fast', 'fast', 'morris', 'sobol', 'delta', 'ff']
 
+
 class SALibAlgorithm(Algorithm):
     """
     SALib Analysis
@@ -47,8 +48,6 @@ class SALibAlgorithm(Algorithm):
 
     def run(self):
         t_s = time.time()
-        self.problem.logger.info(
-            "Sensitivity: {}: {} individuals".format(self.generator.__class__.__name__, self.population_size))
 
         # set SALib problem
         names = []

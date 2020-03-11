@@ -5,6 +5,7 @@
 from artap.datastore import DataStore, DummyDataStore
 from artap.utils import ConfigDictionary
 from artap.surrogate import SurrogateModelEval
+from artap.monitor import MonitorService
 from abc import abstractmethod
 
 import logging
@@ -71,6 +72,7 @@ class Problem:
         self.output_files = None
         self.executor = None
         self.data_store = DummyDataStore(self)
+        self.monitor_service = MonitorService(self)
         self.is_working_dir_set = True
 
         # tmp name

@@ -1,7 +1,5 @@
 import unittest
-import sys
 
-from artap.problem import Problem
 try:
     from artap.algorithm_nlopt import NLopt
     from artap.algorithm_nlopt import GN_DIRECT_L
@@ -21,18 +19,6 @@ except ImportError:
 
 from artap.results import Results
 from artap.benchmark_functions import Booth
-
-
-# class MyProblem(Problem):
-#     """ Describe simple one objective optimization problem. """
-#     def set(self):
-#         self.name = "Booth Problem"
-#         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-10, 10]},
-#                       {'name': 'x_2', 'initial_value': 1.5, 'bounds': [-10, 10]}]
-#         self.costs = [{'name': 'F'}]
-#
-#     def evaluate(self, individual):
-#         return [Booth.eval(individual.vector)]
 
 
 class TestNLoptOptimization(unittest.TestCase):

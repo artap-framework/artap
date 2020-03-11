@@ -26,10 +26,10 @@ class TestJob(unittest.TestCase):
 
     def test_sweep_evaluate_parallel(self):
         problem = SweepProblem()
-        gen = LHSGeneration(problem.parameters)
-        gen.init(4)
+        generator = LHSGeneration(problem.parameters)
+        generator.init(4)
 
-        algorithm = SweepAlgorithm(problem, generator=gen)
+        algorithm = SweepAlgorithm(problem, generator=generator)
         algorithm.options['max_processes'] = 2
         algorithm.run()
 

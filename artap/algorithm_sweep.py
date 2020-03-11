@@ -1,27 +1,28 @@
-from .algorithm import Algorithm
+from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .job import JobSimple
 from .operators import GradientGeneration
 from .population import Population
 import time
 
 
-class SweepAlgorithm(Algorithm):
+class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
     """
     Sweep Analysis
     """
 
-    def __init__(self, problem, generator=None, name='SweepAlgorithm'):
+    def __init__(self, problem, generator, name='SweepAlgorithm'):
         super().__init__(problem, name)
 
-        if generator is not None:
-            self.generator = generator
-
+        self.generator = generator
         self.job = JobSimple(self.problem)
 
     def run(self):
         t_s = time.time()
         self.problem.logger.info(
             "Sweep: {}: {} individuals".format(self.generator.__class__.__name__, self.population_size))
+
+        # init generator
+        # self.generator.init(self.options['n_iterations'])
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
