@@ -1,5 +1,5 @@
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
-from .job import JobSimple
+from .job import Job
 from .operators import GradientGeneration
 from .population import Population
 import time
@@ -14,7 +14,7 @@ class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
         super().__init__(problem, name)
 
         self.generator = generator
-        self.job = JobSimple(self.problem)
+        self.job = Job(self.problem)
 
     def run(self):
         t_s = time.time()

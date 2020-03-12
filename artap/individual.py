@@ -8,8 +8,20 @@ class Individual(metaclass=ABCMeta):
 
     class State(Enum):
         EMPTY = 0
+        IN_PROGRESS = 3
         EVALUATED = 1
         FAILED = 2
+
+        @staticmethod
+        def to_string(state):
+            if state == Individual.State.EMPTY:
+                return "Individual is empty."
+            elif state == Individual.State.IN_PROGRESS:
+                return "Individual is in progress."
+            elif state == Individual.State.EVALUATED:
+                return "Individual is evaluated."
+            elif state == Individual.State.FAILED:
+                return "Individual evaluation failed."
 
     def __init__(self, vector: list):
         self.vector = vector.copy()
@@ -43,10 +55,12 @@ class Individual(metaclass=ABCMeta):
                     string += ", "
             string += "]"
 
+        string += "; state: '{}'".format(Individual.State.to_string(self.state))
+
         return string
 
     def __eq__(self, other):
-        return self.vector == other.vector and self.costs == self.costs
+        return self.vector == other.vector and self.costs == self.costs and self.custom == self.custom and self.state == self.state
 
     def __hash__(self):
         return id(self)
