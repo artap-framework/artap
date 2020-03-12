@@ -103,13 +103,13 @@ class DTLZI(BenchmarkFunction):
             for j in range(0, m - i - 1):
                 fi *= x[j]
 
-            if i>0:
+            if i > 0:
                 fi *= (1. - x[m - i - 1])
 
             # g(xm)
             gm = float(k)
             for i in range(0, k):
-                gm += (x[len(x) - i-1] - 0.5) ** 2. - cos(20. * pi * (x[len(x) - i-1] - 0.5))
+                gm += (x[len(x) - i - 1] - 0.5) ** 2. - cos(20. * pi * (x[len(x) - i - 1] - 0.5))
             fi = fi * (1 + 100. * gm)
             scores.append(fi)
 
@@ -167,19 +167,18 @@ class DTLZII(BenchmarkFunction):
         scores = []
         for i in range(0, m):
             fi = 1.0
-            for j in range(0, m-i-1 ):
-                fi *= cos(0.5*x[j]*pi)
+            for j in range(0, m - i - 1):
+                fi *= cos(0.5 * x[j] * pi)
 
-            if i>0:
-                fi *= sin(x[m - i ]*pi/2.)
+            if i > 0:
+                fi *= sin(x[m - i] * pi / 2.)
             gm = 0.
             for i in range(0, k):
-                gm += (x[len(x) - i-1] - 0.5) ** 2.
-            fi *= (1. +  gm)
+                gm += (x[len(x) - i - 1] - 0.5) ** 2.
+            fi *= (1. + gm)
             scores.append(fi)
 
         return scores
-
 
 
 class DTLZIII(BenchmarkFunction):
@@ -228,11 +227,11 @@ class DTLZIII(BenchmarkFunction):
         scores = []
         for i in range(0, m):
             fi = 1.0
-            for j in range(0, m-i-1 ):
-                fi *= cos(0.5*x[j]*pi)
+            for j in range(0, m - i - 1):
+                fi *= cos(0.5 * x[j] * pi)
 
-            if i>0:
-                fi *= sin(x[m - i ]*pi/2.)
+            if i > 0:
+                fi *= sin(x[m - i] * pi / 2.)
             # gm = 0.
             # for i in range(0, k):
             #     gm += (x[len(x) - i-1] - 0.5) ** 2.
@@ -243,6 +242,63 @@ class DTLZIII(BenchmarkFunction):
             for i in range(0, k):
                 gm += (x[len(x) - i - 1] - 0.5) ** 2. - cos(20. * pi * (x[len(x) - i - 1] - 0.5))
             fi = fi * (1 + 100. * gm)
+            scores.append(fi)
+
+        return scores
+
+
+class DTLZIV(BenchmarkFunction):
+    """
+    xi -> xi**alpha, where alpha = 100
+
+        References
+        ----------
+
+        [1] Deb, K., Thiele, L., Laumanns, M., & Zitzler, E. (2002, May).
+            Scalable multi-objective optimization test problems.
+            In Proceedings of the 2002 Congress on Evolutionary Computation.
+            CEC'02 (Cat. No. 02TH8600) (Vol. 1, pp. 825-830). IEEE.
+    """
+
+    def set(self, **kwargs):
+        self.name = 'DTLZ II Test Problem'
+
+        self.set_dimension(**kwargs)
+        self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
+
+        self.global_optimum = [0.5 for x in range(self.dimension)]  ###
+        self.global_optimum_coords = [0.5 for x in range(self.dimension)]
+
+        # single objective problem
+        self.costs = self.generate_objective_functions(**kwargs)
+
+    def pareto_front(self, x):
+        """ x -> y """
+
+        p_f = []
+        for i in range(0, len(self.costs)):
+            p_f.append(0.5)
+        return p_f
+
+    def evaluate(self, x):
+
+        k = 10  # k >= 1, it can be k = 5 is the offered value,
+
+        alpha = 100
+        m = len(self.costs)
+        x = x.vector
+        scores = []
+        for i in range(0, m):
+            fi = 1.0
+            for j in range(0, m - i - 1):
+                fi *= cos(0.5 * x[j]**alpha * pi)
+
+            if i > 0:
+                fi *= sin(x[m - i]**alpha * pi / 2.)
+            gm = 0.
+            for i in range(0, k):
+                gm += (x[len(x) - i - 1] - 0.5) ** 2.
+            fi *= (1. + gm)
             scores.append(fi)
 
         return scores
