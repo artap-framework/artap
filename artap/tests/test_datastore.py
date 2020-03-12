@@ -38,12 +38,12 @@ class MyProblem(Problem):
 
 
 class TestDataStoreFile(unittest.TestCase):
-    def test_read_write_sqlitedict_data_store(self):
+    def test_read_write_data_store(self):
         problem = MyProblem()
 
         # set data store
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        problem.data_store = FileDataStore(problem, database_name=database_name, backend="sqlitedict", mode="write")
+        problem.data_store = FileDataStore(problem, database_name=database_name)
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'CG'
         algorithm.options['tol'] = 1e-8
@@ -53,7 +53,9 @@ class TestDataStoreFile(unittest.TestCase):
         results = Results(problem)
         optimum = results.find_minimum('F')
         self.assertAlmostEqual(optimum.costs[0], 0, 3)
-        problem.data_store.db.close()
+
+        # remove datastore
+        problem.data_store = None
 
         # check db
         db = SqliteDict(database_name, autocommit=True)
@@ -85,7 +87,7 @@ class TestDataStoreFile(unittest.TestCase):
     #     self.assertEqual(problem.parameters[1]['initial_value'], 1.5)
     #     self.assertEqual(problem.parameters[1]['bounds'][0], -10)
     #     self.assertEqual(problem.parameters[1]['bounds'][1], 10)
-    #     individual = problem.data_store.populations[0].individuals[-1]
+    #     individual = problem.populations[0].individuals[-1]
     #     self.assertAlmostEqual(individual.vector[0], 0, 5)
     #     self.assertAlmostEqual(individual.vector[1], 0, 5)
     #     self.assertAlmostEqual(individual.costs[0], 0, 5)
@@ -128,61 +130,15 @@ class TestDataStoreFile(unittest.TestCase):
 
 class TestDataStoreFileBenchmark(unittest.TestCase):
     def setUp(self):
-        self.n = 2000
+        self.n = 5
 
     def test_benchmark_sqlitedict_data_store(self):
-        backend = "sqlitedict"
-        [problem, database_name, cost] = self.benchmark(backend)
-
-        # check db
-        t_s = time.time()
-        db = SqliteDict(database_name, autocommit=True)
-
-        populations = db["populations"]
-
-        self.assertEqual(len(populations[0].individuals), self.n)
-        self.assertAlmostEqual(problem.data_store.populations[0].individuals[int(self.n / 2)].costs[0], cost, 3)
-        # print(populations[0].individuals[int(self.n / 2)])
-        db.close()
-
-        # remove file
-        # print(database_name)
-        os.remove(database_name)
-
-        t = time.time() - t_s
-        problem.logger.info("{}: read elapsed time: {} s".format(backend, t))
-
-    # @unittest.skipIf(__platform__ == "WINDOWS", "for Linux platform only")
-    # def test_benchmark_dbm_data_store(self):
-    #     backend = "shelve"
-    #     [problem, database_name, cost] = self.benchmark(backend)
-    #
-    #     # check db
-    #     t_s = time.time()
-    #     # check db
-    #     import shelve
-    #     db = shelve.open(problem.data_store.database_name, flag='r')
-    #     populations = db["populations"]
-    #
-    #     self.assertEqual(len(populations[0].individuals), self.n)
-    #     self.assertAlmostEqual(problem.data_store.populations[0].individuals[int(self.n / 2)].costs[0], cost, 3)
-    #     # print(populations[0].individuals[int(self.n / 2)])
-    #     db.close()
-    #
-    #     # remove file
-    #     # print(database_name)
-    #     os.remove(database_name)
-    #
-    #     t = time.time() - t_s
-    #     problem.logger.info("{}: read elapsed time: {} s".format(backend, t))
-
-    def benchmark(self, backend):
         t_s = time.time()
         problem = MyProblem()
 
         # set data store
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".cache").name
-        problem.data_store = FileDataStore(problem, database_name=database_name, backend=backend, mode="write")
+        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        problem.data_store = FileDataStore(problem, database_name=database_name)
 
         gen = RandomGeneration(problem.parameters)
         gen.init(self.n)
@@ -191,16 +147,33 @@ class TestDataStoreFileBenchmark(unittest.TestCase):
         algorithm.options['max_processes'] = 1
         algorithm.run()
 
-        # print(problem.data_store.populations[0].individuals[int(self.n / 2)])
-        cost = problem.data_store.populations[0].individuals[int(self.n / 2)].costs[0]
+        # print(problem.populations[0].individuals[int(self.n / 2)])
+        cost = problem.populations[0].individuals[int(self.n / 2)].costs[0]
 
-        problem.data_store.db.close()
+        # sync
+        problem.data_store.file_cache.sync()
+        del problem.data_store
 
         t = time.time() - t_s
 
-        problem.logger.info("{}: write elapsed time: {} s, size: {} MB, n: {}".format(backend, t, self.get_size(database_name) / 1024 / 1024, self.n))
+        problem.logger.info("write elapsed time: {} s, size: {} MB, n: {}".format(t, self.get_size(database_name) / 1024 / 1024, self.n))
 
-        return [problem, database_name, cost]
+        # check db
+        t_s = time.time()
+        db = SqliteDict(database_name, autocommit=True)
+
+        populations = db["populations"]
+
+        self.assertEqual(len(populations[0].individuals), self.n)
+        self.assertAlmostEqual(populations[0].individuals[int(self.n / 2)].costs[0], cost, 3)
+        db.close()
+
+        # remove file
+        # print(database_name)
+        os.remove(database_name)
+
+        t = time.time() - t_s
+        problem.logger.info("read elapsed time: {} s".format(t))
 
     def get_size(self, start_path):
         if os.path.isfile(start_path):

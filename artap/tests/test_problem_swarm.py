@@ -131,5 +131,6 @@ class TestCEC2005_v1(unittest.TestCase):
     def test_shifted_sphere(self):
         self.run_test_problem(50, optp.cec2005.F1(2))
 
+
 if __name__ == '__main__':
     unittest.main()
