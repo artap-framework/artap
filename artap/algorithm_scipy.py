@@ -1,6 +1,6 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .job import JobSimple
+from .job import Job
 
 
 from scipy.optimize import minimize
@@ -26,7 +26,7 @@ class ScipyOpt(Algorithm):
         self.save_all = True
 
     def run(self):
-        job = JobSimple(self.problem)
+        job = Job(self.problem)
 
         # initial vector
         x0 = np.array(self.problem.get_initial_values())

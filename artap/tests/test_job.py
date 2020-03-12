@@ -1,7 +1,7 @@
 import unittest
 from artap.problem import Problem
 from artap.individual import Individual
-from artap.job import JobSimple
+from artap.job import Job
 
 
 class JobProblem(Problem):
@@ -28,7 +28,7 @@ class TestJob(unittest.TestCase):
     def test_individual_evaluation(self):
         problem = JobProblem()
         individual = Individual([1, 2, 2])
-        job = JobSimple(problem)
+        job = Job(problem)
         job.evaluate(individual)
         self.assertEqual(individual.costs, [9])
 

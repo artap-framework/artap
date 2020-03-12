@@ -3,7 +3,7 @@ from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
 import collections
-from .job import JobSimple
+from .job import Job
 
 
 class GradientDescent(Algorithm):
@@ -27,7 +27,7 @@ class GradientDescent(Algorithm):
         gradient = [0] * len(x0)
 
         h = 1e-6
-        job = JobSimple(self.problem, population)
+        job = Job(self.problem, population)
         y = job.evaluate_scalar(x0)
         for i in range(len(x0)):
             x = x0.copy()

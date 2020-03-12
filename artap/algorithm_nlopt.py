@@ -3,7 +3,7 @@ import nlopt
 
 from .problem import Problem
 from .algorithm import Algorithm
-from .job import JobSimple
+from .job import Job
 
 GN_DIRECT = nlopt.GN_DIRECT
 GN_DIRECT_L = nlopt.GN_DIRECT_L
@@ -58,7 +58,7 @@ class NLopt(Algorithm):
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
 
-        self.job = JobSimple(self.problem)
+        self.job = Job(self.problem)
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
         self.options.declare(name='n_iterations', default=50, lower=1,

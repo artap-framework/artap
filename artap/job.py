@@ -1,29 +1,20 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from enum import Enum
 from .individual import Individual
 
 
 class Job(metaclass=ABCMeta):
-    def __init__(self, problem, population):
+    def __init__(self, problem, population=None):
         self.problem = problem
         self.population = population
 
-    @abstractmethod
-    def evaluate(self, x):
-        pass
-
-    def evaluate_scalar(self, x):
-        # simple individual
-        individual = Individual(x)
-        self.evaluate(individual)
-
-        return individual.costs[0]
-
-
-class JobSimple(Job):
-    def __init__(self, problem, population=None):
-        super().__init__(problem, population)
-
     def evaluate(self, individual):
+        # write to datastore
+        self.problem.data_store.write_individual(individual)
+
+        # set in progress
+        individual.state = individual.State.IN_PROGRESS
+
         # check the constraints
         constraints = self.problem.evaluate_constraints(individual)
 
@@ -49,6 +40,9 @@ class JobSimple(Job):
         if self.population is not None:
             self.population.individuals.append(individual)
 
-        # write to datastore
-        self.problem.data_store.write_individual(individual)
+    def evaluate_scalar(self, x):
+        # simple individual
+        individual = Individual(x)
+        self.evaluate(individual)
 
+        return individual.costs[0]

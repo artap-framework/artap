@@ -1,7 +1,7 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .config import artap_root
-from .job import JobSimple
+from .job import Job
 
 import time
 import numpy as np
@@ -115,7 +115,7 @@ class BayesOptClassSerial(BayesOptContinuous):
         self.ub = np.empty((n,))
         self.params = {}
 
-        self.job = JobSimple(self.algorithm.problem)
+        self.job = Job(self.algorithm.problem)
 
     def evaluateSample(self, x):
         return self.job.evaluate_scalar(x)
@@ -189,7 +189,7 @@ class BayesOptClassParallel(Process, BayesOptContinuous):
         self.ub = np.empty((n,))
         self.params = {}
 
-        self.job = JobSimple(self.algorithm.problem)
+        self.job = Job(self.algorithm.problem)
 
     def run(self):
         mvalue, x_out, error = self.optimize()

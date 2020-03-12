@@ -2,7 +2,7 @@ import unittest
 import os
 
 from artap.executor import LocalComsolExecutor
-from artap.problem import Problem, ProblemType
+from artap.problem import Problem
 from artap.algorithm import DummyAlgorithm
 from artap.population import Population
 
@@ -20,7 +20,6 @@ class ComsolProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 10},
                            {'name': 'b', 'initial_value': 10}]
         self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
-        self.type = ProblemType.comsol
         self.output_files = ["out.txt"]
         self.executor = LocalComsolExecutor(self,
                                             problem_file="./data/elstat.mph",
