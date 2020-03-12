@@ -60,23 +60,23 @@ class Results:
         #if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
         #else:
-        if len(self.problem.data_store.populations[-1].archives) > 0:
-            min_l = [min(self.problem.data_store.populations[-1].archives, key=lambda x: x.costs[index])]
+        if len(self.problem.populations[-1].archives) > 0:
+            min_l = [min(self.problem.populations[-1].archives, key=lambda x: x.costs[index])]
         else:
-            if len(self.problem.data_store.populations[-1].individuals) is not 0:
-                min_l = [min(self.problem.data_store.populations[-1].individuals, key=lambda x: x.costs[index])]
-        # for population in self.problem.data_store.populations:
+            if len(self.problem.populations[-1].individuals) is not 0:
+                min_l = [min(self.problem.populations[-1].individuals, key=lambda x: x.costs[index])]
+        # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
 
     def find_pareto(self, name1, name2):
         pareto_front_x = []
         pareto_front_y = []
-        for population1 in self.problem.data_store.populations:
+        for population1 in self.problem.populations:
             for individual1 in population1.individuals:
                 is_pareto = True
 
-                for population2 in self.problem.data_store.populations:
+                for population2 in self.problem.populations:
                     for individual2 in population2.individuals:
                         # TODO: MINIMIZE and MAXIMIZE
                         if self.value(individual1, name1) > self.value(individual2, name1) \
@@ -95,10 +95,10 @@ class Results:
                 l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
         """
 
-        population = self.problem.data_store.populations[-1]
+        population = self.problem.populations[-1]
         l_sol = []
 
-        if len(self.problem.data_store.populations[-1].archives) < 1:
+        if len(self.problem.populations[-1].archives) < 1:
             if len(population.individuals) > 1:
                 for individual in population.individuals:
                     l_sol.append(individual.costs)
@@ -110,8 +110,8 @@ class Results:
 
     def table(self):
         out = []
-        if len(self.problem.data_store.populations) > 0:
-            population = self.problem.data_store.populations[0]
+        if len(self.problem.populations) > 0:
+            population = self.problem.populations[0]
             if len(population.individuals) > 0:
                 # init array
                 individual = population.individuals[0]
@@ -120,7 +120,7 @@ class Results:
                 for c in individual.costs:
                     out.append([])
 
-                for population in self.problem.data_store.populations:
+                for population in self.problem.populations:
                         for individual in population.individuals:
                             i = 0
                             for v in individual.vector:
@@ -135,14 +135,14 @@ class Results:
 
     def parameters(self):
         out = []
-        for population in self.problem.data_store.populations:
+        for population in self.problem.populations:
             for individual in population.individuals:
                 out.append(individual.vector)
         return out
 
     def costs(self):
         out = []
-        for population in self.problem.data_store.populations:
+        for population in self.problem.populations:
             for individual in population.individuals:
                 out.append(individual.costs)
         return out
@@ -153,9 +153,9 @@ class Results:
         auxiliary variables if they are exist.
         :return:
         """
-        for population in self.problem.data_store.populations:
+        for population in self.problem.populations:
             out_file = self.problem.working_dir + "population_" + \
-                          str(self.problem.data_store.populations.index(population)) + "_costs.csv"
+                          str(self.problem.populations.index(population)) + "_costs.csv"
 
             with open(out_file, 'w', newline='') as f:
                 writer = csv.writer(f)
@@ -190,9 +190,9 @@ class GraphicalResults(Results):
         figure.clf()
 
         if population_number is None:
-            populations = self.problem.data_store.populations
+            populations = self.problem.populations
         else:
-            populations = [self.problem.data_store.populations[population_number]]
+            populations = [self.problem.populations[population_number]]
 
         for population in populations:
             values1 = []
@@ -243,9 +243,9 @@ class GraphicalResults(Results):
 
         # all individuals
         if population_number is None:
-            populations = self.problem.data_store.populations
+            populations = self.problem.populations
         else:
-            populations = [self.problem.data_store.populations[population_number]]
+            populations = [self.problem.populations[population_number]]
 
         results = []
         for population in populations:
@@ -269,9 +269,9 @@ class GraphicalResults(Results):
 
         # all individuals
         if population_number is None:
-            populations = self.problem.data_store.populations
+            populations = self.problem.populations
         else:
-            populations = [self.problem.data_store.populations[population_number]]
+            populations = [self.problem.populations[population_number]]
 
         for population in populations:
             values1 = []
@@ -311,7 +311,7 @@ class GraphicalResults(Results):
     def plot_individuals(self, name, filename=None):
         # all individuals
         n = 1
-        for population in self.problem.data_store.populations:
+        for population in self.problem.populations:
             ind = []
             values = []
             for individual in population.individuals:
@@ -333,7 +333,7 @@ class GraphicalResults(Results):
         pl.close()
 
     def plot_all_individuals(self, filename=None):
-        for population in self.problem.data_store.populations:
+        for population in self.problem.populations:
             for individual in population.individuals:
                 pl.plot(individual.vector[0], 'x')
 
@@ -343,9 +343,9 @@ class GraphicalResults(Results):
             pl.savefig(self.problem.working_dir + "all_individuals.pdf")
 
     def plot_populations(self):
-        for population in self.problem.data_store.populations:
+        for population in self.problem.populations:
             figure_name = self.problem.working_dir + "pareto_" + \
-                          str(self.problem.data_store.populations.index(population)) + ".pdf"
+                          str(self.problem.populations.index(population)) + ".pdf"
             if len(population.individuals) > 1:
                 figure = Figure()
                 FigureCanvas(figure)
@@ -375,7 +375,7 @@ class GraphicalResults(Results):
                 figure.savefig(figure_name)
 
     def plot_gradients(self):
-        population = self.problem.data_store.populations[-1]  # Last population
+        population = self.problem.populations[-1]  # Last population
         figure_name = self.problem.working_dir + "gradients_" + str(population.number) + ".pdf"
         if len(population.individuals) > 1:
             figure = Figure()
