@@ -33,7 +33,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="http://www.agros2d.org/artap/",
-    python_requires='>3.6',
+    python_requires='>3.7',
     license="License :: OSI Approved :: MIT License",
     cmdclass={'install': CustomInstallCommand},
     packages=setuptools.find_packages(),
