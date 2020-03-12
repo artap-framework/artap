@@ -2,7 +2,7 @@
  Module is dedicated to describe optimization problem.
 """
 
-from artap.datastore import FileDataStore
+from artap.datastore import FileDataStore, FileMode
 from artap.utils import ConfigDictionary
 from artap.surrogate import SurrogateModelEval
 from artap.monitor import MonitorService
@@ -13,6 +13,7 @@ import datetime
 import tempfile
 import os
 import shutil
+import atexit
 
 CRITICAL = logging.CRITICAL
 FATAL = logging.FATAL
@@ -64,12 +65,12 @@ class Problem:
 
         self.output_files = None
 
-        self.working_dir = tempfile.mkdtemp() + os.sep
-        self.is_working_dir_set = True
-
         # tmp name
         d = datetime.datetime.now()
         ts = d.strftime("{}-%f".format(self.__class__.__name__))
+
+        self.working_dir = tempfile.gettempdir() + os.sep + "artap-{}".format(ts) + os.sep
+        os.mkdir(self.working_dir)
 
         # create logger
         self.logger = logging.getLogger(ts)
@@ -113,8 +114,11 @@ class Problem:
             else:
                 self.signs.append(1)
 
-    def __del__(self):
-        if not self.is_working_dir_set:
+        # clean up
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
+        if self.working_dir.startswith(tempfile.gettempdir() + os.sep + "artap-"):
             shutil.rmtree(self.working_dir)
 
     @abstractmethod
@@ -178,7 +182,19 @@ class Problem:
                 file_handler.setFormatter(self.formatter)
                 # add FileHandler to logger
                 self.logger.addHandler(file_handler)
-                self.is_working_dir_set = True
 
     # def _freeze(self):
     #     self.__is_frozen = True
+
+
+class ProblemViewDataStore(Problem):
+    def __init__(self, database_name):
+        super().__init__()
+
+        self.data_store = FileDataStore(self, database_name=database_name, mode=FileMode.READ)
+
+    def set(self, **kwargs):
+        pass
+
+    def evaluate(self, x):
+        pass

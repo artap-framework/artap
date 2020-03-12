@@ -17,8 +17,7 @@ class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
 
     def run(self):
         t_s = time.time()
-        self.problem.logger.info(
-            "Sweep: {}: {} individuals".format(self.generator.__class__.__name__, self.population_size))
+        # self.problem.logger.info("Sweep: {}: {} individuals".format(self.generator.__class__.__name__, self.population_size))
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
