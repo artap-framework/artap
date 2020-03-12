@@ -1,14 +1,9 @@
 import threading
 from multiprocessing import Process, Event
 import os
+import atexit
 from enum import Enum
-import time
-import logging
-from abc import abstractmethod
 from sqlitedict import SqliteDict
-
-from .population import Population
-
 
 # class SqliteHandler(logging.Handler):
 #     """
@@ -59,33 +54,35 @@ from .population import Population
 #         except sqlite3.Error as e:
 #             print("SqliteHandler: error occurred:", e.args[0])
 
-# class Timer(Process):
-#     def __init__(self, interval, function, args=[], kwargs={}):
-#         super(Timer, self).__init__()
-#         self.interval = interval
-#         self.function = function
-#         self.args = args
-#         self.kwargs = kwargs
-#         self.finished = Event()
-#
-#     def cancel(self):
-#         print("cancel")
-#         self.finished.set()
-#         self.join()
-#
-#     def run(self):
-#         self.finished.wait(self.interval)
-#         if not self.finished.is_set():
-#             self.function(*self.args, **self.kwargs)
-#         self.finished.set()
+
+class Timer(Process):
+    def __init__(self, interval, function, args=[], kwargs={}):
+        super(Timer, self).__init__()
+        self.interval = interval
+        self.function = function
+        self.args = args
+        self.kwargs = kwargs
+        self.finished = Event()
+
+    def cancel(self):
+        self.finished.set()
+        self.join()
+
+    def run(self):
+        self.finished.wait(self.interval)
+        if not self.finished.is_set():
+            self.function(*self.args, **self.kwargs)
+        self.finished.set()
+
 
 class FileMode(Enum):
     READ = 0
     WRITE = 1
+    REWRITE = 2
 
 
-class FileDataStoreCacheThread:
-    def __init__(self, problem, database_name, mode):
+class FileDataStore:
+    def __init__(self, problem, database_name, mode=FileMode.WRITE):
         self._should_continue = False
         self.is_running = False
         self.delay = 1.0
@@ -96,17 +93,35 @@ class FileDataStoreCacheThread:
         self.mode = mode
 
         if not self.database_name:
-            return
+            raise RuntimeError("FileDataStoreCacheThread: database name is empty.")
+
+        elif self.mode == FileMode.REWRITE:
+            if os.path.exists(database_name):
+                os.remove(database_name)
 
         self.db = SqliteDict(self.database_name, autocommit=True)
         if self.mode == FileMode.WRITE:
-            # remove database and create structure
             if os.path.exists(self.database_name):
+                statinfo = os.stat(self.database_name)
+                if statinfo.st_size == 0:
+                    # raise RuntimeError("FileDataStoreCacheThread: database file already exists. Mode is WRITE (for automatic rewrite you can use REWRITE mode.")
+                    self.read_from_datastore()
+                else:
+                    self._create_structure()
+            else:
                 self._create_structure()
-        else:
-            self._read_from_datastore()
+        elif self.mode == FileMode.REWRITE:
+            self._create_structure()
+        elif self.mode == FileMode.READ:
+            self.read_from_datastore()
+
+        # clean up
+        atexit.register(self.cleanup)
 
         self.start()
+
+    def cleanup(self):
+        self.destroy()
 
     def _handle_target(self):
         self.is_running = True
@@ -116,7 +131,7 @@ class FileDataStoreCacheThread:
 
     def _start_timer(self):
         if self._should_continue:
-            self.timer = threading.Timer(self.delay, self._handle_target)
+            self.timer = Timer(self.delay, self._handle_target)
             self.timer.start()
 
     def _create_structure(self):
@@ -127,44 +142,35 @@ class FileDataStoreCacheThread:
 
         self.db["populations"] = []
 
-    def _read_from_datastore(self):
+    def read_from_datastore(self):
         self.problem.name = self.db["name"]
         self.problem.description = self.db["description"]
         self.problem.parameters = self.db["parameters"]
         self.problem.costs = self.db["costs"]
 
-        self.populations = self.db["populations"]
+        self.problem.populations = self.db["populations"]
 
     def start(self):
         if not self._should_continue and not self.is_running:
             self._should_continue = True
             self._start_timer()
 
-    def cancel(self):
+    def destroy(self):
         if self.timer is not None:
             self._should_continue = False
+
+            self.timer.finished.set()
             self.timer.cancel()
 
+            self.sync()
+            self.db.close()
+
+            del self.timer
+            self.timer = None
+
     def sync(self):
-        if self.mode == FileMode.WRITE:
+        if self.mode == FileMode.WRITE or self.mode == FileMode.REWRITE:
             if len(self.problem.populations) > 0:
-                self.problem.logger.info("Caching to disk {} individuals.".format(0))
+                self.problem.logger.info("Caching to disk {} populations.".format(len(self.problem.populations)))
 
                 self.db["populations"] = self.problem.populations
-
-
-class FileDataStore:
-    def __init__(self, problem, database_name=None, remove_existing=True, mode=FileMode.WRITE):
-        if remove_existing and mode == "write":
-            if os.path.exists(self.database_name):
-                os.remove(self.database_name)
-
-        # file cache
-        self.file_cache = FileDataStoreCacheThread(problem, database_name, mode)
-
-    def __del__(self):
-        self.file_cache.sync()
-        self.file_cache.cancel()
-
-        del self.file_cache
-        self.file_cache = None
