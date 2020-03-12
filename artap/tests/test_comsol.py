@@ -59,7 +59,3 @@ class TestSimpleComsolOptimization(unittest.TestCase):
         evaluator.evaluate(population.individuals)
 
         self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0])
-
-
-if __name__ == '__main__':
-    unittest.main()

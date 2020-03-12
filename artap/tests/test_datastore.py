@@ -4,13 +4,13 @@ import tempfile
 import time
 from sqlitedict import SqliteDict
 
-from artap.problem import Problem
-from artap.datastore import FileDataStore
+from artap.problem import Problem, ProblemViewDataStore
+from artap.datastore import FileMode, FileDataStore
 from artap.algorithm_scipy import ScipyOpt
 from artap.algorithm_sweep import SweepAlgorithm
 
 from artap.results import Results
-from artap.operators import RandomGeneration
+from artap.operators import RandomGeneration, CustomGeneration
 
 from sys import platform
 if platform == "win32":
@@ -38,12 +38,13 @@ class MyProblem(Problem):
 
 
 class TestDataStoreFile(unittest.TestCase):
-    def test_read_write_data_store(self):
+    def test_read_write_database(self):
         problem = MyProblem()
 
         # set data store
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
         problem.data_store = FileDataStore(problem, database_name=database_name)
+
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'CG'
         algorithm.options['tol'] = 1e-8
@@ -55,7 +56,7 @@ class TestDataStoreFile(unittest.TestCase):
         self.assertAlmostEqual(optimum.costs[0], 0, 3)
 
         # remove datastore
-        problem.data_store = None
+        problem.data_store.destroy()
 
         # check db
         db = SqliteDict(database_name, autocommit=True)
@@ -71,61 +72,31 @@ class TestDataStoreFile(unittest.TestCase):
         # print(database_name)
         os.remove(database_name)
 
-    # @unittest.skipIf(__platform__ == "WINDOWS", "for Linux platform only")
-    # def test_read_dbm_data_store(self):
-    #     problem = Problem()
-    #     results = Results(problem)
-    #     database_name = "." + os.sep + "data" + os.sep + "data.db"
-    #     problem.data_store = FileDataStore(problem, database_name=database_name, mode="read")
-    #     optimum = results.find_minimum('F')
-    #     self.assertAlmostEqual(optimum.costs[0], 0, 3)
-    #     self.assertEqual(problem.name, 'NLopt_BOBYQA')
-    #     self.assertEqual(problem.description, '')
-    #     self.assertEqual(problem.parameters[0]['initial_value'], 2.5)
-    #     self.assertEqual(problem.parameters[0]['bounds'][0], -10)
-    #     self.assertEqual(problem.parameters[0]['bounds'][1], 10)
-    #     self.assertEqual(problem.parameters[1]['initial_value'], 1.5)
-    #     self.assertEqual(problem.parameters[1]['bounds'][0], -10)
-    #     self.assertEqual(problem.parameters[1]['bounds'][1], 10)
-    #     individual = problem.populations[0].individuals[-1]
-    #     self.assertAlmostEqual(individual.vector[0], 0, 5)
-    #     self.assertAlmostEqual(individual.vector[1], 0, 5)
-    #     self.assertAlmostEqual(individual.costs[0], 0, 5)
+    def xtest_read_datastore(self):
+        problem = MyProblem()
 
-    # @unittest.skipIf(__platform__ == "WINDOWS", "for Linux platform only")
-    # def test_write_dbm_data_store(self):
-    #     problem = MyProblem()
-    #
-    #     # set data store
-    #     database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".db").name
-    #     problem.data_store = FileDataStore(problem, database_name=database_name,  backend="shelve", mode="write")
-    #
-    #     algorithm = ScipyOpt(problem)
-    #     algorithm.options['algorithm'] = 'CG'
-    #     algorithm.options['tol'] = 1e-8
-    #     algorithm.options['verbose_level'] = 0
-    #     algorithm.options['n_iterations'] = 500
-    #     algorithm.run()
-    #
-    #     results = Results(problem)
-    #     optimum = results.find_minimum('F')
-    #
-    #     self.assertAlmostEqual(optimum.costs[0], 0, 3)
-    #
-    #     problem.data_store.db.close()
-    #
-    #     # check db
-    #     import shelve
-    #
-    #     db = shelve.open(problem.data_store.database_name, flag='r')
-    #     populations = db["populations"]
-    #
-    #     self.assertAlmostEqual(populations[-1].individuals[9].costs[0], 0, 3) # result
-    #     db.close()
-    #
-    #     # remove file
-    #     # print(database_name)
-    #     os.remove(database_name)
+        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        problem.data_store = FileDataStore(problem, database_name=database_name, mode=FileMode.REWRITE)
+
+        gen = CustomGeneration(problem.parameters)
+        gen.init([[1, 2], [3, 3]])
+
+        algorithm = SweepAlgorithm(problem, generator=gen)
+        algorithm.run()
+
+        problem.data_store.destroy()
+
+    def test_read_datastore(self):
+        database_name = "data" + os.sep + "data.sqlite"
+        problem = ProblemViewDataStore(database_name=database_name)
+
+        self.assertEqual(problem.name, 'NLopt_BOBYQA')
+
+        individuals = problem.populations[-1].individuals
+        self.assertEqual(individuals[0].vector[0], 1)
+        self.assertEqual(individuals[1].vector[1], 3)
+        self.assertEqual(individuals[0].costs, [5])
+        self.assertEqual(individuals[1].costs, [18])
 
 
 class TestDataStoreFileBenchmark(unittest.TestCase):
@@ -150,8 +121,7 @@ class TestDataStoreFileBenchmark(unittest.TestCase):
         cost = problem.populations[0].individuals[int(self.n / 2)].costs[0]
 
         # sync
-        problem.data_store.file_cache.sync()
-        del problem.data_store
+        problem.data_store.destroy()
 
         t = time.time() - t_s
         problem.logger.info("write elapsed time: {} s, size: {} MB, n: {}".format(t, self.get_size(database_name) / 1024 / 1024, self.n))
