@@ -14,7 +14,7 @@ class ArtapMonitorService(ClassicService):
         # print("Connected (ArtapMonitorService): ", self, conn)
 
     def populations(self):
-        return self.problem.data_store.populations
+        return self.problem.populations
 
 
 class MonitorService:

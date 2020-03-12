@@ -90,5 +90,5 @@ class GradientDescent(Algorithm):
                 h = n / d
             population.individuals.append(individual)
 
-        # write to datastore
-        self.problem.data_store.write_population(population)
+        # append population
+        self.problem.populations.append(population)

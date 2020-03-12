@@ -2,7 +2,7 @@
  Module is dedicated to describe optimization problem.
 """
 
-from artap.datastore import DataStore, DummyDataStore
+from artap.datastore import FileDataStore
 from artap.utils import ConfigDictionary
 from artap.surrogate import SurrogateModelEval
 from artap.monitor import MonitorService
@@ -55,7 +55,10 @@ class Problem:
         self.parameters: dict = dict()
         self.costs: dict = dict()
 
-        self.data_store = DummyDataStore(self)
+        # populations
+        self.populations = []
+
+        self.data_store = None
         self.monitor_service = MonitorService(self)
         self.executor = None
 
