@@ -130,9 +130,9 @@ class TestDataStoreFile(unittest.TestCase):
 
 class TestDataStoreFileBenchmark(unittest.TestCase):
     def setUp(self):
-        self.n = 5
+        self.n = 20000
 
-    def test_benchmark_sqlitedict_data_store(self):
+    def test_benchmark_data_store(self):
         t_s = time.time()
         problem = MyProblem()
 
@@ -147,7 +147,6 @@ class TestDataStoreFileBenchmark(unittest.TestCase):
         algorithm.options['max_processes'] = 1
         algorithm.run()
 
-        # print(problem.populations[0].individuals[int(self.n / 2)])
         cost = problem.populations[0].individuals[int(self.n / 2)].costs[0]
 
         # sync
@@ -155,7 +154,6 @@ class TestDataStoreFileBenchmark(unittest.TestCase):
         del problem.data_store
 
         t = time.time() - t_s
-
         problem.logger.info("write elapsed time: {} s, size: {} MB, n: {}".format(t, self.get_size(database_name) / 1024 / 1024, self.n))
 
         # check db
