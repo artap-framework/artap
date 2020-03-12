@@ -2,7 +2,7 @@ import unittest
 from unittest import TestCase, main
 
 from artap.executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor
-from artap.problem import Problem, ProblemType
+from artap.problem import Problem
 from artap.population import Population
 from artap.algorithm import DummyAlgorithm
 from artap.individual import Individual
@@ -19,7 +19,6 @@ class CondorMatlabProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
                       {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
         self.costs = [{'name': 'F_1'}]
-        self.type = ProblemType.matlab
         self.executor = CondorMatlabJobExecutor(self,
                                                 script="./data/run_input.m",
                                                 parameter_file="input.txt",
@@ -43,7 +42,6 @@ class CondorComsolProblem(Problem):
                            {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
 
         self.costs = [{'name': 'F_1'}]
-        self.type = ProblemType.comsol
         self.executor = CondorComsolJobExecutor(self, model_file="./data/elstat.mph",
                                                 files_from_condor=["out.txt", "elstat.mph"])
 
@@ -64,7 +62,6 @@ class PythonExecProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
                            {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
         self.costs = [{'name': 'F_1'}]
-        self.type = ProblemType.python
         self.executor = CondorPythonJobExecutor(self,
                                                 script="./data/run_exec.py",
                                                 parameter_file=None,
@@ -85,7 +82,6 @@ class PythonInputProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
                            {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
         self.costs = [{'name': 'F_1'}]
-        self.type = ProblemType.python
         self.executor = CondorPythonJobExecutor(self,
                                                 script="./data/run_input.py",
                                                 parameter_file="input.txt",

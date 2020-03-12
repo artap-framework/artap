@@ -2,7 +2,7 @@ from .utils import VectorAndNumbers
 from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
-from .job import JobSimple
+from .job import Job
 from .problem import Problem
 from .operators import CustomGeneration
 
@@ -37,7 +37,7 @@ class SALibAlgorithm(Algorithm):
         self.samples_x = []
         self.samples_y = []
 
-        self.job = JobSimple(self.problem)
+        self.job = Job(self.problem)
 
         self.options.declare(name='method', default='sobol', values=_method,
                              desc='Method')

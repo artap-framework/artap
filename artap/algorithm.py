@@ -1,6 +1,6 @@
 from .problem import Problem
 from .utils import ConfigDictionary
-from .job import JobSimple
+from .job import Job
 from .population import Population
 from .individual import Individual,GeneticIndividual
 from .operators import RandomGeneration
@@ -46,14 +46,14 @@ class Algorithm(metaclass=ABCMeta):
                 individual.transform_data(self.problem.signs)
 
     def evaluate_serial(self, individuals: list):
-        job = JobSimple(self.problem)
+        job = Job(self.problem)
         for individual in individuals:
             if individual.state == Individual.State.EMPTY:
                 job.evaluate(individual)
 
     def evaluate_parallel(self, individuals: list):
         # simple parallel loop
-        job = JobSimple(self.problem)
+        job = Job(self.problem)
         Parallel(n_jobs=self.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
                                                                                        for individual in individuals)
 
