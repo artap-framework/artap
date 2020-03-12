@@ -9,9 +9,6 @@ class Job(metaclass=ABCMeta):
         self.population = population
 
     def evaluate(self, individual):
-        # write to datastore
-        self.problem.data_store.write_individual(individual)
-
         # set in progress
         individual.state = individual.State.IN_PROGRESS
 

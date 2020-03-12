@@ -4,6 +4,7 @@ import nlopt
 from .problem import Problem
 from .algorithm import Algorithm
 from .job import Job
+from .population import Population
 
 GN_DIRECT = nlopt.GN_DIRECT
 GN_DIRECT_L = nlopt.GN_DIRECT_L
@@ -52,13 +53,17 @@ GN_AGS = nlopt.GN_AGS
 
 _algorithm = [nlopt.GN_DIRECT_L, GN_DIRECT_L_RAND, GN_MLSL, GN_CRS2_LM, GN_ISRES, GN_ESCH, LN_BOBYQA, LN_COBYLA, LN_NELDERMEAD, LN_SBPLX,  LN_PRAXIS, LN_AUGLAG_EQ]
 
+
 class NLopt(Algorithm):
     """ NLopt algorithms """
 
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
 
-        self.job = Job(self.problem)
+        population = Population()
+        self.problem.populations.append(population)
+        self.job = Job(self.problem, population)
+
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
         self.options.declare(name='n_iterations', default=50, lower=1,
