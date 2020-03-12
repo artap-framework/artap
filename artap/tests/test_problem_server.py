@@ -31,7 +31,7 @@ class TestServer(unittest.TestCase):
 
         algorithm = SweepAlgorithm(self.problem, generator=generator)
         algorithm.options['verbose_level'] = 0
-        algorithm.options['max_processes'] = 1
+        algorithm.options['max_processes'] = 3
         algorithm.options['n_iterations'] = 5
         algorithm.run()
 
@@ -46,11 +46,12 @@ class TestServer(unittest.TestCase):
         conn = rpyc.classic.connect("localhost", self.problem.monitor_service.port)
         while thread.is_alive():
             # print(len(conn.root.populations()))
-            # populations = conn.root.populations()
-            # if len(populations) == 1:
-            #     print("individuals = {}".format(len(populations[0].individuals)))
+            populations = conn.root.populations()
+            if len(populations) == 1:
+                for individual in populations[0].individuals:
+                    print("individual = {}".format(individual))
 
-            time.sleep(0.5)
+            time.sleep(0.1)
 
         populations = conn.root.populations()
         self.assertEqual(len(populations[0].individuals), 4)

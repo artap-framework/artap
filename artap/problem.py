@@ -14,18 +14,6 @@ import tempfile
 import os
 import shutil
 
-from enum import Enum
-
-
-# ToDo: Inhere executors, remove enum
-
-class ProblemType(Enum):
-    comsol = 0
-    analytical = 1
-    agros = 2
-    matlab = 3
-    python = 4
-
 CRITICAL = logging.CRITICAL
 FATAL = logging.FATAL
 ERROR = logging.ERROR
@@ -41,7 +29,7 @@ _log_level = [CRITICAL, ERROR, WARNING, INFO, DEBUG]
 class Problem:
     """ The Class Problem Is a main class which collects information about optimization task """
 
-    __is_frozen = False
+    # __is_frozen = False
 
     def __init__(self, **kwargs):
 
@@ -66,13 +54,14 @@ class Problem:
         self.description: str = str()
         self.parameters: dict = dict()
         self.costs: dict = dict()
-        self.data_store: DataStore
-        self.type = "None"
-        self.working_dir = tempfile.mkdtemp() + os.sep
-        self.output_files = None
-        self.executor = None
+
         self.data_store = DummyDataStore(self)
         self.monitor_service = MonitorService(self)
+        self.executor = None
+
+        self.output_files = None
+
+        self.working_dir = tempfile.mkdtemp() + os.sep
         self.is_working_dir_set = True
 
         # tmp name
@@ -110,7 +99,7 @@ class Problem:
         self.surrogate = SurrogateModelEval(self)
         self.signs = []
 
-        #self._freeze()
+        # self._freeze()
         self.set(**kwargs)
         for cost in self.costs:
             if 'criteria' in cost:
@@ -172,8 +161,8 @@ class Problem:
         pass
 
     def __setattr__(self, key, value):
-        if self.__is_frozen and not hasattr(self, key):
-            raise TypeError(" %r is a frozen class" % self)
+        # if self.__is_frozen and not hasattr(self, key):
+        #     raise TypeError(" %r is a frozen class" % self)
         object.__setattr__(self, key, value)
 
         # working dir must be set
@@ -188,5 +177,5 @@ class Problem:
                 self.logger.addHandler(file_handler)
                 self.is_working_dir_set = True
 
-    def _freeze(self):
-        self.__is_frozen = True
+    # def _freeze(self):
+    #     self.__is_frozen = True

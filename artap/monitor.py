@@ -27,7 +27,6 @@ class MonitorService:
         self.server.logger.quiet = False
         self.server._start_in_thread()
 
-
     def __del__(self):
         self.server.close()
 
