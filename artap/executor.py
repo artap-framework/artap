@@ -1,22 +1,22 @@
 import textwrap
 import re
-import rpyc
-from rpyc.core.async_ import AsyncResultTimeout
-from rpyc.utils.classic import upload_file, download_file
-import asyncio
 import tempfile
 import os
+import subprocess
 import datetime
 import time
 import ntpath
 from string import Template
-from xml.dom import minidom
-from artap.config import config
+
+import rpyc
+from rpyc.core.async_ import AsyncResultTimeout
+from rpyc.utils.classic import upload_file, download_file
 
 from abc import ABCMeta, abstractmethod
 from .utils import ConfigDictionary
 from shutil import copyfile
 
+from artap.config import config
 
 # parse ip address
 def parse_address(address):
@@ -99,20 +99,36 @@ class LocalComsolExecutor(Executor):
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
         param_values_string = Executor._join_parameters_values(individual.vector)
 
-        run_string = self.comsol_command.substitute(input_file=self.model_file,
+        cmd_string = self.comsol_command.substitute(input_file=self.model_file,
                                                     param_names=param_names_string,
                                                     param_values=param_values_string)
 
-        # run command
-        current_path = os.getcwd()
-        os.chdir(self.problem.working_dir)
-        os.system(run_string)
-        os.chdir(current_path)
-        output_files = []
-        for file in self.output_files:
-            output_files.append(self.problem.working_dir + file)
-        result = self.parse_results(output_files, individual)
-        return result
+        try:
+            # run command
+            current_path = os.getcwd()
+            os.chdir(self.problem.working_dir)
+
+            out = subprocess.run(cmd_string, shell=True)
+            os.chdir(current_path)
+
+            if out.returncode != 0:
+                err = "Unknown error"
+                if out.stderr is not None:
+                    err = "Cannot run COMSOL Multiphysics.\n\n {}".format(out.stderr)
+
+                self.problem.logger.error(err)
+                raise RuntimeError(err)
+
+            output_files = []
+            for file in self.output_files:
+                output_files.append(self.problem.working_dir + file)
+            result = self.parse_results(output_files, individual)
+
+            return result
+        except Exception as e:
+            err = "Cannot run COMSOL Multiphysics.\n\n {}".format(e)
+            self.problem.logger.error(err)
+            raise RuntimeError(err)
 
 
 class RemoteExecutor(Executor):

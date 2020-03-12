@@ -30,7 +30,6 @@ class Job(metaclass=ABCMeta):
             individual.state = individual.State.EVALUATED
 
         except (TimeoutError, RuntimeError) as e:
-            # individual.vector = VectorAndNumbers.gen_vector(self.problem.parameters)
             individual.state = Individual.State.FAILED
 
         # add to population
