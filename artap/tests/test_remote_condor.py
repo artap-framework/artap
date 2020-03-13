@@ -106,39 +106,33 @@ class TestCondor(TestCase):
         """ Tests one calculation of goal function."""
         problem = CondorMatlabProblem()
 
-        table = [[1, 2]]
-        population = Population()
-        population.gen_population_from_table(table)
+        individuals = [Individual([1, 2])]
         evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(population.individuals)
+        evaluator.evaluate(individuals)
 
-        self.assertAlmostEqual(5, population.individuals[0].costs[0])
+        self.assertAlmostEqual(5, individuals[0].costs[0])
 
     @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_comsol_exec(self):
         """ Tests one calculation of goal function."""
         problem = CondorComsolProblem()
-        problem.options['save_data_files'] = True
-        table = [[10, 10], [11, 11]]
-        population = Population()
-        population.gen_population_from_table(table)
-        evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(population.individuals)
 
-        self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0])
-        self.assertAlmostEqual(124.23499735221547, population.individuals[1].costs[0])
+        individuals = [Individual([10, 10]), Individual([11, 11])]
+        evaluator = DummyAlgorithm(problem)
+        evaluator.evaluate(individuals)
+
+        self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
+        self.assertAlmostEqual(124.23499735221547, individuals[1].costs[0])
 
     @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_exec(self):
         problem = PythonExecProblem()
 
-        table = [[1, 2]]
-        population = Population()
-        population.gen_population_from_table(table)
+        individuals = [Individual([1, 2])]
         evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(population.individuals)
+        evaluator.evaluate(individuals)
 
-        self.assertAlmostEqual(5, population.individuals[0].costs[0])
+        self.assertAlmostEqual(5, individuals[0].costs[0])
 
     @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_exec_full_load(self):
@@ -161,13 +155,11 @@ class TestCondor(TestCase):
     def test_condor_python_input(self):
         problem = PythonInputProblem()
 
-        table = [[1, 2]]
-        population = Population()
-        population.gen_population_from_table(table)
+        individuals = [Individual([1, 2])]
         evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(population.individuals)
+        evaluator.evaluate(individuals)
 
-        self.assertAlmostEqual(5, population.individuals[0].costs[0])
+        self.assertAlmostEqual(5, individuals[0].costs[0])
 
 
 if __name__ == '__main__':

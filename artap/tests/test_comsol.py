@@ -4,7 +4,7 @@ import os
 from artap.executor import LocalComsolExecutor
 from artap.problem import Problem
 from artap.algorithm import DummyAlgorithm
-from artap.population import Population
+from artap.individual import Individual
 
 __comsol__ = True
 result = os.system('comsol --version')
@@ -47,18 +47,17 @@ class ComsolProblem(Problem):
 
 
 class TestSimpleComsolOptimization(unittest.TestCase):
-
     @unittest.skipIf(__comsol__ is False, "require Comsol Multiphysics")
     def test_comsol_exec(self):
         """ Tests one calculation of goal function."""
         problem = ComsolProblem()
-        table = [[10, 10]]
-        population = Population()
-        population.gen_population_from_table(table)
+
+        individuals = [Individual([10, 10])]
         evaluator = DummyAlgorithm(problem)
+        evaluator.evaluate(individuals)
         try:
-            evaluator.evaluate(population.individuals)
-            self.assertAlmostEqual(112.94090668383139, population.individuals[0].costs[0])
+            evaluator.evaluate(individuals)
+            self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
         except Exception as e:
             print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
             print(e)
