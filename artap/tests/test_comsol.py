@@ -46,7 +46,7 @@ class ComsolProblem(Problem):
         return [result]
 
 
-class TestSimpleComsolOptimization(unittest.TestCase):
+class TestLocalComsol(unittest.TestCase):
     @unittest.skipIf(__comsol__ is False, "require Comsol Multiphysics")
     def test_comsol_exec(self):
         """ Tests one calculation of goal function."""
