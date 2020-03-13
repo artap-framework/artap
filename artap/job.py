@@ -1,5 +1,5 @@
+import time
 from abc import ABCMeta
-from enum import Enum
 from .individual import Individual
 
 
@@ -9,6 +9,9 @@ class Job(metaclass=ABCMeta):
         self.population = population
 
     def evaluate(self, individual):
+        # info
+        t_s = time.time()
+
         # set in progress
         individual.state = individual.State.IN_PROGRESS
 
@@ -35,6 +38,10 @@ class Job(metaclass=ABCMeta):
         # add to population
         if self.population is not None:
             self.population.individuals.append(individual)
+            individual.info["population"] = self.problem.populations.index(self.population)
+
+        # info
+        individual.info["elapsed_time"] = time.time() - t_s
 
     def evaluate_scalar(self, x):
         # simple individual
