@@ -9,9 +9,9 @@ class Individual(metaclass=ABCMeta):
 
     class State(Enum):
         EMPTY = 0
-        IN_PROGRESS = 3
-        EVALUATED = 1
-        FAILED = 2
+        IN_PROGRESS = 1
+        EVALUATED = 2
+        FAILED = 3
 
         @staticmethod
         def to_string(state):
@@ -29,13 +29,13 @@ class Individual(metaclass=ABCMeta):
         self.costs = []
         self.custom = {}
         self.state = self.State.EMPTY
-        self.info = {}
-        self.info["elapsed_time"] = 0.0
-        self.info["population"] = -1
-        self.info["processor"] = platform.processor()
-        self.info["system"] = platform.system()
-        self.info["python"] = platform.python_version()
-        self.info["hostname"] = platform.node()
+        self.info = {"start_time": 0.0,
+                     "finish_time": 0.0,
+                     "population": -1,
+                     "processor": platform.processor(),
+                     "system": platform.system(),
+                     "python": platform.python_version(),
+                     "hostname": platform.node()}
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """

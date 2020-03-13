@@ -5,55 +5,6 @@ import atexit
 from enum import Enum
 from sqlitedict import SqliteDict
 
-# class SqliteHandler(logging.Handler):
-#     """
-#     Thread-safe logging handler for SQLite.
-#     """
-#
-#     def __init__(self, data_store):
-#         logging.Handler.__init__(self)
-#
-#         self.data_store = data_store
-#         self.data_store.create_structure_log()
-#
-#     def emit(self, record: logging.LogRecord):
-#         """
-#
-#         self.format(record)
-#         # format record
-#         record.dbtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(record.created))
-#         if record.exc_info:  # for exceptions
-#             record.exc_text = logging._defaultFormatter.formatException(record.exc_info)
-#         else:
-#             record.exc_text = ""
-#         """
-#
-#         # Insert the log record
-#         try:
-#             connection = sqlite3.connect(self.data_store.database_name)
-#
-#             cursor = connection.cursor()
-#             cursor.execute("INSERT INTO log(timestamp, source, loglevel, loglevelname, message, args, module, funcname, lineno, exception, process, threadname) "
-#                            "VALUES (:timestamp, :source, :loglevel, :loglevelname, :message, :args, :module, :funcname, :lineno, :exception, :process, :threadname)",
-#                            { "timestamp": str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(record.created))),
-#                              "source": str(record.name),
-#                              "loglevel": record.levelno,
-#                              "loglevelname": str(record.levelname),
-#                              "message": str(record.getMessage()),
-#                              "args": str(record.args),
-#                              "module": str(record.module),
-#                              "funcname": str(record.funcName),
-#                              "lineno": record.lineno,
-#                              "exception": str(record.exc_text),
-#                              "process": record.process,
-#                              "threadname": str(record.threadName) })
-#             connection.commit()
-#             cursor.close()
-#
-#             connection.close()
-#         except sqlite3.Error as e:
-#             print("SqliteHandler: error occurred:", e.args[0])
-
 
 class Timer(Process):
     def __init__(self, interval, function, args=[], kwargs={}):
