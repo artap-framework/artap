@@ -10,6 +10,7 @@ class Job(metaclass=ABCMeta):
 
     def evaluate(self, individual):
         # info
+        individual.info["start_time"] = time.time()
         t_s = time.time()
 
         # set in progress
@@ -41,7 +42,7 @@ class Job(metaclass=ABCMeta):
             individual.info["population"] = self.problem.populations.index(self.population)
 
         # info
-        individual.info["elapsed_time"] = time.time() - t_s
+        individual.info["finish_time"] = time.time()
 
     def evaluate_scalar(self, x):
         # simple individual
