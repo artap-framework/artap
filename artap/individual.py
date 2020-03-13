@@ -1,3 +1,4 @@
+import platform
 from abc import *
 from random import uniform
 from enum import Enum
@@ -28,6 +29,13 @@ class Individual(metaclass=ABCMeta):
         self.costs = []
         self.custom = {}
         self.state = self.State.EMPTY
+        self.info = {}
+        self.info["elapsed_time"] = 0.0
+        self.info["population"] = -1
+        self.info["processor"] = platform.processor()
+        self.info["system"] = platform.system()
+        self.info["python"] = platform.python_version()
+        self.info["hostname"] = platform.node()
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
@@ -55,7 +63,8 @@ class Individual(metaclass=ABCMeta):
                     string += ", "
             string += "]"
 
-        string += "; state: '{}'".format(Individual.State.to_string(self.state))
+        string += "; state: '{}', ".format(Individual.State.to_string(self.state))
+        string += "; info: {}, ".format(self.info)
 
         return string
 
@@ -70,6 +79,7 @@ class Individual(metaclass=ABCMeta):
         self.costs = individual.costs
         self.custom = individual.custom
         self.state = individual.state
+        self.info = individual.info
 
 
 class GeneticIndividual(Individual):

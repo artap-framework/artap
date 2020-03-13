@@ -31,6 +31,8 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.options['calculate_gradients'] = True
         algorithm.run()
 
+        print(problem.populations[0].individuals[3])
+
         results = Results(problem)
         optimum = results.find_minimum('F_1')
         self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 3)
