@@ -12,8 +12,6 @@ server = MONITOR_SERVER
 
 options, remainder = getopt.getopt(sys.argv[1:], "h:s:p:", ["help", "server=", "port="])
 
-lst = ""
-limit = 20
 for opt, args in options:
     if opt in ('-s', '--server'):
         # print("server", args)
@@ -30,6 +28,7 @@ for opt, args in options:
 
 def clear():
     os.system('clear' if os.name == 'nt' else 'clear')
+
 
 # connect to server
 conn = rpyc.classic.connect(server, port)
