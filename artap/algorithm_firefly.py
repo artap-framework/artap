@@ -19,13 +19,11 @@ class MoFirefly(GeneticAlgorithm):
         self.selector = DummySelection(self.problem.parameters, self.problem.signs)
 
     def run(self):
-
         self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
         self.selector.sorting(population.individuals)
-        self.problem.data_store.write_population(population)
 
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
@@ -57,10 +55,7 @@ class MoFirefly(GeneticAlgorithm):
             c = 1. / sum(weights)
             weights = [x * c for x in weights]
 
-
-
-            population = Population(offsprings)
-            self.problem.data_store.write_population(population)
+            self.problem.populations[-1] = offsprings
 
             nr_gen += 1
 

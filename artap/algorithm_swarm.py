@@ -26,7 +26,6 @@ class PSO(GeneticAlgorithm):
             self.mutator.evaluate_best_individual(individual)
 
         self.selector.sorting(population.individuals)
-        self.problem.data_store.write_population(population)
 
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
@@ -48,14 +47,16 @@ class PSO(GeneticAlgorithm):
                     self.mutator.update(best_individual)
                     self.mutator.mutate(individual)
 
+            population = Population(offsprings)
+            self.problem.populations.append(population)
             self.evaluate(offsprings)
 
             for individual in offsprings:
                 self.mutator.evaluate_best_individual(individual)
 
             self.selector.sorting(offsprings)
-            population = Population(offsprings)
-            self.problem.data_store.write_population(population)
+
+
 
             i += 1
 
@@ -91,7 +92,7 @@ class PSO_V1(GeneticAlgorithm):
             self.mutator.evaluate_best_individual(individual)
 
         self.selector.sorting(population.individuals)
-        self.problem.data_store.write_population(population)
+        self.problem.populations.append(population)
 
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
@@ -120,7 +121,7 @@ class PSO_V1(GeneticAlgorithm):
 
             self.selector.sorting(offsprings)
             population = Population(offsprings)
-            self.problem.data_store.write_population(population)
+            self.problem.populations.append(population)
 
             i += 1
 

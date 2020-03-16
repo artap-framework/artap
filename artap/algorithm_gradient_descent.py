@@ -3,7 +3,7 @@ from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
 import collections
-from .job import JobSimple
+from .job import Job
 
 
 class GradientDescent(Algorithm):
@@ -27,7 +27,7 @@ class GradientDescent(Algorithm):
         gradient = [0] * len(x0)
 
         h = 1e-6
-        job = JobSimple(self.problem, population)
+        job = Job(self.problem, population)
         y = job.evaluate_scalar(x0)
         for i in range(len(x0)):
             x = x0.copy()
@@ -63,6 +63,8 @@ class GradientDescent(Algorithm):
 
     def run(self):
         population = Population()
+        # append population
+        self.problem.populations.append(population)
 
         # TODO: add adaptive step size
         n = self.options["n_iterations"]
@@ -89,6 +91,3 @@ class GradientDescent(Algorithm):
                     d += (dx[i][j] - dx[i-1][j])**2
                 h = n / d
             population.individuals.append(individual)
-
-        # write to datastore
-        self.problem.data_store.write_population(population)
