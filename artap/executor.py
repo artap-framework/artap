@@ -1,21 +1,22 @@
 import textwrap
 import re
-import rpyc
-from rpyc.core.async_ import AsyncResultTimeout
-from rpyc.utils.classic import upload_file, download_file
-import asyncio
 import tempfile
 import os
+import subprocess
 import datetime
 import time
 import ntpath
 from string import Template
-from xml.dom import minidom
-from artap.config import config
+
+import rpyc
+from rpyc.core.async_ import AsyncResultTimeout
+from rpyc.utils.classic import upload_file, download_file
 
 from abc import ABCMeta, abstractmethod
 from .utils import ConfigDictionary
 from shutil import copyfile
+
+from artap.config import config
 
 
 # parse ip address
@@ -99,20 +100,36 @@ class LocalComsolExecutor(Executor):
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
         param_values_string = Executor._join_parameters_values(individual.vector)
 
-        run_string = self.comsol_command.substitute(input_file=self.model_file,
+        cmd_string = self.comsol_command.substitute(input_file=self.model_file,
                                                     param_names=param_names_string,
                                                     param_values=param_values_string)
 
-        # run command
-        current_path = os.getcwd()
-        os.chdir(self.problem.working_dir)
-        os.system(run_string)
-        os.chdir(current_path)
-        output_files = []
-        for file in self.output_files:
-            output_files.append(self.problem.working_dir + file)
-        result = self.parse_results(output_files, individual)
-        return result
+        try:
+            # run command
+            current_path = os.getcwd()
+            os.chdir(self.problem.working_dir)
+
+            out = subprocess.run(cmd_string, shell=True)
+            os.chdir(current_path)
+
+            if out.returncode != 0:
+                err = "Unknown error"
+                if out.stderr is not None:
+                    err = "Cannot run COMSOL Multiphysics.\n\n {}".format(out.stderr)
+
+                self.problem.logger.error(err)
+                raise RuntimeError(err)
+
+            output_files = []
+            for file in self.output_files:
+                output_files.append(self.problem.working_dir + file)
+            result = self.parse_results(output_files, individual)
+
+            return result
+        except Exception as e:
+            err = "Cannot run COMSOL Multiphysics.\n\n {}".format(e)
+            self.problem.logger.error(err)
+            raise RuntimeError(err)
 
 
 class RemoteExecutor(Executor):
@@ -228,6 +245,12 @@ class CondorJobExecutor(RemoteExecutor):
 
         # set default host
         self.options["hostname"] = config["condor_host"]
+
+        # set default requirements
+        self.requirements = ""
+        self.request_cpus = -1
+        self.request_memory = -1
+        self.hold_on_start = False
 
     @abstractmethod
     def _create_job_file(self, remote_dir, individual, client):
@@ -371,17 +394,17 @@ class CondorJobExecutor(RemoteExecutor):
 
 
 class CondorPythonJobExecutor(CondorJobExecutor):
-    executable = textwrap.dedent("""\
-        #!/bin/sh
-        # args
-
-        python3 $@""")
-
-    def __init__(self, problem, script, parameter_file, output_files=None):
+    def __init__(self, problem, script, parameter_file, output_files=None, python_path="python3"):
         self.script = ntpath.basename(script)
         super().__init__(problem, [self.script], output_files)
         self.parameter_file = parameter_file
         copyfile(script, self.problem.working_dir + self.script)
+
+        self.executable = textwrap.dedent("""\
+            #!/bin/sh
+            # args
+
+            """ + python_path + """  $@""")
 
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
@@ -407,22 +430,26 @@ class CondorPythonJobExecutor(CondorJobExecutor):
                                executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=arguments,
                                input_files=condor_input_files,
-                               output_files=condor_output_files)
+                               output_files=condor_output_files,
+                               requirements=self.requirements,
+                               request_cpus=self.request_cpus,
+                               request_memory=self.request_memory,
+                               hold_on_start=self.hold_on_start)
 
 
 class CondorMatlabJobExecutor(CondorJobExecutor):
-    executable = textwrap.dedent("""\
-        #!/bin/sh
-        # args
-        s=$@
-
-        /opt/matlab-R2018b/bin/matlab -nodisplay -nosplash -nodesktop -r ${s%.m}""")
-
-    def __init__(self, problem, script, parameter_file, files_from_condor=None):
+    def __init__(self, problem, script, parameter_file, files_from_condor=None, matlab_path="/opt/matlab-R2018b/bin/matlab"):
         self.script = ntpath.basename(script)
         super().__init__(problem, [self.script], files_from_condor)
         self.parameter_file = parameter_file
         copyfile(script, self.problem.working_dir + self.script)
+
+        self.executable = textwrap.dedent("""\
+            #!/bin/sh
+            # args
+            s=$@
+
+            """ + matlab_path + """ -nodisplay -nosplash -nodesktop -r ${s%.m}""")
 
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
@@ -442,20 +469,27 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
                                executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=self.script,
                                input_files=condor_input_files,
-                               output_files=condor_output_files)
+                               output_files=condor_output_files,
+                               requirements=self.requirements,
+                               request_cpus=self.request_cpus,
+                               request_memory=self.request_memory,
+                               hold_on_start=self.hold_on_start)
 
 
 class CondorComsolJobExecutor(CondorJobExecutor):
-    arguments = Template("-inputfile $input_file -nosave -pname $param_names -plist $param_values")
-    executable = textwrap.dedent("""\
-            #!/bin/sh
-            /opt/comsol-5.4/bin/comsol batch $@
-            """)
-
-    def __init__(self, problem, model_file, files_from_condor=None):
+    def __init__(self, problem, model_file, files_from_condor=None, comsol_path="/opt/comsol-5.4/bin/comsol"):
         self.model_file = ntpath.basename(model_file)
         super().__init__(problem, [self.model_file], files_from_condor)
         copyfile(model_file, self.problem.working_dir + self.model_file)
+
+        self.arguments = Template("-inputfile $input_file -nosave -pname $param_names -plist $param_values")
+        self.executable = textwrap.dedent("""\
+                #!/bin/sh
+                """ + comsol_path + """ batch $@
+                """)
+
+        self.request_cpus = 3
+        self.request_memory = 30
 
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
@@ -473,5 +507,7 @@ class CondorComsolJobExecutor(CondorJobExecutor):
                                arguments=arguments,
                                input_files=[self.model_file],
                                output_files=condor_output_files,
-                               request_cpus=2,
-                               request_memory=30)
+                               requirements=self.requirements,
+                               request_cpus=self.request_cpus,
+                               request_memory=self.request_memory,
+                               hold_on_start=self.hold_on_start)

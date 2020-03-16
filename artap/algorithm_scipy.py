@@ -1,7 +1,7 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .job import JobSimple
-
+from .job import Job
+from .population import Population
 
 from scipy.optimize import minimize
 import numpy as np
@@ -26,7 +26,8 @@ class ScipyOpt(Algorithm):
         self.save_all = True
 
     def run(self):
-        job = JobSimple(self.problem)
+        self.problem.populations.append(Population())
+        job = Job(self.problem, self.problem.populations[-1])
 
         # initial vector
         x0 = np.array(self.problem.get_initial_values())

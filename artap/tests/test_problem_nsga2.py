@@ -30,7 +30,6 @@ class TestNSGA2Optimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem_nsga2(self):
-
         problem = BinhAndKornProblem()
 
         algorithm = NSGAII(problem)
@@ -72,7 +71,7 @@ class TestNSGA2Optimization(unittest.TestCase):
                 if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
                         and 20 < sol[0] < 70:
                     wrong += 1
-            print(wrong)
+
             self.assertLessEqual(wrong, 5)
         except AssertionError:
             # stochastic

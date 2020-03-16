@@ -32,15 +32,21 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
     def gen_initial_population(self, is_archive=False):
         individuals = self.generator.generate()
+
+        # create population
+        if is_archive:
+            population = Population(individuals, individuals)
+        else:
+            population = Population(individuals)
+
+        # append to population
+        self.problem.populations.append(population)
+
         # set current size
         self.population_size = len(individuals)
         # evaluate individuals
         self.evaluate(individuals)
 
-        if is_archive:
-            population = Population(individuals, individuals)
-        else:
-            population = Population(individuals)
         return population
 
     def run(self):
@@ -138,9 +144,6 @@ class NSGAII(GeneticAlgorithm):
             self.evaluate(gradient_population.individuals)
             self.evaluate_gradient(population.individuals, gradient_population.individuals)
 
-        # write to data store
-        self.problem.data_store.write_population(population)
-
         t_s = time.time()
         self.problem.logger.info(
             "NSGA_II: {}/{}".format(self.options['max_population_number'],
@@ -151,6 +154,8 @@ class NSGAII(GeneticAlgorithm):
             # generate new offsprings
             offsprings = self.generate(population.individuals)
             # evaluate the offsprings
+            population = Population(offsprings)
+            self.problem.populations.append(population)
             self.evaluate(offsprings)
 
             # if (self.options['calculate_gradients'] is True) and population.number > 20:
@@ -166,20 +171,14 @@ class NSGAII(GeneticAlgorithm):
             # sort offsprings and ### remove duplicates by set!!!
             parents = sorted(set(offsprings), key=lambda x: (x.front_number, -x.crowding_distance))
 
-            # truncate
-            offsprings = parents[:self.population_size]
-
-            # write population
-            population = Population(offsprings)
+            # truncate and replace individuals
+            population.individuals = parents[:self.population_size]
 
             if self.options['calculate_gradients'] is True:
                 self.gradient_generator.init(population.individuals)
                 gradient_population = Population(self.gradient_generator.generate())
                 self.evaluate(gradient_population.individuals)
                 self.evaluate_gradient(population.individuals, gradient_population.individuals)
-
-            # write popultation
-            self.problem.data_store.write_population(population)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
@@ -227,10 +226,6 @@ class EpsMOEA(GeneticAlgorithm):
         selector_epsdom.sorting(population.archives)
         selector_epsdom.crowding_distance(population.archives)
 
-        # write to data store
-        self.problem.data_store.write_population(
-            population)  # TODO: modify the database connection to handle the archives
-
         t_s = time.time()
         self.problem.logger.info(
             "Eps-MOEA: {}/{}".format(self.options['max_population_number'], self.population_size))
@@ -238,20 +233,23 @@ class EpsMOEA(GeneticAlgorithm):
         # optimization
         for it in range(self.options['max_population_number']):
             # generate and evaluate the next generation
-            child = self.generate(population.individuals, population.archives)
-            self.evaluate(child)
+            children = self.generate(population.individuals, population.archives)
 
-            arch_child = deepcopy(child)
+            population = Population(children)
+            self.problem.populations.append(population)
+            self.evaluate(children)
+
+            arch_child = deepcopy(children)
             # PART A
             # non-dominated sorting of the newly generated and the older guys like in NSGA-ii
             # add the parents to the offsprings
-            child.extend(deepcopy(population.individuals))
+            children.extend(deepcopy(population.individuals))
 
             # non-dominated truncate on the guys
-            self.selector.sorting(child)
-            selector_pareto.crowding_distance(child)
+            self.selector.sorting(children)
+            selector_pareto.crowding_distance(children)
 
-            parents = sorted(set(child), key=lambda x: (x.front_number, -x.crowding_distance))
+            parents = sorted(set(children), key=lambda x: (x.front_number, -x.crowding_distance))
             child = parents[:self.population_size]  # truncate
 
             # eps dominated truncate on the guys
@@ -259,12 +257,7 @@ class EpsMOEA(GeneticAlgorithm):
             selector_epsdom.crowding_distance(arch_child)
 
             arch_parents = sorted(set(arch_child), key=lambda x: (x.front_number, -x.crowding_distance))
-            arch_child = arch_parents[:self.population_size]  # truncate
-
-            # write population
-            population = Population(child, arch_child)
-            # TODO: modify the database connection to handle the archives
-            self.problem.data_store.write_population(population)
+            population.archives = arch_parents[:self.population_size]  # truncate
 
         t = time.time() - t_s
         self.problem.logger.info("Eps-MOEA: {} s".format(t))
