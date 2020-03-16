@@ -2,7 +2,7 @@
  Module is dedicated to describe optimization problem.
 """
 
-from artap.datastore import DataStore, DummyDataStore
+from artap.datastore import FileDataStore, FileMode
 from artap.utils import ConfigDictionary
 from artap.surrogate import SurrogateModelEval
 from artap.monitor import MonitorService
@@ -13,18 +13,7 @@ import datetime
 import tempfile
 import os
 import shutil
-
-from enum import Enum
-
-
-# ToDo: Inhere executors, remove enum
-
-class ProblemType(Enum):
-    comsol = 0
-    analytical = 1
-    agros = 2
-    matlab = 3
-    python = 4
+import atexit
 
 CRITICAL = logging.CRITICAL
 FATAL = logging.FATAL
@@ -41,7 +30,7 @@ _log_level = [CRITICAL, ERROR, WARNING, INFO, DEBUG]
 class Problem:
     """ The Class Problem Is a main class which collects information about optimization task """
 
-    __is_frozen = False
+    # __is_frozen = False
 
     def __init__(self, **kwargs):
 
@@ -66,18 +55,22 @@ class Problem:
         self.description: str = str()
         self.parameters: dict = dict()
         self.costs: dict = dict()
-        self.data_store: DataStore
-        self.type = "None"
-        self.working_dir = tempfile.mkdtemp() + os.sep
-        self.output_files = None
-        self.executor = None
-        self.data_store = DummyDataStore(self)
+
+        # populations
+        self.populations = []
+
+        self.data_store = None
         self.monitor_service = MonitorService(self)
-        self.is_working_dir_set = True
+        self.executor = None
+
+        self.output_files = None
 
         # tmp name
         d = datetime.datetime.now()
         ts = d.strftime("{}-%f".format(self.__class__.__name__))
+
+        self.working_dir = tempfile.gettempdir() + os.sep + "artap-{}".format(ts) + os.sep
+        os.mkdir(self.working_dir)
 
         # create logger
         self.logger = logging.getLogger(ts)
@@ -110,7 +103,7 @@ class Problem:
         self.surrogate = SurrogateModelEval(self)
         self.signs = []
 
-        #self._freeze()
+        # self._freeze()
         self.set(**kwargs)
         for cost in self.costs:
             if 'criteria' in cost:
@@ -121,8 +114,11 @@ class Problem:
             else:
                 self.signs.append(1)
 
-    def __del__(self):
-        if not self.is_working_dir_set:
+        # clean up
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
+        if self.working_dir.startswith(tempfile.gettempdir() + os.sep + "artap-"):
             shutil.rmtree(self.working_dir)
 
     @abstractmethod
@@ -172,8 +168,8 @@ class Problem:
         pass
 
     def __setattr__(self, key, value):
-        if self.__is_frozen and not hasattr(self, key):
-            raise TypeError(" %r is a frozen class" % self)
+        # if self.__is_frozen and not hasattr(self, key):
+        #     raise TypeError(" %r is a frozen class" % self)
         object.__setattr__(self, key, value)
 
         # working dir must be set
@@ -186,7 +182,19 @@ class Problem:
                 file_handler.setFormatter(self.formatter)
                 # add FileHandler to logger
                 self.logger.addHandler(file_handler)
-                self.is_working_dir_set = True
 
-    def _freeze(self):
-        self.__is_frozen = True
+    # def _freeze(self):
+    #     self.__is_frozen = True
+
+
+class ProblemViewDataStore(Problem):
+    def __init__(self, database_name):
+        super().__init__()
+
+        self.data_store = FileDataStore(self, database_name=database_name, mode=FileMode.READ)
+
+    def set(self, **kwargs):
+        pass
+
+    def evaluate(self, x):
+        pass

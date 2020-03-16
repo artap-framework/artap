@@ -44,17 +44,17 @@ def target_func(x):
 #         return [Booth.eval(individual.vector)]
 
 
-class TestBayesOptimization(unittest.TestCase):
-    """ Tests simple one objective optimization problem."""
-
-    def test_bayesoptimization(self):
-        optimizer = BayesianOptimization(f=target_func,
-                                         pbounds=PBOUNDS,
-                                         random_state=np.random.RandomState(1))
-
-        optimizer.maximize(init_points=5, n_iter=30, acq="ucb", kappa=10.0)
-        print("maximum")
-        print(optimizer.max)
+# class TestBayesOptimization(unittest.TestCase):
+#     """ Tests simple one objective optimization problem."""
+#
+#     def test_bayesoptimization(self):
+#         optimizer = BayesianOptimization(f=target_func,
+#                                          pbounds=PBOUNDS,
+#                                          random_state=np.random.RandomState(1))
+#
+#         optimizer.maximize(init_points=5, n_iter=30, acq="ucb", kappa=10.0)
+#         print("maximum")
+#         print(optimizer.max)
 
 
 if __name__ == '__main__':

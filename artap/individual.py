@@ -1,3 +1,4 @@
+import platform
 from abc import *
 from random import uniform
 from enum import Enum
@@ -8,14 +9,33 @@ class Individual(metaclass=ABCMeta):
 
     class State(Enum):
         EMPTY = 0
-        EVALUATED = 1
-        FAILED = 2
+        IN_PROGRESS = 1
+        EVALUATED = 2
+        FAILED = 3
+
+        @staticmethod
+        def to_string(state):
+            if state == Individual.State.EMPTY:
+                return "Individual is empty."
+            elif state == Individual.State.IN_PROGRESS:
+                return "Individual is in progress."
+            elif state == Individual.State.EVALUATED:
+                return "Individual is evaluated."
+            elif state == Individual.State.FAILED:
+                return "Individual evaluation failed."
 
     def __init__(self, vector: list):
         self.vector = vector.copy()
         self.costs = []
         self.custom = {}
         self.state = self.State.EMPTY
+        self.info = {"start_time": 0.0,
+                     "finish_time": 0.0,
+                     "population": -1,
+                     "processor": platform.processor(),
+                     "system": platform.system(),
+                     "python": platform.python_version(),
+                     "hostname": platform.node()}
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
@@ -43,10 +63,13 @@ class Individual(metaclass=ABCMeta):
                     string += ", "
             string += "]"
 
+        string += "; state: '{}', ".format(Individual.State.to_string(self.state))
+        string += "; info: {}, ".format(self.info)
+
         return string
 
     def __eq__(self, other):
-        return self.vector == other.vector and self.costs == self.costs
+        return self.vector == other.vector and self.costs == self.costs and self.custom == self.custom and self.state == self.state
 
     def __hash__(self):
         return id(self)
@@ -56,6 +79,7 @@ class Individual(metaclass=ABCMeta):
         self.costs = individual.costs
         self.custom = individual.custom
         self.state = individual.state
+        self.info = individual.info
 
 
 class GeneticIndividual(Individual):
