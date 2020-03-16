@@ -92,7 +92,7 @@ class BenchmarkFunction(Problem):
     def pareto_front(self, x):
         pass
 
-    def plot_2d(self, px=0, py=1, cz=0):
+    def plot_2d(self, px=0, py=1, cz=0, f=0):
         """
         Makes a 3 dimensional surface plot from a 2 variable function.
 
@@ -113,7 +113,7 @@ class BenchmarkFunction(Problem):
                      self.parameters[py]['bounds'][1], num=1000)
 
         x, y = np.meshgrid(x, y)
-        z = self.evaluate(Individual([x, y]))[0]
+        z = self.evaluate(Individual([x, y]))[f]
 
         # Plot the surface
         surf = ax.plot_surface(x, y, z, cmap=cmaps.viridis,
@@ -917,7 +917,7 @@ class GramacyLee(BenchmarkFunction):
     def set(self, **kwargs):
         self.name = 'Gramacy and Lee Function'
 
-        self.set_dimension = 2.0
+        self.set_dimension = 1.0
         self.parameters = [{'name': 'x', 'bounds': [0.5, 2.5]}]
 
         self.global_optimum = -0.869011134989500
