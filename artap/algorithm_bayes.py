@@ -1,6 +1,6 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .job import JobSimple
+from .job import Job
 
 import warnings
 import numpy as np
@@ -58,7 +58,7 @@ class BayesSerial(Bayes):
         self.ub = np.empty((n,))
         self.params = {}
 
-        self.job = JobSimple(self.algorithm.problem)
+        self.job = Job(self.algorithm.problem)
 
     def evaluateSample(self, x):
         return self.job.evaluate_scalar(x)

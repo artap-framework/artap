@@ -2,7 +2,7 @@ from .utils import VectorAndNumbers
 from .algorithm import Algorithm
 from .population import Population
 from .individual import Individual
-from .job import JobSimple
+from .job import Job
 from .problem import Problem
 from .operators import CustomGeneration
 
@@ -37,7 +37,7 @@ class SALibAlgorithm(Algorithm):
         self.samples_x = []
         self.samples_y = []
 
-        self.job = JobSimple(self.problem)
+        self.job = Job(self.problem)
 
         self.options.declare(name='method', default='sobol', values=_method,
                              desc='Method')
@@ -88,7 +88,7 @@ class SALibAlgorithm(Algorithm):
         self.samples_y = np.array(self.samples_y)
 
         population = Population(individuals)
-        self.problem.data_store.write_population(population)
+        self.problem.populations.append(population)
 
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))
@@ -175,5 +175,5 @@ class Sensitivity(Algorithm):
             for individual in population.individuals:
                 costs.append(individual.costs)
 
-        # write to datastore
-        self.problem.data_store.write_population(population)
+        # append population
+        self.problem.populations.append(population)
