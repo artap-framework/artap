@@ -302,3 +302,6 @@ class DTLZIV(BenchmarkFunction):
             scores.append(fi)
 
         return scores
+
+
+# TODO : finish the dtlz 5-7 problems and the dtlz test problems https://deap.readthedocs.io/en/master/api/benchmarks.html#deap.benchmarks.zdt1
