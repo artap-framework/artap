@@ -33,6 +33,8 @@ class BenchmarkFunction(Problem):
         self.dimension: int
         self.global_optimum: float
         self.global_optimum_coords: list
+        self.robust_optimum:float
+        self.robust_optimum_coords:list
 
     def generate_paramlist(self, dimension, lb, ub, **kwargs):
         """Defines an n-dimensional list for the optimization"""
@@ -72,8 +74,8 @@ class BenchmarkFunction(Problem):
         :param px:
         :return:
         """
-        x = linspace(self.parameters[px]['bounds'][0], self.parameters[px]['bounds'][1], num=1000)
-        y = np.zeros([1000])
+        x = linspace(self.parameters[px]['bounds'][0], self.parameters[px]['bounds'][1], num=2000)
+        y = np.zeros([2000])
         for i, xi in enumerate(x):
             y[i] = self.evaluate(Individual([xi]))[0]
 
