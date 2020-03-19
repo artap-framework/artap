@@ -276,7 +276,6 @@ class CondorJobExecutor(RemoteExecutor):
                 self._transfer_files_to_remote(remote_dir, client)
 
                 # submit job
-                # print("_create_job_file -      {}".format(remote_dir))
                 try:
                     self._create_job_file(remote_dir, individual, client)
                 except AsyncResultTimeout as e:
@@ -298,39 +297,39 @@ class CondorJobExecutor(RemoteExecutor):
                 while run:
                     eventlog = client.root.eventlog(remote_dir)
                     for e in eventlog:
-                        if {e.timestamp, e.type} not in events:
-                            events.append({e.timestamp, e.type})
+                        if {e["timestamp"], e["type"]} not in events:
+                            events.append({e["timestamp"], e["type"]})
 
                     # print("len(events) = {}".format(len(events)))
                     if len(events) > 0:
                         for i in range(cnt, len(events)):
                             event = eventlog[i]
-                            tp = int(event.type)
+                            tp = event["type"]
 
                             args = ""
 
-                            if tp == 0:
+                            if tp == "submit":
                                 # SUBMIT
                                 if "ReturnValue" in event:
                                     return_value = event["ReturnValue"]
-                            elif tp == 1:
+                            elif tp == "execute":
                                 # EXECUTE
                                 if "ExecuteHost" in event:
                                     args += "ExecuteHost: {}, ".format(parse_address(event["ExecuteHost"]))
-                            elif tp == 6:
+                            elif tp == "image_size":
                                 # IMAGE_SIZE
                                 pass
-                            elif tp == 5:
+                            elif tp == "job_terminated":
                                 # JOB_TERMINATED
                                 if "ReturnValue" in event:
                                     return_value = event["ReturnValue"]
                                 run = False
-                            elif tp == 12:
+                            elif tp == "job_held":
                                 # JOB_HELD
                                 if "ReturnValue" in event:
                                     return_value = event["ReturnValue"]
 
-                                self.problem.logger.error("Job {} is '{}' at {}".format(event.type, event.type, event.type))
+                                self.problem.logger.error("Job {}.{} is '{}' at {}".format(event["cluster"], event["proc"], event["type"], ""))
                                 run = False
                                 # read log
                                 #content_log = self._read_file_from_remote("{}.log".format(self.output_files[0]),
@@ -344,7 +343,7 @@ class CondorJobExecutor(RemoteExecutor):
                             if len(args) > 0:
                                 args = args[:-2]
 
-                            self.problem.logger.info("Job {}.{} ({}) is '{}' at {}".format(event.cluster, event.proc, remote_dir, event.type, args))
+                            self.problem.logger.info("Job {}.{} ({}) is '{}' at {}".format(event["cluster"], event["proc"], remote_dir, event["type"], args))
                             # print("{}: {} ({})".format(eventlog[i].timestamp, eventlog[i].type, args))
 
                     if run:
@@ -397,6 +396,7 @@ class CondorPythonJobExecutor(CondorJobExecutor):
     def __init__(self, problem, script, parameter_file, output_files=None, python_path="python3"):
         self.script = ntpath.basename(script)
         super().__init__(problem, [self.script], output_files)
+
         self.parameter_file = parameter_file
         copyfile(script, self.problem.working_dir + self.script)
 
@@ -408,6 +408,7 @@ class CondorPythonJobExecutor(CondorJobExecutor):
 
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
+
         condor_input_files = [self.script]
         # create input file with parameters
 
@@ -454,8 +455,8 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
         condor_input_files = [self.parameter_file, self.input_files[0]]
-        # create input file with parameters
 
+        # create input file with parameters
         if self.parameter_file:
             # parameters
             param_values_string = Executor._join_parameters_values(individual.vector, "\n")
@@ -493,6 +494,7 @@ class CondorComsolJobExecutor(CondorJobExecutor):
 
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
+
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
         param_values_string = Executor._join_parameters_values(individual.vector)
         arguments = self.arguments.substitute(input_file=os.path.basename(self.model_file),
