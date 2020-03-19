@@ -67,3 +67,4 @@ class TestDTLZIV(unittest.TestCase):
         f2 = test2d.evaluate(Individual(x))[2]
 
         self.assertAlmostEqual(f0**2.0+f1**2.0+f2**2.0, 1.0)
+
