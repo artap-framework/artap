@@ -33,6 +33,8 @@ class BenchmarkFunction(Problem):
         self.dimension: int
         self.global_optimum: float
         self.global_optimum_coords: list
+        self.robust_optimum:float
+        self.robust_optimum_coords:list
 
     def generate_paramlist(self, dimension, lb, ub, **kwargs):
         """Defines an n-dimensional list for the optimization"""
@@ -72,8 +74,8 @@ class BenchmarkFunction(Problem):
         :param px:
         :return:
         """
-        x = linspace(self.parameters[px]['bounds'][0], self.parameters[px]['bounds'][1], num=1000)
-        y = np.zeros([1000])
+        x = linspace(self.parameters[px]['bounds'][0], self.parameters[px]['bounds'][1], num=2000)
+        y = np.zeros([2000])
         for i, xi in enumerate(x):
             y[i] = self.evaluate(Individual([xi]))[0]
 
@@ -90,7 +92,7 @@ class BenchmarkFunction(Problem):
     def pareto_front(self, x):
         pass
 
-    def plot_2d(self, px=0, py=1, cz=0):
+    def plot_2d(self, px=0, py=1, cz=0, f=0):
         """
         Makes a 3 dimensional surface plot from a 2 variable function.
 
@@ -111,7 +113,7 @@ class BenchmarkFunction(Problem):
                      self.parameters[py]['bounds'][1], num=1000)
 
         x, y = np.meshgrid(x, y)
-        z = self.evaluate(Individual([x, y]))[0]
+        z = self.evaluate(Individual([x, y]))[f]
 
         # Plot the surface
         surf = ax.plot_surface(x, y, z, cmap=cmaps.viridis,
@@ -915,7 +917,7 @@ class GramacyLee(BenchmarkFunction):
     def set(self, **kwargs):
         self.name = 'Gramacy and Lee Function'
 
-        self.set_dimension = 2.0
+        self.set_dimension = 1.0
         self.parameters = [{'name': 'x', 'bounds': [0.5, 2.5]}]
 
         self.global_optimum = -0.869011134989500
