@@ -310,24 +310,24 @@ class CondorJobExecutor(RemoteExecutor):
 
                             if tp == "submit":
                                 # SUBMIT
-                                if "ReturnValue" in event:
-                                    return_value = event["ReturnValue"]
+                                if "ReturnValue" in event["info"]:
+                                    return_value = event["info"]["ReturnValue"]
                             elif tp == "execute":
                                 # EXECUTE
-                                if "ExecuteHost" in event:
-                                    args += "ExecuteHost: {}, ".format(parse_address(event["ExecuteHost"]))
+                                if "ExecuteHost" in event["info"]:
+                                    args += "ExecuteHost: {}, ".format(parse_address(event["info"]["ExecuteHost"]))
                             elif tp == "image_size":
                                 # IMAGE_SIZE
                                 pass
                             elif tp == "job_terminated":
                                 # JOB_TERMINATED
-                                if "ReturnValue" in event:
-                                    return_value = event["ReturnValue"]
+                                if "ReturnValue" in event["info"]:
+                                    return_value = event["info"]["ReturnValue"]
                                 run = False
                             elif tp == "job_held":
                                 # JOB_HELD
-                                if "ReturnValue" in event:
-                                    return_value = event["ReturnValue"]
+                                if "ReturnValue" in event["info"]:
+                                    return_value = event["info"]["ReturnValue"]
 
                                 self.problem.logger.error("Job {}.{} is '{}' at {}".format(event["cluster"], event["proc"], event["type"], ""))
                                 run = False
