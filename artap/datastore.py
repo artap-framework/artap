@@ -1,28 +1,28 @@
-import threading
 from multiprocessing import Process, Event
 import os
-import atexit
+import time
 from enum import Enum
 from sqlitedict import SqliteDict
 
 
 class Timer(Process):
     def __init__(self, interval, function, args=[], kwargs={}):
-        super(Timer, self).__init__()
+        super(Timer, self).__init__(*args, **kwargs)
         self.interval = interval
         self.function = function
         self.args = args
         self.kwargs = kwargs
         self.finished = Event()
 
+        self.daemon = True
+
     def cancel(self):
         self.finished.set()
-        self.join()
 
     def run(self):
-        self.finished.wait(self.interval)
-        if not self.finished.is_set():
+        while not self.finished.is_set():
             self.function(*self.args, **self.kwargs)
+            self.finished.wait(self.interval)
         self.finished.set()
 
 
@@ -36,8 +36,6 @@ class FileDataStore:
     def __init__(self, problem, database_name, mode=FileMode.WRITE):
         self._should_continue = False
         self.is_running = False
-        self.delay = 1.0
-        self.timer = None
 
         self.problem = problem
         self.database_name = database_name
@@ -66,24 +64,22 @@ class FileDataStore:
         elif self.mode == FileMode.READ:
             self.read_from_datastore()
 
-        # clean up
-        atexit.register(self.cleanup)
-
+        self.delay = 5.0
         self.start()
-
-    def cleanup(self):
-        self.destroy()
 
     def _handle_target(self):
         self.is_running = True
         self.sync()
         self.is_running = False
-        self._start_timer()
 
     def _start_timer(self):
         if self._should_continue:
-            self.timer = Timer(self.delay, self._handle_target)
-            self.timer.start()
+            # if self.timer is not None:
+            #     self.timer.cancel()
+            #     del self.timer
+            #     self.timer = None
+            timer = Timer(self.delay, self._handle_target)
+            timer.start()
 
     def _create_structure(self):
         self.db["name"] = self.problem.name
@@ -107,21 +103,14 @@ class FileDataStore:
             self._start_timer()
 
     def destroy(self):
-        if self.timer is not None:
-            self._should_continue = False
+        self._should_continue = False
 
-            self.timer.finished.set()
-            self.timer.cancel()
-
-            self.sync()
-            self.db.close()
-
-            del self.timer
-            self.timer = None
+        self.sync()
+        self.db.close()
 
     def sync(self):
         if self.mode == FileMode.WRITE or self.mode == FileMode.REWRITE:
-            if len(self.problem.populations) > 0:
+            if len(self.problem.populations) > 0 and self.db.conn is not None:
                 self.problem.logger.info("Caching to disk {} populations.".format(len(self.problem.populations)))
 
                 self.db["populations"] = self.problem.populations
