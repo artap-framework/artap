@@ -51,26 +51,9 @@ class Problem:
         self.options.declare(name='save_data_files', default=False,
                              desc='Saving data from computation')
 
-        self.name: str = str()
-        self.description: str = str()
-        self.parameters: dict = dict()
-        self.costs: dict = dict()
-
-        # populations
-        self.populations = []
-
-        self.data_store = None
-        self.monitor_service = MonitorService(self)
-        self.executor = None
-
-        self.output_files = None
-
         # tmp name
         d = datetime.datetime.now()
         ts = d.strftime("{}-%f".format(self.__class__.__name__))
-
-        self.working_dir = tempfile.gettempdir() + os.sep + "artap-{}".format(ts) + os.sep
-        os.mkdir(self.working_dir)
 
         # create logger
         self.logger = logging.getLogger(ts)
@@ -92,12 +75,24 @@ class Problem:
             # add StreamHandler to logger
             self.logger.addHandler(stream_handler)
 
-        # self.id = self.data_store.get_id()
-
         self.logger.debug("START")
-        # self.logger.debug('This message should go to the log file')
-        # self.logger.info('So should this')
-        # self.logger.warning('And this, too')
+
+        self.name: str = str()
+        self.description: str = str()
+        self.parameters: dict = dict()
+        self.costs: dict = dict()
+
+        # populations
+        self.populations = []
+
+        self.data_store = None
+        self.monitor_service = MonitorService(self)
+        self.executor = None
+
+        self.output_files = None
+
+        self.working_dir = tempfile.gettempdir() + os.sep + "artap-{}".format(ts) + os.sep
+        os.mkdir(self.working_dir)
 
         # surrogate model (default - only simple eval)
         self.surrogate = SurrogateModelEval(self)
@@ -118,6 +113,14 @@ class Problem:
         atexit.register(self.cleanup)
 
     def cleanup(self):
+        if self.data_store:
+            self.data_store.destroy()
+
+        if self.monitor_service.server is not None:
+            self.monitor_service.server.close()
+            del self.monitor_service.server
+            self.monitor_service.server = None
+
         if self.working_dir.startswith(tempfile.gettempdir() + os.sep + "artap-"):
             shutil.rmtree(self.working_dir)
 

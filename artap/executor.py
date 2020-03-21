@@ -427,6 +427,13 @@ class CondorPythonJobExecutor(CondorJobExecutor):
         # create executable
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
+        # desc
+        desc = {}
+        desc["type"] = "python"
+        desc["extension"] = ".py"
+        desc["editor"] = True
+        desc["name"] = "Python"
+
         client.root.submit_job(remote_dir=remote_dir,
                                executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=arguments,
@@ -435,7 +442,8 @@ class CondorPythonJobExecutor(CondorJobExecutor):
                                requirements=self.requirements,
                                request_cpus=self.request_cpus,
                                request_memory=self.request_memory,
-                               hold_on_start=self.hold_on_start)
+                               hold_on_start=self.hold_on_start,
+                               desc=desc)
 
 
 class CondorMatlabJobExecutor(CondorJobExecutor):
@@ -466,6 +474,13 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
         # create executable
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
+        # desc
+        desc = {}
+        desc["type"] = "matlab"
+        desc["extension"] = ".m"
+        desc["editor"] = False
+        desc["name"] = "Matlab"
+
         client.root.submit_job(remote_dir=remote_dir,
                                executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=self.script,
@@ -474,7 +489,8 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
                                requirements=self.requirements,
                                request_cpus=self.request_cpus,
                                request_memory=self.request_memory,
-                               hold_on_start=self.hold_on_start)
+                               hold_on_start=self.hold_on_start,
+                               desc=desc)
 
 
 class CondorComsolJobExecutor(CondorJobExecutor):
@@ -504,6 +520,13 @@ class CondorComsolJobExecutor(CondorJobExecutor):
         # create executable
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
+        # desc
+        desc = {}
+        desc["type"] = "comsol"
+        desc["extension"] = ".mph"
+        desc["editor"] = False
+        desc["name"] = "Comsol Multiphysics"
+
         client.root.submit_job(remote_dir=remote_dir,
                                executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=arguments,
@@ -512,4 +535,5 @@ class CondorComsolJobExecutor(CondorJobExecutor):
                                requirements=self.requirements,
                                request_cpus=self.request_cpus,
                                request_memory=self.request_memory,
-                               hold_on_start=self.hold_on_start)
+                               hold_on_start=self.hold_on_start,
+                               desc=desc)
