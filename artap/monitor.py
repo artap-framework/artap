@@ -54,9 +54,6 @@ class MonitorService:
         self.server = None
         self.port = 0
 
-        # clean up
-        atexit.register(self.cleanup)
-
         self.start_server()
 
     def start_server(self):
@@ -72,11 +69,7 @@ class MonitorService:
                     continue
 
         self.port = self.server.port
-        print("Problem monitor created at {} port {}".format(self.server.host, self.port))
+        self.problem.logger.info("Problem monitor created at {} port {}".format(self.server.host, self.port))
         self.server.logger.quiet = False
         self.server._start_in_thread()
-
-    def cleanup(self):
-        if self.server is not None:
-            self.server.close()
 
