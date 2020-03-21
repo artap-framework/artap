@@ -5,7 +5,7 @@ import time
 from sqlitedict import SqliteDict
 
 from artap.problem import Problem, ProblemViewDataStore
-from artap.datastore import FileMode, FileDataStore
+from artap.datastore import FileDataStore
 from artap.algorithm_scipy import ScipyOpt
 from artap.algorithm_sweep import SweepAlgorithm
 
