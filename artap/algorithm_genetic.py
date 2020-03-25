@@ -2,8 +2,8 @@ from .problem import Problem
 from .algorithm import Algorithm
 from .population import Population
 from .individual import GeneticIndividual
-from .operators import RandomGeneration, SimulatedBinaryCrossover, \
-    PmMutation, TournamentSelection, GradientGeneration, ParetoDominance, EpsilonDominance
+from .operators import RandomGenerator, SimulatedBinaryCrossover, \
+    PmMutator, TournamentSelector, ParetoDominance, EpsilonDominance
 
 import time
 import sys
@@ -27,7 +27,7 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         self.population_size = 0
 
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters)
+        self.generator = RandomGenerator(self.problem.parameters)
         # self.generator.init(10)
 
     def gen_initial_population(self, is_archive=False):
@@ -110,39 +110,26 @@ class NSGAII(GeneticAlgorithm):
         self.options.declare(name='prob_mutation', default=0.2, lower=0,
                              desc='prob_mutation')
 
-        # TODO: Make new class NSGAII with gradients
-        self.gradient_generator = None
-
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
-        if self.options['calculate_gradients'] is True:
-            self.gradient_generator = GradientGeneration(self.problem.parameters, individual_class=GeneticIndividual)
-
         # set crossover
-        # self.crossover = SimpleCrossover(self.problem.parameters, self.options['prob_cross'])
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
 
         # set mutator
-        # self.mutator = SimpleMutation(self.problem.parameters, self.options['prob_mutation'])
-        self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
+        self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
 
         # set selector
-        self.selector = TournamentSelection(self.problem.parameters)
+        self.selector = TournamentSelector(self.problem.parameters)
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
+
         # non-dominated sort of individuals
         self.selector.sorting(population.individuals)
         self.selector.crowding_distance(population.individuals)
-
-        if self.options['calculate_gradients'] is True:
-            self.gradient_generator.init(population.individuals)
-            gradient_population = Population(self.gradient_generator.generate())
-            self.evaluate(gradient_population.individuals)
-            self.evaluate_gradient(population.individuals, gradient_population.individuals)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -158,13 +145,10 @@ class NSGAII(GeneticAlgorithm):
             self.problem.populations.append(population)
             self.evaluate(offsprings)
 
-            # if (self.options['calculate_gradients'] is True) and population.number > 20:
-            #     population.evaluate_gradients()
-
             # add the parents to the offsprings
             offsprings.extend(deepcopy(population.individuals))
 
-            # non-dominated truncate on the guys
+            # non-dominated truncate on the individuals
             self.selector.sorting(offsprings)
             self.selector.crowding_distance(offsprings)
 
@@ -173,12 +157,6 @@ class NSGAII(GeneticAlgorithm):
 
             # truncate and replace individuals
             population.individuals = parents[:self.population_size]
-
-            if self.options['calculate_gradients'] is True:
-                self.gradient_generator.init(population.individuals)
-                gradient_population = Population(self.gradient_generator.generate())
-                self.evaluate(gradient_population.individuals)
-                self.evaluate_gradient(population.individuals, gradient_population.individuals)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
@@ -198,18 +176,18 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters,
-                                          individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
+        self.generator = RandomGenerator(self.problem.parameters,
+                                         individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
         self.generator.init(self.options['max_population_size'])
 
         # set crossover
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
-        self.mutator = PmMutation(self.problem.parameters, self.options['prob_mutation'])
+        self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
 
         # Part A: non-dominated sort of individuals
         # -----
-        selector_pareto = TournamentSelection(self.problem.parameters)
-        self.selector = TournamentSelection(self.problem.parameters)
+        selector_pareto = TournamentSelector(self.problem.parameters)
+        self.selector = TournamentSelector(self.problem.parameters)
         # the same as in the case of NSGA - ii
         # this operator is used to generate the new individuals
 
@@ -221,8 +199,8 @@ class EpsMOEA(GeneticAlgorithm):
 
         # Part B: eps-dominated sort of the individuals with archiving
         # -----
-        selector_epsdom = TournamentSelection(self.problem.parameters,
-                                              dominance=EpsilonDominance, epsilons=self.options['epsilons'])
+        selector_epsdom = TournamentSelector(self.problem.parameters,
+                                             dominance=EpsilonDominance, epsilons=self.options['epsilons'])
         selector_epsdom.sorting(population.archives)
         selector_epsdom.crowding_distance(population.archives)
 
