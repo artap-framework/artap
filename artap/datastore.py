@@ -64,7 +64,7 @@ class FileDataStore:
         elif self.mode == FileMode.READ:
             self.read_from_datastore()
 
-        self.delay = 5.0
+        self.delay = 2.0
         self.start()
 
     def _handle_target(self):
@@ -110,7 +110,9 @@ class FileDataStore:
 
     def sync(self):
         if self.mode == FileMode.WRITE or self.mode == FileMode.REWRITE:
+            # print("sync: {} - {}".format(self.problem, len(self.problem.populations)))
             if len(self.problem.populations) > 0 and self.db.conn is not None:
+                # print("SYNC - 3")
                 self.problem.logger.info("Caching to disk {} populations.".format(len(self.problem.populations)))
 
                 self.db["populations"] = self.problem.populations
