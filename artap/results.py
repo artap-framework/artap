@@ -132,7 +132,6 @@ class Results:
 
         return out
 
-
     def parameters(self):
         out = []
         for population in self.problem.populations:
