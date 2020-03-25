@@ -1,5 +1,5 @@
-from artap.operators import SimpleMutation, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelection, ParetoDominance
+from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
+    TournamentSelector, ParetoDominance
 from artap.individual import Individual
 from artap.algorithm_genetic import GeneticIndividual
 
@@ -19,7 +19,7 @@ class TestCrossover(unittest.TestCase):
         self.i2 = Individual([3, 2, 1])
 
     def test_simple_mutation(self):
-        sbx = SimpleMutation(self.parameters, 0.7)
+        sbx = SimpleMutator(self.parameters, 0.7)
         individual = sbx.mutate(self.i1)
         self.assertTrue(
             self.parameters[0]['bounds'][0] <= individual.vector[0] <= self.parameters[0]['bounds'][1] and
@@ -72,7 +72,7 @@ class TestCrossover(unittest.TestCase):
 
         _ = [ind.transform_data(self.signs) for ind in individuals]
 
-        selector = TournamentSelection(self.parameters)
+        selector = TournamentSelector(self.parameters)
         selector.sorting(individuals)
 
         for individual in individuals:

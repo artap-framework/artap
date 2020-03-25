@@ -8,7 +8,7 @@ from artap.algorithm_genetic import NSGAII
 from artap.algorithm_sweep import SweepAlgorithm
 from artap.benchmark_functions import Booth
 from artap.results import Results
-from artap.operators import LHSGeneration
+from artap.operators import LHSGenerator
 from artap.surrogate_scikit import SurrogateModelScikit
 
 from sklearn.tree import DecisionTreeRegressor
@@ -234,7 +234,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.surrogate.score_threshold = 0.0
 
         # sweep analysis (for training)
-        gen = LHSGeneration(problem.parameters)
+        gen = LHSGenerator(problem.parameters)
         gen.init(problem.surrogate.train_step)
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()
@@ -292,7 +292,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.surrogate.score_threshold = 0.0
 
         # sweep analysis (for training)
-        gen = LHSGeneration(problem.parameters)
+        gen = LHSGenerator(problem.parameters)
         gen.init(problem.surrogate.train_step)
         algorithm_sweep = SweepAlgorithm(problem, generator=gen)
         algorithm_sweep.run()
