@@ -10,7 +10,7 @@ from artap.algorithm_scipy import ScipyOpt
 from artap.algorithm_sweep import SweepAlgorithm
 
 from artap.results import Results
-from artap.operators import RandomGeneration, CustomGeneration
+from artap.operators import RandomGenerator, CustomGenerator
 
 from sys import platform
 if platform == "win32":
@@ -78,7 +78,7 @@ class TestDataStoreFile(unittest.TestCase):
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
         problem.data_store = FileDataStore(problem, database_name=database_name, mode=FileMode.REWRITE)
 
-        gen = CustomGeneration(problem.parameters)
+        gen = CustomGenerator(problem.parameters)
         gen.init([[1, 2], [3, 3]])
 
         algorithm = SweepAlgorithm(problem, generator=gen)
@@ -111,7 +111,7 @@ class TestDataStoreFileBenchmark(unittest.TestCase):
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
         problem.data_store = FileDataStore(problem, database_name=database_name)
 
-        gen = RandomGeneration(problem.parameters)
+        gen = RandomGenerator(problem.parameters)
         gen.init(self.n)
 
         algorithm = SweepAlgorithm(problem, generator=gen)

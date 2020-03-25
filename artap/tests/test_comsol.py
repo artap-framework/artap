@@ -53,10 +53,10 @@ class TestLocalComsol(unittest.TestCase):
         problem = ComsolProblem()
 
         individuals = [Individual([10, 10])]
-        evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(individuals)
+        algorithm = DummyAlgorithm(problem)
+        algorithm.evaluator.evaluate(individuals)
         try:
-            evaluator.evaluate(individuals)
+            algorithm.evaluate(individuals)
             self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
         except Exception as e:
             print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")

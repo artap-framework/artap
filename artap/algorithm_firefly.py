@@ -1,8 +1,7 @@
 from numpy.random import random_sample
 from .problem import Problem
-from .population import Population
 from .algorithm_genetic import GeneticAlgorithm, GeneticIndividual
-from .operators import FireflyMutation, DummySelection, RandomGeneration
+from .operators import FireflyMutator, DummySelector, RandomGenerator
 
 import time
 
@@ -15,11 +14,11 @@ class MoFirefly(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
-        self.mutator = FireflyMutation(self.problem.parameters)
-        self.selector = DummySelection(self.problem.parameters, self.problem.signs)
+        self.mutator = FireflyMutator(self.problem.parameters)
+        self.selector = DummySelector(self.problem.parameters, self.problem.signs)
 
     def run(self):
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
