@@ -2,7 +2,7 @@ from random import randint
 from .problem import Problem
 from .population import Population
 from .algorithm_genetic import GeneticAlgorithm, GeneticIndividual
-from .operators import SwarmMutation, DummySelection, RandomGeneration, SwarmMutationTVIW
+from .operators import SwarmMutator, DummySelector, RandomGenerator, SwarmMutatorTVIW
 
 import time
 
@@ -12,12 +12,12 @@ class PSO(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
-        self.mutator = SwarmMutation(self.problem.parameters)
-        self.selector = DummySelection(self.problem.parameters, self.problem.signs)
+        self.mutator = SwarmMutator(self.problem.parameters)
+        self.selector = DummySelector(self.problem.parameters, self.problem.signs)
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
@@ -49,7 +49,7 @@ class PSO(GeneticAlgorithm):
 
             population = Population(offsprings)
             self.problem.populations.append(population)
-            self.evaluate(offsprings)
+            self.evaluator.evaluate(offsprings)
 
             for individual in offsprings:
                 self.mutator.evaluate_best_individual(individual)
@@ -78,12 +78,12 @@ class PSO_V1(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm - with time varieting inertia weight"):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
-        self.mutator = SwarmMutationTVIW(self.problem.parameters, self.options['max_population_number'])
-        self.selector = DummySelection(self.problem.parameters, self.problem.signs)
+        self.mutator = SwarmMutatorTVIW(self.problem.parameters, self.options['max_population_number'])
+        self.selector = DummySelector(self.problem.parameters, self.problem.signs)
 
     def run(self):
         # set random generator
-        self.generator = RandomGeneration(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
