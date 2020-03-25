@@ -119,7 +119,7 @@ class TestCondor(TestCase):
 
         individuals = [Individual([10, 10]), Individual([11, 11])]
         algorithm = DummyAlgorithm(problem)
-        algorithm.evaluator.evaluate(individuals)
+        algorithm.evaluate(individuals)
 
         self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
         self.assertAlmostEqual(124.23499735221547, individuals[1].costs[0])

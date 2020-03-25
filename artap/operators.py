@@ -39,7 +39,7 @@ class Evaluator(Operator):
     def run(self):
         self.evaluate(self.individuals)
 
-    def evaluate(self, individuals: list):
+    def evaluate(self, individuals):
         if self.algorithm.options["max_processes"] > 1:
             self.evaluate_parallel(individuals)
         else:
@@ -83,9 +83,15 @@ class GradientEvaluator(Evaluator):
 
         self.to_evaluate.extend(individual.children)
 
+    def evaluate(self, individuals):
+        super().evaluate(individuals)
+        for individual in individuals:
+            self.add(individual)
+        self.run()
+
     def run(self):
         n_params = len(self.individuals[0].vector)
-        self.evaluate(self.to_evaluate)
+        super().evaluate(self.to_evaluate)
         for individual in self.individuals:
             gradient = np.zeros(n_params)
             i = 0
@@ -93,6 +99,33 @@ class GradientEvaluator(Evaluator):
                 gradient[i] = ((individual.costs[0] - child.costs[0]) / self.delta)
                 i += 1
             individual.features['gradient'] = gradient
+        self.individuals = []
+        self.to_evaluate = []
+
+
+class RichardsonGradientEvaluator(Operator):
+
+    def __init__(self):
+        pass
+
+    # def evaluate_gradient_richardson(self, population, individual):
+    #     x0 = individual.vector
+    #     gradient = [0] * len(x0)
+    #
+    #     h = 1e-6
+    #     job = Job(self.problem, population)
+    #     y = job.evaluate_scalar(x0)
+    #     for i in range(len(x0)):
+    #         x = x0.copy()
+    #         x[i] += h
+    #         y_h = job.evaluate_scalar(x)
+    #         d_0_h = gradient[i] = (y_h - y) / h
+    #         x[i] += h
+    #         y_2h = job.evaluate_scalar(x)
+    #         d_0_2h = (y_2h - y) / 2 / h
+    #         gradient[i] = (4 * d_0_h - d_0_2h) / 3
+    #
+    #     return gradient
 
 
 class Generator(Operator):
