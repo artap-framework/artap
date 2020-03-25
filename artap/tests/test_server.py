@@ -6,7 +6,7 @@ import rpyc
 
 from artap.algorithm_sweep import SweepAlgorithm
 from artap.problem import Problem
-from artap.operators import LHSGeneration
+from artap.operators import LHSGenerator
 from artap.monitor import MONITOR_PORT
 
 
@@ -26,7 +26,7 @@ class SleepProblem(Problem):
 
 class TestServer(unittest.TestCase):
     def run_test(self):
-        generator = LHSGeneration(self.problem.parameters)
+        generator = LHSGenerator(self.problem.parameters)
         generator.init(5)
 
         algorithm = SweepAlgorithm(self.problem, generator=generator)
@@ -62,7 +62,7 @@ class TestServer(unittest.TestCase):
     def run_test(self, n):
         problem = SleepProblem()
         problem.name = "SleepProblem{}".format(n)
-        generator = LHSGeneration(problem.parameters)
+        generator = LHSGenerator(problem.parameters)
         generator.init(1)
 
         algorithm = SweepAlgorithm(problem, generator=generator)
