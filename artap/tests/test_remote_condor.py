@@ -118,8 +118,8 @@ class TestCondor(TestCase):
         problem = CondorComsolProblem()
 
         individuals = [Individual([10, 10]), Individual([11, 11])]
-        evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(individuals)
+        algorithm = DummyAlgorithm(problem)
+        algorithm.evaluator.evaluate(individuals)
 
         self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
         self.assertAlmostEqual(124.23499735221547, individuals[1].costs[0])
@@ -129,8 +129,8 @@ class TestCondor(TestCase):
         problem = PythonExecProblem()
 
         individuals = [Individual([1, 2])]
-        evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(individuals)
+        algorithm = DummyAlgorithm(problem)
+        algorithm.evaluator.evaluate(individuals)
 
         self.assertAlmostEqual(5, individuals[0].costs[0])
 
@@ -145,7 +145,7 @@ class TestCondor(TestCase):
 
         algorithm = DummyAlgorithm(problem)
         algorithm.options['max_processes'] = 70
-        algorithm.evaluate(individuals)
+        algorithm.evaluator.evaluate(individuals)
 
         for i in range(n):
             # print(individuals[i])
@@ -156,8 +156,8 @@ class TestCondor(TestCase):
         problem = PythonInputProblem()
 
         individuals = [Individual([1, 2])]
-        evaluator = DummyAlgorithm(problem)
-        evaluator.evaluate(individuals)
+        algorithm = DummyAlgorithm(problem)
+        algorithm.evaluator.evaluate(individuals)
 
         self.assertAlmostEqual(5, individuals[0].costs[0])
 

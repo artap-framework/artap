@@ -3,17 +3,19 @@ import sys
 import random
 import math
 import itertools
-import numpy as np
 from math import exp
-from artap.individual import Individual
+import numpy as np
+from artap.individual import Individual, GeneticIndividual
 from artap.utils import VectorAndNumbers
 from artap.doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
-from copy import copy
+from .job import Job
+from joblib import Parallel, delayed
 
 EPSILON = sys.float_info.epsilon
 
 
-class Operation(ABC):
+# TODO: Seems to be useless
+class Operator(ABC):
 
     def __init__(self):
         pass
@@ -23,7 +25,77 @@ class Operation(ABC):
         return max(min_value, min(value, max_value))
 
 
-class Generation(Operation):
+# TODO: Change name of classes to Evaluator?
+class Evaluator(Operator):
+
+    def __init__(self, algorithm):
+        super().__init__()
+        self.algorithm = algorithm
+        self.individuals = []
+
+    def add(self, individual):
+        self.individuals.append(individual)
+
+    def run(self):
+        self.evaluate(self.individuals)
+
+    def evaluate(self, individuals: list):
+        if self.algorithm.options["max_processes"] > 1:
+            self.evaluate_parallel(individuals)
+        else:
+            self.evaluate_serial(individuals)
+
+        n_failed = 0
+        for individual in individuals:
+            if individual.state == Individual.State.FAILED:
+                n_failed += 1
+                individuals.remove(individual)   # TODO: is can be not feasible?
+            if isinstance(individual, GeneticIndividual):
+                individual.transform_data(self.algorithm.problem.signs)
+
+    def evaluate_serial(self, individuals: list):
+        job = Job(self.algorithm.problem)
+        for individual in individuals:
+            if individual.state == Individual.State.EMPTY:
+                job.evaluate(individual)
+
+    def evaluate_parallel(self, individuals: list):
+        # simple parallel loop
+        job = Job(self.algorithm.problem)
+        Parallel(n_jobs=self.algorithm.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
+                                                                                       for individual in individuals)
+
+
+class GradientEvaluator(Evaluator):
+
+    def __init__(self, algorithm):
+        super().__init__(algorithm)
+        self.delta = 1e-4
+        self.to_evaluate = []
+
+    def add(self, individual):
+        self.individuals.append(individual)
+        for i in range(len(individual.vector)):
+            vector = individual.vector.copy()
+            vector[i] -= self.delta
+            individual.children.append(Individual(vector))
+            individual.children[-1].parents.append(individual)
+
+        self.to_evaluate.extend(individual.children)
+
+    def run(self):
+        n_params = len(self.individuals[0].vector)
+        self.evaluate(self.to_evaluate)
+        for individual in self.individuals:
+            gradient = np.zeros(n_params)
+            i = 0
+            for child in individual.children:
+                gradient[i] = ((individual.costs[0] - child.costs[0]) / self.delta)
+                i += 1
+            individual.features['gradient'] = gradient
+
+
+class Generator(Operator):
 
     def __init__(self, parameters=None, individual_class=Individual):
         super().__init__()
@@ -38,7 +110,7 @@ class Generation(Operation):
         pass
 
 
-class CustomGeneration(Generation):
+class CustomGenerator(Generator):
 
     def __init__(self, parameters=None, individual_class=Individual):
         super().__init__(parameters, individual_class)
@@ -54,7 +126,7 @@ class CustomGeneration(Generation):
         return individuals
 
 
-class RandomGeneration(Generation):
+class RandomGenerator(Generator):
 
     def __init__(self, parameters=None, individual_class=Individual):
         super().__init__(parameters, individual_class)
@@ -71,7 +143,7 @@ class RandomGeneration(Generation):
         return individuals
 
 
-class FullFactorGeneration(Generation):
+class FullFactorGenerator(Generator):
     """
     Create a general full-factorial design
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
@@ -104,7 +176,7 @@ class FullFactorGeneration(Generation):
         return individuals
 
 
-class PlackettBurmanGeneration(Generation):
+class PlackettBurmanGenerator(Generator):
     """
     Create a general full-factorial design
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
@@ -130,7 +202,7 @@ class PlackettBurmanGeneration(Generation):
         return individuals
 
 
-class BoxBehnkenGeneration(Generation):
+class BoxBehnkenGenerator(Generator):
     """
     Create a general full-factorial design
     # 3 params = 13 experiments
@@ -162,7 +234,7 @@ class BoxBehnkenGeneration(Generation):
         return individuals
 
 
-class LHSGeneration(Generation):
+class LHSGenerator(Generator):
     """
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
@@ -191,31 +263,7 @@ class LHSGeneration(Generation):
         return individuals
 
 
-class GradientGeneration(Generation):
-
-    def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class)
-        self.delta = 1e-6
-        self.individuals = None
-
-    def init(self, individuals):
-        self.individuals = individuals
-
-    def generate(self):
-        new_individuals = []
-        k = 0
-        for individual in self.individuals:
-            for i in range(len(individual.vector)):
-                vector = individual.vector.copy()
-                vector[i] -= self.delta
-                new_individuals.append(self.create_individual(vector))
-                new_individuals[-1].depends_on = k
-                new_individuals[-1].modified_param = i
-            k += 1
-        return new_individuals
-
-
-class Mutation(Operation):
+class Mutator(Operator):
 
     def __init__(self, parameters, probability):
         super().__init__()
@@ -227,7 +275,7 @@ class Mutation(Operation):
         pass
 
 
-class SimpleMutation(Mutation):
+class SimpleMutator(Mutator):
     def __init__(self, parameters, probability):
         super().__init__(parameters, probability)
 
@@ -252,7 +300,7 @@ class SimpleMutation(Mutation):
         return p_new
 
 
-class PmMutation(Mutation):
+class PmMutator(Mutator):
     """
     PmMutation -- for nsga2 and epsMoEA
 
@@ -325,7 +373,7 @@ class PmMutation(Mutation):
         return x
 
 
-class SwarmMutation(Mutation):
+class SwarmMutator(Mutator):
     """
     This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
 
@@ -392,7 +440,7 @@ class SwarmMutation(Mutation):
         return p
 
 
-class SwarmMutationTVIW(SwarmMutation):
+class SwarmMutatorTVIW(SwarmMutator):
     """
     This is an improvement of the original PSO algorithm with Time Varying Inertia Weight operators.
 
@@ -447,7 +495,7 @@ class SwarmMutationTVIW(SwarmMutation):
             self.current_iter += 1.
 
 
-class SwarmMutationRandIW(SwarmMutation):
+class SwarmMutatorRandIW(SwarmMutator):
     """
     In this variation, the inertia weght is changing randomly,the mean value of the inertia weight is 0.75.
     This modification was inspired by Clerc’s constriction factor concept,  in which the inertia weight is
@@ -483,7 +531,7 @@ class SwarmMutationRandIW(SwarmMutation):
             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
 
 
-class FireflyMutation(SwarmMutation):
+class FireflyMutator(SwarmMutator):
     """
     Firefly algorithm is a modification of the original pso algorithms. The idea is that it mimics the behaviour of
     the fireflies, which uses specfic light combinations for hunting and dating. This algorithm mimics the dating
@@ -622,7 +670,7 @@ class FireflyMutation(SwarmMutation):
         return
 
 
-class SwarmMutationTVAC(SwarmMutation):
+class SwarmMutatorTVAC(SwarmMutator):
     """
     Time-varying acceleration coefficients as a new parameter automation strategy for the PSO concept.
 
@@ -669,7 +717,7 @@ class SwarmMutationTVAC(SwarmMutation):
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
 
-class Selection(Operation):
+class Selector(Operator):
 
     def __init__(self, parameters, part_num=2):
         super().__init__()
@@ -754,7 +802,8 @@ class Selection(Operation):
             p.crowding_distance = p.crowding_distance / n
 
 
-class DummySelection(Selection):
+class DummySelector(Selector):
+
 
     def __init__(self, parameters, part_num=2):
         super().__init__(parameters, part_num)
@@ -950,7 +999,7 @@ class ParetoDominance(Dominance):
             return 2
 
 
-class Selection(Operation):
+class Selector(Operator):
 
     def __init__(self, parameters, sign=None, part_num=2, dominance=ParetoDominance):
         """
@@ -1045,7 +1094,7 @@ class Selection(Operation):
             p.crowding_distance = p.crowding_distance / n
 
 
-class DummySelection(Selection):
+class DummySelector(Selector):
 
     def __init__(self, parameters, sign, part_num=2):
         super().__init__(parameters, sign, part_num)
@@ -1063,7 +1112,7 @@ class DummySelection(Selection):
         return selection
 
 
-class TournamentSelection(Selection):
+class TournamentSelector(Selector):
 
     def __init__(self, parameters, dominance=ParetoDominance, epsilons=None):
         super().__init__(parameters)
@@ -1170,7 +1219,7 @@ class EpsilonBoxArchive(Archive):
                 self.improvements += 1
 
 
-class Crossover(Operation):
+class Crossover(Operator):
 
     def __init__(self, parameters, probability):
         super().__init__()
