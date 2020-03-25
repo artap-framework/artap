@@ -27,8 +27,12 @@ class Individual(metaclass=ABCMeta):
     def __init__(self, vector: list):
         self.vector = vector.copy()
         self.costs = []
-        self.custom = {}
         self.state = self.State.EMPTY
+        self.parents = []
+        self.children = []
+        self.features = {}
+        self.custom = {}
+
         self.info = {"start_time": 0.0,
                      "finish_time": 0.0,
                      "population": -1,
@@ -81,7 +85,7 @@ class Individual(metaclass=ABCMeta):
         self.state = individual.state
         self.info = individual.info
 
-
+# TODO: Deprecated will be removed
 class GeneticIndividual(Individual):
     def __init__(self, vector: list):
         super().__init__(vector)
