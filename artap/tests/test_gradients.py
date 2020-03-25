@@ -4,7 +4,7 @@ from artap.problem import Problem
 from artap.algorithm_gradient import GradientAlgorithm
 
 
-class MyProblem(Problem):
+class ParabolicProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
     def set(self):
@@ -16,22 +16,32 @@ class MyProblem(Problem):
 
     def evaluate(self, individual):
         x = individual.vector
-        result = x[0] * x[0] + x[1] * x[1] + x[2] * x[2]
+        result = x[0]**3 + x[1]**2 + x[2]**2
         return [result]
 
 
-class TestSensitivity(unittest.TestCase):
+def analytic_gradient(individual):
+    x = individual.vector
+    dx1 = 3 * x[0]**2
+    dx2 = 2 * x[1]
+    dx3 = 2 * x[2]
+    return [dx1, dx2, dx3]
+
+
+class TestGradients(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = MyProblem()
+        problem = ParabolicProblem()
         algorithm = GradientAlgorithm(problem)
-        algorithm.options['max_population_size'] = 4
+        algorithm.options['max_population_size'] = 10
         algorithm.run()
 
         for individual in problem.populations[0].individuals:
-            print(individual.features['gradient'])
-            print(individual.vector)
+            gradient = individual.features['gradient']
+            ref_gradient = analytic_gradient(individual)
+            for i in range(len(gradient)):
+                self.assertAlmostEqual(gradient[i], ref_gradient[i], 2)
 
 
 if __name__ == '__main__':

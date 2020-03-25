@@ -19,11 +19,6 @@ class GradientAlgorithm(GeneticAlgorithm):
         t_s = time.time()
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
-
-        for individual in population.individuals:
-            self.evaluator.add(individual)
-
-        self.evaluator.run()
-
+        self.problem.populations.append(population)
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))

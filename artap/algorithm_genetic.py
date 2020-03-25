@@ -45,7 +45,7 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         # set current size
         self.population_size = len(individuals)
         # evaluate individuals
-        self.evaluate(individuals)
+        self.evaluator.evaluate(individuals)
 
         return population
 
