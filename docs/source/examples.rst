@@ -91,6 +91,7 @@ Every result of the optimization stored in a database. To find the optimal one o
 Here, we show, how can we use the Results class:
 
 .. code-block:: python
+
     from artap.results import Results
 
 Simply, we just instantiate a new class from the problem, and we can use the *find_minimum* method in the following way:
@@ -116,6 +117,7 @@ Using Nealder-Mead algorithm for optimization
 You can use the built-in scipy based non-linear optimization tools, as well. For this, you have to import the following module from scipy:
 
 .. code-block:: python
+
     from artap.algorithm_scipy import ScipyOpt
 
 Then you can setup the optimization task on the following way:
