@@ -1,8 +1,5 @@
 .. index::
-   single: Examples
-
-Examples
-========
+   single: Single objective unconstrained problem
 
 
 Problem 1 - Simple unconstrained problem:
@@ -135,3 +132,11 @@ Then you can setup the optimization task on the following way:
     opt = results_nlm.find_minimum('F_1')
 
 .. [CIT1] Gardner, M. "Mathematical Games: About Henry Ernest Dudeney, A Brilliant Creator of Puzzles." Sci. Amer. 198, 108-112, Jun. 1958.
+
+
+------------------------------------------------------------
+Automatically generated docummentation from the example file
+------------------------------------------------------------
+
+.. automodule:: artap.examples.single_objective_problem
+    :members:
