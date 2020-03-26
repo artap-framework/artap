@@ -1,5 +1,5 @@
-API Documentation
-=================
+API Docummentation
+==================
 
 Problem
 -------
@@ -11,3 +11,5 @@ Algorithms
 ----------
 .. automodule:: artap.algorithm
     :members:
+
+
