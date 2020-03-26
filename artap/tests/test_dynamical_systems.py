@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import unittest
 from artap.dynamical_systems import DiscreteLTISystem
 from artap.dynamical_systems import Model
@@ -256,3 +257,7 @@ class TestDynamicalSystems(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+=======
+from artap.dynamical_systems import LTISystem
+
+>>>>>>> 65f175f3f60f3670c6d91fa0e478f427944452c0

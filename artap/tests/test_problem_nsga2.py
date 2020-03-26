@@ -22,8 +22,14 @@ class BinhAndKornProblem(Problem):
         function = BinhAndKorn()
         return function.eval(individual.vector)
 
+<<<<<<< HEAD
     def evaluate_constraints(self, individual):
         return BinhAndKorn.constraints(individual.vector)
+=======
+    def evaluate_constraints(self, x):
+        function = BinhAndKorn()
+        return function.constraints(x)
+>>>>>>> 65f175f3f60f3670c6d91fa0e478f427944452c0
 
 
 class TestNSGA2Optimization(unittest.TestCase):
