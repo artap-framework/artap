@@ -22,3 +22,7 @@ enviroment_local.json
 /tests/workspace
 /artap/tests/workspace/common_data/2018-11-13_17-47-08.439790_DEMO
 environment_local.json
+_build
+3rdparty/agros/
+3rdparty/nlopt2/
+
