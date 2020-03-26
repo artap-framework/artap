@@ -1,3 +1,9 @@
+"""
+algorithm.py
+===========================================
+This is base class for all algorithms
+"""
+
 from .problem import Problem
 from .utils import ConfigDictionary
 from abc import ABCMeta
