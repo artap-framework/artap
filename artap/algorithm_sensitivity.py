@@ -4,7 +4,7 @@ from .population import Population
 from .individual import Individual
 from .job import Job
 from .problem import Problem
-from .operators import CustomGeneration
+from .operators import CustomGenerator
 
 from SALib.sample.saltelli import sample as sobol_sample
 from SALib.sample.morris import sample as morris_sample

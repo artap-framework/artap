@@ -12,6 +12,7 @@ import logging
 import datetime
 import tempfile
 import os
+import sys
 import shutil
 import atexit
 
@@ -59,21 +60,28 @@ class Problem:
         self.logger = logging.getLogger(ts)
         self.logger.setLevel(self.options['log_level'])
 
-        for h in list(self.logger.handlers):
-            print(h)
-
         # create formatter
         self.formatter = logging.Formatter('%(asctime)s (%(levelname)s): '
                                            '%(name)s - %(funcName)s (%(lineno)d) - %(message)s')
 
         if self.options['log_console_handler']:
             # create console handler and set level to debug
-            stream_handler = logging.StreamHandler()
-            stream_handler.setLevel(logging.DEBUG)
+            stream_err_handler = logging.StreamHandler()
+            stream_err_handler.setLevel(logging.DEBUG)
             # add formatter to StreamHandler
-            stream_handler.setFormatter(self.formatter)
+            stream_err_handler.setFormatter(self.formatter)
             # add StreamHandler to logger
-            self.logger.addHandler(stream_handler)
+            self.logger.addHandler(stream_err_handler)
+
+            # stream_std_handler = logging.StreamHandler()
+            # stream_std_handler.setLevel(logging.INFO)
+            # # add formatter to StreamHandler
+            # stream_std_handler.setFormatter(self.formatter)
+            # # add StreamHandler to logger
+            # self.logger.addHandler(stream_std_handler)
+
+        for h in list(self.logger.handlers):
+            print(h)
 
         self.logger.debug("START")
 

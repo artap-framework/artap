@@ -1,4 +1,4 @@
-import atexit
+import os
 import rpyc
 from rpyc.core.service import ClassicService
 
@@ -43,6 +43,14 @@ class ArtapMonitorService(ClassicService):
 
     def populations(self):
         return self.problem.populations
+
+    def database_name(self):
+        if self.problem.data_store is not None:
+            if os.path.exists(self.problem.data_store.database_name):
+                self.problem.data_store.sync()
+                return os.path.abspath(self.problem.data_store.database_name)
+        else:
+            return None
 
     def problem(self):
         return self.problem
