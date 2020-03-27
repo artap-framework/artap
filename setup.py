@@ -1,6 +1,5 @@
 import setuptools
 from setuptools.command.install import install
-import subprocess
 import os
 
 
@@ -8,8 +7,8 @@ class CustomInstallCommand(install):
     """Custom install setup to help run shell commands (outside shell) before installation"""
 
     def run(self):
-        os.system('pip3 install numpy')
-        os.system('pip3 install cython')
+        os.system('python3 -m pip install numpy')
+        os.system('python3 -m pip install cython')
         install.run(self)
 
 
@@ -37,9 +36,7 @@ setuptools.setup(
     cmdclass={'install': CustomInstallCommand},
     packages=setuptools.find_packages(),
     include_package_data=True,
-    # data_files=[('artap/lib', ['artap/lib/bayesopt.so']),
     install_requires=requirements,
-    # scripts=['3rdparty/submodules.sh'],
     classifiers=[
         "Intended Audience :: Science/Research",
         "Operating System :: POSIX :: Linux",
@@ -49,3 +46,4 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
 )
+

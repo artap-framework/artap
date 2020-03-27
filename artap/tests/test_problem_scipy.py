@@ -28,7 +28,6 @@ class TestAckleyN2(unittest.TestCase):
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4
-        algorithm.options['calculate_gradients'] = True
         algorithm.run()
 
         print(problem.populations[0].individuals[3])

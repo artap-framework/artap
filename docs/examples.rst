@@ -7,3 +7,9 @@ Examples should demonstrate the main features and ways of the Artap usage.
    :maxdepth: 2
 
    spyder
+
+
+.. toctree::
+   :maxdepth: 2
+
+   capacitor
