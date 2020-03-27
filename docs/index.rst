@@ -16,7 +16,9 @@ optimization algorithms.
    intro
    install
    examples
+   api
    copyright
+
 
 Indices and tables
 ==================

@@ -22,6 +22,7 @@ H = 1.
 W = 1.
 L = 1.
 
+
 class ArtapProblem(Problem):
     """
     The solution of this problem needs to find the minimum of a one parametered (x_1) goal function.
