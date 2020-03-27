@@ -1,8 +1,5 @@
 .. index::
-   single: Examples
-
-Examples
-========
+   single: Single objective unconstrained problem
 
 
 Problem 1 - Simple unconstrained problem:
@@ -91,6 +88,7 @@ Every result of the optimization stored in a database. To find the optimal one o
 Here, we show, how can we use the Results class:
 
 .. code-block:: python
+
     from artap.results import Results
 
 Simply, we just instantiate a new class from the problem, and we can use the *find_minimum* method in the following way:
@@ -116,6 +114,7 @@ Using Nealder-Mead algorithm for optimization
 You can use the built-in scipy based non-linear optimization tools, as well. For this, you have to import the following module from scipy:
 
 .. code-block:: python
+
     from artap.algorithm_scipy import ScipyOpt
 
 Then you can setup the optimization task on the following way:
@@ -133,3 +132,11 @@ Then you can setup the optimization task on the following way:
     opt = results_nlm.find_minimum('F_1')
 
 .. [CIT1] Gardner, M. "Mathematical Games: About Henry Ernest Dudeney, A Brilliant Creator of Puzzles." Sci. Amer. 198, 108-112, Jun. 1958.
+
+
+------------------------------------------------------------
+Automatically generated docummentation from the example file
+------------------------------------------------------------
+
+.. automodule:: artap.examples.single_objective_problem
+    :members:
