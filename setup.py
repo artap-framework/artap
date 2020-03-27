@@ -33,7 +33,7 @@ def setup_package():
             # "pytz >= 2017.2",
             f"numpy >= {min_numpy_ver}",
             requirements,
-            "smt >= 0.3.4",
+            #"smt >= 0.3.4",
         ],
         "setup_requires": [f"numpy >= {min_numpy_ver}"],
         "zip_safe": False,

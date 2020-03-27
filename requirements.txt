@@ -16,3 +16,4 @@ scikit-learn
 pyDOE2
 numpydoc
 six>=1.10
+smt
