@@ -16,8 +16,8 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
-
+sys.path.insert(0, os.path.abspath('../'))
+print(sys.path)
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -25,7 +25,13 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.imgmath']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.todo',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -90,9 +96,35 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-html_theme = 'default'
+# The theme to use for HTML and HTML Help pages.  Major themes that come with
+# Sphinx are currently 'default' and 'sphinxdoc'.
+html_theme = 'dktheme'
+html_theme_path = ['./_static']
+
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+html_theme_options = {
+'bodyfont': 'verdana, helvetica, arial, sans-serif',
+'bgcolor': '#FFFFFF',
+'textcolor': '#000000',
+'linkcolor': '#3D5C7A',
+'rightsidebar': False,
+'sidebarbgcolor': '#F8F8F8',
+'sidebartextcolor': '#000000',
+'sidebarlinkcolor': '#3D5C7A',
+'headfont': '"trebuchet ms", verdana, helvetica, arial, sans-serif',
+'headbgcolor': '#FFFFFF',
+'headtextcolor': '#7590AE',
+'headlinkcolor': '#3D5C7A',
+'codebgcolor': '#F5F5F5',
+'codetextcolor': '#000000',
+'relbarbgcolor': '#4d4d4d', 
+'relbartextcolor': '#000000',
+'relbarlinkcolor': '#FFFFFF',
+'footerbgcolor': '#FFFFFF',
+'footertextcolor': '#000000',
+}
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -111,12 +143,12 @@ html_theme = 'default'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = './_static/artap.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = './_static/agros2d.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

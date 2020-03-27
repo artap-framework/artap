@@ -1,14 +1,13 @@
+"""
+algorithm.py
+===========================================
+This is base class for all algorithms
+"""
+
 from .problem import Problem
 from .utils import ConfigDictionary
-from .job import Job
-from .population import Population
-from .individual import Individual,GeneticIndividual
-from .operators import RandomGeneration
-
-from abc import ABCMeta, abstractmethod
-import numpy as np
-
-from joblib import Parallel, delayed
+from abc import ABCMeta
+from .operators import Evaluator
 
 
 class Algorithm(metaclass=ABCMeta):
@@ -17,6 +16,7 @@ class Algorithm(metaclass=ABCMeta):
     def __init__(self, problem: Problem, name="Algorithm"):
         self.name = name
         self.problem = problem
+        self.evaluator = Evaluator(self)
         self.parameters = problem.parameters
         self.options = ConfigDictionary()
 
@@ -31,49 +31,8 @@ class Algorithm(metaclass=ABCMeta):
         self.options.declare(name='n_iterations', default=10,
                              desc='Max number of iterations')
 
-    def evaluate(self, individuals: list):
-        if self.options["max_processes"] > 1:
-            self.evaluate_parallel(individuals)
-        else:
-            self.evaluate_serial(individuals)
-
-        n_failed = 0
-        for individual in individuals:
-            if individual.state == Individual.State.FAILED:
-                n_failed += 1
-                individuals.remove(individual)   # TODO: is can be not feasible?
-            if isinstance(individual, GeneticIndividual):
-                individual.transform_data(self.problem.signs)
-
-    def evaluate_serial(self, individuals: list):
-        job = Job(self.problem)
-        for individual in individuals:
-            if individual.state == Individual.State.EMPTY:
-                job.evaluate(individual)
-
-    def evaluate_parallel(self, individuals: list):
-        # simple parallel loop
-        job = Job(self.problem)
-        Parallel(n_jobs=self.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
-                                                                                       for individual in individuals)
-
-    def evaluate_gradient(self, individuals: list, gradient_individuals: list):
-        # Todo: Make operator Gradient consisting of current gradient generator and evaluate_gradient
-        # individuals.sort(key=lambda x: abs(x.depends_on))
-        n_params = len(individuals[0].vector)
-        for j in range(len(individuals)):
-            table = []
-            for i in range(len(gradient_individuals)):
-                individual = gradient_individuals[i]
-                if individual.depends_on == j:
-                    table.append(individual)
-
-            gradient = np.zeros(n_params)
-            for k in range(len(table)):
-                index = table[k].modified_param
-                gradient[index] = ((individuals[j].costs[0] - table[k].costs[0]) / 1e-6)
-
-            individuals[j].gradient = gradient
+    def evaluate(self, individuals):
+        self.evaluator.evaluate(individuals)
 
 
 class DummyAlgorithm(Algorithm):
