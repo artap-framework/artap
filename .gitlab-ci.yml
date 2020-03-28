@@ -16,5 +16,6 @@ build:
     - pip install -r requirements.txt
 
     # tests
+    - export CONDOR_HOST=edison.fel.zcu.cz
     - cd artap/tests
     - pytest --disable-warnings --durations=0 -v
