@@ -35,6 +35,7 @@ class ScipyOpt(Algorithm):
         # optimization
         t_s = time.time()
         self.problem.logger.info("ScipyOpt: {}".format(self.options['algorithm']))
-        minimize(job.evaluate_scalar, x0, method=self.options['algorithm'], tol=self.options['tol'], bounds=self.options['bounds'])
+        minimize(job.evaluate_scalar, x0, method=self.options['algorithm'], tol=self.options['tol'],
+                 bounds=self.options['bounds'], options={'maxiter':self.options['n_iterations']})
         t = time.time() - t_s
         self.problem.logger.info("ScipyOpt: elapsed time: {} s".format(t))
