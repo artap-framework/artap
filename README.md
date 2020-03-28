@@ -63,18 +63,24 @@ The Pareto - front of the following problem is known, it is a simple hyperbola. 
 
 If you use Ārtap in your research, the developers would be grateful if you would cite the relevant publications:
 
-[1] David Pánek, Tamás Orosz, Pavel Karban, Artap: Robust design optimization framework for engineering applications, in: The Third International Conference on Intelligent Computing in Data Sciences ICDS2019, IEEE, 2019, pp. 1–5, [in press]
+[1]  Karban, Pavel, David Pánek, Tamás Orosz, Iveta Petrášová, and Ivo Doležel. “FEM based robust design optimization with Agros and Ārtap.” Computers & Mathematics with Applications (2020) https://doi.org/10.1016/j.camwa.2020.02.010.
+
+[2] Pánek, David, Tamás Orosz, and Pavel Karban. ” Ārtap: robust design optimization framework for engineering applications.” arXiv preprint arXiv:1912.11550 (2019).
 
 ### Applications
-[2] Karban, P., Pánek, D., & Doležel, I. (2018). Model of induction brazing of nonmagnetic metals using model order reduction approach. COMPEL-The international journal for computation and mathematics in electrical and electronic engineering, 37(4), 1515-1524.
+[3] Karban, P., Pánek, D., & Doležel, I. (2018). Model of induction brazing of nonmagnetic metals using model order reduction approach. COMPEL-The international journal for computation and mathematics in electrical and electronic engineering, 37(4), 1515-1524, https://doi.org/10.1108/COMPEL-08-2017-0356.
 
-[3] Pánek, D., Orosz, T., Kropík, P., Karban, P., & Doležel, I. (2019, June). Reduced-Order Model Based Temperature Control of Induction Brazing Process. In 2019 Electric Power Quality and Supply Reliability Conference (PQ) & 2019 Symposium on Electrical Engineering and Mechatronics (SEEM) (pp. 1-4). IEEE.
+[4] Pánek, D., Orosz, T., Kropík, P., Karban, P., & Doležel, I. (2019, June). Reduced-Order Model Based Temperature Control of Induction Brazing Process. In 2019 Electric Power Quality and Supply Reliability Conference (PQ) & 2019 Symposium on Electrical Engineering and Mechatronics (SEEM) (pp. 1-4). IEEE, https://doi.org/10.1109/PQ.2019.8818256.
 
-[4] Pánek, D., Karban, P., & Doležel, I. (2019). Calibration of Numerical Model of Magnetic Induction Brazing. IEEE Transactions on Magnetics, 55(6), 1-4.
+[5] Pánek, D., Karban, P., & Doležel, I. (2019). Calibration of Numerical Model of Magnetic Induction Brazing. IEEE Transactions on Magnetics, 55(6), 1-4, https://doi.org/10.1109/TMAG.2019.2897571.
+
+[6] Pánek, D., Orosz, T., Karban, P., & Doležel, I. (2020), “Comparison of simplified techniques for solving selected coupled electroheat problems”, COMPEL – The international journal for computation and mathematics in electrical and electronic engineering, Vol. 39 No. 1, pp. 220-230. https://doi.org/10.1108/COMPEL-06-2019-0244
+
+[7] Orosz, T.; Pánek, D.; Karban, P. FEM Based Preliminary Design Optimization in Case of Large Power Transformers. Appl. Sci. 2020, 10, 1361, https://doi.org/10.3390/app10041361.
 
 ## Contact
 
-If you have any questions, do not hesitate to contact us: artap.team@gmail.com
+If you have any questions, do not hesitate to contact us: artap.framework@gmail.com
 
 ## License
 

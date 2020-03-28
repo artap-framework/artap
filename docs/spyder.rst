@@ -2,7 +2,7 @@
    single: Single objective unconstrained problem
 
 
-Problem 1 - Simple unconstrained problem:
+Spyder - Simple unconstrained problem:
 -----------------------------------------
 
 A spider (*S*) sits in one corner of a cuboid room, measuring **H** by **W** by **L**, and a fly, (*F*), sits in the opposite
