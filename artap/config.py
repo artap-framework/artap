@@ -12,8 +12,6 @@ tests_root = os.path.abspath(path + os.sep + "tests" + os.sep)
 
 # config
 config = {}
-
-# config["condor_host"] = "edison.fel.zcu.cz"
 config["condor_host"] = None
 # get system user name
 config["condor_login"] = getpass.getuser()
@@ -28,3 +26,9 @@ config["server_keep_live_delay"] = 0.1
 fn = "{}/config.py".format(user_config_dir(__id__))
 if os.path.exists(fn):
     exec(open(fn).read())
+
+# env config
+for key in config:
+    if key.upper() in os.environ:
+        print(key.upper(), os.environ[key.upper()])
+        config[key] = os.environ[key.upper()]
