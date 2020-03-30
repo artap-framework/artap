@@ -13,7 +13,7 @@ class TestAckley(unittest.TestCase):
             problem = Ackley(**{'dimension': 1})
             algorithm = PSO(problem)
             algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 50
+            algorithm.options['max_population_size'] = 30
             algorithm.options['max_processes'] = 10
             algorithm.run()
 
@@ -28,12 +28,12 @@ class TestAckley(unittest.TestCase):
 class TestAckleyv1(unittest.TestCase):
     """ Tests that the PSO can find the global optimum. """
 
-    def test_local_problem(self, population_number=15):
+    def test_local_problem(self, population_number=30):
         try:
             problem = Ackley(**{'dimension': 1})
             algorithm = PSO_V1(problem)
             algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 50
+            algorithm.options['max_population_size'] = 30
             algorithm.options['max_processes'] = 10
             algorithm.run()
 
