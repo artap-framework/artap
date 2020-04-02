@@ -42,8 +42,7 @@ class ProblemAnalytical(Problem):
         # The three, separate optimization functions and the direction of the optimization
         # is set to minimization. It is also possible to use the maximize keyword.
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
-                      {'name': 'f_2', 'criteria': 'minimize'},
-                      {'name': 'f_3', 'criteria': 'minimize'}]
+                      {'name': 'f_2', 'criteria': 'minimize'}]
 
         # Initialize a database to store the data into the given space
         self.data_store = FileDataStore(self, database_name="/tmp/team_multi.db", mode="write")
@@ -117,9 +116,10 @@ class ProblemAnalytical(Problem):
         ny = 8
         dx = (5e-3 - dxy) / (nx - 1)
         dy = (5e-3 - dxy) / (ny - 1)
-
         f1 = 0.0
         f2 = 0.0
+        f3 = 0.0
+
         for i in range(0, nx):
             xx = dxy + i * dx
             for j in range(0, ny):
@@ -133,11 +133,11 @@ class ProblemAnalytical(Problem):
                 [Brp, Bzp] = self.integral_all(xx + dxsi, yy, individual.vector)
                 [Brm, Bzm] = self.integral_all(xx - dxsi, yy, individual.vector)
                 Bp2 = math.sqrt((Brp - Br) ** 2 + (Bzp - Bz) ** 2) + math.sqrt((Brm - Br) ** 2 + (Bzm - Bz) ** 2)
-                f2 = max(f2, Bp2)
+                f3 = max(f2, Bp2)
 
-        f3 = sum(individual.vector) * 1e3
+        f2 = sum(individual.vector) * 1e3
 
-        return [f1]
+        return [f1,f2]
 
 
 def optim_single():
@@ -149,8 +149,6 @@ def optim_single():
     algorithm.options['n_iterations'] = 100
 
     algorithm.run()
-
-
 
 
 def check_analytical():
@@ -211,6 +209,7 @@ def check_plot():
     pl.show()
 
 
-# check_analytical()
-check_plot()
-optim_single()
+if __name__ == "main":
+    # check_analytical()
+    check_plot()
+    optim_single()
