@@ -1,15 +1,25 @@
 import os
 import numpy as np
 import pylab as pl
+
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator, FuncFormatter
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rc
 
 import logging
+
 mpl_logger = logging.getLogger('matplotlib')
 mpl_logger.setLevel(logging.WARNING)
 
 import csv
+
+
+def minor_tick(x, pos):
+    if not x % 1.0:
+        return ""
+    return "%.2f" % x
 
 class Results:
     MINIMIZE = -1
@@ -57,9 +67,9 @@ class Results:
                 cost = self.problem.costs[i]
                 if cost['name'] == name:
                     index = i
-        #if len(self.problem.data_store.individuals) is not 0:
+        # if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
-        #else:
+        # else:
         if len(self.problem.populations[-1].archives) > 0:
             min_l = [min(self.problem.populations[-1].archives, key=lambda x: x.costs[index])]
         else:
@@ -108,6 +118,37 @@ class Results:
                     l_sol.append(individual.costs)
         return l_sol
 
+    def pareto_plot(self, cost_x = 0, cost_y = 1):
+        """
+        A simple 2d - pareto plot from the variable 1 and 2 by default.
+        :return:
+        """
+
+        pvalues = self.pareto_values()
+
+        x = [i[cost_x] for i in pvalues]
+        y = [i[cost_y] for i in pvalues]
+
+        fig, ax = plt.subplots(figsize=(10, 5))  # customizes alpha for each dot in the scatter plot
+        ax.scatter(x, y, alpha=0.80)
+
+        # adds a title and axes labels
+        x_name = self.problem.costs[cost_x]['name']
+        y_name = self.problem.costs[cost_y]['name']
+
+        ax.set_title('Pareto values')
+        ax.set_xlabel(x_name)
+        ax.set_ylabel(y_name)
+
+        # removing top and right borders
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)  # adds major gridlines
+        ax.grid(color='grey', linestyle='-', linewidth=0.25, alpha=0.5)
+
+        plt.show()
+        return
+
+
     def table(self):
         out = []
         if len(self.problem.populations) > 0:
@@ -121,14 +162,14 @@ class Results:
                     out.append([])
 
                 for population in self.problem.populations:
-                        for individual in population.individuals:
-                            i = 0
-                            for v in individual.vector:
-                                out[i].append(v)
-                                i += 1
-                            for c in individual.costs:
-                                out[i].append(c)
-                                i += 1
+                    for individual in population.individuals:
+                        i = 0
+                        for v in individual.vector:
+                            out[i].append(v)
+                            i += 1
+                        for c in individual.costs:
+                            out[i].append(c)
+                            i += 1
 
         return out
 
@@ -154,7 +195,7 @@ class Results:
         """
         for population in self.problem.populations:
             out_file = self.problem.working_dir + "population_" + \
-                          str(self.problem.populations.index(population)) + "_costs.csv"
+                       str(self.problem.populations.index(population)) + "_costs.csv"
 
             with open(out_file, 'w', newline='') as f:
                 writer = csv.writer(f)
@@ -172,6 +213,7 @@ class Results:
                     writer.writerows([out])
 
         return
+
 
 class GraphicalResults(Results):
 
@@ -215,20 +257,19 @@ class GraphicalResults(Results):
         ax = pl.gca()
         # ax.set_yscale('log')
         # ax.set_xscale('log')
-        #ax.set_xlim(-1.5, -0.9)
-        #ax.set_ylim(0.3, 0.8)
-        #ax.set_xlim(0.00000, 0.0004)
-        #ax.set_ylim(50, 200)
-        #ax.set_xlim(0.00000, 0.001)
-        #ax.set_ylim(60, 300)
-        #ax.set_xlim(0.00000, 0.00125)
-        #ax.set_ylim(-0.00001, 0.0002)
+        # ax.set_xlim(-1.5, -0.9)
+        # ax.set_ylim(0.3, 0.8)
+        # ax.set_xlim(0.00000, 0.0004)
+        # ax.set_ylim(50, 200)
+        # ax.set_xlim(0.00000, 0.001)
+        # ax.set_ylim(60, 300)
+        # ax.set_xlim(0.00000, 0.00125)
+        # ax.set_ylim(-0.00001, 0.0002)
 
         # labels
         pl.grid()
         pl.xlabel("${}$".format(name1))
         pl.ylabel("${}$".format(name2))
-
         if filename is not None:
             pl.savefig(filename)
         else:
@@ -359,9 +400,9 @@ class GraphicalResults(Results):
                     #
 
                     if hasattr(individual, 'front_number'):
-                            scale = 100 / (individual.front_number / 1.)
-                            ax.scatter(individual.costs[0], individual.costs[1],
-                                       scale, c=colors[(individual.front_number - 1) % 6])
+                        scale = 100 / (individual.front_number / 1.)
+                        ax.scatter(individual.costs[0], individual.costs[1],
+                                   scale, c=colors[(individual.front_number - 1) % 6])
                 labels = []
                 for cost in self.problem.costs:
                     labels.append(cost['name'])
