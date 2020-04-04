@@ -1,0 +1,2 @@
+.. index::
+   agros_problem
