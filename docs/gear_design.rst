@@ -4,7 +4,6 @@
 Gear Design - Multi-objective mechanical design problem
 =========================================================
 
-
 This example shows, that how you can use Artap to solve a simple multi-objective optimization problem. The optimization
 problem is inspired by a mechanical engineering problem and it is a general test problem for multi-objective optimization
 solvers [DEB]_. The objective of the task is to find the optimal turn numbers of a gearbox gear's.
@@ -75,6 +74,9 @@ The following code block defines the above described mathematical problem for Ar
         return [f1, f2]
 
 
+The problem is solved by the NSGA-II algorithm of the *Algorithm* class on the maximum of 100 populations, which contains
+100 individuals.
+
 .. code-block:: python
 
 
@@ -88,7 +90,7 @@ The following code block defines the above described mathematical problem for Ar
     algorithm.run()
 
 
-Post - processing the results with the simple *Results* classn and a simple plot with matpolib from the given Pareto-front.
+Post - processing the results with the simple *Results* class and a simple plot with matpolib from the given Pareto-front.
 
 .. code-block:: python
 
