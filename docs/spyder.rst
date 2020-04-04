@@ -2,11 +2,10 @@
    single: Single objective unconstrained problem
 
 
-Spyder - Simple unconstrained problem:
------------------------------------------
+Spyder - A Simple - single - objective optimization with Artap:
+---------------------------------------------------------------
 
-The role of this problem is to show a simple, well-known problem, w single optimization task, wc
-
+The role of this problem is to show the solution of a simple, well-known optimization problem in Artap.
 
 A spider (*S*) sits in one corner of a cuboid room, measuring **H** by **W** by **L**, and a fly, (*F*), sits in the opposite
 corner. By travelling on the surfaces of the room the, what is the shortest “straight line” distance from (*S*) to (*F*)?
@@ -126,7 +125,10 @@ Simply, we just instantiate a new class from the problem, and we can use the *fi
 
 .. code-block:: python
 
-    Optimal solution (NSGA-II): vector: [0.500010763656608]; costs:[2.2360679775826897], front number: None crowding distance: 0
+    Optimal solution: vector: [0.500010763656608]; costs:[2.2360679775826897], front number: None crowding distance: 0
+
+
+.. [CIT1] Gardner, M. "Mathematical Games: About Henry Ernest Dudeney, A Brilliant Creator of Puzzles." Sci. Amer. 198, 108-112, Jun. 1958.
 
 
 ------------------------------------------------------------
