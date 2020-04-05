@@ -2,9 +2,6 @@ from artap.problem import Problem
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
-import matplotlib.pyplot as plt
-
-
 class BiObjectiveTestProblem(Problem):
     """
     The goal of this example to show, how we can use Artap to solve a simple,
@@ -66,17 +63,4 @@ algorithm.run()
 # Post - processing the results
 # reads in the result values into the b, results class
 b = Results(problem)
-# print(b.parameters())
-# b.write_out_populations()
-solution = b.pareto_values()
-# Plotting out the resulting hyperbola with matplotlib
-plt.scatter([s[0] for s in solution],
-            [s[1] for s in solution])
-
-plt.xlim([0, 1.05])
-plt.ylim([0, 10.1])
-
-plt.xlabel("$f_1(x)$")
-plt.ylabel("$f_2(x)$")
-
-plt.show()
+b.pareto_plot()
