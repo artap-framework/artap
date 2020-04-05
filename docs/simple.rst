@@ -97,7 +97,7 @@ Every calculation result saved into the problem class during the calculation. It
     b = Results(problem)
     b.pareto_values()
 
-
+----------
 References
 ----------
 
