@@ -211,7 +211,7 @@ def check_analytical_agros():
 
 
 def optim_single():
-    problem = ProblemAnalytical()  # AgrosSingle()
+    problem = AgrosSimple()
     # optimization
     algorithm = NSGAII(problem)
     algorithm.options['max_population_number'] = 100
