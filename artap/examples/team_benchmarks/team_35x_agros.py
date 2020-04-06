@@ -6,7 +6,7 @@ from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.results import Results, GraphicalResults
 import agrossuite.agros as a2d
 
-from artap.examples.TEAM_BENCHMARK_35x.semi_analytical_optimization import ProblemAnalytical
+from artap.examples.team_benchmarks.team_35x_semi_analytical import ProblemAnalytical
 
 
 class AgrosSimple(Problem):
@@ -30,7 +30,6 @@ class AgrosSimple(Problem):
                       {'name': 'F2', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
-
         x = x.vector
 
         # problem
@@ -170,8 +169,12 @@ class AgrosSimple(Problem):
         f3 = 0.0
         for i in range(0, nx):
             xx = dxy + i * dx
+            if xx > 0.005:
+                xx = 0.005
             for j in range(0, ny):
                 yy = dxy + j * dy
+                if yy > 0.005:
+                    yy = 0.005
 
                 point = solution.local_values(xx, yy)
                 Br = point["Brr"]
@@ -180,12 +183,13 @@ class AgrosSimple(Problem):
                 Bp1s = math.sqrt((Br - 0.0) ** 2 + (Bz - B0) ** 2)
                 f1 = max(f1, Bp1s)
 
-                Bp2 = math.sqrt((Brp - Br) ** 2 + (Bzp - Bz) ** 2) + math.sqrt((Brm - Br) ** 2 + (Bzm - Bz) ** 2)
-                f3 = max(f2, Bp2)
+                # Bp2 = math.sqrt((Brp - Br) ** 2 + (Bzp - Bz) ** 2) + math.sqrt((Brm - Br) ** 2 + (Bzm - Bz) ** 2)
+                # f3 = max(f2, Bp2)
 
         f2 = sum(x) * 1e3
 
-        return [f1, f2, f3]
+        return [f1, f2]
+        # return [f1, f2, f3]
 
 
 def check_analytical_agros():
@@ -217,10 +221,9 @@ def optim_single():
     algorithm.options['max_population_number'] = 100
     algorithm.options['max_population_size'] = 100
     algorithm.run()
-    b = Results(problem)
 
+    b = Results(problem)
     b.pareto_plot()
 
-if __name__ == '__main__':
-    # check_analytical_agros()
-    optim_single()
+# check_analytical_agros()
+optim_single()
