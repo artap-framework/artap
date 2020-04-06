@@ -82,7 +82,7 @@ plt.ylabel("Maximum stress [MPa]")
 # original Palli et al, 1999
 plt.scatter(0.004445, 89.983, c='red')
 plt.annotate('   Red points are the original solutions from eps-constraint method', (0.004445, 89.983))
-#plt.annotate('Original solution with eps-constraint method',(0.004833, 83.268))
+# plt.annotate('Original solution with eps-constraint method',(0.004833, 83.268))
 plt.scatter(0.004833, 83.268, c='red')
 
 plt.show()

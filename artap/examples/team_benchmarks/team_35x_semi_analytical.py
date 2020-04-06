@@ -15,7 +15,7 @@ from artap.problem import Problem
 from artap.individual import Individual
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.datastore import FileDataStore
-
+from artap.results import Results
 
 class ProblemAnalytical(Problem):
     def set(self):
@@ -137,7 +137,7 @@ class ProblemAnalytical(Problem):
 
         f2 = sum(individual.vector) * 1e3
 
-        return [f1,f2]
+        return [f1, f2]
 
 
 def optim_single():
@@ -149,6 +149,9 @@ def optim_single():
     algorithm.options['n_iterations'] = 100
 
     algorithm.run()
+
+    b = Results(problem)
+    b.pareto_plot()
 
 
 def check_analytical():
@@ -209,7 +212,6 @@ def check_plot():
     pl.show()
 
 
-if __name__ == "main":
-    # check_analytical()
-    check_plot()
-    optim_single()
+# check_analytical()
+check_plot()
+optim_single()
