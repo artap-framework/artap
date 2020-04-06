@@ -80,8 +80,8 @@ class Problem:
             # # add StreamHandler to logger
             # self.logger.addHandler(stream_std_handler)
 
-        for h in list(self.logger.handlers):
-            print(h)
+        # for h in list(self.logger.handlers):
+        #     print(h)
 
         self.logger.debug("START")
 

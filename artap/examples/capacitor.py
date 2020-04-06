@@ -26,7 +26,7 @@ class ComsolProblem(Problem):
 
         # Executor serves for calling the Comsol Multiphisics
         self.executor = LocalComsolExecutor(self,
-                                            problem_file="capacitor/capacitor.mph",  # File with the model
+                                            problem_file="capacitor.mph",  # File with the model
                                             output_files=self.output_files)  # file with results produced by Comsol
 
     # Calculate the value of the objective function
@@ -53,9 +53,8 @@ class ComsolProblem(Problem):
         return [result]
 
 
-if __name__ == "__main__":
-    problem = ComsolProblem()  # Creating problem
-    algorithm = ScipyOpt(problem)  # Algorithm from Scipy was choosen
-    algorithm.options['algorithm'] = 'COBYLA'
-    algorithm.options['n_iterations'] = 5
-    algorithm.run()
+problem = ComsolProblem()  # Creating problem
+algorithm = ScipyOpt(problem)  # Algorithm from Scipy was choosen
+algorithm.options['algorithm'] = 'COBYLA'
+algorithm.options['n_iterations'] = 5
+algorithm.run()

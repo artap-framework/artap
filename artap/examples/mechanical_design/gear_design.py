@@ -67,6 +67,7 @@ class GearDesignProblem(Problem):
         f2 = max(x.vector)
         return [f1, f2]
 
+
 # Initialization of the problem
 problem = GearDesignProblem()
 
