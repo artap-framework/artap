@@ -17,11 +17,6 @@ from artap.problem import Problem
 from artap.results import Results
 from artap.algorithm_scipy import ScipyOpt
 
-# wall lengths defined as global parameters
-H = 1.
-W = 1.
-L = 1.
-
 
 class ArtapProblem(Problem):
     """
@@ -30,6 +25,10 @@ class ArtapProblem(Problem):
     """
 
     def set(self):
+        # wall lengths defined as global parameters
+        self.H = 1.
+        self.W = 1.
+        self.L = 1.
 
         self.name = "spyder on the wall"
         self.parameters = [{'name': 'x_1', 'initial_value':0.1, 'bounds': [0.0, 0.9]}]
@@ -42,13 +41,14 @@ class ArtapProblem(Problem):
         x = individual.vector
 
         # the goal function
-        F1 = (x[0] ** 2. + H ** 2.) ** 0.5 + ((W - x[0]) ** 2. + L ** 2.) ** 0.5
+        F1 = (x[0] ** 2. + self.H ** 2.) ** 0.5 + ((self.W - x[0]) ** 2. + self.L ** 2.) ** 0.5
 
         # the evaluate function should give back a list of the calculated objective values, following the defined
         # order in set(Problem) in this case --> ['F1']
         return [F1]
 
-### Optimization with Nelder-Mead
+
+# Optimization with Nelder-Mead
 problem_nlm = ArtapProblem()
 
 # set the optimization method

@@ -1,5 +1,3 @@
-import sys
-
 def eval(x):
     return x[0]**2 + x[1]**2     
 
