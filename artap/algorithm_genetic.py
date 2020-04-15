@@ -1,14 +1,11 @@
-from .problem import Problem
-from .algorithm import Algorithm
-from .population import Population
-from .individual import GeneticIndividual
-from .operators import RandomGenerator, SimulatedBinaryCrossover, \
-    PmMutator, TournamentSelector, ParetoDominance, EpsilonDominance
-
 import time
-import sys
-
 from copy import deepcopy
+
+from .algorithm import Algorithm
+from .operators import RandomGenerator, SimulatedBinaryCrossover, \
+    PmMutator, TournamentSelector, EpsilonDominance
+from .population import Population
+from .problem import Problem
 
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
@@ -44,9 +41,6 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
         # set current size
         self.population_size = len(individuals)
-        # evaluate individuals
-        self.evaluator.evaluate(individuals)
-
         return population
 
     def run(self):
@@ -65,6 +59,11 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
                              desc='max_population_number')
         self.options.declare(name='max_population_size', default=100, lower=1,
                              desc='Maximal number of individuals in population')
+        self.features = dict()
+
+    def add_features(self, individuals):
+        for individual in individuals:
+            individual.features = self.features.copy()
 
     def generate(self, parents, archive=None):
         """ generate two children from two different parents """
@@ -109,10 +108,14 @@ class NSGAII(GeneticAlgorithm):
                              desc='prob_cross')
         self.options.declare(name='prob_mutation', default=0.2, lower=0,
                              desc='prob_mutation')
+        self.features = {'dominate': set(),
+                         'crowding_distance': 0,
+                         'domination_counter': 0,
+                         'front_number': 0}
 
     def run(self):
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.generator.init(self.options['max_population_size'])
 
         # set crossover
@@ -126,6 +129,8 @@ class NSGAII(GeneticAlgorithm):
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
+        self.evaluate(population.individuals)
+        self.add_features(population.individuals)
 
         # non-dominated sort of individuals
         self.selector.sorting(population.individuals)
@@ -144,6 +149,7 @@ class NSGAII(GeneticAlgorithm):
             population = Population(offsprings)
             self.problem.populations.append(population)
             self.evaluate(offsprings)
+            self.add_features(offsprings)
 
             # add the parents to the offsprings
             offsprings.extend(deepcopy(population.individuals))
@@ -153,7 +159,7 @@ class NSGAII(GeneticAlgorithm):
             self.selector.crowding_distance(offsprings)
 
             # sort offsprings and ### remove duplicates by set!!!
-            parents = sorted(set(offsprings), key=lambda x: (x.front_number, -x.crowding_distance))
+            parents = sorted(set(offsprings), key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
 
             # truncate and replace individuals
             population.individuals = parents[:self.population_size]
@@ -176,8 +182,7 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters,
-                                         individual_class=GeneticIndividual)  # the same as in the case of NSGA-II
+        self.generator = RandomGenerator(self.problem.parameters)  # the same as in the case of NSGA-II
         self.generator.init(self.options['max_population_size'])
 
         # set crossover
