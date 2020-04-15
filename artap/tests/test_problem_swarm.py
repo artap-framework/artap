@@ -1,5 +1,4 @@
 import unittest
-from artap.problem import Problem
 from artap.algorithm_swarm import PSO, PSO_V1
 from artap.results import Results
 from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
