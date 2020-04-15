@@ -1,7 +1,7 @@
 from random import randint
 from .problem import Problem
 from .population import Population
-from .algorithm_genetic import GeneticAlgorithm, GeneticIndividual
+from .algorithm_genetic import GeneticAlgorithm
 from .operators import SwarmMutator, DummySelector, RandomGenerator, SwarmMutatorTVIW
 
 import time
@@ -14,13 +14,18 @@ class PSO(GeneticAlgorithm):
         self.n = self.options['max_population_size']
         self.mutator = SwarmMutator(self.problem.parameters)
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
+        self.features = {'velocity': [],
+                         'best_vector': [],
+                         'best_costs': []}
 
     def run(self):
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
+        self.evaluate(population.individuals)
+        self.add_features(population.individuals)
 
         for individual in population.individuals:
             self.mutator.evaluate_best_individual(individual)
@@ -37,7 +42,7 @@ class PSO(GeneticAlgorithm):
 
             pareto_front = []
             for individual in offsprings:
-                if individual.front_number == 1:
+                if individual.features['front_number'] == 1:
                     pareto_front.append(individual)
 
             for individual in offsprings:
@@ -50,13 +55,12 @@ class PSO(GeneticAlgorithm):
             population = Population(offsprings)
             self.problem.populations.append(population)
             self.evaluator.evaluate(offsprings)
+            self.add_features(offsprings)
 
             for individual in offsprings:
                 self.mutator.evaluate_best_individual(individual)
 
             self.selector.sorting(offsprings)
-
-
 
             i += 1
 
@@ -83,10 +87,12 @@ class PSO_V1(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
+        self.evaluate(population.individuals)
+        self.add_features(population.individuals)
 
         for individual in population.individuals:
             self.mutator.evaluate_best_individual(individual)
@@ -115,6 +121,7 @@ class PSO_V1(GeneticAlgorithm):
                     self.mutator.mutate(individual)
 
             self.evaluate(offsprings)
+            self.add_features(offsprings)
 
             for individual in offsprings:
                 self.mutator.evaluate_best_individual(individual)

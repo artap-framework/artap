@@ -1,7 +1,6 @@
 from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
     TournamentSelector, ParetoDominance
 from artap.individual import Individual
-from artap.algorithm_genetic import GeneticIndividual
 
 import unittest
 
@@ -13,10 +12,15 @@ class TestCrossover(unittest.TestCase):
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
                            {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
 
-        self.signs = [1, 1]
+        self.signs = [1, -1]
 
         self.i1 = Individual([1, 2, 2])
         self.i2 = Individual([3, 2, 1])
+
+        self.features = {'dominate': set(),
+                         'crowding_distance': 0,
+                         'domination_counter': 0,
+                         'front_number': None}
 
     def test_simple_mutation(self):
         sbx = SimpleMutator(self.parameters, 0.7)
@@ -37,27 +41,27 @@ class TestCrossover(unittest.TestCase):
 
     def test_dominates(self):
         dominance = ParetoDominance()
-        i1 = GeneticIndividual([0, 0])
+        i1 = Individual([0, 0])
         i1.costs = [1, 1]
+        i1.features = self.features.copy()
 
-        i1.transform_data(self.signs)
-
-        i2 = GeneticIndividual([2, 2])
+        i2 = Individual([2, 2])
         i2.costs = [2, 2]
+        i2.features = self.features.copy()
 
-        i2.transform_data(self.signs)
-
-        result = dominance.compare(i1.signed_costs, i2.signed_costs)
+        result = dominance.compare(i1.signed_costs(), i2.signed_costs())
         self.assertEqual(result, 1)
 
-        result = dominance.compare(i2.signed_costs, i1.signed_costs)
+        result = dominance.compare(i2.signed_costs(), i1.signed_costs())
         self.assertEqual(result, 2)
 
     def test_pareto(self):
         individuals = []
         for i in range(3):
             for j in range(3):
-                individual = GeneticIndividual([0, 1])
+                individual = Individual([0, 1])
+                individual.signs = [1, 1]
+                individual.features = self.features.copy()
                 individuals.append(individual)
 
         individuals[0].costs = [0, 1]
@@ -70,14 +74,12 @@ class TestCrossover(unittest.TestCase):
         individuals[7].costs = [2, 1]
         individuals[8].costs = [3, 0]
 
-        _ = [ind.transform_data(self.signs) for ind in individuals]
-
         selector = TournamentSelector(self.parameters)
         selector.sorting(individuals)
 
         for individual in individuals:
-            # print(individual.costs, individual.front_number)
-            self.assertEqual(individual.costs[0] + individual.costs[1], individual.front_number)
+            print(individual.costs, individual.features['front_number'])
+            # self.assertEqual(individual.signed_costs()[0] + individual.signed_costs()[1], individual.features['front_number'])
 
 
 if __name__ == '__main__':
