@@ -5,7 +5,7 @@ import math
 import itertools
 from math import exp
 import numpy as np
-from artap.individual import Individual, GeneticIndividual
+from artap.individual import Individual
 from artap.utils import VectorAndNumbers
 from artap.doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
 from .job import Job
@@ -50,8 +50,6 @@ class Evaluator(Operator):
             if individual.state == Individual.State.FAILED:
                 n_failed += 1
                 individuals.remove(individual)   # TODO: is can be not feasible?
-            if isinstance(individual, GeneticIndividual):
-                individual.transform_data(self.algorithm.problem.signs)
 
     def evaluate_serial(self, individuals: list):
         job = Job(self.algorithm.problem)
@@ -64,7 +62,6 @@ class Evaluator(Operator):
         job = Job(self.algorithm.problem)
         Parallel(n_jobs=self.algorithm.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
                                                                                        for individual in individuals)
-
 
 class GradientEvaluator(Evaluator):
 
@@ -429,32 +426,33 @@ class SwarmMutator(Mutator):
     def evaluate_best_individual(self, individual):
         """ Determines the best individual in the swarm """
         dominates = True
-
-        for i in range(len(individual.best_costs)):
-            if individual.costs[i] > individual.best_costs[i]:
+        individual.features['best_costs'] = [0] * len(individual.costs)
+        for i in range(len(individual.features['best_costs'])):
+            if individual.costs[i] > individual.features['best_costs'][i]:
                 dominates = False
 
         # check to see if the current position is an individual best
         if dominates:
-            individual.best_vector = individual.vector
-            individual.best_costs = individual.costs
+            individual.features['best_vector'] = individual.vector
+            individual.features['best_costs'] = individual.costs
 
     # update new particle velocity
     def update_velocity(self, individual):
-
+        individual.features['velocity'] = [0]*len(individual.vector)
+        individual.features['best_vector'] = [0]*len(individual.vector)
         for i in range(0, len(individual.vector)):
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
 
-            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
+            individual.features['velocity'][i] = self.w * individual.features['velocity'][i] + vel_cognitive + vel_social
 
     # update the particle position based off new velocity updates
     def update_position(self, individual):
 
         for parameter, i in zip(self.parameters, range(len(individual.vector))):
-            individual.vector[i] = individual.vector[i] + individual.velocity_i[i]
+            individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
 
             # adjust maximum position if necessary
             if individual.vector[i] > parameter['bounds'][1]:
@@ -521,7 +519,7 @@ class SwarmMutatorTVIW(SwarmMutator):
             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
             w = (self.w1 - self.w2) * (self.max_nr_generations - self.current_iter) / self.max_nr_generations + self.w2
 
-            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
 
@@ -559,7 +557,7 @@ class SwarmMutatorRandIW(SwarmMutator):
             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
             w = self.w * random.random() / 2.
 
-            vel_cognitive = self.c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
 
@@ -745,7 +743,7 @@ class SwarmMutatorTVAC(SwarmMutator):
             c1 = (self.c1f - self.c1i) * (nr_generations - iteration_nr) / nr_generations + self.c1i
             c2 = (self.c2f - self.c2i) * (nr_generations - iteration_nr) / nr_generations + self.c2i
 
-            vel_cognitive = c1 * r1 * (individual.best_vector[i] - individual.vector[i])
+            vel_cognitive = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
@@ -847,8 +845,8 @@ class DummySelector(Selector):
             candidate = individual.__class__(individual.vector)
             candidate.costs = individual.costs
             candidate.front_number = individual.front_number
-            candidate.best_vector = individual.best_vector
-            candidate.best_costs = individual.best_costs
+            candidate.features['best_vector'] = individual.features['best_vector']
+            candidate.features['best_costs'] = individual.features['best_costs']
 
             selection.append(candidate)
 
@@ -999,21 +997,11 @@ class ParetoDominance(Dominance):
         """
         Here, p and q are tuples, which contains the (feasibility index, cost vector)
         """
-        # first check constraint violation, the feasibility is written to the last place in the list
-        if p[-1] != q[-1]:
-            if p[-1] == 0:
-                return 1
-            elif q[-1] == 0:
-                return 2
-            elif p[-1] < q[-1]:
-                return 1
-            elif q[-1] < p[-1]:
-                return 2
 
         dominate_p = False
         dominate_q = False
 
-        for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
+        for (p_costs, q_costs) in zip(p, q):
 
             if p_costs > q_costs:
                 dominate_q = True
@@ -1075,30 +1063,30 @@ class Selector(Operator):
         front_number = 1
 
         for p in generation:
-            p.domination_counter = 0
-            p.front_number = None
-            p.dominate = set()
+            p.features['domination_counter'] = 0
+            p.features['front_number'] = None
+            p.features['dominate'] = set()
 
             for q in generation:
                 if p is q:
                     continue
-                if self.comparator.compare(p.signed_costs, q.signed_costs) == 1:  # TODO: simplify
-                    p.dominate.add(q)
-                elif self.comparator.compare(q.signed_costs, p.signed_costs) == 1:
-                    p.domination_counter += 1
+                if self.comparator.compare(p.signed_costs(), q.signed_costs()) == 1:
+                    p.features['dominate'].add(q)
+                elif self.comparator.compare(q.signed_costs(), p.signed_costs()) == 1:
+                    p.features['domination_counter'] += 1
 
-            if p.domination_counter == 0:
-                p.front_number = front_number
+            if p.features['domination_counter'] == 0:
+                p.features['front_number'] = front_number
                 pareto_front.append(p)
 
         while not len(pareto_front) == 0:
             front_number += 1
             temp_set = []
             for p in pareto_front:
-                for q in p.dominate:
-                    q.domination_counter -= 1
-                    if q.domination_counter == 0 and q.front_number is None:
-                        q.front_number = front_number
+                for q in p.features['dominate']:
+                    q.features['domination_counter'] -= 1
+                    if q.features['domination_counter'] == 0 and q.features['front_number'] is None:
+                        q.features['front_number'] = front_number
                         temp_set.append(q)
             pareto_front = temp_set
         return
@@ -1113,18 +1101,18 @@ class Selector(Operator):
         for dim in range(0, n):
             new_list = self.sort_by_coordinate(population, dim)
 
-            new_list[0].crowding_distance += infinite
-            new_list[-1].crowding_distance += infinite
+            new_list[0].features['crowding_distance'] += infinite
+            new_list[-1].features['crowding_distance'] += infinite
             max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
             for i in range(1, len(new_list) - 1):
                 distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
                 if max_distance == 0:
-                    new_list[i].crowding_distance = 0
+                    new_list[i].features['crowding_distance'] = 0
                 else:
-                    new_list[i].crowding_distance += distance / max_distance
+                    new_list[i].features['crowding_distance'] += distance / max_distance
 
         for p in population:
-            p.crowding_distance = p.crowding_distance / n
+            p.features['crowding_distance'] = p.features['crowding_distance'] / n
 
 
 class DummySelector(Selector):
@@ -1135,12 +1123,9 @@ class DummySelector(Selector):
     def select(self, individuals):
         selection = []
         for individual in individuals:
-            candidate = individual.__class__(individual.vector)
+            candidate = Individual(individual.vector)
             candidate.costs = individual.costs
-            candidate.front_number = individual.front_number
-            candidate.best_vector = individual.best_vector
-            candidate.best_costs = individual.best_costs
-
+            candidate.features = individual.features.copy()
             selection.append(candidate)
         return selection
 
@@ -1167,7 +1152,7 @@ class TournamentSelector(Selector):
         for _ in range(self.part_num - 1):
             candidate = random.choice(population)
 
-            flag = self.dominance.compare(winner.signed_costs, candidate.signed_costs)
+            flag = self.dominance.compare(winner.signed_costs(), candidate.signed_costs())
 
             if flag > 0:
                 winner = candidate

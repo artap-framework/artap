@@ -1,6 +1,6 @@
 from numpy.random import random_sample
 from .problem import Problem
-from .algorithm_genetic import GeneticAlgorithm, GeneticIndividual
+from .algorithm_genetic import GeneticAlgorithm
 from .operators import FireflyMutator, DummySelector, RandomGenerator
 
 import time
@@ -18,7 +18,7 @@ class MoFirefly(GeneticAlgorithm):
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
 
     def run(self):
-        self.generator = RandomGenerator(self.problem.parameters, individual_class=GeneticIndividual)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()

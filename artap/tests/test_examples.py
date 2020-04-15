@@ -5,10 +5,15 @@ import os
 
 def make_test_function(name, filename):
     def test(self):
-        print(name)
         spec = importlib.util.spec_from_file_location(name, filename)
         script = importlib.util.module_from_spec(spec)
+        path = filename.replace(name + '.py', "")
+        old_cwd = os.getcwd()
+        print(path)
+        os.chdir(path)
         spec.loader.exec_module(script)
+        os.chdir(old_cwd)
+
     return test
 
 
@@ -17,25 +22,16 @@ class TestExamples(unittest.TestCase):
     @staticmethod
     def init_tests():
         path = os.getcwd() + '/../examples/'
-        for module in os.listdir(path):
-            if module == '__init__.py' or module[-3:] != '.py':
-                continue
-
-            name = module[:-3]
-            filename = path + os.sep + module
-            test_func = make_test_function(name, filename)
-            setattr(TestExamples, 'test_{0}'.format(name), test_func)
-
-    # def test_all_examples(self):
-    #
-    #     path = os.getcwd() + '/../examples/'
-    #     for module in os.listdir(path):
-    #         if module == '__init__.py' or module[-3:] != '.py':
-    #             continue
-    #         spec = importlib.util.spec_from_file_location(module[:-3], path + os.sep + module)
-    #         script = importlib.util.module_from_spec(spec)
-    #         spec.loader.exec_module(script)
-    #     del module
+        for folder in os.walk(path):
+            files = folder[2]
+            for file in files:
+                if file == '__init__.py' or file[-3:] != '.py':
+                    pass
+            else:
+                name = file[:-3]
+                filename = folder[0] + os.sep + file
+                test_func = make_test_function(name, filename)
+                setattr(TestExamples, 'test_{0}'.format(name), test_func)
 
 
 # create tests dynamically

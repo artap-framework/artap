@@ -22,11 +22,13 @@ class Job(metaclass=ABCMeta):
         if constraints:
             individual.feasible = sum(map(abs, constraints))
 
-        # problem cost function evaluate only in that case when the problem is fits the constraints
+        # problem cost function evaluate only in that case when the problem fits the constraints
         try:
             costs = self.problem.surrogate.evaluate(individual)
             if isinstance(costs, list):
                 individual.costs = costs
+                if self.problem is not None:
+                    individual.signs = self.problem.signs
             else:
                 raise AssertionError("Costs type must be list.")
 
