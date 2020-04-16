@@ -512,6 +512,9 @@ class SwarmMutatorTVIW(SwarmMutator):
         :param nr_generations: total number of generations, during the calculation, MAXITER
         :param iteration_nr: actual generation
         """
+
+        individual.features['velocity'] = [0]*len(individual.vector)
+        individual.features['best_vector'] = [0]*len(individual.vector)
         for i in range(0, len(individual.vector)):
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
@@ -521,7 +524,7 @@ class SwarmMutatorTVIW(SwarmMutator):
 
             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+            individual.features['velocity'][i] = w * individual.features['velocity'][i] + vel_cognitive + vel_social
 
             self.current_iter += 1.
 
