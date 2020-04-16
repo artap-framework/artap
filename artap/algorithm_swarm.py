@@ -95,7 +95,7 @@ class PSO_V1(GeneticAlgorithm):
         self.add_features(population.individuals)
 
         for individual in population.individuals:
-            self.mutator.evaluate_best_individual(individual)
+            self.mutator.evaluate_best_individual(individual)  # TODO: all evaluating should be derived from Evaluator class
 
         self.selector.sorting(population.individuals)
         self.problem.populations.append(population)
@@ -110,7 +110,7 @@ class PSO_V1(GeneticAlgorithm):
 
             pareto_front = []
             for individual in offsprings:
-                if individual.front_number == 1:
+                if individual.features['front_number'] == 1:
                     pareto_front.append(individual)
 
             for individual in offsprings:
