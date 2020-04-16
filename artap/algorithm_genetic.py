@@ -180,6 +180,12 @@ class EpsMOEA(GeneticAlgorithm):
         self.options.declare(name='epsilons', default=0.01, lower=1e-6,
                              desc='prob_epsilons')
 
+        self.features = {'dominate': set(),
+                         'crowding_distance': 0,
+                         'domination_counter': 0,
+                         'front_number': 0}
+
+
     def run(self):
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters)  # the same as in the case of NSGA-II
@@ -198,7 +204,8 @@ class EpsMOEA(GeneticAlgorithm):
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population(True)  # archiving True
-
+        self.evaluate(population.individuals)
+        self.add_features(population.individuals)
         selector_pareto.sorting(population.individuals)
         selector_pareto.crowding_distance(population.individuals)
 
@@ -221,6 +228,7 @@ class EpsMOEA(GeneticAlgorithm):
             population = Population(children)
             self.problem.populations.append(population)
             self.evaluate(children)
+            self.add_features(children)
 
             arch_child = deepcopy(children)
             # PART A
@@ -232,14 +240,14 @@ class EpsMOEA(GeneticAlgorithm):
             self.selector.sorting(children)
             selector_pareto.crowding_distance(children)
 
-            parents = sorted(set(children), key=lambda x: (x.front_number, -x.crowding_distance))
+            parents = sorted(set(children), key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
             child = parents[:self.population_size]  # truncate
 
             # eps dominated truncate on the guys
             selector_epsdom.sorting(arch_child)
             selector_epsdom.crowding_distance(arch_child)
 
-            arch_parents = sorted(set(arch_child), key=lambda x: (x.front_number, -x.crowding_distance))
+            arch_parents = sorted(set(arch_child), key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
             population.archives = arch_parents[:self.population_size]  # truncate
 
         t = time.time() - t_s
