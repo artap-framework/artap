@@ -1,6 +1,6 @@
 from artap.problem import Problem
 from artap.algorithm_genetic import NSGAII
-from artap.results import Results, GraphicalResults
+from artap.results import Results
 
 import matplotlib.pyplot as plt
 

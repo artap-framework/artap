@@ -17,7 +17,7 @@ class TestAckley(unittest.TestCase):
             algorithm.run()
 
             b = Results(problem)
-            optimum = b.find_minimum('F_1')  # Takes last cost function
+            optimum = b.find_optimum('F_1')  # Takes last cost function
             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
         except AssertionError:
             # stochastic
@@ -37,7 +37,7 @@ class TestAckleyv1(unittest.TestCase):
             algorithm.run()
 
             b = Results(problem)
-            optimum = b.find_minimum('F_1')  # Takes last cost function
+            optimum = b.find_optimum('F_1')  # Takes last cost function
             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
         except AssertionError:
             # stochastic
