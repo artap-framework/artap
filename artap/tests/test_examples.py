@@ -22,6 +22,9 @@ class TestExamples(unittest.TestCase):
     def init_tests():
         path = os.getcwd() + '/../examples/'
         for folder in os.walk(path):
+            if folder[0].split('/')[-1] =='__pycache__':
+                continue
+            print(folder)
             files = folder[2]
             for file in files:
                 if file == '__init__.py' or file[-3:] != '.py':
