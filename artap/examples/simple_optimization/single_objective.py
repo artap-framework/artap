@@ -31,7 +31,7 @@ class ArtapProblem(Problem):
         self.L = 1.
 
         self.name = "spyder on the wall"
-        self.parameters = [{'name': 'x_1', 'initial_value':0.1, 'bounds': [0.0, 0.9]}]
+        self.parameters = [{'name': 'x_1', 'initial_value': 0.1, 'bounds': [0.0, 0.9]}]
         self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, individual):
@@ -55,13 +55,16 @@ problem_nlm = ArtapProblem()
 algorithm_nlm = ScipyOpt(problem_nlm)
 algorithm_nlm.options['algorithm'] = 'Nelder-Mead'
 algorithm_nlm.options['tol'] = 1e-3
-algorithm_nlm.options['calculate_gradients'] = False
 
 # perform the optimization
 algorithm_nlm.run()
 
 results_nlm = Results(problem_nlm)
-opt = results_nlm.find_minimum('F_1')
+
+opt = results_nlm.find_optimum('F_1')
 
 print('The exact value of the optimization is at x_1 = 0.5')
 print('Optimal solution (Nelder-Mead):', opt)
+
+print(results_nlm.problem.populations)
+

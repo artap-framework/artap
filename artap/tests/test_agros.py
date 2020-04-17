@@ -175,7 +175,7 @@ class TestAgrosOptimization(unittest.TestCase):
         algorithm.run()
 
         results = Results(problem)
-        optimum = results.find_minimum('F')
+        optimum = results.find_optimum('F')
         self.assertLessEqual(optimum.costs[0], 6.1)
 
 

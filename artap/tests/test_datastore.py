@@ -52,7 +52,7 @@ class TestDataStoreFile(unittest.TestCase):
         algorithm.run()
 
         results = Results(problem)
-        optimum = results.find_minimum('F')
+        optimum = results.find_optimum('F')
         self.assertAlmostEqual(optimum.costs[0], 0, 3)
 
         # remove datastore
