@@ -1,65 +1,157 @@
-import os
-import numpy as np
-import pylab as pl
-
-import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator, MultipleLocator, FuncFormatter
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib import rc
-
-import logging
-
-mpl_logger = logging.getLogger('matplotlib')
-mpl_logger.setLevel(logging.WARNING)
-
 import csv
 
 
-def minor_tick(x, pos):
-    if not x % 1.0:
-        return ""
-    return "%.2f" % x
-
 class Results:
-    MINIMIZE = -1
-    MAXIMIZE = 1
+    """ Class Results offers tools for interpreting calculated data. """
 
     def __init__(self, problem):
         self.problem = problem
 
-    def value(self, individual, name):
-        # TODO: check speed
-        val = 0
+    def parameter_names(self):
+        parameter_names = []
+        for parameter in self.problem.parameters:
+            parameter_names.append(parameter['name'])
+        return parameter_names
 
-        try:
-            # try costs
-            # get the index of the required parameter
-            index = 0  # default - one parameter
-            for i in range(len(self.problem.costs)):
-                cost = self.problem.costs[i]
-                if cost['name'] == name:
-                    index = i
-                    break
+    def parameter_number(self):
+        return len(self.problem.parameters)
 
-            # ind = list(self.problem.costs.keys()).index(name)
-            val = individual.costs[index]
-        except ValueError:
-            # try parameters
-            ind = list(self.problem.parameters.keys()).index(name)
-            val = individual.vector[ind]
-        except ValueError:
-            self.problem.logger.error("Value '{}' not found".format(name))
+    def goal_function_number(self):
+        return len(self.problem.costs)
 
-        return val
+    def goal_function_names(self):
+        cost_names = []
+        for cost in self.problem.costs:
+            cost_names.append(cost['name'])
+        return cost_names
 
-    def find_minimum(self, name=None):
+    def parameter_index(self, name):
+        index = -1
+        for i in range(len(self.problem.parameters)):
+            parameter = self.problem.parameters[i]
+            if parameter['name'] == name:
+                index = i
+        if index == -1:
+            raise ValueError('There is not a parameter with given name: {}'.format(name))
+        return index
+
+    def goal_index(self, name):
+        index = -1
+        for i in range(len(self.problem.costs)):
+            cost = self.problem.costs[i]
+            if cost['name'] == name:
+                index = i
+        if index == -1:
+            raise ValueError('There is not a cost function with given name: {}'.format(name))
+        return index
+
+    def population(self, population_index):
+        # Returns population with given index
+        if population_index >= len(self.problem.populations):
+            raise ValueError('Index of population exceeds the number of populations.')
+
+        population = self.problem.populations[population_index]
+        return population
+
+    def goal_on_index(self, name=None, population_index=-1):
+        """ Returns a list of lists. The first list contains indexes of individuals in population,
+            the other lists contains values of the goal function(s).
+        """
+        population = self.population(population_index)
+        n = range(len(population.individuals))
+
+        table = [list(n)]
+        if name is None:
+            for j in range(len(self.problem.costs)):
+                table.append([])
+                for i in n:
+                    table[j+1].append(population.individuals[i].costs[j])
+        else:
+            table.append([])
+            index = self.goal_index(name)
+            for i in n:
+                table[1].append(population.individuals[i].costs[index])
+
+        return table
+
+    def parameter_on_index(self, name=None, population_index=-1):
+        """
+        Returns a list of lists. The first list contains indexes of individuals in population,
+            the other lists contains values of the parameters(s).
+        :param name: string reprezenting the name of parameter if it is not given, all parameters are included
+        :param population_index: index of the selected parameter
+        :return:
+        """
+
+        population = self.population(population_index)
+        n = range(len(population.individuals))
+        table = [list(n)]
+        if name is None:
+            for j in range(len(self.problem.parameters)):
+                table.append([])
+                for i in n:
+                    table[j+1].append(population.individuals[i].vector[j])
+        else:
+            table.append([])
+            index = self.parameter_index(name)
+            for i in n:
+                table[1].append(population.individuals[i].vector[index])
+
+        return table
+
+    @staticmethod
+    def sort_list(list_1, list_2):
+        zipped_pairs = zip(list_1, list_2)
+        sorted_list = [x for _, x in sorted(zipped_pairs)]
+        return sorted_list
+
+    def goal_on_parameter(self, parameter_name, goal_name, population_index=-1):
+        """
+        The method returns the dependance of selected goal function on particular parameter
+        :param parameter_name: string specifying particular parameter
+        :param goal_name: string specifying name of required goal function
+        :param population_index: index of required population, if it is not given the last population is used
+        :return: list of two lists, the first contains sorted parameter values, the second values of selected goal
+        function
+        """
+        population = self.population(population_index)
+        parameter_index = self.parameter_index(parameter_name)
+        goal_index = self.goal_index(goal_name)
+        parameter_values = []
+        goal_values = []
+
+        for individual in population.individuals:
+            parameter_values.append(individual.vector[parameter_index])
+            goal_values.append(individual.costs[goal_index])
+
+        goal_values = self.sort_list(parameter_values, goal_values)
+        parameter_values.sort()
+        return [parameter_values, goal_values]
+
+    def parameter_on_parameter(self, parameter_1, parameter_2, population_index=-1):
+        population = self.population(population_index)
+        index_1 = self.parameter_index(parameter_1)
+        index_2 = self.parameter_index(parameter_2)
+        values_1 = []
+        values_2 = []
+
+        for individual in population.individuals:
+            values_1.append(individual.vector[index_1])
+            values_2.append(individual.costs[index_2])
+
+        dependent_values = self.sort_list(values_1, values_2)
+        values_1.sort()
+        return [values_1, dependent_values]
+
+    # TODO: Generalize
+    def find_optimum(self, name=None):
         """
         Search the optimal value for the given (by name parameter) single objective .
 
-        :param name:
+        :param name: string representing name of the goal function
         :return:
         """
+
         # get the index of the required parameter
         index = 0  # default - one parameter
         if name:
@@ -79,26 +171,25 @@ class Results:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
 
-    def find_pareto(self, name1, name2):
-        pareto_front_x = []
-        pareto_front_y = []
-        for population1 in self.problem.populations:
-            for individual1 in population1.individuals:
-                is_pareto = True
+    def pareto_front(self, population_index=-1):
+        """
 
-                for population2 in self.problem.populations:
-                    for individual2 in population2.individuals:
-                        # TODO: MINIMIZE and MAXIMIZE
-                        if self.value(individual1, name1) > self.value(individual2, name1) \
-                                and self.value(individual1, name2) > self.value(individual2, name2):
-                            is_pareto = False
+        :return:
+        """
+        population = self.population(population_index)
+        n = self.goal_function_number()
+        pareto_front = []
+        for i in range(n):
+            pareto_front.append([])
+            for individual in population.individuals:
+                if individual.features['front_number'] == 1:
+                    pareto_front[i].append(individual.costs[i])
 
-                if is_pareto:
-                    pareto_front_x.append(self.value(individual1, name1))
-                    pareto_front_y.append(self.value(individual1, name2))
+        return pareto_front
 
-        return pareto_front_x, pareto_front_y
 
+
+    # TODO: Obsolete?
     def pareto_values(self):
         """
         :return: a list of lists which contains the optimal values of the cost function:
@@ -117,61 +208,6 @@ class Results:
                 for individual in population.archives:
                     l_sol.append(individual.costs)
         return l_sol
-
-    def pareto_plot(self, cost_x = 0, cost_y = 1):
-        """
-        A simple 2d - pareto plot from the variable 1 and 2 by default.
-        :return:
-        """
-
-        pvalues = self.pareto_values()
-
-        x = [i[cost_x] for i in pvalues]
-        y = [i[cost_y] for i in pvalues]
-
-        fig, ax = plt.subplots(figsize=(10, 5))  # customizes alpha for each dot in the scatter plot
-        ax.scatter(x, y, alpha=0.80)
-
-        # adds a title and axes labels
-        x_name = self.problem.costs[cost_x]['name']
-        y_name = self.problem.costs[cost_y]['name']
-
-        ax.set_title('Pareto values')
-        ax.set_xlabel(x_name)
-        ax.set_ylabel(y_name)
-
-        # removing top and right borders
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)  # adds major gridlines
-        ax.grid(color='grey', linestyle='-', linewidth=0.25, alpha=0.5)
-
-        plt.show()
-        return
-
-
-    def table(self):
-        out = []
-        if len(self.problem.populations) > 0:
-            population = self.problem.populations[0]
-            if len(population.individuals) > 0:
-                # init array
-                individual = population.individuals[0]
-                for v in individual.vector:
-                    out.append([])
-                for c in individual.costs:
-                    out.append([])
-
-                for population in self.problem.populations:
-                    for individual in population.individuals:
-                        i = 0
-                        for v in individual.vector:
-                            out[i].append(v)
-                            i += 1
-                        for c in individual.costs:
-                            out[i].append(c)
-                            i += 1
-
-        return out
 
     def parameters(self):
         out = []
@@ -211,245 +247,3 @@ class Results:
                         for k in individual.auxvar:
                             out.append(k)
                     writer.writerows([out])
-
-        return
-
-
-class GraphicalResults(Results):
-
-    def __init__(self, problem):
-        super().__init__(problem)
-        self.name = ""
-        # rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
-        # pl.rcParams['figure.figsize'] = 6, 4
-        rc('text', usetex=True)
-        self.labels_size = 16
-        self.tick_size = 12
-
-    def plot_scatter(self, name1, name2, filename=None, population_number=None):
-        figure = Figure()
-        figure.clf()
-
-        if population_number is None:
-            populations = self.problem.populations
-        else:
-            populations = [self.problem.populations[population_number]]
-
-        for population in populations:
-            values1 = []
-            values2 = []
-            for individual in population.individuals:
-                values1.append(self.value(individual, name1))
-                values2.append(self.value(individual, name2))
-            pl.scatter(values1, values2)
-
-        # pareto front
-        values1 = []
-        values2 = []
-        population = populations[-1]
-        for individual in population.individuals:
-            if hasattr(individual, 'front_number'):
-                if individual.front_number == 1:
-                    values1.append(self.value(individual, name1))
-                    values2.append(self.value(individual, name2))
-                pl.scatter(values1, values2, c='k')
-
-        ax = pl.gca()
-        # ax.set_yscale('log')
-        # ax.set_xscale('log')
-        # ax.set_xlim(-1.5, -0.9)
-        # ax.set_ylim(0.3, 0.8)
-        # ax.set_xlim(0.00000, 0.0004)
-        # ax.set_ylim(50, 200)
-        # ax.set_xlim(0.00000, 0.001)
-        # ax.set_ylim(60, 300)
-        # ax.set_xlim(0.00000, 0.00125)
-        # ax.set_ylim(-0.00001, 0.0002)
-
-        # labels
-        pl.grid()
-        pl.xlabel("${}$".format(name1))
-        pl.ylabel("${}$".format(name2))
-        if filename is not None:
-            pl.savefig(filename)
-        else:
-            pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
-        pl.close()
-
-    def plot_convergence_chart(self, name1, filename=None, population_number=None):
-
-        figure = Figure()
-        figure.clf()
-
-        # all individuals
-        if population_number is None:
-            populations = self.problem.populations
-        else:
-            populations = [self.problem.populations[population_number]]
-
-        results = []
-        for population in populations:
-            min_l = min(population.individuals, key=lambda x: x.costs[0])
-            results.append(min_l.costs)
-
-        pl.grid()
-        pl.xlabel("Number of generation")
-        pl.ylabel("TOC [eur]".format(name1))
-
-        pl.plot(results)
-        if filename is not None:
-            pl.savefig(filename)
-        else:
-            pl.savefig("convergence.pdf")
-        pl.close()
-
-    def plot_scatter_vectors(self, name1, name2, filename=None, population_number=None):
-        figure = Figure()
-        figure.clf()
-
-        # all individuals
-        if population_number is None:
-            populations = self.problem.populations
-        else:
-            populations = [self.problem.populations[population_number]]
-
-        for population in populations:
-            values1 = []
-            values2 = []
-            vector_x = []
-            vector_y = []
-            for individual in population.individuals:
-                values1.append(individual.vector[0])
-                values2.append(individual.vector[1])
-                vector_x.append(individual.velocity_i[0])
-                vector_y.append(individual.velocity_i[1])
-
-            pl.scatter(values1, values2)
-            pl.quiver(values1, values2, vector_x, vector_y)
-
-        # pareto front
-        values1 = []
-        values2 = []
-        population = populations[-1]
-        for individual in population.individuals:
-            if individual.front_number == 1:
-                values1.append(self.value(individual, name1))
-                values2.append(self.value(individual, name2))
-        pl.scatter(values1, values2, c='k')
-
-        # labels
-        pl.grid()
-        pl.xlabel("${}$".format(name1))
-        pl.ylabel("${}$".format(name2))
-
-        if filename is not None:
-            pl.savefig(filename)
-        else:
-            pl.savefig(self.problem.working_dir + os.sep + "scatter.pdf")
-        pl.close()
-
-    def plot_individuals(self, name, filename=None):
-        # all individuals
-        n = 1
-        for population in self.problem.populations:
-            ind = []
-            values = []
-            for individual in population.individuals:
-                ind.append(n + len(ind))
-                values.append(self.value(individual, name))
-            n += len(ind)
-            pl.scatter(ind, values)
-
-        # labels
-        pl.grid()
-        pl.xlabel("$N$")
-        pl.ylabel("${}$".format(name))
-        # pl.ylim(0, 0.0003)
-
-        if filename is not None:
-            pl.savefig(filename)
-        else:
-            pl.savefig(self.problem.working_dir + os.sep + "individuals.pdf")
-        pl.close()
-
-    def plot_all_individuals(self, filename=None):
-        for population in self.problem.populations:
-            for individual in population.individuals:
-                pl.plot(individual.vector[0], 'x')
-
-        if filename is not None:
-            pl.savefig(filename)
-        else:
-            pl.savefig(self.problem.working_dir + "all_individuals.pdf")
-
-    def plot_populations(self):
-        for population in self.problem.populations:
-            figure_name = self.problem.working_dir + "pareto_" + \
-                          str(self.problem.populations.index(population)) + ".pdf"
-            if len(population.individuals) > 1:
-                figure = Figure()
-                FigureCanvas(figure)
-                plot = figure.add_subplot(111)
-                plot.tick_params(axis='both', which='major', labelsize=self.tick_size)
-                plot.tick_params(axis='both', which='minor', labelsize=self.tick_size - 2)
-                ax = figure.axes[0]
-                colors = ['red', 'green', 'blue', 'yellow', 'purple', 'black']
-
-                for individual in population.individuals:
-                    # TODO: Make for more objective values
-                    #
-
-                    if hasattr(individual, 'front_number'):
-                        scale = 100 / (individual.front_number / 1.)
-                        ax.scatter(individual.costs[0], individual.costs[1],
-                                   scale, c=colors[(individual.front_number - 1) % 6])
-                labels = []
-                for cost in self.problem.costs:
-                    labels.append(cost['name'])
-                x_label = r'$' + labels[0] + '$'
-                y_label = r'$' + labels[1] + '$'
-                ax.set_xlabel(x_label)
-                ax.set_ylabel(y_label)
-                ax.grid()
-
-                figure.savefig(figure_name)
-
-    def plot_gradients(self):
-        population = self.problem.populations[-1]  # Last population
-        figure_name = self.problem.working_dir + "gradients_" + str(population.number) + ".pdf"
-        if len(population.individuals) > 1:
-            figure = Figure()
-            FigureCanvas(figure)
-            plot = figure.add_subplot(111)
-            plot.tick_params(axis='both', which='major', labelsize=self.tick_size)
-            plot.tick_params(axis='both', which='minor', labelsize=self.tick_size - 2)
-            ax = figure.axes[0]
-            colors = ['red', 'green', 'blue', 'yellow', 'purple', 'black']
-
-            grad = [[], []]
-
-            sorted(population.individuals, key=lambda item: item.costs[0])
-
-            for individual in population.individuals:
-                # TODO: Make for more objective values
-
-                if hasattr(individual, 'front_number'):
-                    if individual.front_number == 1:
-                        gradient_length = 0
-
-                        for i in range(2):
-                            for x in individual.gradient:
-                                gradient_length += x[i] ** 2
-
-                            gradient_length = np.sqrt(gradient_length)
-                            grad[i].append(gradient_length)
-
-            x_axis = range(1, len(grad[0]) + 1)
-            ax.bar(x_axis, grad[0], align='edge', width=0.45)
-            ax.bar(x_axis, grad[1], align='center', width=0.45)
-            ax.set_xlabel(r'$i$ [-]', size=self.labels_size)
-            ax.set_ylabel(r'$\| \nabla F_1 \|, \| \nabla F_2 \|$', size=self.labels_size)
-            ax.grid()
-            pl.show()
-            pl.tight_layout()
-            figure.savefig(figure_name)

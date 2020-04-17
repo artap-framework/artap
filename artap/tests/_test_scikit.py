@@ -252,7 +252,7 @@ class TestSimpleOptimization(unittest.TestCase):
         # print(problem.surrogate.y_data)
 
         results = Results(problem)
-        optimum = results.find_minimum('F')
+        optimum = results.find_optimum('F')
         self.assertAlmostEqual(optimum, 1e-6, 3)
         """
         kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
@@ -307,7 +307,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
 
         results = Results(problem)
-        optimum = results.find_minimum('F1')
+        optimum = results.find_optimum('F1')
         self.assertAlmostEqual(optimum, 5e-5, 4)
 
     def xtest_local_problem_coil_one_bobyqa_optimum(self):
@@ -323,7 +323,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
 
         results = Results(problem)
-        optimum = results.find_minimum('F1')
+        optimum = results.find_optimum('F1')
         print("BOBYQA = {}".format(optimum))
         # Bayes = 3.846087978861188e-05
         # self.assertAlmostEqual(optimum, 1e-6, 4)
@@ -340,7 +340,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
 
         results = Results(problem)
-        optimum = results.find_minimum('F1')
+        optimum = results.find_optimum('F1')
         print("Bayes = {}".format(optimum))
         # Bayes = 4.347142168223674e-05
         # self.assertAlmostEqual(optimum, 1e-6, 4)
@@ -358,7 +358,7 @@ class TestSimpleOptimization(unittest.TestCase):
         problem.logger.info("surrogate.eval_counter: {}".format(problem.surrogate.eval_counter))
 
         results = Results(problem)
-        optimum = results.find_minimum('F1')
+        optimum = results.find_optimum('F1')
         print("NSGAII = {}".format(optimum))
         # NSGAII = 8.099681801799041e-06
         # self.assertAlmostEqual(optimum, 1e-6, 4)
