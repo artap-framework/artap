@@ -8,7 +8,10 @@ import time
 
 class MoFirefly(GeneticAlgorithm):
     """
-    Multi-objective firefly algorithm
+    Multi-objective firefly algorithm based on [1]:
+
+    .. [1]: Yang, X. S. (2013). Multiobjective firefly algorithm for continuous optimization.
+            Engineering with computers, 29(2), 175-184.
     """
 
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
