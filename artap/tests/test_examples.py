@@ -37,7 +37,7 @@ class TestExamples(unittest.TestCase):
 
 
 # create tests dynamically
-TestExamples.init_tests()
+#TestExamples.init_tests()
 
 if __name__ == '__main__':
     unittest.main()
