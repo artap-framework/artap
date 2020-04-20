@@ -1,5 +1,5 @@
 import csv
-from quality_indicator import gd, epsilon_add
+from artap.quality_indicator import gd, epsilon_add
 
 
 class Results:

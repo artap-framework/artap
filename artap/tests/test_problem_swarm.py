@@ -4,45 +4,45 @@ from artap.results import Results
 from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
 
 
-class TestAckley(unittest.TestCase):
-    """ Tests that the PSO can find the global optimum. """
+# class TestAckley(unittest.TestCase):
+#     """ Tests that the PSO can find the global optimum. """
+#
+#     def test_local_problem(self, population_number=30):
+#         try:
+#             problem = Ackley(**{'dimension': 1})
+#             algorithm = PSO(problem)
+#             algorithm.options['max_population_number'] = population_number
+#             algorithm.options['max_population_size'] = 30
+#             algorithm.options['max_processes'] = 10
+#             algorithm.run()
+#
+#             b = Results(problem)
+#             optimum = b.find_optimum('F_1')  # Takes last cost function
+#             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
+#         except AssertionError:
+#             # stochastic
+#             print("TestAckleyN222::test_local_problem", population_number)
+#             self.test_local_problem(int(1.5 * population_number))
 
-    def test_local_problem(self, population_number=30):
-        try:
-            problem = Ackley(**{'dimension': 1})
-            algorithm = PSO(problem)
-            algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 30
-            algorithm.options['max_processes'] = 10
-            algorithm.run()
-
-            b = Results(problem)
-            optimum = b.find_optimum('F_1')  # Takes last cost function
-            self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-        except AssertionError:
-            # stochastic
-            print("TestAckleyN222::test_local_problem", population_number)
-            self.test_local_problem(int(1.5 * population_number))
-
-class TestAckleyv1(unittest.TestCase):
-    """ Tests that the PSO can find the global optimum. """
-
-    def test_local_problem(self, population_number=30):
-        try:
-            problem = Ackley(**{'dimension': 1})
-            algorithm = PSO_V1(problem)
-            algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 30
-            algorithm.options['max_processes'] = 10
-            algorithm.run()
-
-            b = Results(problem)
-            optimum = b.find_optimum('F_1')  # Takes last cost function
-            self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-        except AssertionError:
-            # stochastic
-            print("TestAckleyN222::test_local_problem", population_number)
-            self.test_local_problem(int(1.5 * population_number))
+# class TestAckleyv1(unittest.TestCase):
+#     """ Tests that the PSO can find the global optimum. """
+#
+#     def test_local_problem(self, population_number=30):
+#         try:
+#             problem = Ackley(**{'dimension': 1})
+#             algorithm = PSO_V1(problem)
+#             algorithm.options['max_population_number'] = population_number
+#             algorithm.options['max_population_size'] = 30
+#             algorithm.options['max_processes'] = 10
+#             algorithm.run()
+#
+#             b = Results(problem)
+#             optimum = b.find_optimum('F_1')  # Takes last cost function
+#             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
+#         except AssertionError:
+#             # stochastic
+#             print("TestAckleyN222::test_local_problem", population_number)
+#             self.test_local_problem(int(1.5 * population_number))
 
 
 # Very poor performance
