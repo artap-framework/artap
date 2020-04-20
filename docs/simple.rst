@@ -97,9 +97,26 @@ Every calculation result saved into the problem class during the calculation. It
     b = Results(problem)
     b.pareto_values()
 
+--------------------
+Performance analysis
+--------------------
+
+There are some built-in performance indicator, which let it possible to compare the results with a reference.
+In the following examples, we are calculating the additive unary epsilon indicator and the generational distances.
+Firstly, we have to define a the reference solution, which is a list of the [(x, 1/x), ...] tuples in the given range.
+
+Therefore, the reference function can be defined by the following list comprehension:
+
+reference = [(0.1 + x * 4.9 / 1000, 1. / (0.1 + x * 4.9 / 1000)) for x in range(0, 1000)]
+
+The unary epsilon indicator is the default function:
+print('additive unary epsilon indicator:', b.performance_measure(reference))
+
+The generational distance can be selected by the 'gd' type keyword.
+print('generational distance:', b.performance_measure(reference, type='gd'))
+
 ----------
 References
 ----------
 
-.: [GDE3] The third Evolution Step of Generalized Differential Evolution
-Saku Kukkonen, Jouni Lampinen
+.. [GDE3] The third Evolution Step of Generalized Differential Evolution Saku Kukkonen, Jouni Lampinen
