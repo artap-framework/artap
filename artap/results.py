@@ -1,4 +1,5 @@
 import csv
+from quality_indicator import gd, epsilon_add
 
 
 class Results:
@@ -65,7 +66,7 @@ class Results:
             for j in range(len(self.problem.costs)):
                 table.append([])
                 for i in n:
-                    table[j+1].append(population.individuals[i].costs[j])
+                    table[j + 1].append(population.individuals[i].costs[j])
         else:
             table.append([])
             index = self.goal_index(name)
@@ -90,7 +91,7 @@ class Results:
             for j in range(len(self.problem.parameters)):
                 table.append([])
                 for i in n:
-                    table[j+1].append(population.individuals[i].vector[j])
+                    table[j + 1].append(population.individuals[i].vector[j])
         else:
             table.append([])
             index = self.parameter_index(name)
@@ -187,7 +188,56 @@ class Results:
 
         return pareto_front
 
+    def performance_measure(self, reference: list, type='epsilon'):
+        """
+        This function compares the result with a given, reference pareto-set. By default it offers to make
+        an epsilon measure, but other metrics can be selected.
 
+        :param reference: list of tuples, which are similar to the data of the calculated pareto-front
+        :param type:
+        :return:
+        """
+
+        computed = self.pareto_values()  # [[], [], .. ]
+
+        if type is 'epsilon':
+            result = epsilon_add(reference, computed)
+        if type is 'gd':
+            result = gd(reference, computed)
+
+        return result
+
+    def pareto_plot(self, cost_x=0, cost_y=1):
+        """
+        A simple 2d - pareto plot from the variable 1 and 2 by default.
+        :return:
+        """
+
+        pvalues = self.pareto_values()
+
+        x = [i[cost_x] for i in pvalues]
+        y = [i[cost_y] for i in pvalues]
+
+        import pylab as plt
+
+        fig, ax = plt.subplots(figsize=(10, 5))  # customizes alpha for each dot in the scatter plot
+        ax.scatter(x, y, alpha=0.80)
+
+        # adds a title and axes labels
+        x_name = self.problem.costs[cost_x]['name']
+        y_name = self.problem.costs[cost_y]['name']
+
+        ax.set_title('Pareto values')
+        ax.set_xlabel(x_name)
+        ax.set_ylabel(y_name)
+
+        # removing top and right borders
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)  # adds major gridlines
+        ax.grid(color='grey', linestyle='-', linewidth=0.25, alpha=0.5)
+
+        plt.show()
+        return
 
     # TODO: Obsolete?
     def pareto_values(self):

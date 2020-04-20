@@ -63,8 +63,18 @@ algorithm.run()
 # Post - processing the results
 # reads in the result values into the b, results class
 results = Results(problem)
+results.pareto_values()
+results.pareto_plot()
 
+# Convergence plot on a selected goal function and parameter
 slice = results.goal_on_parameter('x_2', 'f_2')
 import pylab as plt
 plt.plot(slice[0], slice[1])
 plt.show()
+
+# Measure the quality of the solution with the aid of the built-in performace metrics
+# We have to define a solution, which is a list of the [x, 1/x] tuples in the given area.
+# The reference function can be defined by the following list comprehension:
+reference = [(0.1 + x * 4.9 / 1000, 1. / (0.1 + x * 4.9 / 1000)) for x in range(0, 1000)]
+print('additive unary epsilon indicator:', results.performance_measure(reference))
+print('generational distance:', results.performance_measure(reference, type='gd'))
