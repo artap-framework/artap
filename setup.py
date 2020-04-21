@@ -33,6 +33,7 @@ def setup_package():
             requirements,
             #"smt >= 0.3.4",
         ],
+        "extras_require" : [f"agrossuite"],
         "setup_requires": [f"numpy >= {min_numpy_ver}"],
         "zip_safe": False,
     }
