@@ -12,6 +12,13 @@ We recommend to install Artap under a [virtual environment](https://docs.python.
 
 *The Windows versions are only partially, the linux packages are fully supported at the current version.
 
+### Linux 
+
+You can install the full package, which contains the agrossuite package by the following command:
+
+    pip install --upgrade pip # make sure that pip is reasonably new
+    pip install artap[full]
+
 ## Basic usage
 
 The goal of this example to show, how we can use Artap to solve a simple, bi-objective optimization problem.

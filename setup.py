@@ -24,30 +24,31 @@ with open("requirements.txt", "r") as fh:
 
 min_numpy_ver = "1.13.3"
 
+
 def setup_package():
     setuptools_kwargs = {
         "install_requires": [
-            # "python-dateutil >= 2.6.1",
-            # "pytz >= 2017.2",
             f"numpy >= {min_numpy_ver}",
             requirements,
-            #"smt >= 0.3.4",
         ],
-        "extras_require" : [f"agrossuite"],
-        "setup_requires": [f"numpy >= {min_numpy_ver}"],
+        "extras_require" : {'full': [f"agrossuite >= 0.01"]},
+        "setup_requires": [f"numpy >= {min_numpy_ver}",
+                           f"tqdm >= 4.14",
+                           f"pkginfo>=1.4.2",
+                           f"bleach>=2.1.0"],
         "zip_safe": False,
     }
 
     setup(
         name="artap",
-        version="2020.4.02.1",
+        version="2020.4.22.2",
         author=u"Artap Team",
         author_email="artap.framework@gmail.com",
         description="Platform for robust design optimization",
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="http://www.agros2d.org/artap/",
-        python_requires='>=3.7',
+        python_requires='>=3.6',
         license="License :: OSI Approved :: MIT License",
         cmdclass={'install': CustomInstallCommand},
         packages=find_packages(),
@@ -59,7 +60,9 @@ def setup_package():
             "Intended Audience :: Science/Research",
             "Operating System :: POSIX :: Linux",
             "Topic :: Scientific/Engineering",
+            'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
             "License :: OSI Approved :: MIT License",
             "Operating System :: OS Independent",
         ],
