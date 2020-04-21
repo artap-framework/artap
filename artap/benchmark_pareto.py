@@ -139,25 +139,30 @@ class DTLZI(BenchmarkFunction):
         return p_f
 
     def evaluate(self, x):
-
-        k = 5  # k >= 1, it can be k = 5 is the offered value,
-
-        m = len(self.costs)
         x = x.vector
+        m = len(self.costs)
+        nvar = len(x)
+        k = nvar - m + 1  # k >= 1, it can be k = 5 is the offered value,
+
+        g = sum([(y - 0.5) * (y - 0.5) - cos(20.0 * pi * (y - 0.5))
+                 for y in x[nvar - k:]])
+
+        # for i in range(len(x) - k, len(x)):
+        #     gm += (x[i] - 0.5) ** 2. - cos(20. * pi * (x[i] - 0.5))
+
+        g = 100*(k+g)
+
         scores = []
+        factor = 0.5 * (1 + g)
+
         for i in range(0, m):
-            fi = 0.5
+            fi = factor
             for j in range(0, m - i - 1):
                 fi *= x[j]
 
             if i > 0:
                 fi *= (1. - x[m - i - 1])
 
-            # g(xm)
-            gm = float(k)
-            for i in range(0, k):
-                gm += (x[len(x) - i - 1] - 0.5) ** 2. - cos(20. * pi * (x[len(x) - i - 1] - 0.5))
-            fi = fi * (1 + 100. * gm)
             scores.append(fi)
 
         return scores
@@ -389,8 +394,8 @@ class CEC2020MMF1(BenchmarkFunction):
         self.parameters = [{'name': 'x1', 'bounds': [1.0, 3.0]},
                            {'name': 'x2', 'bounds': [-1.0, 1.0]}]
 
-        #self.global_optimum = 0.0
-        #self.global_optimum_coords = [1., 3.]
+        # self.global_optimum = 0.0
+        # self.global_optimum_coords = [1., 3.]
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
                       {'name': 'f_2', 'criteria': 'minimize'}]
@@ -441,8 +446,8 @@ class CEC2020MMF2(BenchmarkFunction):
         self.parameters = [{'name': 'x1', 'bounds': [0.0, 1.0]},
                            {'name': 'x2', 'bounds': [0.0, 2.0]}]
 
-        #self.global_optimum = 0.0
-        #self.global_optimum_coords = [1., 3.]
+        # self.global_optimum = 0.0
+        # self.global_optimum_coords = [1., 3.]
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
                       {'name': 'f_2', 'criteria': 'minimize'}]
