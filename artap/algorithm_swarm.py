@@ -70,6 +70,11 @@ class PSO(GeneticAlgorithm):
 
 class PSO_V1(GeneticAlgorithm):
     """
+
+    X. Li. A Non-dominated Sorting Particle Swarm Optimizer for Multiobjective
+    Optimization. In Genetic and Evolutionary Computation - GECCO 2003, volume
+    2723 of LNCS, pages 37–48, 2003.
+
     This algorithm is a variant of the original PSO, published by Eberhart(2000), the origin of this modified algorithm,
     which constriction factor was introduced by Clercs in 1999.
 
