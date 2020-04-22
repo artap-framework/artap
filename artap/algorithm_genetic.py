@@ -111,7 +111,7 @@ class NSGAII(GeneticAlgorithm):
         self.features = {'dominate': set(),
                          'crowding_distance': 0,
                          'domination_counter': 0,
-                         'front_number': 0}
+                         'front_number': 0,}
 
     def run(self):
         # set random generator

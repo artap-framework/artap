@@ -33,6 +33,7 @@ class Individual(metaclass=ABCMeta):
         self.children = []
         self.features = {}
         self.custom = {}
+        self.feasible = 0.0  # the distance from the feasibility region in min norm, its an index, not a
 
         self.info = {"start_time": 0.0,
                      "finish_time": 0.0,
@@ -42,14 +43,14 @@ class Individual(metaclass=ABCMeta):
                      "python": platform.python_version(),
                      "hostname": platform.node()}
 
-    def signed_costs(self):
-        costs = self.costs
-        if self.signs is None:
-            return costs
-        else:
-            for i in range(len(self.signs)):
-                costs[i] = self.costs[i] * self.signs[i]
-            return costs
+    def calc_signed_costs(self, p_signs):
+        """
+        This function calculates the signed costs for every vector and insert the feasibility after
+        :return:
+        """
+        self.signs = list(map(lambda x, y: x * y, p_signs, self.costs))
+        self.signs.append(self.feasible)
+        return
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
