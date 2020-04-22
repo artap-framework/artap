@@ -1017,18 +1017,18 @@ class Selector(Operator):
     def select(self, population):
         pass
 
-    def is_dominate(self, p, q):
-        """
-        :param p: current solution
-        :param q: candidate
-        :return: True if the candidate is better than the current solution
-        """
-        # The cost function can be a float or a list of floats
-        for p_costs, q_costs in zip(p.costs, q.costs):
-            if p_costs > q_costs:
-                return False
-            else:
-                return True
+    # def is_dominate(self, p, q):
+    #     """
+    #     :param p: current solution
+    #     :param q: candidate
+    #     :return: True if the candidate is better than the current solution
+    #     """
+    #     # The cost function can be a float or a list of floats
+    #     for p_costs, q_costs in zip(p.costs, q.costs):
+    #         if p_costs > q_costs:
+    #             return False
+    #         else:
+    #             return True
 
     def sorting(self, generation):
         """

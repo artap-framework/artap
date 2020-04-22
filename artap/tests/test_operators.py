@@ -50,11 +50,26 @@ class TestCrossover(unittest.TestCase):
         i2.costs = [2, 2]
         i2.features = self.features.copy()
         i2.calc_signed_costs(self.signs)
+
+        # test weak-strong dominance
+        i3 = Individual([0, 0, 0])
+        i3.costs = [1, 0, 1]
+        i3.features = self.features.copy()
+        i3.calc_signed_costs(self.signs)
+
+        i4 = Individual([1, 1, 1])
+        i4.costs = [1, 1, 1]
+        i4.features = self.features.copy()
+        i4.calc_signed_costs(self.signs)
+
         result = dominance.compare(i1.signs, i2.signs)
         self.assertEqual(result, 1)
 
         result = dominance.compare(i2.signs, i1.signs)
         self.assertEqual(result, 2)
+
+        result = dominance.compare(i3.signs, i4.signs)
+        self.assertEqual(result, 0)
 
     def test_pareto(self):
         individuals = []
