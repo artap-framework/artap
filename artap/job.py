@@ -1,7 +1,7 @@
 import time
 from abc import ABCMeta
 from .individual import Individual
-
+from math import inf
 
 class Job(metaclass=ABCMeta):
     def __init__(self, problem, population=None):
@@ -28,7 +28,8 @@ class Job(metaclass=ABCMeta):
             if isinstance(costs, list):
                 individual.costs = costs
                 if self.problem is not None:
-                    individual.signs = self.problem.signs
+                    individual.calc_signed_costs(self.problem.signs)  # the idea is to make this conversion only once
+                #     individual.signs = self.problem.signs
             else:
                 raise AssertionError("Costs type must be list.")
 
@@ -37,6 +38,8 @@ class Job(metaclass=ABCMeta):
 
         except (TimeoutError, RuntimeError) as e:
             individual.state = Individual.State.FAILED
+            if individual.feasible == 0.0:
+                individual.feasible = inf # TODO: genetic algorithms uses this information, i dont know the correct solution
 
         # add to population
         if self.population is not None:

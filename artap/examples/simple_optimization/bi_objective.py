@@ -56,8 +56,8 @@ problem = BiObjectiveTestProblem()
 
 # Perform the optimization iterating over 100 times on 100 individuals.
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 10
-algorithm.options['max_population_size'] = 10
+algorithm.options['max_population_number'] = 100
+algorithm.options['max_population_size'] = 100
 algorithm.run()
 
 # Post - processing the results
