@@ -61,8 +61,10 @@ class Evaluator(Operator):
     def evaluate_parallel(self, individuals: list):
         # simple parallel loop
         job = Job(self.algorithm.problem)
-        Parallel(n_jobs=self.algorithm.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
-                                                                                       for individual in individuals)
+        Parallel(n_jobs=self.algorithm.options["max_processes"], verbose=1, require='sharedmem')(
+            delayed(job.evaluate)(individual)
+            for individual in individuals)
+
 
 class GradientEvaluator(Evaluator):
 
@@ -439,15 +441,16 @@ class SwarmMutator(Mutator):
 
     # update new particle velocity
     def update_velocity(self, individual):
-        individual.features['velocity'] = [0]*len(individual.vector)
-        individual.features['best_vector'] = [0]*len(individual.vector)
+        individual.features['velocity'] = [0] * len(individual.vector)
+        individual.features['best_vector'] = [0] * len(individual.vector)
         for i in range(0, len(individual.vector)):
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
 
             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.features['velocity'][i] = self.w * individual.features['velocity'][i] + vel_cognitive + vel_social
+            individual.features['velocity'][i] = self.w * individual.features['velocity'][
+                i] + vel_cognitive + vel_social
 
     # update the particle position based off new velocity updates
     def update_position(self, individual):
@@ -514,8 +517,8 @@ class SwarmMutatorTVIW(SwarmMutator):
         :param iteration_nr: actual generation
         """
 
-        individual.features['velocity'] = [0]*len(individual.vector)
-        individual.features['best_vector'] = [0]*len(individual.vector)
+        individual.features['velocity'] = [0] * len(individual.vector)
+        individual.features['best_vector'] = [0] * len(individual.vector)
         for i in range(0, len(individual.vector)):
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
@@ -638,7 +641,6 @@ class FireflyMutator(SwarmMutator):
         r2 = 0.  # euclidean distance
 
         for i, param in enumerate(self.parameters):
-
             lb = param['bounds'][0]
             ub = param['bounds'][1]
 
@@ -661,7 +663,7 @@ class FireflyMutator(SwarmMutator):
         :param q:
         :return:
         """
-        self.update_velocity_ij(p,q)
+        self.update_velocity_ij(p, q)
         self.update_position(p)
         return
 
@@ -779,8 +781,23 @@ class Selector(Operator):
         return population
 
     def crowding_distance(self, population):
+        """This function performs the computation of the crowding distance estimation
+           over the list of the cost functions
+        """
+
         infinite = float("inf")
         n = len(population[0].costs)
+
+        if n is 0:
+            return
+        elif n is 1:
+            front[0].attributes['crowding_distance'] = float("inf")
+            return
+        elif n is 2:
+            front[0].attributes['crowding_distance'] = float("inf")
+            front[1].attributes['crowding_distance'] = float("inf")
+            return
+
         for dim in range(0, n):
             new_list = self.sort_by_coordinate(population, dim)
 
@@ -799,7 +816,6 @@ class Selector(Operator):
 
 
 class DummySelector(Selector):
-
 
     def __init__(self, parameters, part_num=2):
         super().__init__(parameters, part_num)
@@ -892,19 +908,19 @@ class EpsilonDominance(Dominance):
         # it means that the solution is feasible
         if p[-1] != q[-1]:
             if p[-1] == 0:
-                return 1 # p dominates
+                return 1  # p dominates
             elif q[-1] == 0:
-                return 2 # q is dominates
+                return 2  # q is dominates
             elif p[-1] < q[-1]:
-                return 1 # p is dominates
+                return 1  # p is dominates
             elif q[-1] < p[-1]:
-                return 2 # q is dominates
+                return 2  # q is dominates
 
         # then use epsilon dominance on the objectives
         dominate_p = False
         dominate_q = False
 
-        for i,(p_costs, q_costs) in enumerate(p[:-1], q[:-1]):
+        for i, (p_costs, q_costs) in enumerate(p[:-1], q[:-1]):
 
             epsilon = float(self.epsilons[i % len(self.epsilons)])
 
@@ -919,7 +935,6 @@ class EpsilonDominance(Dominance):
                 dominate_p = True
                 if dominate_q:
                     return 0
-
 
         if not dominate_p and not dominate_q:
             dist1 = 0.0
