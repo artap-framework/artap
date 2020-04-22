@@ -44,15 +44,16 @@ class TestCrossover(unittest.TestCase):
         i1 = Individual([0, 0])
         i1.costs = [1, 1]
         i1.features = self.features.copy()
+        i1.calc_signed_costs(self.signs)
 
         i2 = Individual([2, 2])
         i2.costs = [2, 2]
         i2.features = self.features.copy()
-
-        result = dominance.compare(i1.signs(), i2.signs())
+        i2.calc_signed_costs(self.signs)
+        result = dominance.compare(i1.signs, i2.signs)
         self.assertEqual(result, 1)
 
-        result = dominance.compare(i2.signs(), i1.signs())
+        result = dominance.compare(i2.signs, i1.signs)
         self.assertEqual(result, 2)
 
     def test_pareto(self):
