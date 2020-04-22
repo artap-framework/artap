@@ -8,7 +8,7 @@ import numpy as np
 from artap.individual import Individual
 from artap.utils import VectorAndNumbers
 from artap.doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
-from .job import Job
+from artap.job import Job
 from joblib import Parallel, delayed
 
 EPSILON = sys.float_info.epsilon
@@ -46,10 +46,11 @@ class Evaluator(Operator):
             self.evaluate_serial(individuals)
 
         n_failed = 0
-        for individual in individuals:
-            if individual.state == Individual.State.FAILED:
-                n_failed += 1
-                individuals.remove(individual)   # TODO: is can be not feasible?
+        # for individual in individuals:
+        #     # if individual.state == Individual.State.FAILED:
+        #     #     n_failed += 1
+        #     #     individuals.remove(individual)   # TODO: it is not correct, nsga2 handles this case in paretodominance
+        #     individual.calc_signed_costs(self.problem.signs) # the idea is to make this conversion only once
 
     def evaluate_serial(self, individuals: list):
         job = Job(self.algorithm.problem)
@@ -618,7 +619,7 @@ class FireflyMutator(SwarmMutator):
         dominates = True
 
         for i in range(len(current.costs)):
-            if other.signed_costs[i] > current.signed_costs[i]:
+            if other.signs[i] > current.signs[i]:
                 dominates = False
 
         return dominates
@@ -649,45 +650,6 @@ class FireflyMutator(SwarmMutator):
 
             v_rd = self.alpha * (random.random() - 0.5) * e
             current.velocity_i[i] = vel_attraction + v_rd
-
-            # for individual in offsprings:
-            #     for other in offsprings:
-            #         dominates = False
-            #
-            #         if individual is not other:
-            #             dominates = True
-            #
-            #         for i in range(len(individual.signed_costs)):
-            #             if individual.signed_costs[i] > offsprings.signed_costs[i]:
-            #                 dominates = False
-            #
-            #         if dominates:
-            #
-            #             r2 = 0
-            #             for i, param in enumerate(self.parameters):
-            #                 l_b = param['bounds'][0]
-            #                 u_b = param['bounds'][1]
-            #
-            #                 # elementary distance of the particle (to do not )
-            #                 e = self.probability*(u_b-l_b)
-            #                 # distance between the two individuals
-            #                 r2 += individual.vector[i]**2. + other.vector[i]**2.
-            #
-            #                 vel_attraction = self.beta*exp(-self.gamma*r2**2.)
-            #
-            #                 v_rd = self.alpha * (random.random() - 0.5) * e
-            #                 individual.velocity_i[i] = vel_attraction + v_rd
-            #
-            #                 temp = copy(individual)
-            #                 self.evaluate(temp)
-            #
-            #                 dom = True
-            #                 for j in range(len(individual.best_costs)):
-            #                     if individual.signed_costs[j] > offsprings.signed_costs[j]:
-            #                         dom = False
-            #
-            #                 if dom is True:
-            #                     individual = copy(temp)
 
             return
 
@@ -988,7 +950,7 @@ class ParetoDominance(Dominance):
     """Pareto dominance with constraints.
 
     If either solution violates constraints, then the solution with a smaller
-    constraint violation is preferred.  If both solutions are feasible, then
+    constraint violation is preferred. If both solutions are feasible, then
     Pareto dominance is used to select the preferred solution.
     """
 
@@ -1001,10 +963,22 @@ class ParetoDominance(Dominance):
         Here, p and q are tuples, which contains the (feasibility index, cost vector)
         """
 
+        # first check constraint violation, the last item is the feasibility, which is a real number if its zero,
+        # it means that the solution is feasible
+        if p[-1] != q[-1]:
+            if p[-1] == 0:
+                return 1  # p dominates
+            elif q[-1] == 0:
+                return 2  # q is dominates
+            elif p[-1] < q[-1]:
+                return 1  # p is dominates
+            elif q[-1] < p[-1]:
+                return 2  # q is dominates
+
         dominate_p = False
         dominate_q = False
 
-        for (p_costs, q_costs) in zip(p, q):
+        for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
 
             if p_costs > q_costs:
                 dominate_q = True
@@ -1073,9 +1047,9 @@ class Selector(Operator):
             for q in generation:
                 if p is q:
                     continue
-                if self.comparator.compare(p.signed_costs(), q.signed_costs()) == 1:
+                if self.comparator.compare(p.signs, q.signs) == 1:
                     p.features['dominate'].add(q)
-                elif self.comparator.compare(q.signed_costs(), p.signed_costs()) == 1:
+                elif self.comparator.compare(q.signs, p.signs) == 1:
                     p.features['domination_counter'] += 1
 
             if p.features['domination_counter'] == 0:
@@ -1155,7 +1129,7 @@ class TournamentSelector(Selector):
         for _ in range(self.part_num - 1):
             candidate = random.choice(population)
 
-            flag = self.dominance.compare(winner.signed_costs(), candidate.signed_costs())
+            flag = self.dominance.compare(winner.signs, candidate.signs)
 
             if flag > 0:
                 winner = candidate
