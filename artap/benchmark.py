@@ -28,7 +28,7 @@ def b_nsga2_dtlzI():
     :return: the unary epsilon indicator for the dtlz-i test problem
     """
 
-    test2d = DTLZI(**{'dimension': 7, 'm': 2})
+    test2d = DTLZI(**{'dimension': 9, 'm': 2})
 
     # Cross-check with Platypus and JMetalpy implementatinos
     #print(test2d.evaluate(Individual([1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.5])))
@@ -50,11 +50,28 @@ def b_nsga2_dtlzI():
     results.pareto_plot()
     vals = results.pareto_values()
 
-    reference = []
-    for elem in vals:
-        reference.append((elem[0], 0.5 - elem[0]))
+
+
+    #reference = []
+    #for elem in vals:
+    #    reference.append((elem[0], 0.5 - elem[0]))
 
     print(vals)
-    print(reference)
+    #print(reference)
+
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+
+    # display the results
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection='3d')
+    ax.scatter(vals[0], vals[1], vals[2])
+    ax.set_xlim([0, 1.1])
+    ax.set_ylim([0, 1.1])
+    ax.set_zlim([0, 1.1])
+    ax.view_init(elev=30.0, azim=15.0)
+    #ax.locator_params(nbins=4)
+
+    plt.show()
 
 b_nsga2_dtlzI()
