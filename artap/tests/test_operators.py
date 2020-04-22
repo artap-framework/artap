@@ -13,6 +13,7 @@ class TestCrossover(unittest.TestCase):
                            {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
 
         self.signs = [1, 1]
+        self.signs2 = [1, 1, 1]
 
         self.i1 = Individual([1, 2, 2])
         self.i2 = Individual([3, 2, 1])
@@ -53,14 +54,14 @@ class TestCrossover(unittest.TestCase):
 
         # test weak-strong dominance
         i3 = Individual([0, 0, 0])
-        i3.costs = [1, 0, 1]
+        i3.costs = [1, 0, 2]
         i3.features = self.features.copy()
-        i3.calc_signed_costs(self.signs)
+        i3.calc_signed_costs(self.signs2)
 
         i4 = Individual([1, 1, 1])
         i4.costs = [1, 1, 1]
         i4.features = self.features.copy()
-        i4.calc_signed_costs(self.signs)
+        i4.calc_signed_costs(self.signs2)
 
         result = dominance.compare(i1.signs, i2.signs)
         self.assertEqual(result, 1)
