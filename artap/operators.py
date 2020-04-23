@@ -715,123 +715,113 @@ class SwarmMutatorTVAC(SwarmMutator):
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
 
-class Selector(Operator):
+# class Selector(Operator):
+#
+#     def __init__(self, parameters, part_num=2):
+#         super().__init__()
+#         self.parameters = parameters
+#         # self.signs = signs
+#         self.part_num = part_num
+#         self.comparator = ParetoDominance()
+#
+#     @abstractmethod
+#     def select(self, population):
+#         pass
+#
+#     def is_dominate(self, p, q):
+#         """
+#         :param p: current solution
+#         :param q: candidate
+#         :return: True if the candidate is better than the current solution
+#         """
+#         dominate = False
+#
+#         # The cost function can be a float or a list of floats
+#         for i in range(0, len(p.costs)):
+#             if p.costs[i] > q.costs[i]:
+#                 return False
+#             if p.costs[i] <= q.costs[i]:
+#                 dominate = True
+#         return dominate
+#
+#     def non_dominated_sort(self, population):
+#         pareto_front = []
+#         front_number = 1
+#
+#         for p in population:
+#             p.domination_counter = 0
+#             p.front_number = None
+#             p.dominate = set()
+#
+#             for q in population:
+#                 if p is q:
+#                     continue
+#                 if self.comparator.compare(p, q) == 1:  # TODO: simplify
+#                     p.dominate.add(q)
+#                 elif self.comparator.compare(q, p) == 1:
+#                     p.domination_counter = p.domination_counter + 1
+#
+#             if p.domination_counter == 0:
+#                 p.front_number = front_number
+#                 pareto_front.append(p)
+#
+#         while not len(pareto_front) == 0:
+#             front_number += 1
+#             temp_set = []
+#             for p in pareto_front:
+#                 for q in p.dominate:
+#                     q.domination_counter -= 1
+#                     if q.domination_counter == 0 and q.front_number is None:
+#                         q.front_number = front_number
+#                         temp_set.append(q)
+#             pareto_front = temp_set
+#
+#     def sort_by_coordinate(self, population, dim):
+#         population.sort(key=lambda x: x.costs[dim])
+#         return population
+#
+#     def crowding_distance(self, population):
+#         """This function performs the computation of the crowding distance estimation
+#            over the list of the cost functions
+#         """
+#
+#         infinite = float("inf")
+#         n = len(population[0].costs)
+#
+#         for dim in range(0, n):
+#             new_list = self.sort_by_coordinate(population, dim)
+#
+#             new_list[0].crowding_distance += infinite
+#             new_list[-1].crowding_distance += infinite
+#             max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
+#             for i in range(1, len(new_list) - 1):
+#                 distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
+#                 if max_distance == 0:
+#                     new_list[i].crowding_distance = 0
+#                 else:
+#                     new_list[i].crowding_distance += distance / max_distance
+#
+#         for p in population:
+#             p.crowding_distance = p.crowding_distance / n
+#
 
-    def __init__(self, parameters, part_num=2):
-        super().__init__()
-        self.parameters = parameters
-        # self.signs = signs
-        self.part_num = part_num
-        self.comparator = ParetoDominance()
-
-    @abstractmethod
-    def select(self, population):
-        pass
-
-    def is_dominate(self, p, q):
-        """
-        :param p: current solution
-        :param q: candidate
-        :return: True if the candidate is better than the current solution
-        """
-        dominate = False
-
-        # The cost function can be a float or a list of floats
-        for i in range(0, len(p.costs)):
-            if p.costs[i] > q.costs[i]:
-                return False
-            if p.costs[i] <= q.costs[i]:
-                dominate = True
-        return dominate
-
-    def non_dominated_sort(self, population):
-        pareto_front = []
-        front_number = 1
-
-        for p in population:
-            p.domination_counter = 0
-            p.front_number = None
-            p.dominate = set()
-
-            for q in population:
-                if p is q:
-                    continue
-                if self.comparator.compare(p, q) == 1:  # TODO: simplify
-                    p.dominate.add(q)
-                elif self.comparator.compare(q, p) == 1:
-                    p.domination_counter = p.domination_counter + 1
-
-            if p.domination_counter == 0:
-                p.front_number = front_number
-                pareto_front.append(p)
-
-        while not len(pareto_front) == 0:
-            front_number += 1
-            temp_set = []
-            for p in pareto_front:
-                for q in p.dominate:
-                    q.domination_counter -= 1
-                    if q.domination_counter == 0 and q.front_number is None:
-                        q.front_number = front_number
-                        temp_set.append(q)
-            pareto_front = temp_set
-
-    def sort_by_coordinate(self, population, dim):
-        population.sort(key=lambda x: x.costs[dim])
-        return population
-
-    def crowding_distance(self, population):
-        """This function performs the computation of the crowding distance estimation
-           over the list of the cost functions
-        """
-
-        infinite = float("inf")
-        n = len(population[0].costs)
-
-        if n is 0:
-            return
-        elif n is 1:
-            front[0].attributes['crowding_distance'] = float("inf")
-            return
-        elif n is 2:
-            front[0].attributes['crowding_distance'] = float("inf")
-            front[1].attributes['crowding_distance'] = float("inf")
-            return
-
-        for dim in range(0, n):
-            new_list = self.sort_by_coordinate(population, dim)
-
-            new_list[0].crowding_distance += infinite
-            new_list[-1].crowding_distance += infinite
-            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
-            for i in range(1, len(new_list) - 1):
-                distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
-                if max_distance == 0:
-                    new_list[i].crowding_distance = 0
-                else:
-                    new_list[i].crowding_distance += distance / max_distance
-
-        for p in population:
-            p.crowding_distance = p.crowding_distance / n
-
-
-class DummySelector(Selector):
-
-    def __init__(self, parameters, part_num=2):
-        super().__init__(parameters, part_num)
-
-    def select(self, individuals):
-        selection = []
-        for individual in individuals:
-            candidate = individual.__class__(individual.vector)
-            candidate.costs = individual.costs
-            candidate.front_number = individual.front_number
-            candidate.features['best_vector'] = individual.features['best_vector']
-            candidate.features['best_costs'] = individual.features['best_costs']
-
-            selection.append(candidate)
-
-        return selection
+# class DummySelector(Selector):
+#
+#     def __init__(self, parameters, part_num=2):
+#         super().__init__(parameters, part_num)
+#
+#     def select(self, individuals):
+#         selection = []
+#         for individual in individuals:
+#             candidate = individual.__class__(individual.vector)
+#             candidate.costs = individual.costs
+#             candidate.front_number = individual.front_number
+#             candidate.features['best_vector'] = individual.features['best_vector']
+#             candidate.features['best_costs'] = individual.features['best_costs']
+#
+#             selection.append(candidate)
+#
+#         return selection
 
 
 class Dominance(ABC):
@@ -1088,23 +1078,39 @@ class Selector(Operator):
         return population
 
     def crowding_distance(self, population):
-        infinite = float("inf")
+        # infinite = float("inf")
+
         n = len(population[0].costs)
-        for dim in range(0, n):
-            new_list = self.sort_by_coordinate(population, dim)
 
-            new_list[0].features['crowding_distance'] += infinite
-            new_list[-1].features['crowding_distance'] += infinite
-            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
-            for i in range(1, len(new_list) - 1):
-                distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
+        if n is 0:
+            return
+        elif n is 1:
+            population[0].features['crowding_distance'] = math.inf
+            return
+        elif n is 2:
+            population[0].features['crowding_distance'] = math.inf
+            population[1].features['crowding_distance'] = math.inf
+            return
+
+        for dim in range(n):
+            population = self.sort_by_coordinate(population, dim)
+
+            population[0].features['crowding_distance'] += math.inf
+            population[-1].features['crowding_distance'] += math.inf
+            max_distance = population[0].vector[dim] - population[-1].vector[dim]
+            for i in range(1, len(population) - 1):
+                distance = population[i - 1].vector[dim] - population[i + 1].vector[dim]
                 if max_distance == 0:
-                    new_list[i].features['crowding_distance'] = 0
+                    pass
+                    #new_list[i].features['crowding_distance'] = 0
                 else:
-                    new_list[i].features['crowding_distance'] += distance / max_distance
+                    population[i].features['crowding_distance'] += distance / max_distance
+                distance += population[i].features['crowding_distance']
+                population[i].features['crowding_distance'] = distance
 
-        for p in population:
-            p.features['crowding_distance'] = p.features['crowding_distance'] / n
+        # changed to jmetalpy idea
+        # for p in population:
+        #     p.features['crowding_distance'] = p.features['crowding_distance'] / n
 
 
 class DummySelector(Selector):
