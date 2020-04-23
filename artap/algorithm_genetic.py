@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from .algorithm import Algorithm
 from .operators import RandomGenerator, SimulatedBinaryCrossover, \
-    PmMutator, TournamentSelector, EpsilonDominance
+    PmMutator, TournamentSelector, EpsilonDominance, nondominated_truncate
 from .population import Population
 from .problem import Problem
 
@@ -102,6 +102,13 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 class NSGAII(GeneticAlgorithm):
 
     def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
+        """
+         NSGA-II implementation as described in
+
+         [1] K. Deb, A. Pratap, S. Agarwal and T. Meyarivan, "A fast and elitist
+             multiobjective genetic algorithm: NSGA-II," in IEEE Transactions on Evolutionary Computation,
+             vol. 6, no. 2, pp. 182-197, Apr 2002. doi: 10.1109/4235.996017
+        """
         super().__init__(problem, name)
 
         self.options.declare(name='prob_cross', default=0.6, lower=0,
@@ -111,7 +118,7 @@ class NSGAII(GeneticAlgorithm):
         self.features = {'dominate': set(),
                          'crowding_distance': 0,
                          'domination_counter': 0,
-                         'front_number': 0,}
+                         'front_number': 0, }
 
     def run(self):
         # set random generator
@@ -154,15 +161,10 @@ class NSGAII(GeneticAlgorithm):
             # add the parents to the offsprings
             offsprings.extend(deepcopy(population.individuals))
 
-            # non-dominated truncate on the individuals
+            # make the pareto dominance calculation and calculating the crowding distance
             self.selector.sorting(offsprings)
             self.selector.crowding_distance(offsprings)
-
-            # sort offsprings and ### remove duplicates by set!!!
-            parents = sorted(set(offsprings), key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
-
-            # truncate and replace individuals
-            population.individuals = parents[:self.population_size]
+            population.individuals = nondominated_truncate(offsprings,self.population_size)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
@@ -184,7 +186,6 @@ class EpsMOEA(GeneticAlgorithm):
                          'crowding_distance': 0,
                          'domination_counter': 0,
                          'front_number': 0}
-
 
     def run(self):
         # set random generator
@@ -240,14 +241,16 @@ class EpsMOEA(GeneticAlgorithm):
             self.selector.sorting(children)
             selector_pareto.crowding_distance(children)
 
-            parents = sorted(set(children), key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
+            parents = sorted(set(children),
+                             key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
             child = parents[:self.population_size]  # truncate
 
             # eps dominated truncate on the guys
             selector_epsdom.sorting(arch_child)
             selector_epsdom.crowding_distance(arch_child)
 
-            arch_parents = sorted(set(arch_child), key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
+            arch_parents = sorted(set(arch_child),
+                                  key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
             population.archives = arch_parents[:self.population_size]  # truncate
 
         t = time.time() - t_s
