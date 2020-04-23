@@ -11,6 +11,7 @@ from artap.utils import VectorAndNumbers
 from artap.doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
 from artap.job import Job
 from joblib import Parallel, delayed
+from copy import deepcopy
 
 EPSILON = sys.float_info.epsilon
 
@@ -353,21 +354,28 @@ class PmMutator(Mutator):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
-            if isinstance(parent.vector[i], list):
-                vector.append(self.bitflip(parent.vector[i]))
-
+            if random.uniform(0, 1) < self.probability:
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
+                vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
             else:
-                if random.uniform(0, 1) < self.probability:
-                    l_b = parameter['bounds'][0]
-                    u_b = parameter['bounds'][1]
-
-                    if isinstance(parent.vector[i], float):
-                        vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
-
-                    if isinstance(parent.vector[i], int):
-                        vector.append(int(self.pm_mutation(parent.vector[i], l_b, u_b)))
-                else:
-                    vector.append(parent.vector[i])
+                vector.append(parent.vector[i])
+            # disconnect the integer and float mutations
+            # if isinstance(parent.vector[i], list):
+            #     vector.append(self.bitflip(parent.vector[i]))
+            #
+            # else:
+            #     if random.uniform(0, 1) < self.probability:
+            #         l_b = parameter['bounds'][0]
+            #         u_b = parameter['bounds'][1]
+            #
+            #         if isinstance(parent.vector[i], float):
+            #             vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
+            #
+            #         if isinstance(parent.vector[i], int):
+            #             vector.append(int(self.pm_mutation(parent.vector[i], l_b, u_b)))
+            #     else:
+            #         vector.append(parent.vector[i])
 
         p_new = parent.__class__(vector)
         return p_new
@@ -940,10 +948,15 @@ class Selector(Operator):
             for q in generation:
                 if p is q:
                     continue
-                if self.comparator.compare(p.signs, q.signs) == 1:
+                dom = self.comparator.compare(p.signs, q.signs)
+                if dom == 1:
                     p.features['dominate'].add(q)
-                elif self.comparator.compare(q.signs, p.signs) == 1:
+                elif dom == 2:
                     p.features['domination_counter'] += 1
+                # if self.comparator.compare(p.signs, q.signs) == 1:
+                #     p.features['dominate'].add(q)
+                # elif self.comparator.compare(q.signs, p.signs) == 1:
+                #     p.features['domination_counter'] += 1
 
             if p.features['domination_counter'] == 0:
                 p.features['front_number'] = front_number
