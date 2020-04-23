@@ -55,7 +55,7 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
         self.options.declare(name='n_iterations', default=50, lower=1,
                              desc='Maximum evaluations')
-        self.options.declare(name='max_population_number', default=10, lower=1,
+        self.options.declare(name='max_population_number', default=100, lower=1,
                              desc='max_population_number')
         self.options.declare(name='max_population_size', default=100, lower=1,
                              desc='Maximal number of individuals in population')
@@ -114,9 +114,9 @@ class NSGAII(GeneticAlgorithm):
         """
         super().__init__(problem, name)
 
-        self.options.declare(name='prob_cross', default=0.6, lower=0,
+        self.options.declare(name='prob_cross', default=1.0, lower=0,
                              desc='prob_cross')
-        self.options.declare(name='prob_mutation', default=0.2, lower=0,
+        self.options.declare(name='prob_mutation', default=1.0/(len(problem.parameters)), lower=0,
                              desc='prob_mutation')
         self.features = {'dominate': set(),
                          'crowding_distance': 0,

@@ -340,10 +340,7 @@ class PmMutator(Mutator):
     PmMutation -- for nsga2 and epsMoEA
 
     This operator can handle real, integer and boolean optimization parameters.
-    The class contains two-kind of operators as the original (Deb's [...]) implementation .
-
-    This is a difference between Artap and Platypus, where the Integer numbers are encoded (Gray-encoding) and handled
-    as binary numbers with the Bitflip operator.
+    The class contains two-kind of operators as the original Deb's implementation .
     """
 
     def __init__(self, parameters, probability, distribution_index=20):
@@ -360,22 +357,6 @@ class PmMutator(Mutator):
                 vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
             else:
                 vector.append(parent.vector[i])
-            # disconnect the integer and float mutations
-            # if isinstance(parent.vector[i], list):
-            #     vector.append(self.bitflip(parent.vector[i]))
-            #
-            # else:
-            #     if random.uniform(0, 1) < self.probability:
-            #         l_b = parameter['bounds'][0]
-            #         u_b = parameter['bounds'][1]
-            #
-            #         if isinstance(parent.vector[i], float):
-            #             vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
-            #
-            #         if isinstance(parent.vector[i], int):
-            #             vector.append(int(self.pm_mutation(parent.vector[i], l_b, u_b)))
-            #     else:
-            #         vector.append(parent.vector[i])
 
         p_new = parent.__class__(vector)
         return p_new
@@ -884,7 +865,7 @@ class ParetoDominance(Dominance):
         dominate_q = False
 
         # for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
-        for i in range(len(p)-1):
+        for i in range(len(p) - 1):
             if p[i] > q[i]:
                 dominate_q = True
                 if dominate_p:
@@ -914,26 +895,13 @@ class Selector(Operator):
         """
         super().__init__()
         self.parameters = parameters
-        self.part_num = part_num
+        self.part_num = part_num # TODO: not used?
         self.comparator = dominance()  # ParetoDominance()
         self.signs = sign
 
     @abstractmethod
     def select(self, population):
         pass
-
-    # def is_dominate(self, p, q):
-    #     """
-    #     :param p: current solution
-    #     :param q: candidate
-    #     :return: True if the candidate is better than the current solution
-    #     """
-    #     # The cost function can be a float or a list of floats
-    #     for p_costs, q_costs in zip(p.costs, q.costs):
-    #         if p_costs > q_costs:
-    #             return False
-    #         else:
-    #             return True
 
     def sorting(self, generation):
 
@@ -953,10 +921,6 @@ class Selector(Operator):
                     p.features['dominate'].add(q)
                 elif dom == 2:
                     p.features['domination_counter'] += 1
-                # if self.comparator.compare(p.signs, q.signs) == 1:
-                #     p.features['dominate'].add(q)
-                # elif self.comparator.compare(q.signs, p.signs) == 1:
-                #     p.features['domination_counter'] += 1
 
             if p.features['domination_counter'] == 0:
                 p.features['front_number'] = front_number
@@ -1220,11 +1184,11 @@ class SimpleCrossover(Crossover):
 
 class SimulatedBinaryCrossover(Crossover):
 
-    def __init__(self, parameters, probability, distribution_index=15):
+    def __init__(self, parameters, probability, distribution_index=20):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
-    def sbx(self, x1, x2, lb, ub, p_type="real"):
+    def sbx(self, x1, x2, lb, ub):
 
         dx = x2 - x1
 
@@ -1269,9 +1233,9 @@ class SimulatedBinaryCrossover(Crossover):
             x1 = self.clip(x1, lb, ub)
             x2 = self.clip(x2, lb, ub)
 
-            if p_type == "integer":
-                x1 = int(x1)
-                x2 = int(x2)
+            # if p_type == "integer":
+            #     x1 = int(x1)
+            #     x2 = int(x2)
 
         return x1, x2
 
@@ -1281,29 +1245,23 @@ class SimulatedBinaryCrossover(Crossover):
         :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        parent_a = p1.vector.copy()
-        parent_b = p2.vector.copy()
+        x1 = p1.vector
+        x2 = p2.vector
 
         if random.uniform(0.0, 1.0) <= self.probability:
             for i, param in enumerate(self.parameters):
                 if random.uniform(0.0, 1.0) <= 0.5:
-                    x1 = parent_a[i]
-                    x2 = parent_b[i]
-
                     lb = param['bounds'][0]
                     ub = param['bounds'][1]
 
-                    if not 'parameter_type' in param:
-                        continue
-                    else:
-                        p_type = param['parameter_type']
+                    # if not 'parameter_type' in param:
+                    #     continue
+                    # else:
+                    #     p_type = param['parameter_type']
 
-                    x1, x2 = self.sbx(x1, x2, lb, ub, p_type)
+                    x1[i], x2[i] = self.sbx(x1[i], x2[i], lb, ub)
 
-                    parent_a[i] = x1
-                    parent_b[i] = x2
-
-        offspring_a = p1.__class__(parent_a)
-        offspring_b = p2.__class__(parent_b)
+        offspring_a = p1.__class__(x1)
+        offspring_b = p2.__class__(x2)
 
         return offspring_a, offspring_b
