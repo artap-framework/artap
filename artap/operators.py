@@ -957,9 +957,9 @@ class Selector(Operator):
 
             population[0].features['crowding_distance'] = math.inf
             population[-1].features['crowding_distance'] = math.inf
-            max_distance = population[0].vector[dim] - population[-1].vector[dim]
+            max_distance = population[0].costs[dim] - population[-1].costs[dim]
             for i in range(1, n - 1):
-                distance = population[i - 1].vector[dim] - population[i + 1].vector[dim]
+                distance = population[i + 1].costs[dim] - population[i - 1].costs[dim]
                 if max_distance == 0:
                     pass
                     # new_list[i].features['crowding_distance'] = 0

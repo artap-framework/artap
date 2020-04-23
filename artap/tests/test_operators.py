@@ -101,7 +101,7 @@ class TestCrossover(unittest.TestCase):
             self.assertEqual(individual.signs[0] + individual.signs[1], individual.features['front_number'])
 
 # TODO: test for crowding distance
-class TestCrowdingDistance(Problem):
+# class TestCrowdingDistance(Problem):
 
 
 
