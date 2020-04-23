@@ -73,13 +73,15 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         while len(children) < self.population_size:
             parent1 = self.selector.select(parents)
 
-            if archive is not None:
-                parent2 = self.selector.select(archive)
-            else:
-                parent2 = self.selector.select(parents)
+            repeat = True
+            while repeat:
+                if archive:
+                    parent2 = self.selector.select(archive)
+                else:
+                    parent2 = self.selector.select(parents)
 
-            while parent1 == parent2:
-                parent2 = self.selector.select(parents)
+                if parent1  is not parent2:
+                    repeat = False
 
             # crossover
             child1, child2 = self.crossover.cross(parent1, parent2)
@@ -87,6 +89,7 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
             # mutation
             child1 = self.mutator.mutate(child1)
             child2 = self.mutator.mutate(child2)
+
             if not any(child1 == item for item in children):
                 children.append(deepcopy(child1))  # Always create new individual
             if not any(child1 == item for item in children):
