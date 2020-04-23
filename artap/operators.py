@@ -915,7 +915,7 @@ class EpsilonDominance(Dominance):
                 dominate_q = True
                 if dominate_p:
                     return 0
-            else:
+            elif qepsi > pepsi:
                 dominate_p = True
                 if dominate_q:
                     return 0
@@ -978,13 +978,13 @@ class ParetoDominance(Dominance):
         dominate_p = False
         dominate_q = False
 
-        for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
-
-            if p_costs > q_costs:
+        # for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
+        for i in range(len(p)-1):
+            if p[i] > q[i]:
                 dominate_q = True
                 if dominate_p:
                     return 0
-            else:
+            elif q[i] > p[i]:
                 dominate_p = True
                 if dominate_q:
                     return 0
@@ -1047,9 +1047,10 @@ class Selector(Operator):
             for q in generation:
                 if p is q:
                     continue
-                if self.comparator.compare(p.signs, q.signs) == 1:
+                dominates = self.comparator.compare(p.signs, q.signs)
+                if dominates == 1:
                     p.features['dominate'].add(q)
-                elif self.comparator.compare(q.signs, p.signs) == 1:
+                elif dominates == 2:
                     p.features['domination_counter'] += 1
 
             if p.features['domination_counter'] == 0:

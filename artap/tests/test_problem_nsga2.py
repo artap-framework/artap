@@ -88,7 +88,7 @@ class TestAckley(unittest.TestCase):
             algorithm = NSGAII(problem)
             algorithm.options['max_population_number'] = population_number
             algorithm.options['max_population_size'] = 50
-            algorithm.options['max_processes'] = 10
+            algorithm.options['max_processes'] = 1
             algorithm.run()
 
             b = Results(problem)
@@ -109,7 +109,7 @@ class TestAlpine(unittest.TestCase):
             algorithm = NSGAII(problem)
             algorithm.options['max_population_number'] = population_number
             algorithm.options['max_population_size'] = 100
-            algorithm.options['max_processes'] = 10
+            algorithm.options['max_processes'] = 1
             algorithm.run()
 
             b = Results(problem)

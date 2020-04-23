@@ -77,7 +77,6 @@ class TestCrossover(unittest.TestCase):
         for i in range(3):
             for j in range(3):
                 individual = Individual([0, 1])
-                individual.signs = [1, 1]
                 individual.features = self.features.copy()
                 individuals.append(individual)
 
@@ -91,12 +90,15 @@ class TestCrossover(unittest.TestCase):
         individuals[7].costs = [2, 1]
         individuals[8].costs = [3, 0]
 
+        for individual in individuals:
+            individual.calc_signed_costs(self.signs2)
+
         selector = TournamentSelector(self.parameters)
         selector.sorting(individuals)
 
         for individual in individuals:
             print(individual.costs, individual.features['front_number'])
-            # self.assertEqual(individual.signed_costs()[0] + individual.signed_costs()[1], individual.features['front_number'])
+            self.assertEqual(individual.signs[0] + individual.signs[1], individual.features['front_number'])
 
 
 if __name__ == '__main__':
