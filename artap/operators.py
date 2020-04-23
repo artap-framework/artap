@@ -5,11 +5,13 @@ import math
 import itertools
 from math import exp
 import numpy as np
+import functools
 from artap.individual import Individual
 from artap.utils import VectorAndNumbers
 from artap.doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
 from artap.job import Job
 from joblib import Parallel, delayed
+from copy import deepcopy
 
 EPSILON = sys.float_info.epsilon
 
@@ -61,8 +63,10 @@ class Evaluator(Operator):
     def evaluate_parallel(self, individuals: list):
         # simple parallel loop
         job = Job(self.algorithm.problem)
-        Parallel(n_jobs=self.algorithm.options["max_processes"], verbose=1, require='sharedmem')(delayed(job.evaluate)(individual)
-                                                                                       for individual in individuals)
+        Parallel(n_jobs=self.algorithm.options["max_processes"], verbose=1, require='sharedmem')(
+            delayed(job.evaluate)(individual)
+            for individual in individuals)
+
 
 class GradientEvaluator(Evaluator):
 
@@ -350,21 +354,28 @@ class PmMutator(Mutator):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
-            if isinstance(parent.vector[i], list):
-                vector.append(self.bitflip(parent.vector[i]))
-
+            if random.uniform(0, 1) < self.probability:
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
+                vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
             else:
-                if random.uniform(0, 1) < self.probability:
-                    l_b = parameter['bounds'][0]
-                    u_b = parameter['bounds'][1]
-
-                    if isinstance(parent.vector[i], float):
-                        vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
-
-                    if isinstance(parent.vector[i], int):
-                        vector.append(int(self.pm_mutation(parent.vector[i], l_b, u_b)))
-                else:
-                    vector.append(parent.vector[i])
+                vector.append(parent.vector[i])
+            # disconnect the integer and float mutations
+            # if isinstance(parent.vector[i], list):
+            #     vector.append(self.bitflip(parent.vector[i]))
+            #
+            # else:
+            #     if random.uniform(0, 1) < self.probability:
+            #         l_b = parameter['bounds'][0]
+            #         u_b = parameter['bounds'][1]
+            #
+            #         if isinstance(parent.vector[i], float):
+            #             vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
+            #
+            #         if isinstance(parent.vector[i], int):
+            #             vector.append(int(self.pm_mutation(parent.vector[i], l_b, u_b)))
+            #     else:
+            #         vector.append(parent.vector[i])
 
         p_new = parent.__class__(vector)
         return p_new
@@ -439,15 +450,16 @@ class SwarmMutator(Mutator):
 
     # update new particle velocity
     def update_velocity(self, individual):
-        individual.features['velocity'] = [0]*len(individual.vector)
-        individual.features['best_vector'] = [0]*len(individual.vector)
+        individual.features['velocity'] = [0] * len(individual.vector)
+        individual.features['best_vector'] = [0] * len(individual.vector)
         for i in range(0, len(individual.vector)):
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
 
             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.features['velocity'][i] = self.w * individual.features['velocity'][i] + vel_cognitive + vel_social
+            individual.features['velocity'][i] = self.w * individual.features['velocity'][
+                i] + vel_cognitive + vel_social
 
     # update the particle position based off new velocity updates
     def update_position(self, individual):
@@ -514,8 +526,8 @@ class SwarmMutatorTVIW(SwarmMutator):
         :param iteration_nr: actual generation
         """
 
-        individual.features['velocity'] = [0]*len(individual.vector)
-        individual.features['best_vector'] = [0]*len(individual.vector)
+        individual.features['velocity'] = [0] * len(individual.vector)
+        individual.features['best_vector'] = [0] * len(individual.vector)
         for i in range(0, len(individual.vector)):
             r1 = 0.1 * random.random()
             r2 = 0.1 * random.random()
@@ -638,7 +650,6 @@ class FireflyMutator(SwarmMutator):
         r2 = 0.  # euclidean distance
 
         for i, param in enumerate(self.parameters):
-
             lb = param['bounds'][0]
             ub = param['bounds'][1]
 
@@ -661,7 +672,7 @@ class FireflyMutator(SwarmMutator):
         :param q:
         :return:
         """
-        self.update_velocity_ij(p,q)
+        self.update_velocity_ij(p, q)
         self.update_position(p)
         return
 
@@ -711,111 +722,6 @@ class SwarmMutatorTVAC(SwarmMutator):
             vel_cognitive = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
             vel_social = c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
-
-
-class Selector(Operator):
-
-    def __init__(self, parameters, part_num=2):
-        super().__init__()
-        self.parameters = parameters
-        # self.signs = signs
-        self.part_num = part_num
-        self.comparator = ParetoDominance()
-
-    @abstractmethod
-    def select(self, population):
-        pass
-
-    def is_dominate(self, p, q):
-        """
-        :param p: current solution
-        :param q: candidate
-        :return: True if the candidate is better than the current solution
-        """
-        dominate = False
-
-        # The cost function can be a float or a list of floats
-        for i in range(0, len(p.costs)):
-            if p.costs[i] > q.costs[i]:
-                return False
-            if p.costs[i] <= q.costs[i]:
-                dominate = True
-        return dominate
-
-    def non_dominated_sort(self, population):
-        pareto_front = []
-        front_number = 1
-
-        for p in population:
-            p.domination_counter = 0
-            p.front_number = None
-            p.dominate = set()
-
-            for q in population:
-                if p is q:
-                    continue
-                if self.comparator.compare(p, q) == 1:  # TODO: simplify
-                    p.dominate.add(q)
-                elif self.comparator.compare(q, p) == 1:
-                    p.domination_counter = p.domination_counter + 1
-
-            if p.domination_counter == 0:
-                p.front_number = front_number
-                pareto_front.append(p)
-
-        while not len(pareto_front) == 0:
-            front_number += 1
-            temp_set = []
-            for p in pareto_front:
-                for q in p.dominate:
-                    q.domination_counter -= 1
-                    if q.domination_counter == 0 and q.front_number is None:
-                        q.front_number = front_number
-                        temp_set.append(q)
-            pareto_front = temp_set
-
-    def sort_by_coordinate(self, population, dim):
-        population.sort(key=lambda x: x.costs[dim])
-        return population
-
-    def crowding_distance(self, population):
-        infinite = float("inf")
-        n = len(population[0].costs)
-        for dim in range(0, n):
-            new_list = self.sort_by_coordinate(population, dim)
-
-            new_list[0].crowding_distance += infinite
-            new_list[-1].crowding_distance += infinite
-            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
-            for i in range(1, len(new_list) - 1):
-                distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
-                if max_distance == 0:
-                    new_list[i].crowding_distance = 0
-                else:
-                    new_list[i].crowding_distance += distance / max_distance
-
-        for p in population:
-            p.crowding_distance = p.crowding_distance / n
-
-
-class DummySelector(Selector):
-
-
-    def __init__(self, parameters, part_num=2):
-        super().__init__(parameters, part_num)
-
-    def select(self, individuals):
-        selection = []
-        for individual in individuals:
-            candidate = individual.__class__(individual.vector)
-            candidate.costs = individual.costs
-            candidate.front_number = individual.front_number
-            candidate.features['best_vector'] = individual.features['best_vector']
-            candidate.features['best_costs'] = individual.features['best_costs']
-
-            selection.append(candidate)
-
-        return selection
 
 
 class Dominance(ABC):
@@ -892,19 +798,19 @@ class EpsilonDominance(Dominance):
         # it means that the solution is feasible
         if p[-1] != q[-1]:
             if p[-1] == 0:
-                return 1 # p dominates
+                return 1  # p dominates
             elif q[-1] == 0:
-                return 2 # q is dominates
+                return 2  # q is dominates
             elif p[-1] < q[-1]:
-                return 1 # p is dominates
+                return 1  # p is dominates
             elif q[-1] < p[-1]:
-                return 2 # q is dominates
+                return 2  # q is dominates
 
         # then use epsilon dominance on the objectives
         dominate_p = False
         dominate_q = False
 
-        for i,(p_costs, q_costs) in enumerate(p[:-1], q[:-1]):
+        for i, (p_costs, q_costs) in enumerate(p[:-1], q[:-1]):
 
             epsilon = float(self.epsilons[i % len(self.epsilons)])
 
@@ -919,7 +825,6 @@ class EpsilonDominance(Dominance):
                 dominate_p = True
                 if dominate_q:
                     return 0
-
 
         if not dominate_p and not dominate_q:
             dist1 = 0.0
@@ -1031,11 +936,7 @@ class Selector(Operator):
     #             return True
 
     def sorting(self, generation):
-        """
-        This shoring can be dominated or non-dominated.
-        :param generation: means the list of the population, it can be list of the individuals or the archive.
-        :return:
-        """
+
         pareto_front = []
         front_number = 1
 
@@ -1047,11 +948,15 @@ class Selector(Operator):
             for q in generation:
                 if p is q:
                     continue
-                dominates = self.comparator.compare(p.signs, q.signs)
-                if dominates == 1:
+                dom = self.comparator.compare(p.signs, q.signs)
+                if dom == 1:
                     p.features['dominate'].add(q)
-                elif dominates == 2:
+                elif dom == 2:
                     p.features['domination_counter'] += 1
+                # if self.comparator.compare(p.signs, q.signs) == 1:
+                #     p.features['dominate'].add(q)
+                # elif self.comparator.compare(q.signs, p.signs) == 1:
+                #     p.features['domination_counter'] += 1
 
             if p.features['domination_counter'] == 0:
                 p.features['front_number'] = front_number
@@ -1069,28 +974,82 @@ class Selector(Operator):
             pareto_front = temp_set
         return
 
-    def sort_by_coordinate(self, population, dim):
-        population.sort(key=lambda x: x.costs[dim])
-        return population
-
     def crowding_distance(self, population):
-        infinite = float("inf")
-        n = len(population[0].costs)
-        for dim in range(0, n):
-            new_list = self.sort_by_coordinate(population, dim)
+        n = len(population)
 
-            new_list[0].features['crowding_distance'] += infinite
-            new_list[-1].features['crowding_distance'] += infinite
-            max_distance = new_list[0].vector[dim] - new_list[-1].vector[dim]
-            for i in range(1, len(new_list) - 1):
-                distance = new_list[i - 1].vector[dim] - new_list[i + 1].vector[dim]
+        if n is 0:
+            return
+        elif n is 1:
+            population[0].features['crowding_distance'] = math.inf
+            return
+        elif n is 2:
+            population[0].features['crowding_distance'] = math.inf
+            population[1].features['crowding_distance'] = math.inf
+            return
+
+        for dim in range(len(population[0].costs)):
+            population.sort(key=lambda x: x.costs[dim])
+            # self.sort_by_coordinate(population, dim)
+
+            population[0].features['crowding_distance'] = math.inf
+            population[-1].features['crowding_distance'] = math.inf
+            max_distance = population[0].vector[dim] - population[-1].vector[dim]
+            for i in range(1, n - 1):
+                distance = population[i - 1].vector[dim] - population[i + 1].vector[dim]
                 if max_distance == 0:
-                    new_list[i].features['crowding_distance'] = 0
+                    pass
+                    # new_list[i].features['crowding_distance'] = 0
                 else:
-                    new_list[i].features['crowding_distance'] += distance / max_distance
+                    population[i].features['crowding_distance'] += distance / max_distance
+                distance += population[i].features['crowding_distance']
+                population[i].features['crowding_distance'] = distance
 
-        for p in population:
-            p.features['crowding_distance'] = p.features['crowding_distance'] / n
+        return
+        # changed to jmetalpy idea
+        # for p in population:
+        #     p.features['crowding_distance'] = p.features['crowding_distance'] / n
+
+
+def nondominated_truncate(population, size):
+    """Truncates a population to the given size, using non-dominated sorting.
+    The resulting population is filled with the first N-1 fronts.
+    The Nth front is too large and must be split using crowding distance.
+
+    Parameters
+    ----------
+    :population : iterable
+        The collection of solutions that have been non-domination sorted
+    :size:
+        The size of the truncated result
+    """
+    result = sorted(population, key=functools.cmp_to_key(nondominated_cmp))
+    return result[:size]
+
+
+def nondominated_cmp(p, q):
+    """
+    From the 'front_number' the smaller value is favourized.
+    From the 'crowding_distance' the higher values are favoured.
+    :param p: Individual
+    :param q: Individual
+    :return: -1 if x dominates
+              0 if they are equals
+              1 if y dominates
+    """
+    if p.features['front_number'] == q.features['front_number']:
+        if -p.features['crowding_distance'] < -q.features['crowding_distance']:
+            return -1
+        elif -p.features['crowding_distance'] > -q.features['crowding_distance']:
+            return 1
+        else:
+            return 0
+    else:
+        if p.features['front_number'] < q.features['front_number']:
+            return -1
+        elif p.features['front_number'] > q.features['front_number']:
+            return 1
+        else:
+            return 0
 
 
 class DummySelector(Selector):
