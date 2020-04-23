@@ -97,7 +97,7 @@ class TestCrossover(unittest.TestCase):
         selector.sorting(individuals)
 
         for individual in individuals:
-            print(individual.costs, individual.features['front_number'])
+            # print(individual.costs, individual.features['front_number'])
             self.assertEqual(individual.signs[0] + individual.signs[1], individual.features['front_number'])
 
 
