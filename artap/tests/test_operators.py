@@ -154,7 +154,7 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         x.costs = [2, 3]
         x.signs = [2, 3, 0]
 
-        y = Individual([2, 2, 0])  # last index means that the solution is computed correctly
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [3, 6]
         y.signs = [3, 6, 0]
 
@@ -173,6 +173,37 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
         self.assertAlmostEqual(inf, population[2].features['crowding_distance'])
 
+    def test_should_ranking_of_a_population_with_five_solutions_work_properly(self):
+
+        x = Individual([2, 2])
+        y = Individual([2, 2])
+        z = Individual([2, 2])
+        v = Individual([2, 2])
+        w = Individual([2, 2])
+
+        x.signs = [1.0, 0.0, 0.0] # third value: 0 means its calculated
+        y.signs = [0.5, 0.5, 0.0]
+        z.signs = [0.0, 1.0, 0.0]
+
+        v.signs = [0.6, 0.6, 0.0]
+        w.signs = [0.7, 0.5, 0.0]
+
+        population = [x, y, z, v, w]
+
+        self.selector.fast_nondominated_sorting(population)
+        population = nondominated_truncate(population, 5)
+
+        # [z, x, y]
+        self.assertEqual(population[0].features['front_number'], 1)
+        self.assertEqual(population[1].features['front_number'], 1)
+        self.assertEqual(population[2].features['front_number'], 1)
+
+        self.assertEqual(population[3].features['front_number'], 2)
+        self.assertEqual(population[4].features['front_number'], 2)
+
+        self.assertAlmostEqual(inf, population[0].features['crowding_distance'])
+        self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
+        self.assertAlmostEqual(2.0, population[2].features['crowding_distance'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -973,16 +973,16 @@ def crowding_distance(front):
     for i in range(len(front)):
         front[i].features['crowding_distance'] = 0.0
 
-    for dim in range(len(front[0].costs)):
+    for dim in range(len(front[0].signs[:-1])):
 
-        front.sort(key=lambda x: x.costs[dim])
+        front.sort(key=lambda x: x.signs[dim])
         # self.sort_by_coordinate(population, dim)
 
         front[0].features['crowding_distance'] = math.inf
         front[-1].features['crowding_distance'] = math.inf
-        max_distance = front[-1].costs[dim] - front[0].costs[dim]
+        max_distance = front[-1].signs[dim] - front[0].signs[dim]
         for i in range(1, n - 1):
-            distance = front[i + 1].costs[dim] - front[i - 1].costs[dim]
+            distance = front[i + 1].signs[dim] - front[i - 1].signs[dim]
             if max_distance > 0.0:
                 front[i].features['crowding_distance'] += distance / max_distance
     return
