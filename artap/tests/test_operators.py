@@ -1,7 +1,8 @@
 from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelector, ParetoDominance
+    TournamentSelector, ParetoDominance, nondominated_truncate
 from artap.individual import Individual
-
+from artap.benchmark_pareto import BiObjectiveTestProblem
+from math import inf
 import unittest
 
 
@@ -100,9 +101,77 @@ class TestCrossover(unittest.TestCase):
             # print(individual.costs, individual.features['front_number'])
             self.assertEqual(individual.signs[0] + individual.signs[1], individual.features['front_number'])
 
-# TODO: test for crowding distance
-# class TestCrowdingDistance(Problem):
 
+class TestFastNonDominatedSorting(unittest.TestCase):
+
+    def setUp(self):
+        test2d = BiObjectiveTestProblem()
+        self.selector = TournamentSelector(test2d.parameters)
+
+    def test_should_constructor_create_a_valid_object(self):
+        self.assertIsNotNone(self.selector)
+
+    def test_should_compute_crowding_distance_if_the_population_contains_one_solution(self):
+        x = Individual([0, 0])
+        x.costs = [2, 3]
+        population = [x]
+
+        self.selector.fast_nondominated_sorting(population)
+        self.assertAlmostEqual(inf, population[0].features['crowding_distance'])
+
+    def test_should_compute_crowding_distance_if_the_population_contains_two_individuals(self):
+        x = Individual([0, 0])
+        x.costs = [2, 3]
+        x.signs = [2, 3, 0]
+        y = Individual([1, 1, 0])  # last index means that the solution is computed correctly
+        y.costs = [1, 1]
+        y.signs = [1, 1, 0]
+
+        population = [x, y]
+
+        self.selector.fast_nondominated_sorting(population)
+        self.assertAlmostEqual(inf, population[0].features['crowding_distance'])
+        self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
+
+    def test_should_compute_ranking_work_properly_case1(self):
+        """ The list contains two solutions and y is dominated by x."""
+        x = Individual([2, 2])
+        x.costs = [2, 3]
+        x.signs = [2, 3, 0]
+        y = Individual([2, 2, 0])  # last index means that the solution is computed correctly
+        y.costs = [3, 6]
+        y.signs = [3, 6, 0]
+
+        population = [x, y]
+        self.selector.fast_nondominated_sorting(population)
+        nondominated_truncate(population,2)
+        self.assertEqual(population[0].features['front_number'], 1)
+        self.assertEqual(population[1].features['front_number'], 2)
+
+    def test_should_sort_the_population_with_three_dominated_solutions_return_three_subfronts(self):
+
+        x = Individual([2, 2])
+        x.costs = [2, 3]
+        x.signs = [2, 3, 0]
+
+        y = Individual([2, 2, 0])  # last index means that the solution is computed correctly
+        y.costs = [3, 6]
+        y.signs = [3, 6, 0]
+
+        z = Individual([2, 2, 0])  # last index means that the solution is computed correctly
+        z.costs = [4, 8]
+        z.signs = [4, 8, 0]
+
+        population = [x, y, z]
+        self.selector.fast_nondominated_sorting(population)
+        nondominated_truncate(population, 3)
+        self.assertEqual(population[0].features['front_number'], 1)
+        self.assertEqual(population[1].features['front_number'], 2)
+        self.assertEqual(population[2].features['front_number'], 3)
+
+        self.assertAlmostEqual(inf, population[0].features['crowding_distance'])
+        self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
+        self.assertAlmostEqual(inf, population[2].features['crowding_distance'])
 
 
 if __name__ == '__main__':
