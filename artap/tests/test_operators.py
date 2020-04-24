@@ -94,7 +94,7 @@ class TestCrossover(unittest.TestCase):
             individual.calc_signed_costs(self.signs2)
 
         selector = TournamentSelector(self.parameters)
-        selector.sorting(individuals)
+        selector.fast_nondominated_sorting(individuals)
 
         for individual in individuals:
             # print(individual.costs, individual.features['front_number'])
