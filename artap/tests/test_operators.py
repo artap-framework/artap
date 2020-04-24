@@ -1,5 +1,5 @@
 from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelector, ParetoDominance, nondominated_truncate
+    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance
 from artap.individual import Individual
 from artap.benchmark_pareto import BiObjectiveTestProblem
 from math import inf
@@ -144,12 +144,11 @@ class TestFastNonDominatedSorting(unittest.TestCase):
 
         population = [x, y]
         self.selector.fast_nondominated_sorting(population)
-        nondominated_truncate(population,2)
+        nondominated_truncate(population, 2)
         self.assertEqual(population[0].features['front_number'], 1)
         self.assertEqual(population[1].features['front_number'], 2)
 
     def test_should_sort_the_population_with_three_dominated_solutions_return_three_subfronts(self):
-
         x = Individual([2, 2])
         x.costs = [2, 3]
         x.signs = [2, 3, 0]
@@ -174,14 +173,13 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         self.assertAlmostEqual(inf, population[2].features['crowding_distance'])
 
     def test_should_ranking_of_a_population_with_five_solutions_work_properly(self):
-
         x = Individual([2, 2])
         y = Individual([2, 2])
         z = Individual([2, 2])
         v = Individual([2, 2])
         w = Individual([2, 2])
 
-        x.signs = [1.0, 0.0, 0.0] # third value: 0 means its calculated
+        x.signs = [1.0, 0.0, 0.0]  # third value: 0 means its calculated
         y.signs = [0.5, 0.5, 0.0]
         z.signs = [0.0, 1.0, 0.0]
 
@@ -204,6 +202,31 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         self.assertAlmostEqual(inf, population[0].features['crowding_distance'])
         self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
         self.assertAlmostEqual(2.0, population[2].features['crowding_distance'])
+
+    def test_should_the_crowding_distance_of_four_solutions_correctly_assigned(self):
+        x = Individual([2, 2])
+        y = Individual([2, 2])
+        z = Individual([2, 2])
+        v = Individual([2, 2])
+
+        x.signs = [0.0, 1.0, 0.0]  # third value: 0 means its calculated
+        y.signs = [1.0, 0.0, 0.0]
+        z.signs = [0.5, 0.5, 0.0]
+        v.signs = [0.75, 0.75, 0.0]
+
+        population = [x, y, z, v]
+
+        for p in population:
+            p.features['front_number'] = 1
+
+        crowding_distance(population)
+        population = nondominated_truncate(population, 4)
+
+        self.assertAlmostEqual(inf, population[0].features['crowding_distance'])
+        self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
+        self.assertAlmostEqual(1.5, population[2].features['crowding_distance'])
+        self.assertAlmostEqual(1.0, population[3].features['crowding_distance'])
+
 
 if __name__ == '__main__':
     unittest.main()
