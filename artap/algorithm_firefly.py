@@ -25,7 +25,7 @@ class MoFirefly(GeneticAlgorithm):
         self.generator.init(self.options['max_population_size'])
 
         population = self.gen_initial_population()
-        self.selector.sorting(population.individuals)
+        self.selector.fast_nondominated_sorting(population.individuals)
 
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],

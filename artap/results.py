@@ -239,7 +239,6 @@ class Results:
         plt.show()
         return
 
-    # TODO: Obsolete?
     def pareto_values(self):
         """
         :return: a list of lists which contains the optimal values of the cost function:
