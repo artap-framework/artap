@@ -30,7 +30,7 @@ class PSO(GeneticAlgorithm):
         for individual in population.individuals:
             self.mutator.evaluate_best_individual(individual)
 
-        self.selector.sorting(population.individuals)
+        self.selector.fast_nondominated_sorting(population.individuals)
 
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
@@ -60,7 +60,7 @@ class PSO(GeneticAlgorithm):
             for individual in offsprings:
                 self.mutator.evaluate_best_individual(individual)
 
-            self.selector.sorting(offsprings)
+            self.selector.fast_nondominated_sorting(offsprings)
 
             i += 1
 
@@ -102,7 +102,7 @@ class PSO_V1(GeneticAlgorithm):
         for individual in population.individuals:
             self.mutator.evaluate_best_individual(individual)  # TODO: all evaluating should be derived from Evaluator class
 
-        self.selector.sorting(population.individuals)
+        self.selector.fast_nondominated_sorting(population.individuals)
         self.problem.populations.append(population)
 
         t_s = time.time()
@@ -131,7 +131,7 @@ class PSO_V1(GeneticAlgorithm):
             for individual in offsprings:
                 self.mutator.evaluate_best_individual(individual)
 
-            self.selector.sorting(offsprings)
+            self.selector.fast_nondominated_sorting(offsprings)
             population = Population(offsprings)
             self.problem.populations.append(population)
 

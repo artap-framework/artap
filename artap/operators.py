@@ -864,13 +864,13 @@ class ParetoDominance(Dominance):
         dominate_p = False
         dominate_q = False
 
-        # for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
-        for i in range(len(p) - 1):
-            if p[i] > q[i]:
+        for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
+
+            if p_costs > q_costs:
                 dominate_q = True
                 if dominate_p:
                     return 0
-            elif q[i] > p[i]:
+            else:
                 dominate_p = True
                 if dominate_q:
                     return 0
@@ -895,7 +895,7 @@ class Selector(Operator):
         """
         super().__init__()
         self.parameters = parameters
-        self.part_num = part_num # TODO: not used?
+        self.part_num = part_num  # TODO: not used?
         self.comparator = dominance()  # ParetoDominance()
         self.signs = sign
 
@@ -903,75 +903,89 @@ class Selector(Operator):
     def select(self, population):
         pass
 
-    def sorting(self, generation):
+    def fast_nondominated_sorting(self, population):
 
-        pareto_front = []
+        pareto_front = [[]]
         front_number = 1
 
-        for p in generation:
+        # reset elements
+        for p in population:
             p.features['domination_counter'] = 0
             p.features['front_number'] = None
             p.features['dominate'] = set()
 
-            for q in generation:
-                if p is q:
-                    continue
+        for i, p in enumerate(population):
+            # for q in population:
+            for j in range(i + 1, len(population)):
+                q = population[j]
+                # if p is q:
+                #    continue
                 dom = self.comparator.compare(p.signs, q.signs)
                 if dom == 1:
                     p.features['dominate'].add(q)
+                    q.features['domination_counter'] += 1
                 elif dom == 2:
                     p.features['domination_counter'] += 1
+                    q.features['dominate'].add(p)
 
+            # selects the pareto values
             if p.features['domination_counter'] == 0:
                 p.features['front_number'] = front_number
-                pareto_front.append(p)
+                pareto_front[front_number - 1].append(p)
 
-        while not len(pareto_front) == 0:
+        while len(pareto_front[front_number - 1]) > 0:
             front_number += 1
-            temp_set = []
-            for p in pareto_front:
+            pareto_front.append([])
+            for p in pareto_front[front_number - 2]:
                 for q in p.features['dominate']:
                     q.features['domination_counter'] -= 1
                     if q.features['domination_counter'] == 0 and q.features['front_number'] is None:
                         q.features['front_number'] = front_number
-                        temp_set.append(q)
-            pareto_front = temp_set
-        return
-
-    def crowding_distance(self, population):
-        n = len(population)
-
-        if n is 0:
-            return
-        elif n is 1:
-            population[0].features['crowding_distance'] = math.inf
-            return
-        elif n is 2:
-            population[0].features['crowding_distance'] = math.inf
-            population[1].features['crowding_distance'] = math.inf
-            return
-
-        for dim in range(len(population[0].costs)):
-            population.sort(key=lambda x: x.costs[dim])
-            # self.sort_by_coordinate(population, dim)
-
-            population[0].features['crowding_distance'] = math.inf
-            population[-1].features['crowding_distance'] = math.inf
-            max_distance = population[0].costs[dim] - population[-1].costs[dim]
-            for i in range(1, n - 1):
-                distance = population[i + 1].costs[dim] - population[i - 1].costs[dim]
-                if max_distance == 0:
-                    pass
-                    # new_list[i].features['crowding_distance'] = 0
-                else:
-                    population[i].features['crowding_distance'] += distance / max_distance
-                distance += population[i].features['crowding_distance']
-                population[i].features['crowding_distance'] = distance
+                        pareto_front[front_number-1].append(q)
+                        # temp_set.append(q)
+            # pareto_front = temp_set
+        pareto_front.pop()
+        for sub_front in pareto_front:
+            crowding_distance(sub_front)
 
         return
-        # changed to jmetalpy idea
-        # for p in population:
-        #     p.features['crowding_distance'] = p.features['crowding_distance'] / n
+
+
+def crowding_distance(front):
+    """
+    Crowding distance calculates the solution density on a front, a subset of the population.
+    :param front: list of individuals
+                  which is a subset of the total sultion
+    :return:
+    """
+    n = len(front)
+
+    if n is 0:
+        return
+    elif n is 1:
+        front[0].features['crowding_distance'] = math.inf
+        return
+    elif n is 2:
+        front[0].features['crowding_distance'] = math.inf
+        front[1].features['crowding_distance'] = math.inf
+        return
+
+    for i in range(len(front)):
+        front[i].features['crowding_distance'] = 0.0
+
+    for dim in range(len(front[0].costs)):
+
+        front.sort(key=lambda x: x.costs[dim])
+        # self.sort_by_coordinate(population, dim)
+
+        front[0].features['crowding_distance'] = math.inf
+        front[-1].features['crowding_distance'] = math.inf
+        max_distance = front[-1].costs[dim] - front[0].costs[dim]
+        for i in range(1, n - 1):
+            distance = front[i + 1].costs[dim] - front[i - 1].costs[dim]
+            if max_distance > 0.0:
+                front[i].features['crowding_distance'] += distance / max_distance
+        return
 
 
 def nondominated_truncate(population, size):
@@ -986,6 +1000,9 @@ def nondominated_truncate(population, size):
     :size:
         The size of the truncated result
     """
+
+    # calculating the crowding distance on the different fronts
+
     result = sorted(population, key=functools.cmp_to_key(nondominated_cmp))
     return result[:size]
 

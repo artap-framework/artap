@@ -80,7 +80,7 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
                 else:
                     parent2 = self.selector.select(parents)
 
-                if parent1  is not parent2:
+                if parent1 is not parent2:
                     repeat = False
 
             # crossover
@@ -114,37 +114,34 @@ class NSGAII(GeneticAlgorithm):
         """
         super().__init__(problem, name)
 
-        self.options.declare(name='prob_cross', default=1.0, lower=0,
+        self.options.declare(name='prob_cross', default=0.6, lower=0,
                              desc='prob_cross')
-        self.options.declare(name='prob_mutation', default=1.0/(len(problem.parameters)), lower=0,
+
+        # self.options.declare(name='prob_mutation', default=1.0 / (len(problem.parameters)), lower=0,
+        #                      desc='prob_mutation')
+        self.options.declare(name='prob_mutation', default=0.2, lower=0,
                              desc='prob_mutation')
+
         self.features = {'dominate': set(),
                          'crowding_distance': 0,
                          'domination_counter': 0,
                          'front_number': 0, }
 
-    def run(self):
-        # set random generator
         self.generator = RandomGenerator(self.problem.parameters)
-        self.generator.init(self.options['max_population_size'])
-
-        # set crossover
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
-
-        # set mutator
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
-
-        # set selector
         self.selector = TournamentSelector(self.problem.parameters)
 
+    def run(self):
+        self.generator.init(self.options['max_population_size'])
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
         self.evaluate(population.individuals)
         self.add_features(population.individuals)
 
         # non-dominated sort of individuals
-        self.selector.sorting(population.individuals)
-        self.selector.crowding_distance(population.individuals)
+        self.selector.fast_nondominated_sorting(population.individuals)
+        #self.selector.crowding_distance(population.individuals)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -165,9 +162,9 @@ class NSGAII(GeneticAlgorithm):
             offsprings.extend(deepcopy(population.individuals))
 
             # make the pareto dominance calculation and calculating the crowding distance
-            self.selector.sorting(offsprings)
-            self.selector.crowding_distance(offsprings)
-            population.individuals = nondominated_truncate(offsprings,self.population_size)
+            self.selector.fast_nondominated_sorting(offsprings)
+            #self.selector.crowding_distance(offsprings)
+            population.individuals = nondominated_truncate(offsprings, self.population_size)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
@@ -210,14 +207,14 @@ class EpsMOEA(GeneticAlgorithm):
         population = self.gen_initial_population(True)  # archiving True
         self.evaluate(population.individuals)
         self.add_features(population.individuals)
-        selector_pareto.sorting(population.individuals)
+        selector_pareto.fast_nondominated_sorting(population.individuals)
         selector_pareto.crowding_distance(population.individuals)
 
         # Part B: eps-dominated sort of the individuals with archiving
         # -----
         selector_epsdom = TournamentSelector(self.problem.parameters,
                                              dominance=EpsilonDominance, epsilons=self.options['epsilons'])
-        selector_epsdom.sorting(population.archives)
+        selector_epsdom.fast_nondominated_sorting(population.archives)
         selector_epsdom.crowding_distance(population.archives)
 
         t_s = time.time()
@@ -241,7 +238,7 @@ class EpsMOEA(GeneticAlgorithm):
             children.extend(deepcopy(population.individuals))
 
             # non-dominated truncate on the guys
-            self.selector.sorting(children)
+            self.selector.fast_nondominated_sorting(children)
             selector_pareto.crowding_distance(children)
 
             parents = sorted(set(children),
@@ -249,7 +246,7 @@ class EpsMOEA(GeneticAlgorithm):
             child = parents[:self.population_size]  # truncate
 
             # eps dominated truncate on the guys
-            selector_epsdom.sorting(arch_child)
+            selector_epsdom.fast_nondominated_sorting(arch_child)
             selector_epsdom.crowding_distance(arch_child)
 
             arch_parents = sorted(set(arch_child),
