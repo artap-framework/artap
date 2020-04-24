@@ -114,13 +114,13 @@ class NSGAII(GeneticAlgorithm):
         """
         super().__init__(problem, name)
 
-        self.options.declare(name='prob_cross', default=0.6, lower=0,
+        self.options.declare(name='prob_cross', default=1., lower=0,
                              desc='prob_cross')
 
-        # self.options.declare(name='prob_mutation', default=1.0 / (len(problem.parameters)), lower=0,
-        #                      desc='prob_mutation')
-        self.options.declare(name='prob_mutation', default=0.2, lower=0,
-                             desc='prob_mutation')
+        self.options.declare(name='prob_mutation', default=1.0 / (len(problem.parameters)), lower=0,
+                              desc='prob_mutation')
+        #self.options.declare(name='prob_mutation', default=0.2, lower=0,
+        #                     desc='prob_mutation')
 
         self.features = {'dominate': set(),
                          'crowding_distance': 0,

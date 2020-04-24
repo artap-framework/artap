@@ -955,7 +955,7 @@ def crowding_distance(front):
     """
     Crowding distance calculates the solution density on a front, a subset of the population.
     :param front: list of individuals
-                  which is a subset of the total sultion
+                  which is a subset of the total population
     :return:
     """
     n = len(front)
@@ -985,7 +985,7 @@ def crowding_distance(front):
             distance = front[i + 1].costs[dim] - front[i - 1].costs[dim]
             if max_distance > 0.0:
                 front[i].features['crowding_distance'] += distance / max_distance
-        return
+    return
 
 
 def nondominated_truncate(population, size):
