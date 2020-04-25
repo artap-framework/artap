@@ -1081,7 +1081,6 @@ class TournamentSelector(Selector):
         return selected
 
 
-
 class Archive(object):
     """An archive only containing non-dominated solutions."""
 
@@ -1211,53 +1210,6 @@ class SimulatedBinaryCrossover(Crossover):
             raise Exception('The probability should be selected from [0,1].')
         elif probability < 0.:
             raise Exception('The probability should be selected from [0,1].')
-
-    # def sbx(self, x1, x2, lb, ub):
-    #
-    #     dx = x2 - x1  # if it was negative didn1t do anything
-    #
-    #     if dx > EPSILON:
-    #         if x2 > x1:
-    #             y2 = x2
-    #             y1 = x1
-    #         else:
-    #             y2 = x1
-    #             y1 = x2
-    #
-    #         beta = 1.0 / (1.0 + (2.0 * (y1 - lb) / (y2 - y1)))
-    #         alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
-    #         rand = random.uniform(0.0, 1.0)
-    #
-    #         if rand <= 1.0 / alpha:
-    #             alpha = alpha * rand
-    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-    #         else:
-    #             alpha = alpha * rand
-    #             alpha = 1.0 / (2.0 - alpha)
-    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-    #
-    #         x1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1))
-    #         beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)))
-    #         alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
-    #
-    #         if rand <= 1.0 / alpha:
-    #             alpha = alpha * rand
-    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-    #         else:
-    #             alpha = alpha * rand
-    #             alpha = 1.0 / (2.0 - alpha)
-    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-    #
-    #         x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1))
-    #
-    #         # randomly swap the values
-    #         if bool(random.getrandbits(1)):
-    #             x1, x2 = x2, x1
-    #
-    #         x1 = self.clip(x1, lb, ub)
-    #         x2 = self.clip(x2, lb, ub)
-    #
-    #     return x1, x2
 
     def cross(self, p1, p2):
         """
