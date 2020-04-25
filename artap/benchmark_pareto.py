@@ -1,5 +1,5 @@
 from artap.benchmark_functions import BenchmarkFunction
-from math import cos, pi, sin
+from math import cos, pi, sin, sqrt
 import numpy as np
 
 
@@ -135,7 +135,7 @@ class DTLZI(BenchmarkFunction):
 
         p_f = []
         for i in range(0, len(self.costs)):
-            p_f.append(0.5)
+            p_f.append(0.5-x)
         return p_f
 
     def evaluate(self, x):
@@ -150,7 +150,7 @@ class DTLZI(BenchmarkFunction):
         # for i in range(len(x) - k, len(x)):
         #     gm += (x[i] - 0.5) ** 2. - cos(20. * pi * (x[i] - 0.5))
 
-        g = 100*(k+g)
+        g = 100 * (k + g)
 
         scores = []
         factor = 0.5 * (1 + g)
@@ -313,7 +313,7 @@ class DTLZIV(BenchmarkFunction):
     """
 
     def set(self, **kwargs):
-        self.name = 'DTLZ II Test Problem'
+        self.name = 'DTLZ IV Test Problem'
 
         self.set_dimension(**kwargs)
         self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
@@ -466,6 +466,53 @@ class CEC2020MMF2(BenchmarkFunction):
         f2 = np.where(x2 < 1., f2a, f2b)
 
         return [f1, f2]
+
+
+class ZDT1(BenchmarkFunction):
+    """
+    ZDT1 Test function -- The pareto front should be convex ~ sqrt(x[0])
+
+    Zitzler, Eckart, Kalyanmoy Deb, and Lothar Thiele. “Comparison of multiobjective evolutionary algorithms:
+    Empirical results.” Evolutionary computation 8.2 (2000): 173-195. doi: 10.1.1.30.5848
+    """
+
+    def set(self, **kwargs):
+        self.name = 'ZDT1 I Test Problem'
+
+        self.dimension = 30
+        self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
+
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
+                      {'name': 'f_2', 'criteria': 'minimize'}]
+
+    def pareto_front(self, x):
+        """ x -> y """
+
+        p_f = []
+        for i in range(0, len(self.costs)):
+            p_f.append(0.5)
+        return p_f
+
+    def evaluate(self, x):
+
+        g = self.eval_g(x)
+        h = self.eval_h(x.vector[0], g)
+
+        f1 = x.vector[0]
+        f2 = h * g
+
+        return [f1, f2]
+
+    def eval_g(self, x):
+        g = sum(x.vector) - x.vector[0]
+        constant = 9.0 / (len(x.vector) - 1)
+
+        return constant * g + 1.0
+
+    def eval_h(self, f: float, g: float) -> float:
+        return 1.0 - sqrt(f / g)
 
 
 if __name__ == '__main__':
