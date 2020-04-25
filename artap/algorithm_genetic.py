@@ -66,11 +66,8 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
             individual.features = self.features.copy()
 
     def generate(self, parents, archive=None):
-        """ generate two children from two different parents """
-
-        # Preserve bounds of Pareto-Front
-        children = []
-        while len(children) < self.population_size:
+        offsprings = []
+        while len(offsprings) < self.population_size:
             parent1 = self.selector.select(parents)
 
             repeat = True
@@ -90,13 +87,13 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
             child1 = self.mutator.mutate(child1)
             child2 = self.mutator.mutate(child2)
 
-            if not any(child1 == item for item in children):
-                children.append(deepcopy(child1))  # Always create new individual
-            if not any(child1 == item for item in children):
-                children.append(deepcopy(child2))  # Always create new individual
+            if not any(child1 == item for item in offsprings):
+                offsprings.append(deepcopy(child1))  # Always create new individual
+            if not any(child1 == item for item in offsprings):
+                offsprings.append(deepcopy(child2))  # Always create new individual
 
         # parents.extend(removed_parents)
-        return children
+        return offsprings
 
     def run(self):
         pass
