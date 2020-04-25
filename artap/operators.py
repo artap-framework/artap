@@ -358,8 +358,7 @@ class PmMutator(Mutator):
             else:
                 vector.append(parent.vector[i])
 
-        p_new = parent.__class__(vector)
-        return p_new
+        return parent.__class__(vector)
 
     def pm_mutation(self, x, lb, ub):
         """
@@ -370,19 +369,21 @@ class PmMutator(Mutator):
         :param ub: upper bound
         :return:
         """
-        u = random.uniform(0, 1)
+        rnd = random.uniform(0, 1)
         dx = ub - lb
-
-        if u < 0.5:
-            bl = (x - lb) / dx
-            b = 2.0 * u + (1.0 - 2.0 * u) * pow(1.0 - bl, self.distribution_index + 1.0)
-            delta = pow(b, 1.0 / (self.distribution_index + 1.0)) - 1.0
+        delta1 = (x - lb) / dx
+        delta2 = (ub - x) / dx
+        mut_pow = 1.0 / (self.distribution_index + 1.0)
+        if rnd < 0.5:
+            xy = 1.0 - delta1
+            val = 2.0 * rnd + (1.0 - 2.0 * rnd) * (pow(xy, self.distribution_index + 1.0))
+            deltaq = pow(val, mut_pow) - 1.0
         else:
-            bu = (ub - x) / dx
-            b = 2.0 * (1.0 - u) + 2.0 * (u - 0.5) * pow(1.0 - bu, self.distribution_index + 1.0)
-            delta = 1.0 - pow(b, 1.0 / (self.distribution_index + 1.0))
+            xy = 1.0 - delta2
+            val = 2.0 * (1.0 - rnd) + 2.0 * (rnd - 0.5) * (pow(xy, self.distribution_index + 1.0))
+            deltaq = 1.0 - pow(val, mut_pow)
 
-        x = x + delta * dx
+        x = x + deltaq * dx
         x = self.clip(x, lb, ub)
 
         return x
@@ -895,7 +896,6 @@ class Selector(Operator):
         """
         super().__init__()
         self.parameters = parameters
-        self.part_num = part_num  # TODO: not used?
         self.comparator = dominance()  # ParetoDominance()
         self.signs = sign
 
@@ -941,7 +941,7 @@ class Selector(Operator):
                     q.features['domination_counter'] -= 1
                     if q.features['domination_counter'] == 0 and q.features['front_number'] is None:
                         q.features['front_number'] = front_number
-                        pareto_front[front_number-1].append(q)
+                        pareto_front[front_number - 1].append(q)
                         # temp_set.append(q)
             # pareto_front = temp_set
         pareto_front.pop()
@@ -1053,32 +1053,33 @@ class TournamentSelector(Selector):
     def __init__(self, parameters, dominance=ParetoDominance, epsilons=None):
         super().__init__(parameters)
         self.dominance = dominance(epsilons=epsilons)
-        # self.signs = sign
-        # self.dominance = EpsilonDominance([0.01])
 
     def select(self, population):
         """
         Binary tournament selection:
-        An individual is selected in the rank is lesser than the other or if crowding distance is greater than the other
+
+        2 individuals are selected from the given population (randomly), then the function gaves
+        back the dominant (or random).
         """
 
-        # participants = random.sample(population, 2)
-        # return min(participants, key=lambda x: (x.front_number, -x.crowding_distance))
+        if len(population) == 1:
+            selected = population[0]
 
-        winner = random.choice(population)
+        else:
+            # Sampling two individuals without a replacement
+            candidates = random.sample(population, 2)
 
-        for _ in range(self.part_num - 1):
-            candidate = random.choice(population)
+            flag = self.dominance.compare(candidates[0].signs, candidates[1].signs)
 
-            flag = self.dominance.compare(winner.signs, candidate.signs)
+            if flag == 1:
+                selected = candidates[0]
+            elif flag == 2:
+                selected = candidates[1]
+            else:
+                selected = random.choice(candidates)
 
-            if flag > 0:
-                winner = candidate
+        return selected
 
-        return winner
-
-        # participants = random.sample(parents, part_num)
-        # return min(participants, key=lambda x: (x.front_number, -x.crowding_distance))
 
 
 class Archive(object):
@@ -1204,81 +1205,114 @@ class SimulatedBinaryCrossover(Crossover):
     def __init__(self, parameters, probability, distribution_index=20):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
+        if distribution_index < 0:
+            raise Exception('The distribution index have to be positive.')
+        if probability > 1.:
+            raise Exception('The probability should be selected from [0,1].')
+        elif probability < 0.:
+            raise Exception('The probability should be selected from [0,1].')
 
-    def sbx(self, x1, x2, lb, ub):
-
-        dx = x2 - x1
-
-        if dx > EPSILON:
-            if x2 > x1:
-                y2 = x2
-                y1 = x1
-            else:
-                y2 = x1
-                y1 = x2
-
-            beta = 1.0 / (1.0 + (2.0 * (y1 - lb) / (y2 - y1)))
-            alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
-            rand = random.uniform(0.0, 1.0)
-
-            if rand <= 1.0 / alpha:
-                alpha = alpha * rand
-                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-            else:
-                alpha = alpha * rand
-                alpha = 1.0 / (2.0 - alpha)
-                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-
-            x1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1))
-            beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)))
-            alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
-
-            if rand <= 1.0 / alpha:
-                alpha = alpha * rand
-                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-            else:
-                alpha = alpha * rand
-                alpha = 1.0 / (2.0 - alpha)
-                betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
-
-            x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1))
-
-            # randomly swap the values
-            if bool(random.getrandbits(1)):
-                x1, x2 = x2, x1
-
-            x1 = self.clip(x1, lb, ub)
-            x2 = self.clip(x2, lb, ub)
-
-            # if p_type == "integer":
-            #     x1 = int(x1)
-            #     x2 = int(x2)
-
-        return x1, x2
+    # def sbx(self, x1, x2, lb, ub):
+    #
+    #     dx = x2 - x1  # if it was negative didn1t do anything
+    #
+    #     if dx > EPSILON:
+    #         if x2 > x1:
+    #             y2 = x2
+    #             y1 = x1
+    #         else:
+    #             y2 = x1
+    #             y1 = x2
+    #
+    #         beta = 1.0 / (1.0 + (2.0 * (y1 - lb) / (y2 - y1)))
+    #         alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
+    #         rand = random.uniform(0.0, 1.0)
+    #
+    #         if rand <= 1.0 / alpha:
+    #             alpha = alpha * rand
+    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
+    #         else:
+    #             alpha = alpha * rand
+    #             alpha = 1.0 / (2.0 - alpha)
+    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
+    #
+    #         x1 = 0.5 * ((y1 + y2) - betaq * (y2 - y1))
+    #         beta = 1.0 / (1.0 + (2.0 * (ub - y2) / (y2 - y1)))
+    #         alpha = 2.0 - pow(beta, self.distribution_index + 1.0)
+    #
+    #         if rand <= 1.0 / alpha:
+    #             alpha = alpha * rand
+    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
+    #         else:
+    #             alpha = alpha * rand
+    #             alpha = 1.0 / (2.0 - alpha)
+    #             betaq = pow(alpha, 1.0 / (self.distribution_index + 1.0))
+    #
+    #         x2 = 0.5 * ((y1 + y2) + betaq * (y2 - y1))
+    #
+    #         # randomly swap the values
+    #         if bool(random.getrandbits(1)):
+    #             x1, x2 = x2, x1
+    #
+    #         x1 = self.clip(x1, lb, ub)
+    #         x2 = self.clip(x2, lb, ub)
+    #
+    #     return x1, x2
 
     def cross(self, p1, p2):
         """
         Create an offspring using simulated binary crossover.
-        :return:  a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
+        :return:  Individual, Individual
+
+        a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        x1 = p1.vector
-        x2 = p2.vector
+        x1 = deepcopy(p1.vector)
+        x2 = deepcopy(p2.vector)
 
-        if random.uniform(0.0, 1.0) <= self.probability:
+        if random.random() <= self.probability:
             for i, param in enumerate(self.parameters):
-                if random.uniform(0.0, 1.0) <= 0.5:
-                    lb = param['bounds'][0]
-                    ub = param['bounds'][1]
 
-                    # if not 'parameter_type' in param:
-                    #     continue
-                    # else:
-                    #     p_type = param['parameter_type']
+                if random.random() <= 0.5:
 
-                    x1[i], x2[i] = self.sbx(x1[i], x2[i], lb, ub)
+                    if abs(x2[i] - x1[i]) > EPSILON:
+                        if x2[i] > x1[i]:
+                            y1, y2 = x1[i], x2[i]
+                        else:
+                            y1, y2 = x2[i], x1[i]
 
-        offspring_a = p1.__class__(x1)
-        offspring_b = p2.__class__(x2)
+                        lb, ub = param['bounds'][0], param['bounds'][1]
 
-        return offspring_a, offspring_b
+                        # calculates c1
+                        beta = 1.0 + (2.0 * (y1 - lb) / (y2 - y1))
+                        alpha = 2.0 - pow(beta, -(self.distribution_index + 1.0))
+
+                        rand = random.random()
+                        if rand <= (1.0 / alpha):
+                            betaq = pow(rand * alpha, (1.0 / (self.distribution_index + 1.0)))
+                        else:
+                            betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0))
+
+                        c1 = 0.5 * (y1 + y2 - betaq * (y2 - y1))
+
+                        # calculates c2
+                        beta = 1.0 + (2.0 * (ub - y2) / (y2 - y1))
+                        alpha = 2.0 - pow(beta, -(self.distribution_index + 1.0))
+
+                        if rand <= (1.0 / alpha):
+                            betaq = pow((rand * alpha), (1.0 / (self.distribution_index + 1.0)))
+                        else:
+                            betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0))
+
+                        c2 = 0.5 * (y1 + y2 + betaq * (y2 - y1))
+
+                        # check the boundaries
+                        c1 = self.clip(c1, lb, ub)
+                        c2 = self.clip(c2, lb, ub)
+
+                        if random.random() <= 0.5:
+                            x1[i], x2[i] = c2, c1
+                        else:
+                            x1[i], x2[i] = c1, c2
+
+        return p1.__class__(x1), p2.__class__(x2)

@@ -1,5 +1,5 @@
 from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance
+    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator
 from artap.individual import Individual
 from artap.benchmark_pareto import BiObjectiveTestProblem
 from math import inf
@@ -25,8 +25,8 @@ class TestCrossover(unittest.TestCase):
                          'front_number': None}
 
     def test_simple_mutation(self):
-        sbx = SimpleMutator(self.parameters, 0.7)
-        individual = sbx.mutate(self.i1)
+        sm = SimpleMutator(self.parameters, 0.7)
+        individual = sm.mutate(self.i1)
         self.assertTrue(
             self.parameters[0]['bounds'][0] <= individual.vector[0] <= self.parameters[0]['bounds'][1] and
             self.parameters[1]['bounds'][0] <= individual.vector[1] <= self.parameters[1]['bounds'][1])
@@ -214,7 +214,7 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         z.signs = [0.5, 0.5, 0.0]
         v.signs = [0.75, 0.75, 0.0]
 
-        population = [x, y, z, v]
+        population = [x, y, v, z]  # the expected results after sorting is : [x, y, z, v]
 
         for p in population:
             p.features['front_number'] = 1
@@ -226,6 +226,27 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
         self.assertAlmostEqual(1.5, population[2].features['crowding_distance'])
         self.assertAlmostEqual(1.0, population[3].features['crowding_distance'])
+
+
+class SBXCrossoverTestCases(unittest.TestCase):
+
+    def test_should_constructor_assign_the_correct_probability_value(self):
+        crossover_probability = 0.8
+        distribution_index = 15
+        test2d = BiObjectiveTestProblem()
+        SBXCrossover = SimulatedBinaryCrossover(test2d.parameters, crossover_probability, distribution_index)
+
+        self.assertEqual(crossover_probability, SBXCrossover.probability)
+        self.assertEqual(distribution_index, SBXCrossover.distribution_index)
+
+    def test_should_constructor_raise_an_exception_if_the_probability_is_greater_than_one(self):
+        with self.assertRaises(Exception):
+            test2d = BiObjectiveTestProblem()
+            SimulatedBinaryCrossover(test2d.parameters, 1.5, 20)
+
+        with self.assertRaises(Exception):
+            test2d = BiObjectiveTestProblem()
+            SimulatedBinaryCrossover(test2d.parameters, 0.5, -1)
 
 
 if __name__ == '__main__':
