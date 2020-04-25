@@ -114,13 +114,11 @@ class NSGAII(GeneticAlgorithm):
         """
         super().__init__(problem, name)
 
-        self.options.declare(name='prob_cross', default=1., lower=0,
+        self.options.declare(name='prob_cross', default=1.0, lower=0,
                              desc='prob_cross')
 
         self.options.declare(name='prob_mutation', default=1.0 / (len(problem.parameters)), lower=0,
-                              desc='prob_mutation')
-        #self.options.declare(name='prob_mutation', default=0.2, lower=0,
-        #                     desc='prob_mutation')
+                             desc='prob_mutation')
 
         self.features = {'dominate': set(),
                          'crowding_distance': 0,
@@ -141,7 +139,7 @@ class NSGAII(GeneticAlgorithm):
 
         # non-dominated sort of individuals
         self.selector.fast_nondominated_sorting(population.individuals)
-        #self.selector.crowding_distance(population.individuals)
+        # self.selector.crowding_distance(population.individuals)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -163,7 +161,7 @@ class NSGAII(GeneticAlgorithm):
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
-            #self.selector.crowding_distance(offsprings)
+            # self.selector.crowding_distance(offsprings)
             population.individuals = nondominated_truncate(offsprings, self.population_size)
 
         t = time.time() - t_s
