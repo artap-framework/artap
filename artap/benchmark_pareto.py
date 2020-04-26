@@ -135,7 +135,7 @@ class DTLZI(BenchmarkFunction):
 
         p_f = []
         for i in range(0, len(self.costs)):
-            p_f.append(0.5-x)
+            p_f.append(0.5 - x)
         return p_f
 
     def evaluate(self, x):
@@ -482,21 +482,25 @@ class ZDT1(BenchmarkFunction):
         self.dimension = 30
         self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
 
-
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
                       {'name': 'f_2', 'criteria': 'minimize'}]
 
-    def pareto_front(self, x):
-        """ x -> y """
+    def pareto_front(self, ref_x):
+        """
+        The exact value should be 1-sqrt(x) on [0,1]
+        :param ref_x: list of the solutions (x-coordinates)
+        :return: list of [x,y] values
+        """
 
-        p_f = []
-        for i in range(0, len(self.costs)):
-            p_f.append(0.5)
-        return p_f
+        """ Value of 1-sqrt(x) on the last result of the pareto calculation """
+        # the resulting values of the calculateon
+        l_sol = []
+        for elem in ref_x:
+            l_sol.append((elem, 1. - elem ** 0.5))
+        return l_sol
 
     def evaluate(self, x):
-
         g = self.eval_g(x)
         h = self.eval_h(x.vector[0], g)
 
