@@ -41,7 +41,7 @@ def setup_package():
 
     setup(
         name="artap",
-        version="2020.4.22.2",
+        version="2020.4.25.1",
         author=u"Artap Team",
         author_email="artap.framework@gmail.com",
         description="Platform for robust design optimization",
