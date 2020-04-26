@@ -1,85 +1,28 @@
 import unittest
 
-from artap.problem import Problem
-from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
+from artap.benchmark_functions import AlpineFunction, Ackley
+from artap.benchmark_pareto import ZDT1
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
-#
-#
-# class BinhAndKornProblem(Problem):
-#     """
-#     Describe simple one objective optimization problem.
-#     Note: This test is not removed, because its not part of the cec2005 library.
-#     """
-#
-#     def set(self):
-#         self.name = "TestNSGA2Optimization"
-#         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [0, 5]},
-#                            {'name': 'x_2', 'initial_value': 1.5, 'bounds': [0, 3]}]
-#         self.costs = [{'name': 'F_1', 'criteria': 'minimize'}, {'name': 'F_2', 'criteria': 'minimize'}]
-#
-#     def evaluate(self, individual):
-#         function = BinhAndKorn()
-#         return function.eval(individual.vector)
-#
-#     def evaluate_constraints(self, individual):
-#         return BinhAndKorn.constraints(individual.vector)
+from artap.quality_indicator import epsilon_add
 
 
+class TestZDT1(unittest.TestCase):
+    # integration test -- tests the total functionality of nsga2
+    # around 11secs according to literature DOI: 10.1007/978-3-642-01020-0_39
+    def test_local_problem(self):
+        problem = problem = ZDT1()
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 250
+        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_processes'] = 1
+        algorithm.run()
 
+        results = Results(problem)
+        vals = results.pareto_values()
+        exact = problem.pareto_front(vals[0])
+        self.assertLessEqual(epsilon_add(exact, vals), 0.2)
 
-# class TestNSGA2Optimization(unittest.TestCase):
-#     """ Tests simple one objective optimization problem."""
-#
-#     def test_local_problem_nsga2(self):
-#         problem = BinhAndKornProblem()
-#
-#         algorithm = NSGAII(problem)
-#         algorithm.options['max_population_number'] = 50
-#         algorithm.options['max_population_size'] = 200
-#         algorithm.options['calculate_gradients'] = True
-#         algorithm.options['verbose_level'] = 1
-#
-#         algorithm.run()
-#         b = Results(problem)
-#         solution = b.pareto_values()
-#         wrong = 0
-#
-#         for sol in solution:
-#             if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
-#                     and 20 < sol[0] < 70:
-#                 wrong += 1
-#
-#         self.assertLessEqual(wrong, 5)
-#
-#     def test_local_problem_nsga2(self, population_number=5):
-#         try:
-#             problem = BinhAndKornProblem()
-#             algorithm = NSGAII(problem)
-#             algorithm.options['max_population_number'] = population_number
-#             algorithm.options['max_population_size'] = 50
-#             algorithm.options['calculate_gradients'] = True
-#             algorithm.options['verbose_level'] = 1
-#
-#             algorithm.run()
-#             b = Results(problem)
-#             solution = b.pareto_values()
-#             wrong = 0
-#
-#             # c = GraphicalResults(problem)
-#             # c.plot_populations()
-#
-#             for sol in solution:
-#                 if abs(BinhAndKorn.approx(sol[0]) - sol[1]) > 0.1 * BinhAndKorn.approx(sol[0]) \
-#                         and 20 < sol[0] < 70:
-#                     wrong += 1
-#
-#             self.assertLessEqual(wrong, 5)
-#         except AssertionError:
-#             # stochastic
-#             print("TestNSGA2Optimization::test_local_problem_nsga2", population_number)
-#             self.test_local_problem_nsga2(int(1.5 * population_number))
-#
 
 class TestAckley(unittest.TestCase):
     """ Tests that the nsga - ii can find the global optimum. """
@@ -89,7 +32,7 @@ class TestAckley(unittest.TestCase):
             problem = Ackley(**{'dimension': 1})
             algorithm = NSGAII(problem)
             algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 50
+            algorithm.options['max_population_size'] = 100
             algorithm.options['max_processes'] = 1
             algorithm.run()
 
