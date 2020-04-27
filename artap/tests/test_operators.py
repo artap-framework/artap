@@ -32,7 +32,7 @@ class TestCrossover(unittest.TestCase):
             self.parameters[1]['bounds'][0] <= individual.vector[1] <= self.parameters[1]['bounds'][1])
 
     def test_sbx(self):
-        sbx = SimulatedBinaryCrossover(self.parameters, 10)
+        sbx = SimulatedBinaryCrossover(self.parameters, 1.0)
         offsprings = sbx.cross(self.i1, self.i2)
         self.assertEqual(len(offsprings), 2)
 
