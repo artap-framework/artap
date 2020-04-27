@@ -249,5 +249,148 @@ class SBXCrossoverTestCases(unittest.TestCase):
             SimulatedBinaryCrossover(test2d.parameters, 0.5, -1)
 
 
+class DominanceComparator(unittest.TestCase):
+
+    def test_should_dominance_comparator_return_zero_if_the_two_solutions_have_one_objective_with_the_same_value(self):
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [2.]
+        x.signs = [2., 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [2.]
+        y.signs = [2., 0]
+
+        result = dominance.compare(x.signs, y.signs)
+
+        self.assertEqual(0, result)
+
+    def test_should_dominance_comparator_return_two_if_the_two_solutions_have_one_objective_and_the_second_one_is_lower(
+            self):
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [2.]
+        x.signs = [2., 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [1.]
+        y.signs = [1., 0]
+
+        result = dominance.compare(x.signs, y.signs)
+
+        self.assertEqual(2, result)
+
+    def test_should_dominance_comparator_return_one_if_the_two_solutions_have_one_objective_and_the_first_one_is_lower(
+            self):
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [1.]
+        x.signs = [1., 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [2.]
+        y.signs = [2., 0]
+
+        result = dominance.compare(x.signs, y.signs)
+
+        self.assertEqual(1, result)
+
+    def test_should_dominance_comparator_work_properly_case_a(self):
+        """ Case A: solution1 has objectives [-1.0, 5.0, 9.0] and solution2 has [2.0, 6.0, 15.0]
+        """
+
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [-1.0, 5.0, 9.0]
+        x.signs = [-1.0, 5.0, 9.0, 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [2.0, 6.0, 15.0]
+        y.signs = [2.0, 6.0, 15.0, 0]
+
+        result = dominance.compare(x.signs, y.signs)
+
+        self.assertEqual(1, result)
+
+    def test_should_dominance_comparator_work_properly_case_b(self):
+        """ Case B: solution1 has objectives [-1.0, 5.0, 9.0] and solution2 has [-1.0, 5.0, 10.0]
+        """
+
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [-1.0, 5.0, 9.0]
+        x.signs = [-1.0, 5.0, 9.0, 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 5.0, 10.0]
+        y.signs = [-1.0, 5.0, 10.0, 0]
+
+        result = dominance.compare(x.signs, y.signs)
+
+        self.assertEqual(1, result)
+
+    def test_should_dominance_comparator_work_properly_case_c(self):
+        """ Case C: solution1 has objectives [-1.0, 5.0, 9.0] and solution2 has [-2.0, 5.0, 9.0]
+        """
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [-1.0, 5.0, 9.0]
+        x.signs = [-1.0, 5.0, 9.0, 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-2.0, 5.0, 9.0]
+        y.signs = [-2.0, 5.0, 9.0, 0]
+
+        result = dominance.compare(x.signs, y.signs)
+
+        self.assertEqual(2, result)
+
+    def test_should_dominance_comparator_work_properly_case_d(self):
+        """ Case d: solution1 has objectives [-1.0, 5.0, 9.0] and solution2 has [-1.0, 5.0, 8.0]
+        """
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [-1.0, 5.0, 9.0]
+        x.signs = [-1.0, 5.0, 9.0, 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 5.0, 8.0]
+        y.signs = [-1.0, 5.0, 8.0, 0]
+
+        result = dominance.compare(x.signs, y.signs)
+
+        self.assertEqual(2, result)
+
+    def test_should_dominance_comparator_work_properly_with_constrains_case_1(self):
+        """ Case 1: solution2 has a higher degree of constraint violation than solution 1
+        """
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [-1.0, 6.0, 11.0]
+        x.signs = [-1.0, 6.0, 11.0, -0.1]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 5.0, 10.0]
+        y.signs = [-1.0, 5.0, 10.0, -0.3]
+
+        result = dominance.compare(x.signs, y.signs)
+        self.assertEqual(1, result)
+
+    def test_should_dominance_comparator_work_properly_with_constrains_case_2(self):
+        """ Case 2: solution1 has a higher degree of constraint violation than solution 1
+        """
+        dominance = ParetoDominance()
+        x = Individual([2, 2])
+        x.costs = [-1.0, 6.0, 9.0]
+        x.signs = [-1.0, 6.0, 9.0, -0.5]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 6.0, 10.0]
+        y.signs = [-1.0, 6.0, 10.0, -0.1]
+
+        result = dominance.compare(x.signs, y.signs)
+        self.assertEqual(2, result)
+
+
 if __name__ == '__main__':
     unittest.main()
