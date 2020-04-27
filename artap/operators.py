@@ -960,12 +960,12 @@ def crowding_distance(front):
     """
     n = len(front)
 
-    if n is 0:
+    if n == 0:
         return
-    elif n is 1:
+    elif n == 1:
         front[0].features['crowding_distance'] = math.inf
         return
-    elif n is 2:
+    elif n == 2:
         front[0].features['crowding_distance'] = math.inf
         front[1].features['crowding_distance'] = math.inf
         return
