@@ -856,25 +856,25 @@ class ParetoDominance(Dominance):
             if p[-1] == 0:
                 return 1  # p dominates
             elif q[-1] == 0:
-                return 2  # q is dominates
-            elif p[-1] < q[-1]:
+                return 2  # q is dominates, because it has smaller degree in constraint violation
+            elif abs(p[-1]) < abs(q[-1]):
                 return 1  # p is dominates
-            elif q[-1] < p[-1]:
+            elif abs(q[-1]) < abs(p[-1]):
                 return 2  # q is dominates
 
         dominate_p = False
         dominate_q = False
 
         for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
-
-            if p_costs > q_costs:
-                dominate_q = True
-                if dominate_p:
-                    return 0
-            else:
-                dominate_p = True
-                if dominate_q:
-                    return 0
+            if p_costs != q_costs:
+                if p_costs > q_costs:
+                    dominate_q = True
+                    if dominate_p:
+                        return 0
+                else:
+                    dominate_p = True
+                    if dominate_q:
+                        return 0
 
         if dominate_q == dominate_p:
             return 0
