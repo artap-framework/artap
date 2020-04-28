@@ -20,10 +20,23 @@ build:
     - cd artap/tests
     - pytest --disable-warnings --durations=0 -v
 
-build_examples:
+examples:
   tags:
     - linux
   script:
+    - # build deps
+    - cd 3rdparty
+    - ./submodules.sh
+    - cd ..
+
+    # create environment
+    - python3 -m venv env
+    - source env/bin/activate
+    # get packages
+    - pip install numpy
+    - pip install cython
+    - pip install -r requirements.txt
+
     # tests
     - export CONDOR_HOST=edison.fel.zcu.cz
     - cd artap/examples
