@@ -117,12 +117,11 @@ class TestCondor(TestCase):
         """ Tests one calculation of goal function."""
         problem = CondorComsolProblem()
 
-        individuals = [Individual([10, 10]), Individual([11, 11])]
+        individuals = [Individual([10, 10])]
         algorithm = DummyAlgorithm(problem)
         algorithm.evaluate(individuals)
 
         self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
-        self.assertAlmostEqual(124.23499735221547, individuals[1].costs[0])
 
     @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_exec(self):
@@ -138,7 +137,7 @@ class TestCondor(TestCase):
     def test_condor_python_exec_full_load(self):
         problem = PythonExecProblem()
 
-        n = 200
+        n = 50
         individuals = []
         for i in range(n):
             individuals.append(Individual([random.randrange(1, 100), random.randrange(1, 100)]))
