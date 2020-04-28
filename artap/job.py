@@ -25,13 +25,9 @@ class Job(metaclass=ABCMeta):
         # problem cost function evaluate only in that case when the problem fits the constraints
         try:
             costs = self.problem.surrogate.evaluate(individual)
-            if isinstance(costs, list):
-                individual.costs = costs
-                if self.problem is not None:
-                    individual.calc_signed_costs(self.problem.signs)  # the idea is to make this conversion only once
-                #     individual.signs = self.problem.signs
-            else:
-                raise AssertionError("Costs type must be list.")
+            individual.costs = costs
+            if self.problem is not None:
+                individual.calc_signed_costs(self.problem.signs)  # the idea is to make this conversion only once
 
             # set evaluated
             individual.state = individual.State.EVALUATED
