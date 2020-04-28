@@ -166,7 +166,7 @@ class Results:
         if len(self.problem.populations[-1].archives) > 0:
             min_l = [min(self.problem.populations[-1].archives, key=lambda x: x.costs[index])]
         else:
-            if len(self.problem.populations[-1].individuals) is not 0:
+            if len(self.problem.populations[-1].individuals) != 0:
                 min_l = [min(self.problem.populations[-1].individuals, key=lambda x: x.costs[index])]
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
@@ -200,9 +200,9 @@ class Results:
 
         computed = self.pareto_values()  # [[], [], .. ]
 
-        if type is 'epsilon':
+        if type == 'epsilon':
             result = epsilon_add(reference, computed)
-        if type is 'gd':
+        if type == 'gd':
             result = gd(reference, computed)
 
         return result
