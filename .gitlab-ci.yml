@@ -24,7 +24,7 @@ examples:
   tags:
     - linux
   script:
-    - # build deps
+    # build deps
     - cd 3rdparty
     - ./submodules.sh
     - cd ..
