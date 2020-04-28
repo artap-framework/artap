@@ -16,7 +16,6 @@ from copy import deepcopy
 EPSILON = sys.float_info.epsilon
 
 
-# TODO: Seems to be useless
 class Operator(ABC):
 
     def __init__(self):
@@ -706,6 +705,37 @@ class SwarmMutatorTVAC(SwarmMutator):
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
 
+def uniqeness(population, decimals=7):
+    """Filters out the same solutions
+
+    Parameters
+    ----------
+    population : list of Individuals
+        The list of the solutions.
+    decimals: integer
+        Two solutions are considered different if they differs in the given number of decimals.
+    """
+
+
+
+    # unique_ids = set()
+    # result = []
+    #
+    # for solution in solutions:
+    #     problem = solution.problem
+    #
+    #     if objectives:
+    #         id = tuple(solution.objectives[:])
+    #     else:
+    #         id = tuple([problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)])
+    #
+    #     if not id in unique_ids:
+    #         unique_ids.add(id)
+    #         result.append(solution)
+
+    return
+
+
 class Dominance(ABC):
     def __init__(self):
         pass
@@ -866,15 +896,14 @@ class ParetoDominance(Dominance):
         dominate_q = False
 
         for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
-            if p_costs != q_costs:
-                if p_costs > q_costs:
-                    dominate_q = True
-                    if dominate_p:
-                        return 0
-                else:
-                    dominate_p = True
-                    if dominate_q:
-                        return 0
+            if p_costs > q_costs:
+                dominate_q = True
+                if dominate_p:
+                    return 0
+            elif q_costs > p_costs:
+                dominate_p = True
+                if dominate_q:
+                    return 0
 
         if dominate_q == dominate_p:
             return 0
@@ -1069,6 +1098,12 @@ class TournamentSelector(Selector):
             # Sampling two individuals without a replacement
             candidates = random.sample(population, 2)
 
+            # they should have this at this stage
+            if candidates[0].features['front_number'] < candidates[1].features['front_number']:
+                return candidates[0]
+            elif candidates[1].features['front_number'] < candidates[0].features['front_number']:
+                 return candidates[1]
+
             flag = self.dominance.compare(candidates[0].costs_signed, candidates[1].costs_signed)
 
             if flag == 1:
@@ -1201,7 +1236,7 @@ class SimpleCrossover(Crossover):
 
 class SimulatedBinaryCrossover(Crossover):
 
-    def __init__(self, parameters, probability, distribution_index=20):
+    def __init__(self, parameters, probability, distribution_index=15):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
         if distribution_index < 0:
