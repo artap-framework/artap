@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from .algorithm import Algorithm
 from .operators import RandomGenerator, SimulatedBinaryCrossover, \
-    PmMutator, TournamentSelector, EpsilonDominance, nondominated_truncate
+    PmMutator, TournamentSelector, EpsilonDominance, nondominated_truncate, crowding_distance
 from .population import Population
 from .problem import Problem
 
@@ -203,14 +203,14 @@ class EpsMOEA(GeneticAlgorithm):
         self.evaluate(population.individuals)
         self.add_features(population.individuals)
         selector_pareto.fast_nondominated_sorting(population.individuals)
-        selector_pareto.crowding_distance(population.individuals)
+        # selector_pareto.crowding_distance(population.individuals)
 
         # Part B: eps-dominated sort of the individuals with archiving
         # -----
         selector_epsdom = TournamentSelector(self.problem.parameters,
                                              dominance=EpsilonDominance, epsilons=self.options['epsilons'])
         selector_epsdom.fast_nondominated_sorting(population.archives)
-        selector_epsdom.crowding_distance(population.archives)
+        # selector_epsdom.crowding_distance(population.archives)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -234,7 +234,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             # non-dominated truncate on the guys
             self.selector.fast_nondominated_sorting(children)
-            selector_pareto.crowding_distance(children)
+            # selector_pareto.crowding_distance(children)
 
             parents = sorted(set(children),
                              key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
@@ -242,7 +242,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             # eps dominated truncate on the guys
             selector_epsdom.fast_nondominated_sorting(arch_child)
-            selector_epsdom.crowding_distance(arch_child)
+            # selector_epsdom.crowding_distance(arch_child)
 
             arch_parents = sorted(set(arch_child),
                                   key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
