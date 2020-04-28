@@ -2,7 +2,7 @@
 Example shows how to use Artap together with localy installed Comsol Multiphysics
 
 """
-
+import os
 from artap.executor import LocalComsolExecutor
 from artap.problem import Problem
 from artap.algorithm_scipy import ScipyOpt
@@ -26,7 +26,8 @@ class ComsolProblem(Problem):
 
         # Executor serves for calling the Comsol Multiphisics
         self.executor = LocalComsolExecutor(self,
-                                            problem_file="./capacitor.mph",  # File with the model
+                                            # problem_file="{}/capacitor.mph".format(os.getcwd()),  # File with the model
+                                            problem_file="capacitor.mph",
                                             output_files=self.output_files)  # file with results produced by Comsol
 
     # Calculate the value of the objective function
