@@ -613,7 +613,7 @@ class FireflyMutator(SwarmMutator):
         dominates = True
 
         for i in range(len(current.costs)):
-            if other.signs[i] > current.signs[i]:
+            if other.costs_signed[i] > current.costs_signed[i]:
                 dominates = False
 
         return dominates
@@ -920,7 +920,7 @@ class Selector(Operator):
                 q = population[j]
                 # if p is q:
                 #    continue
-                dom = self.comparator.compare(p.signs, q.signs)
+                dom = self.comparator.compare(p.costs_signed, q.costs_signed)
                 if dom == 1:
                     p.features['dominate'].add(q)
                     q.features['domination_counter'] += 1
@@ -973,16 +973,16 @@ def crowding_distance(front):
     for i in range(len(front)):
         front[i].features['crowding_distance'] = 0.0
 
-    for dim in range(len(front[0].signs[:-1])):
+    for dim in range(len(front[0].costs_signed[:-1])):
 
-        front.sort(key=lambda x: x.signs[dim])
+        front.sort(key=lambda x: x.costs_signed[dim])
         # self.sort_by_coordinate(population, dim)
 
         front[0].features['crowding_distance'] = math.inf
         front[-1].features['crowding_distance'] = math.inf
-        max_distance = front[-1].signs[dim] - front[0].signs[dim]
+        max_distance = front[-1].costs_signed[dim] - front[0].costs_signed[dim]
         for i in range(1, n - 1):
-            distance = front[i + 1].signs[dim] - front[i - 1].signs[dim]
+            distance = front[i + 1].costs_signed[dim] - front[i - 1].costs_signed[dim]
             if max_distance > 0.0:
                 front[i].features['crowding_distance'] += distance / max_distance
     return
@@ -1069,7 +1069,7 @@ class TournamentSelector(Selector):
             # Sampling two individuals without a replacement
             candidates = random.sample(population, 2)
 
-            flag = self.dominance.compare(candidates[0].signs, candidates[1].signs)
+            flag = self.dominance.compare(candidates[0].costs_signed, candidates[1].costs_signed)
 
             if flag == 1:
                 selected = candidates[0]
