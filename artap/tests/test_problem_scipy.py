@@ -30,8 +30,6 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.options['tol'] = 1e-4
         algorithm.run()
 
-        print(problem.populations[0].individuals[3])
-
         results = Results(problem)
         optimum = results.find_optimum('F_1')
         self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 3)

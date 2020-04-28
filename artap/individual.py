@@ -27,7 +27,7 @@ class Individual(metaclass=ABCMeta):
     def __init__(self, vector: list):
         self.vector = vector.copy()
         self.costs = []
-        self.signs = None
+        self.costs_signed = []
         self.state = self.State.EMPTY
         self.parents = []
         self.children = []
@@ -48,9 +48,8 @@ class Individual(metaclass=ABCMeta):
         This function calculates the signed costs for every vector and insert the feasibility after
         :return:
         """
-        self.signs = list(map(lambda x, y: x * y, p_signs, self.costs))
-        self.signs.append(self.feasible)
-        return
+        self.costs_signed = list(map(lambda x, y: x * y, p_signs, self.costs))
+        self.costs_signed.append(self.feasible)
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
@@ -92,7 +91,7 @@ class Individual(metaclass=ABCMeta):
     def sync(self, individual):
         self.vector = individual.vector
         self.costs = individual.costs
-        self.signs = individual.signs
+        self.costs_signed = individual.costs_signed
         self.custom = individual.custom
         self.state = individual.state
         self.info = individual.info

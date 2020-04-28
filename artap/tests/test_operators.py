@@ -64,13 +64,13 @@ class TestCrossover(unittest.TestCase):
         i4.features = self.features.copy()
         i4.calc_signed_costs(self.signs2)
 
-        result = dominance.compare(i1.signs, i2.signs)
+        result = dominance.compare(i1.costs_signed, i2.costs_signed)
         self.assertEqual(result, 1)
 
-        result = dominance.compare(i2.signs, i1.signs)
+        result = dominance.compare(i2.costs_signed, i1.costs_signed)
         self.assertEqual(result, 2)
 
-        result = dominance.compare(i3.signs, i4.signs)
+        result = dominance.compare(i3.costs_signed, i4.costs_signed)
         self.assertEqual(result, 0)
 
     def test_pareto(self):
@@ -99,7 +99,7 @@ class TestCrossover(unittest.TestCase):
 
         for individual in individuals:
             # print(individual.costs, individual.features['front_number'])
-            self.assertEqual(individual.signs[0] + individual.signs[1], individual.features['front_number'])
+            self.assertEqual(individual.costs_signed[0] + individual.costs_signed[1], individual.features['front_number'])
 
 
 class TestFastNonDominatedSorting(unittest.TestCase):
@@ -122,10 +122,10 @@ class TestFastNonDominatedSorting(unittest.TestCase):
     def test_should_compute_crowding_distance_if_the_population_contains_two_individuals(self):
         x = Individual([0, 0])
         x.costs = [2, 3]
-        x.signs = [2, 3, 0]
+        x.costs_signed = [2, 3, 0]
         y = Individual([1, 1, 0])  # last index means that the solution is computed correctly
         y.costs = [1, 1]
-        y.signs = [1, 1, 0]
+        y.costs_signed = [1, 1, 0]
 
         population = [x, y]
 
@@ -137,10 +137,10 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         """ The list contains two solutions and y is dominated by x."""
         x = Individual([2, 2])
         x.costs = [2, 3]
-        x.signs = [2, 3, 0]
+        x.costs_signed = [2, 3, 0]
         y = Individual([2, 2, 0])  # last index means that the solution is computed correctly
         y.costs = [3, 6]
-        y.signs = [3, 6, 0]
+        y.costs_signed = [3, 6, 0]
 
         population = [x, y]
         self.selector.fast_nondominated_sorting(population)
@@ -151,15 +151,15 @@ class TestFastNonDominatedSorting(unittest.TestCase):
     def test_should_sort_the_population_with_three_dominated_solutions_return_three_subfronts(self):
         x = Individual([2, 2])
         x.costs = [2, 3]
-        x.signs = [2, 3, 0]
+        x.costs_signed = [2, 3, 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [3, 6]
-        y.signs = [3, 6, 0]
+        y.costs_signed = [3, 6, 0]
 
         z = Individual([2, 2, 0])  # last index means that the solution is computed correctly
         z.costs = [4, 8]
-        z.signs = [4, 8, 0]
+        z.costs_signed = [4, 8, 0]
 
         population = [x, y, z]
         self.selector.fast_nondominated_sorting(population)
@@ -179,12 +179,12 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         v = Individual([2, 2])
         w = Individual([2, 2])
 
-        x.signs = [1.0, 0.0, 0.0]  # third value: 0 means its calculated
-        y.signs = [0.5, 0.5, 0.0]
-        z.signs = [0.0, 1.0, 0.0]
+        x.costs_signed = [1.0, 0.0, 0.0]  # third value: 0 means its calculated
+        y.costs_signed = [0.5, 0.5, 0.0]
+        z.costs_signed = [0.0, 1.0, 0.0]
 
-        v.signs = [0.6, 0.6, 0.0]
-        w.signs = [0.7, 0.5, 0.0]
+        v.costs_signed = [0.6, 0.6, 0.0]
+        w.costs_signed = [0.7, 0.5, 0.0]
 
         population = [x, y, z, v, w]
 
@@ -209,10 +209,10 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         z = Individual([2, 2])
         v = Individual([2, 2])
 
-        x.signs = [0.0, 1.0, 0.0]  # third value: 0 means its calculated
-        y.signs = [1.0, 0.0, 0.0]
-        z.signs = [0.5, 0.5, 0.0]
-        v.signs = [0.75, 0.75, 0.0]
+        x.costs_signed = [0.0, 1.0, 0.0]  # third value: 0 means its calculated
+        y.costs_signed = [1.0, 0.0, 0.0]
+        z.costs_signed = [0.5, 0.5, 0.0]
+        v.costs_signed = [0.75, 0.75, 0.0]
 
         population = [x, y, v, z]  # the expected results after sorting is : [x, y, z, v]
 
@@ -255,13 +255,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [2.]
-        x.signs = [2., 0]
+        x.costs_signed = [2., 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [2.]
-        y.signs = [2., 0]
+        y.costs_signed = [2., 0]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
 
         self.assertEqual(0, result)
 
@@ -270,13 +270,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [2.]
-        x.signs = [2., 0]
+        x.costs_signed = [2., 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [1.]
-        y.signs = [1., 0]
+        y.costs_signed = [1., 0]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
 
         self.assertEqual(2, result)
 
@@ -285,13 +285,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [1.]
-        x.signs = [1., 0]
+        x.costs_signed = [1., 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [2.]
-        y.signs = [2., 0]
+        y.costs_signed = [2., 0]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
 
         self.assertEqual(1, result)
 
@@ -302,13 +302,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [-1.0, 5.0, 9.0]
-        x.signs = [-1.0, 5.0, 9.0, 0]
+        x.costs_signed = [-1.0, 5.0, 9.0, 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [2.0, 6.0, 15.0]
-        y.signs = [2.0, 6.0, 15.0, 0]
+        y.costs_signed = [2.0, 6.0, 15.0, 0]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
 
         self.assertEqual(1, result)
 
@@ -319,13 +319,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [-1.0, 5.0, 9.0]
-        x.signs = [-1.0, 5.0, 9.0, 0]
+        x.costs_signed = [-1.0, 5.0, 9.0, 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [-1.0, 5.0, 10.0]
-        y.signs = [-1.0, 5.0, 10.0, 0]
+        y.costs_signed = [-1.0, 5.0, 10.0, 0]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
 
         self.assertEqual(1, result)
 
@@ -335,13 +335,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [-1.0, 5.0, 9.0]
-        x.signs = [-1.0, 5.0, 9.0, 0]
+        x.costs_signed = [-1.0, 5.0, 9.0, 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [-2.0, 5.0, 9.0]
-        y.signs = [-2.0, 5.0, 9.0, 0]
+        y.costs_signed = [-2.0, 5.0, 9.0, 0]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
 
         self.assertEqual(2, result)
 
@@ -351,13 +351,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [-1.0, 5.0, 9.0]
-        x.signs = [-1.0, 5.0, 9.0, 0]
+        x.costs_signed = [-1.0, 5.0, 9.0, 0]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [-1.0, 5.0, 8.0]
-        y.signs = [-1.0, 5.0, 8.0, 0]
+        y.costs_signed = [-1.0, 5.0, 8.0, 0]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
 
         self.assertEqual(2, result)
 
@@ -367,13 +367,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [-1.0, 6.0, 11.0]
-        x.signs = [-1.0, 6.0, 11.0, -0.1]
+        x.costs_signed = [-1.0, 6.0, 11.0, -0.1]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [-1.0, 5.0, 10.0]
-        y.signs = [-1.0, 5.0, 10.0, -0.3]
+        y.costs_signed = [-1.0, 5.0, 10.0, -0.3]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
         self.assertEqual(1, result)
 
     def test_should_dominance_comparator_work_properly_with_constrains_case_2(self):
@@ -382,13 +382,13 @@ class DominanceComparator(unittest.TestCase):
         dominance = ParetoDominance()
         x = Individual([2, 2])
         x.costs = [-1.0, 6.0, 9.0]
-        x.signs = [-1.0, 6.0, 9.0, -0.5]
+        x.costs_signed = [-1.0, 6.0, 9.0, -0.5]
 
         y = Individual([2, 2])  # last index means that the solution is computed correctly
         y.costs = [-1.0, 6.0, 10.0]
-        y.signs = [-1.0, 6.0, 10.0, -0.1]
+        y.costs_signed = [-1.0, 6.0, 10.0, -0.1]
 
-        result = dominance.compare(x.signs, y.signs)
+        result = dominance.compare(x.costs_signed, y.costs_signed)
         self.assertEqual(2, result)
 
 

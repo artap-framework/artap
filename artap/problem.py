@@ -89,6 +89,7 @@ class Problem:
         self.description: str = str()
         self.parameters: dict = dict()
         self.costs: dict = dict()
+        self.signs = []
 
         # populations
         self.populations = []
@@ -104,7 +105,6 @@ class Problem:
 
         # surrogate model (default - only simple eval)
         self.surrogate = SurrogateModelEval(self)
-        self.signs = []
 
         # self._freeze()
         self.set(**kwargs)
