@@ -203,6 +203,10 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         self.assertAlmostEqual(inf, population[1].features['crowding_distance'])
         self.assertAlmostEqual(2.0, population[2].features['crowding_distance'])
 
+        self.assertAlmostEqual(inf, population[3].features['crowding_distance'])
+        self.assertAlmostEqual(inf, population[4].features['crowding_distance'])
+
+
     def test_should_the_crowding_distance_of_four_solutions_correctly_assigned(self):
         x = Individual([2, 2])
         y = Individual([2, 2])
@@ -390,6 +394,30 @@ class DominanceComparator(unittest.TestCase):
 
         result = dominance.compare(x.costs_signed, y.costs_signed)
         self.assertEqual(2, result)
+
+class TestTournamentSelector(unittest.TestCase):
+
+    def test_should_execute_work_properly_case1(self):
+        x = Individual([3, 2])
+        x.costs = [2.0, 3.0]
+        x.signs = [2.0, 3.0, 0.0]
+
+        y = Individual([3, 2])  # last index means that the solution is computed correctly
+        y.costs = [1.0, 4.0]
+        y.signs = [1.0, 4.0, 0.0]
+
+        # solution1 = Solution(3, 2)
+        # solution1.objectives = [2, 3]
+        # solution2 = Solution(3, 2)
+        # solution2.objectives = [1, 4]
+        # solution1.attributes["dominance_ranking"] = 1
+        # solution2.attributes["dominance_ranking"] = 1
+        #
+        # solution_list = [solution1, solution2]
+        # operator = BinaryTournament2Selection[Solution]([SolutionAttributeComparator("key")])
+        # selection1 = operator.execute(solution_list)
+        #
+        # self.assertTrue(1, selection1.attributes["dominance_ranking"])
 
 
 if __name__ == '__main__':
