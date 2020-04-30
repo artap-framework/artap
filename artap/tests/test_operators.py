@@ -75,21 +75,13 @@ class TestCrossover(unittest.TestCase):
 
     def test_pareto(self):
         individuals = []
-        for i in range(3):
-            for j in range(3):
-                individual = Individual([0, 1])
+        n = 10
+        for i in range(n):
+            for j in range(i + 2):
+                individual = Individual([j, i + 1 - j])
+                individual.costs = [j, i + 1 - j]
                 individual.features = self.features.copy()
                 individuals.append(individual)
-
-        individuals[0].costs = [0, 1]
-        individuals[1].costs = [1, 0]
-        individuals[2].costs = [0, 2]
-        individuals[3].costs = [1, 1]
-        individuals[4].costs = [2, 0]
-        individuals[5].costs = [0, 3]
-        individuals[6].costs = [1, 2]
-        individuals[7].costs = [2, 1]
-        individuals[8].costs = [3, 0]
 
         for individual in individuals:
             individual.calc_signed_costs(self.signs2)
@@ -98,9 +90,7 @@ class TestCrossover(unittest.TestCase):
         selector.fast_nondominated_sorting(individuals)
 
         for individual in individuals:
-            # print(individual.costs, individual.features['front_number'])
             self.assertEqual(individual.costs_signed[0] + individual.costs_signed[1], individual.features['front_number'])
-
 
 class TestFastNonDominatedSorting(unittest.TestCase):
 
@@ -173,11 +163,11 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         self.assertAlmostEqual(inf, population[2].features['crowding_distance'])
 
     def test_should_ranking_of_a_population_with_five_solutions_work_properly(self):
-        x = Individual([2, 2])
-        y = Individual([2, 2])
-        z = Individual([2, 2])
-        v = Individual([2, 2])
-        w = Individual([2, 2])
+        x = Individual([1.0, 0.0])
+        y = Individual([0.5, 0.5])
+        z = Individual([0, 1.0])
+        v = Individual([0.6, 0.6])
+        w = Individual([0.7, 0.5])
 
         x.costs_signed = [1.0, 0.0, 0.0]  # third value: 0 means its calculated
         y.costs_signed = [0.5, 0.5, 0.0]
@@ -206,12 +196,11 @@ class TestFastNonDominatedSorting(unittest.TestCase):
         self.assertAlmostEqual(inf, population[3].features['crowding_distance'])
         self.assertAlmostEqual(inf, population[4].features['crowding_distance'])
 
-
     def test_should_the_crowding_distance_of_four_solutions_correctly_assigned(self):
-        x = Individual([2, 2])
-        y = Individual([2, 2])
-        z = Individual([2, 2])
-        v = Individual([2, 2])
+        x = Individual([0, 1])
+        y = Individual([1, 0])
+        z = Individual([0.5, 0.5])
+        v = Individual([0.75, 0.75])
 
         x.costs_signed = [0.0, 1.0, 0.0]  # third value: 0 means its calculated
         y.costs_signed = [1.0, 0.0, 0.0]
