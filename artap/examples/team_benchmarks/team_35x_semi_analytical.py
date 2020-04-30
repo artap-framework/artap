@@ -17,6 +17,7 @@ from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.datastore import FileDataStore
 from artap.results import Results
 
+
 class ProblemAnalytical(Problem):
     def set(self):
 

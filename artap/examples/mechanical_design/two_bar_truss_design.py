@@ -1,6 +1,6 @@
 from artap.problem import Problem
 from artap.algorithm_genetic import NSGAII, EpsMOEA
-from artap.results import Results, GraphicalResults
+from artap.results import Results
 
 from math import inf
 import matplotlib.pyplot as plt
