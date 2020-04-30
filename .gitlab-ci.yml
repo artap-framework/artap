@@ -40,4 +40,5 @@ examples:
     # tests
     - export CONDOR_HOST=edison.fel.zcu.cz
     - cd artap/examples
+    - ls
     - pytest --disable-warnings --durations=0 -v
