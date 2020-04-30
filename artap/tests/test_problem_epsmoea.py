@@ -10,7 +10,7 @@ class TestAckleyN222(unittest.TestCase):
 
     def test_local_problem(self, population_number=10):
         try:
-            problem = Ackley(**{'dimension':1})
+            problem = Ackley(**{'dimension': 1})
             algorithm = EpsMOEA(problem)
             algorithm.options['max_population_number'] = population_number
             algorithm.options['max_population_size'] = 100

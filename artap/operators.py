@@ -913,11 +913,8 @@ class Selector(Operator):
             p.features['dominate'] = set()
 
         for i, p in enumerate(population):
-            # for q in population:
             for j in range(i + 1, len(population)):
                 q = population[j]
-                # if p is q:
-                #    continue
                 dom = self.comparator.compare(p.costs_signed, q.costs_signed)
                 if dom == 1:
                     p.features['dominate'].add(q)
@@ -940,9 +937,9 @@ class Selector(Operator):
                     if q.features['domination_counter'] == 0 and q.features['front_number'] is None:
                         q.features['front_number'] = front_number
                         pareto_front[front_number - 1].append(q)
-                        # temp_set.append(q)
-            # pareto_front = temp_set
-        pareto_front.pop()
+
+        if len(pareto_front[front_number-1]) == 0:
+            pareto_front.pop()
         for sub_front in pareto_front:
             crowding_distance(sub_front)
 

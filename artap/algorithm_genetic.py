@@ -155,7 +155,7 @@ class NSGAII(GeneticAlgorithm):
             self.add_features(offsprings)
 
             # add the parents to the offsprings
-            #offsprings.extend(deepcopy(population.individuals))
+            # offsprings.extend(deepcopy(population.individuals))
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
@@ -231,7 +231,7 @@ class EpsMOEA(GeneticAlgorithm):
             # PART A
             # non-dominated sorting of the newly generated and the older guys like in NSGA-ii
             # add the parents to the offsprings
-            children.extend(deepcopy(population.individuals))
+            # children.extend(deepcopy(population.individuals))
 
             # non-dominated truncate on the guys
             self.selector.fast_nondominated_sorting(children)
