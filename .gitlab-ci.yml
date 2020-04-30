@@ -35,6 +35,7 @@ examples:
     - source env/bin/activate
     # get packages
     - pip install wheel
+    - pip install importlib
     - pip install numpy
     - pip install cython
     - pip install -r requirements.txt
