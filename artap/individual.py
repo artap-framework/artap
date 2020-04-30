@@ -84,10 +84,19 @@ class Individual(metaclass=ABCMeta):
         return string
 
     def __eq__(self, other):
-        return self.vector == other.vector and self.costs == self.costs and self.custom == self.custom and self.state == self.state
+
+        if self.costs_signed == []:
+            diff = set(self.vector) - set(other.vector)
+            return diff == set()
+        else:
+            diff = set(self.costs_signed) - set(other.costs_signed)
+            return  diff == set()
+
+        #    return self.vector == other.vector and self.costs == self.costs and self.custom == self.custom and self.state == self.state
 
     def __hash__(self):
-        return id(self)
+        #return id(self)
+        return hash(tuple(self.vector))
 
     def sync(self, individual):
         self.vector = individual.vector

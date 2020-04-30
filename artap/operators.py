@@ -705,37 +705,6 @@ class SwarmMutatorTVAC(SwarmMutator):
             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
 
 
-def uniqeness(population, decimals=7):
-    """Filters out the same solutions
-
-    Parameters
-    ----------
-    population : list of Individuals
-        The list of the solutions.
-    decimals: integer
-        Two solutions are considered different if they differs in the given number of decimals.
-    """
-
-
-
-    # unique_ids = set()
-    # result = []
-    #
-    # for solution in solutions:
-    #     problem = solution.problem
-    #
-    #     if objectives:
-    #         id = tuple(solution.objectives[:])
-    #     else:
-    #         id = tuple([problem.types[i].decode(solution.variables[i]) for i in range(problem.nvars)])
-    #
-    #     if not id in unique_ids:
-    #         unique_ids.add(id)
-    #         result.append(solution)
-
-    return
-
-
 class Dominance(ABC):
     def __init__(self):
         pass
@@ -1031,7 +1000,7 @@ def nondominated_truncate(population, size):
     """
 
     # calculating the crowding distance on the different fronts
-
+    population = list(set(population))
     result = sorted(population, key=functools.cmp_to_key(nondominated_cmp))
     return result[:size]
 
@@ -1102,7 +1071,7 @@ class TournamentSelector(Selector):
             if candidates[0].features['front_number'] < candidates[1].features['front_number']:
                 return candidates[0]
             elif candidates[1].features['front_number'] < candidates[0].features['front_number']:
-                 return candidates[1]
+                return candidates[1]
 
             flag = self.dominance.compare(candidates[0].costs_signed, candidates[1].costs_signed)
 
