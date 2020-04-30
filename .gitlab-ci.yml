@@ -13,7 +13,8 @@ build:
     # get packages
     - pip install wheel
     - pip install numpy
-    - pip install cython		
+    - pip install cython
+    - pip install pytest
     - pip install -r requirements.txt
 
     # tests
@@ -35,13 +36,12 @@ examples:
     - source env/bin/activate
     # get packages
     - pip install wheel
-    - pip install importlib
     - pip install numpy
     - pip install cython
+    - pip install pytest
     - pip install -r requirements.txt
 
     # tests
     - export CONDOR_HOST=edison.fel.zcu.cz
     - cd artap/examples
-    - export PYTHONPATH="$PYTHONPATH:."
     - pytest --disable-warnings --durations=0 -v
