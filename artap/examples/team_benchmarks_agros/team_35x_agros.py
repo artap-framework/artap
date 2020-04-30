@@ -3,9 +3,10 @@ from artap.problem import Problem
 from artap.individual import Individual
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
-import agrossuite.agros as a2d
+from agrossuite import agros as a2d
 
-from artap.examples.team_benchmarks.team_35x_semi_analytical import ProblemAnalytical
+
+from artap.examples.team_benchmarks_agros.team_35x_semi_analytical import ProblemAnalytical
 
 
 class AgrosSimple(Problem):
