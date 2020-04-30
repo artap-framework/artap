@@ -40,5 +40,5 @@ examples:
     # tests
     - export CONDOR_HOST=edison.fel.zcu.cz
     - cd artap/examples
-    - ls
+    - export PYTHONPATH="$PYTHONPATH:."
     - pytest --disable-warnings --durations=0 -v
