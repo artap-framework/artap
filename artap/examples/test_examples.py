@@ -5,7 +5,6 @@ import os
 
 try:
     from agrossuite import agros as a2d
-
     __agros__ = True
 except ImportError:
     print("Agros is not present test skipped")
