@@ -67,7 +67,8 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
     def generate(self, parents, archive=None):
         offsprings = []
-        while len(offsprings) < self.population_size:
+        offsprings.extend(parents)
+        while len(offsprings) < 2*self.population_size:
             parent1 = self.selector.select(parents)
 
             repeat = True
@@ -154,7 +155,7 @@ class NSGAII(GeneticAlgorithm):
             self.add_features(offsprings)
 
             # add the parents to the offsprings
-            offsprings.extend(deepcopy(population.individuals))
+            #offsprings.extend(deepcopy(population.individuals))
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)

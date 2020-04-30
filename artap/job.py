@@ -25,7 +25,7 @@ class Job(metaclass=ABCMeta):
         # problem cost function evaluate only in that case when the problem fits the constraints
         try:
             costs = self.problem.surrogate.evaluate(individual)
-            individual.costs = costs
+            individual.costs =  costs
             if self.problem is not None:
                 individual.calc_signed_costs(self.problem.signs)  # the idea is to make this conversion only once
 
