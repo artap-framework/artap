@@ -78,7 +78,7 @@ class NLopt(Algorithm):
                              desc='ftol_abs')
 
     def _function(self, x, grad):
-        return self.job.evaluate_scalar(x)
+        return self.evaluator.evaluate_scalar(x)
 
     def _constraint(x, grad, a, b):
         # if grad.size > 0:

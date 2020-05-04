@@ -23,7 +23,20 @@ class RobustnessProblem(Problem):
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-    def test_local_problem(self):
+    def test_gradient(self):
+        problem = RobustnessProblem()
+        algorithm = ScipyOpt(problem, evaluator_type=EvaluatorType.GRADIENT)
+        algorithm.options['algorithm'] = 'Nelder-Mead'
+        algorithm.options['tol'] = 1e-4
+        algorithm.run()
+
+        for individual in problem.populations[0].individuals:
+            print(individual.features['gradient'])
+            for child in individual.children:
+                print(child)
+            print("-------------------------")
+
+    def test_worst_case(self):
         problem = RobustnessProblem()
         algorithm = ScipyOpt(problem, evaluator_type=EvaluatorType.WORST_CASE)
         algorithm.options['algorithm'] = 'Nelder-Mead'
