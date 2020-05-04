@@ -24,12 +24,12 @@ class Algorithm(metaclass=ABCMeta):
     def __init__(self, problem: Problem, name="Algorithm", evaluator_type=EvaluatorType.SIMPLE):
         self.name = name
         self.problem = problem
-        if evaluator_type == EvaluatorType.SIMPLE:
+        if evaluator_type == EvaluatorType.SIMPLE or evaluator_type == None:
             self.evaluator = Evaluator(self)
         elif evaluator_type == EvaluatorType.GRADIENT:
-            self.evaluator = GradientEvaluator
+            self.evaluator = GradientEvaluator(self)
         elif evaluator_type == EvaluatorType.WORST_CASE:
-            self.evaluator = WorstCaseEvaluator
+            self.evaluator = WorstCaseEvaluator(self)
 
         self.parameters = problem.parameters
         self.options = ConfigDictionary()
@@ -47,6 +47,9 @@ class Algorithm(metaclass=ABCMeta):
 
     def evaluate(self, individuals):
         self.evaluator.evaluate(individuals)
+
+    def evaluate_scalar(self, individual):
+        self.evaluator.evaluate_scalar(individual)
 
 
 class DummyAlgorithm(Algorithm):
