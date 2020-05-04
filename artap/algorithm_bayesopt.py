@@ -121,7 +121,7 @@ class BayesOptClassSerial(BayesOptContinuous):
         self.job = Job(self.algorithm.problem, population)
 
     def evaluateSample(self, x):
-        return self.job.evaluate_scalar(x)
+        return self.algorithm.evaluator.evaluate_scalar(x)
 
 
 class BayesOptSerial(BayesOpt):
@@ -194,7 +194,6 @@ class BayesOptClassParallel(Process, BayesOptContinuous):
 
         population = Population()
         self.algorithm.problem.populations.append(population)
-        self.job = Job(self.algorithm.problem, population)
 
     def run(self):
         mvalue, x_out, error = self.optimize()
