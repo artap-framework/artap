@@ -3,6 +3,7 @@ from abc import ABCMeta
 from .individual import Individual
 from math import inf
 
+
 class Job(metaclass=ABCMeta):
     def __init__(self, problem, population=None):
         self.problem = problem
@@ -25,7 +26,7 @@ class Job(metaclass=ABCMeta):
         # problem cost function evaluate only in that case when the problem fits the constraints
         try:
             costs = self.problem.surrogate.evaluate(individual)
-            individual.costs =  costs
+            individual.costs = costs
             if self.problem is not None:
                 individual.calc_signed_costs(self.problem.signs)  # the idea is to make this conversion only once
 
@@ -46,6 +47,7 @@ class Job(metaclass=ABCMeta):
         individual.info["finish_time"] = time.time()
 
     def evaluate_scalar(self, x):
+
         # simple individual
         individual = Individual(x)
         self.evaluate(individual)

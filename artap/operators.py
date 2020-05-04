@@ -33,6 +33,7 @@ class Evaluator(Operator):
         super().__init__()
         self.algorithm = algorithm
         self.individuals = []
+        self.job = Job(self.algorithm.problem)
 
     def add(self, individual):
         self.individuals.append(individual)
@@ -46,25 +47,23 @@ class Evaluator(Operator):
         else:
             self.evaluate_serial(individuals)
 
-        n_failed = 0
-        # for individual in individuals:
-        #     # if individual.state == Individual.State.FAILED:
-        #     #     n_failed += 1
-        #     #     individuals.remove(individual)   # TODO: it is not correct, nsga2 handles this case in paretodominance
-        #     individual.calc_signed_costs(self.problem.signs) # the idea is to make this conversion only once
-
     def evaluate_serial(self, individuals: list):
-        job = Job(self.algorithm.problem)
         for individual in individuals:
             if individual.state == Individual.State.EMPTY:
-                job.evaluate(individual)
+                individual.costs.append(self.job.evaluate(individual))
 
     def evaluate_parallel(self, individuals: list):
         # simple parallel loop
-        job = Job(self.algorithm.problem)
         Parallel(n_jobs=self.algorithm.options["max_processes"], verbose=1, require='sharedmem')(
-            delayed(job.evaluate)(individual)
+            delayed(self.job.evaluate)(individual)
             for individual in individuals)
+
+    def evaluate_scalar(self, vector):
+        individual = Individual(vector)
+        self.algorithm.problem.populations[0].individuals.append(individual)
+        cost = self.job.evaluate_scalar(vector)
+        individual.costs = [cost]
+        return cost
 
 
 class GradientEvaluator(Evaluator):
@@ -110,17 +109,15 @@ class WorstCaseEvaluator(Evaluator):
         super().__init__(algorithm)
         self.to_evaluate = []
 
-
     def add(self, individual):
-        self.individuals.append(individual)
         parameters = self.algorithm.problem.parameters
-
         for i in range(len(individual.vector)):
-            vector = individual.vector.copy()
-            
-            vector[i] -= self.delta
-            individual.children.append(Individual(vector))
-            individual.children[-1].parents.append(individual)
+            parameter = parameters[i]
+            for sign in [-1, 1]:
+                vector = individual.vector.copy()
+                vector[i] += sign * parameter['tol'] * vector[i]
+                individual.children.append(Individual(vector))
+                individual.children[-1].parents.append(individual)
 
         self.to_evaluate.extend(individual.children)
 
@@ -130,42 +127,18 @@ class WorstCaseEvaluator(Evaluator):
             self.add(individual)
         self.run()
 
-    def run(self):
-        n_params = len(self.individuals[0].vector)
-        super().evaluate(self.to_evaluate)
-        for individual in self.individuals:
-            gradient = np.zeros(n_params)
-            i = 0
-            for child in individual.children:
-                gradient[i] = ((individual.costs[0] - child.costs[0]) / self.delta)
-                i += 1
-            individual.features['gradient'] = gradient
-        self.individuals = []
+    def evaluate_scalar(self, x):
+        parent_individual = Individual(x)
+        parent_individual.costs.append(self.job.evaluate_scalar(parent_individual.vector))
+        self.add(parent_individual)
+        for individual in self.to_evaluate:
+            individual.costs.append(self.job.evaluate_scalar(individual.vector))
+        self.algorithm.problem.populations[0].individuals.append(parent_individual)
         self.to_evaluate = []
+        return parent_individual.costs[0]
 
-class RichardsonGradientEvaluator(Operator):
-
-    def __init__(self):
-        pass
-
-    # def evaluate_gradient_richardson(self, population, individual):
-    #     x0 = individual.vector
-    #     gradient = [0] * len(x0)
-    #
-    #     h = 1e-6
-    #     job = Job(self.problem, population)
-    #     y = job.evaluate_scalar(x0)
-    #     for i in range(len(x0)):
-    #         x = x0.copy()
-    #         x[i] += h
-    #         y_h = job.evaluate_scalar(x)
-    #         d_0_h = gradient[i] = (y_h - y) / h
-    #         x[i] += h
-    #         y_2h = job.evaluate_scalar(x)
-    #         d_0_2h = (y_2h - y) / 2 / h
-    #         gradient[i] = (4 * d_0_h - d_0_2h) / 3
-    #
-    #     return gradient
+    def run(self):
+        super().evaluate(self.to_evaluate)
 
 
 class Generator(Operator):
