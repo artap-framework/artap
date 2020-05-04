@@ -24,7 +24,7 @@ class Algorithm(metaclass=ABCMeta):
     def __init__(self, problem: Problem, name="Algorithm", evaluator_type=EvaluatorType.SIMPLE):
         self.name = name
         self.problem = problem
-        if evaluator_type == EvaluatorType.SIMPLE or evaluator_type == None:
+        if evaluator_type == EvaluatorType.SIMPLE or evaluator_type is None:
             self.evaluator = Evaluator(self)
         elif evaluator_type == EvaluatorType.GRADIENT:
             self.evaluator = GradientEvaluator(self)
@@ -50,6 +50,7 @@ class Algorithm(metaclass=ABCMeta):
 
     def evaluate_scalar(self, individual):
         self.evaluator.evaluate_scalar(individual)
+        return individual.costs[0]
 
 
 class DummyAlgorithm(Algorithm):

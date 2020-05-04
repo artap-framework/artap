@@ -45,11 +45,3 @@ class Job(metaclass=ABCMeta):
 
         # info
         individual.info["finish_time"] = time.time()
-
-    def evaluate_scalar(self, x):
-
-        # simple individual
-        individual = Individual(x)
-        self.evaluate(individual)
-
-        return individual.costs[0]
