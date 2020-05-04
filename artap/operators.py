@@ -104,6 +104,45 @@ class GradientEvaluator(Evaluator):
         self.to_evaluate = []
 
 
+class WorstCaseEvaluator(Evaluator):
+
+    def __init__(self, algorithm):
+        super().__init__(algorithm)
+        self.to_evaluate = []
+
+
+    def add(self, individual):
+        self.individuals.append(individual)
+        parameters = self.algorithm.problem.parameters
+
+        for i in range(len(individual.vector)):
+            vector = individual.vector.copy()
+            
+            vector[i] -= self.delta
+            individual.children.append(Individual(vector))
+            individual.children[-1].parents.append(individual)
+
+        self.to_evaluate.extend(individual.children)
+
+    def evaluate(self, individuals):
+        super().evaluate(individuals)
+        for individual in individuals:
+            self.add(individual)
+        self.run()
+
+    def run(self):
+        n_params = len(self.individuals[0].vector)
+        super().evaluate(self.to_evaluate)
+        for individual in self.individuals:
+            gradient = np.zeros(n_params)
+            i = 0
+            for child in individual.children:
+                gradient[i] = ((individual.costs[0] - child.costs[0]) / self.delta)
+                i += 1
+            individual.features['gradient'] = gradient
+        self.individuals = []
+        self.to_evaluate = []
+
 class RichardsonGradientEvaluator(Operator):
 
     def __init__(self):
