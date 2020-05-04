@@ -61,9 +61,8 @@ class Evaluator(Operator):
     def evaluate_scalar(self, vector):
         individual = Individual(vector)
         self.algorithm.problem.populations[0].individuals.append(individual)
-        cost = self.job.evaluate_scalar(vector)
-        individual.costs = [cost]
-        return cost
+        self.job.evaluate(individual)
+        return individual.costs[0]
 
 
 class GradientEvaluator(Evaluator):
@@ -81,13 +80,22 @@ class GradientEvaluator(Evaluator):
             individual.children.append(Individual(vector))
             individual.children[-1].parents.append(individual)
 
+        self.to_evaluate.append(individual)
         self.to_evaluate.extend(individual.children)
 
     def evaluate(self, individuals):
-        super().evaluate(individuals)
         for individual in individuals:
             self.add(individual)
         self.run()
+
+    def evaluate_scalar(self, x):
+        individual = Individual(x)
+
+        self.add(individual)
+        self.run()
+        self.algorithm.problem.populations[0].individuals.append(individual)
+        self.to_evaluate = []
+        return individual.costs[0]
 
     def run(self):
         n_params = len(self.individuals[0].vector)
@@ -129,10 +137,10 @@ class WorstCaseEvaluator(Evaluator):
 
     def evaluate_scalar(self, x):
         parent_individual = Individual(x)
-        parent_individual.costs.append(self.job.evaluate_scalar(parent_individual.vector))
+        parent_individual.costs.append(self.job.evaluate(parent_individual))
         self.add(parent_individual)
         for individual in self.to_evaluate:
-            individual.costs.append(self.job.evaluate_scalar(individual.vector))
+            individual.costs.append(self.job.evaluate(individual))
         self.algorithm.problem.populations[0].individuals.append(parent_individual)
         self.to_evaluate = []
         return parent_individual.costs[0]
