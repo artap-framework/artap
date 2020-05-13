@@ -1,6 +1,5 @@
 from .problem import Problem
 from .algorithm import Algorithm
-from .job import Job
 from .population import Population
 
 from scipy.optimize import minimize
