@@ -7,7 +7,6 @@ rpyc
 cython
 sklearn
 SALib
-pytest
 appdirs
 nlopt
 sqlitedict

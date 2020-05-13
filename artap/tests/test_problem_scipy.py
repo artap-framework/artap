@@ -9,7 +9,7 @@ class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
     def test_local_problem(self):
-        problem = AlpineFunction(**{'dimension':1, 'initial_value': 1.})
+        problem = AlpineFunction(**{'dimension': 1, 'initial_value': 1.})
         algorithm = ScipyOpt(problem)
         algorithm.options['algorithm'] = 'Nelder-Mead'
         algorithm.options['tol'] = 1e-4
