@@ -13,6 +13,17 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
     def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
         super().__init__(problem, name)
+
+        self.parameters_length = len(self.problem.parameters)
+
+        self.options.declare(name='n_iterations', default=50, lower=1,
+                             desc='Maximum evaluations')
+        self.options.declare(name='max_population_number', default=100, lower=1,
+                             desc='max_population_number')
+        self.options.declare(name='max_population_size', default=100, lower=1,
+                             desc='Maximal number of individuals in population')
+        self.features = dict()
+
         self.problem = problem
 
         self.generator = None
@@ -25,7 +36,10 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters)
-        # self.generator.init(10)
+
+    def add_features(self, individuals):
+        for individual in individuals:
+            individual.features = self.features.copy()
 
     def gen_initial_population(self, is_archive=False):
         individuals = self.generator.generate()
@@ -49,26 +63,13 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
 class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
-    def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
+    def __init__(self, problem: Problem, name="General Genetic-based Algorithm"):
         super().__init__(problem, name)
-        self.parameters_length = len(self.problem.parameters)
-
-        self.options.declare(name='n_iterations', default=50, lower=1,
-                             desc='Maximum evaluations')
-        self.options.declare(name='max_population_number', default=100, lower=1,
-                             desc='max_population_number')
-        self.options.declare(name='max_population_size', default=100, lower=1,
-                             desc='Maximal number of individuals in population')
-        self.features = dict()
-
-    def add_features(self, individuals):
-        for individual in individuals:
-            individual.features = self.features.copy()
 
     def generate(self, parents, archive=None):
         offsprings = []
         offsprings.extend(parents)
-        while len(offsprings) < 2*self.population_size:
+        while len(offsprings) < 2 * self.population_size:
             parent1 = self.selector.select(parents)
 
             repeat = True
@@ -137,7 +138,6 @@ class NSGAII(GeneticAlgorithm):
 
         # non-dominated sort of individuals
         self.selector.fast_nondominated_sorting(population.individuals)
-        # self.selector.crowding_distance(population.individuals)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -154,12 +154,8 @@ class NSGAII(GeneticAlgorithm):
             self.evaluate(offsprings)
             self.add_features(offsprings)
 
-            # add the parents to the offsprings
-            # offsprings.extend(deepcopy(population.individuals))
-
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
-            # self.selector.crowding_distance(offsprings)
             population.individuals = nondominated_truncate(offsprings, self.population_size)
 
         t = time.time() - t_s
