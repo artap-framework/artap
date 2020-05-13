@@ -3,7 +3,6 @@ import nlopt
 
 from .problem import Problem
 from .algorithm import Algorithm
-from .job import Job
 from .population import Population
 
 GN_DIRECT = nlopt.GN_DIRECT
@@ -62,7 +61,6 @@ class NLopt(Algorithm):
 
         population = Population()
         self.problem.populations.append(population)
-        self.job = Job(self.problem, population)
 
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
@@ -78,7 +76,7 @@ class NLopt(Algorithm):
                              desc='ftol_abs')
 
     def _function(self, x, grad):
-        return self.job.evaluate_scalar(x)
+        return self.evaluator.evaluate_scalar(x)
 
     def _constraint(x, grad, a, b):
         # if grad.size > 0:

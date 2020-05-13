@@ -15,7 +15,7 @@ class SurrogateModel(metaclass=ABCMeta):
 
         self.trained = False
 
-        # distance
+        # distance in percentage, taking into account bounds
         self.distance_threshold = 0.0
 
         # stats
