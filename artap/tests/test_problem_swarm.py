@@ -1,5 +1,5 @@
 import unittest
-from artap.algorithm_swarm import PSO, PSO_V1
+from artap.algorithm_swarm import OMOPSO, PSO_V1
 from artap.results import Results
 from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
 
@@ -10,7 +10,7 @@ class TestAckley(unittest.TestCase):
     def test_local_problem(self, population_number=30):
         try:
             problem = Ackley(**{'dimension': 1})
-            algorithm = PSO(problem)
+            algorithm = OMOPSO(problem)
             algorithm.options['max_population_number'] = population_number
             algorithm.options['max_population_size'] = 30
             algorithm.options['max_processes'] = 10
