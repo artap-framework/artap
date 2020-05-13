@@ -3,14 +3,6 @@ import importlib.util
 import os
 
 
-try:
-    from agrossuite import agros as a2d
-    __agros__ = True
-except ImportError:
-    print("Agros is not present test skipped")
-    __agros__ = False
-
-
 def make_test_function(name, filename):
     def test(self):
         spec = importlib.util.spec_from_file_location(name, filename)
@@ -32,9 +24,6 @@ class TestExamples(unittest.TestCase):
         for folder in os.walk(path):
             if folder[0].split('/')[-1] =='__pycache__':
                 continue
-            if folder[0].find('agros') > 0 and not (__agros__):
-                continue
-            # print(folder)
             files = folder[2]
             for file in files:
                 if file == '__init__.py' or file[-3:] != '.py':

@@ -7,16 +7,30 @@ This is base class for all algorithms
 from .problem import Problem
 from .utils import ConfigDictionary
 from abc import ABCMeta
-from .operators import Evaluator
+from .operators import Evaluator, GradientEvaluator, WorstCaseEvaluator
+
+from enum import Enum
+
+
+class EvaluatorType(Enum):
+    SIMPLE = 0
+    GRADIENT = 1
+    WORST_CASE = 2
 
 
 class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
 
-    def __init__(self, problem: Problem, name="Algorithm"):
+    def __init__(self, problem: Problem, name="Algorithm", evaluator_type=EvaluatorType.SIMPLE):
         self.name = name
         self.problem = problem
-        self.evaluator = Evaluator(self)
+        if evaluator_type == EvaluatorType.SIMPLE or evaluator_type is None:
+            self.evaluator = Evaluator(self)
+        elif evaluator_type == EvaluatorType.GRADIENT:
+            self.evaluator = GradientEvaluator(self)
+        elif evaluator_type == EvaluatorType.WORST_CASE:
+            self.evaluator = WorstCaseEvaluator(self)
+
         self.parameters = problem.parameters
         self.options = ConfigDictionary()
 
@@ -33,6 +47,10 @@ class Algorithm(metaclass=ABCMeta):
 
     def evaluate(self, individuals):
         self.evaluator.evaluate(individuals)
+
+    def evaluate_scalar(self, individual):
+        self.evaluator.evaluate_scalar(individual)
+        return individual.costs[0]
 
 
 class DummyAlgorithm(Algorithm):
