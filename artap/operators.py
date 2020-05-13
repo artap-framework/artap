@@ -60,7 +60,7 @@ class Evaluator(Operator):
 
     def evaluate_scalar(self, vector):
         individual = Individual(vector)
-        self.algorithm.problem.populations[0].individuals.append(individual)
+        self.algorithm.problem.populations[-1].individuals.append(individual)
         self.job.evaluate(individual)
         return individual.costs[0]
 
@@ -93,7 +93,7 @@ class GradientEvaluator(Evaluator):
 
         self.add(individual)
         self.run()
-        self.algorithm.problem.populations[0].individuals.append(individual)
+        self.algorithm.problem.populations[-1].individuals.append(individual)
         self.to_evaluate = []
         return individual.costs[0]
 
@@ -141,7 +141,7 @@ class WorstCaseEvaluator(Evaluator):
         self.add(parent_individual)
         for individual in self.to_evaluate:
             individual.costs.append(self.job.evaluate(individual))
-        self.algorithm.problem.populations[0].individuals.append(parent_individual)
+        self.algorithm.problem.populations[-1].individuals.append(parent_individual)
         self.to_evaluate = []
         return parent_individual.costs[0]
 
