@@ -79,7 +79,7 @@ class Individual(metaclass=ABCMeta):
             string += "]"
 
         string += "; state: '{}', ".format(Individual.State.to_string(self.state))
-        string += "; info: {}, ".format(self.info)
+        # string += "; info: {}, ".format(self.info)
 
         return string
 
