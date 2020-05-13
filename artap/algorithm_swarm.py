@@ -1,13 +1,75 @@
 from random import randint
 from .problem import Problem
 from .population import Population
-from .algorithm_genetic import GeneticAlgorithm
+from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import SwarmMutator, DummySelector, RandomGenerator, SwarmMutatorTVIW
 
 import time
 
 
-class PSO(GeneticAlgorithm):
+class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
+
+    def __init__(self, problem: Problem, name="General Swarm-based Algorithm"):
+        super().__init__(problem, name)
+
+    def iterate(self, parents, archive=None):
+        """
+        Calculates the speed and the new position of the individuals.
+        :param parents:
+        :param archive:
+        :return:
+        """
+        offsprings = []
+        offsprings.extend(parents)
+        while len(offsprings) < 2 * self.population_size:
+            parent1 = self.selector.select(parents)
+
+            repeat = True
+            while repeat:
+                if archive:
+                    parent2 = self.selector.select(archive)
+                else:
+                    parent2 = self.selector.select(parents)
+
+                if parent1 is not parent2:
+                    repeat = False
+
+            # crossover
+            child1, child2 = self.crossover.cross(parent1, parent2)
+
+            # mutation
+            child1 = self.mutator.mutate(child1)
+            child2 = self.mutator.mutate(child2)
+
+            if not any(child1 == item for item in offsprings):
+                offsprings.append(deepcopy(child1))  # Always create new individual
+            if not any(child1 == item for item in offsprings):
+                offsprings.append(deepcopy(child2))  # Always create new individual
+
+        # parents.extend(removed_parents)
+        return offsprings
+
+    def run(self):
+        pass
+
+
+class OMOPSO(SwarmAlgorithm):
+    """
+    Implementation of OMOPSO, a multi-objective particle swarm optimizer (MOPSO).
+    OMOPSO uses Crowding distance, Mutation and ε-Dominance.
+    According to [3], OMOPSO is one of the top-performing PSO algorithms.
+
+    [1] Margarita Reyes SierraCarlos A. Coello Coello
+        Improving PSO-Based Multi-objective Optimization Using Crowding, Mutation and ∈-Dominance
+        DOI https://doi.org/10.1007/978-3-540-31880-4_35
+
+    [2] S. Mostaghim ; J. Teich :
+        Strategies for finding good local guides in multi-objective particle swarm optimization (MOPSO)
+        DOI: 10.1109/SIS.2003.1202243
+    [3] Durillo, J. J., J. Garc�a-Nieto, A. J. Nebro, C. A. Coello Coello, F. Luna, and E. Alba (2009).
+        Multi-Objective Particle Swarm Optimizers: An Experimental Comparison.
+        Evolutionary Multi-Criterion Optimization, pp. 495-509
+    """
 
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
         super().__init__(problem, name)
@@ -16,14 +78,17 @@ class PSO(GeneticAlgorithm):
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
         self.features = {'velocity': [],
                          'best_vector': [],
-                         'best_costs': []}
+                         'best_costs': [],
+                         'max_speed': []}
 
-    def run(self):
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters)
-        self.generator.init(self.options['max_population_size'])
 
+    def run(self):
+
+        self.generator.init(self.options['max_population_size'])
         population = self.gen_initial_population()
+
         self.evaluate(population.individuals)
         self.add_features(population.individuals)
 
@@ -68,7 +133,7 @@ class PSO(GeneticAlgorithm):
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))
 
 
-class PSO_V1(GeneticAlgorithm):
+class PSO_V1(SwarmAlgorithm):
     """
 
     X. Li. A Non-dominated Sorting Particle Swarm Optimizer for Multiobjective
@@ -100,7 +165,8 @@ class PSO_V1(GeneticAlgorithm):
         self.add_features(population.individuals)
 
         for individual in population.individuals:
-            self.mutator.evaluate_best_individual(individual)  # TODO: all evaluating should be derived from Evaluator class
+            self.mutator.evaluate_best_individual(
+                individual)  # TODO: all evaluating should be derived from Evaluator class
 
         self.selector.fast_nondominated_sorting(population.individuals)
         self.problem.populations.append(population)
