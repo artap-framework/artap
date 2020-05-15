@@ -77,8 +77,7 @@ class OMOPSO(SwarmAlgorithm):
         self.mutator = SwarmMutator(self.problem.parameters)
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
         self.features = {'velocity': [],
-                         'best_vector': [],
-                         'best_costs': [],
+                         'best_position': [],
                          'max_speed': []}
 
         # set random generator

@@ -1,5 +1,5 @@
 from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator
+    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator, EpsilonDominance
 from artap.individual import Individual
 from artap.benchmark_pareto import BiObjectiveTestProblem
 from math import inf
@@ -90,7 +90,9 @@ class TestCrossover(unittest.TestCase):
         selector.fast_nondominated_sorting(individuals)
 
         for individual in individuals:
-            self.assertEqual(individual.costs_signed[0] + individual.costs_signed[1], individual.features['front_number'])
+            self.assertEqual(individual.costs_signed[0] + individual.costs_signed[1],
+                             individual.features['front_number'])
+
 
 class TestFastNonDominatedSorting(unittest.TestCase):
 
@@ -383,6 +385,24 @@ class DominanceComparator(unittest.TestCase):
 
         result = dominance.compare(x.costs_signed, y.costs_signed)
         self.assertEqual(2, result)
+
+class EpsDominanceComparator(unittest.TestCase):
+
+    def test_should_dominance_comparator_work_properly_with_constrains_case_2(self):
+        """ Case 2: solution1 has a higher degree of constraint violation than solution 1
+        """
+        dominance = EpsilonDominance(epsilons=1e-5)
+        x = Individual([2, 2])
+        x.costs = [-1.0, 6.0, 9.0]
+        x.costs_signed = [-1.0, 6.0, 9.0, -0.5]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 6.0, 10.0]
+        y.costs_signed = [-1.0, 6.0, 10.0, -0.1]
+
+        result = dominance.compare(x.costs_signed, y.costs_signed)
+        self.assertEqual(2, result)
+
 
 class TestTournamentSelector(unittest.TestCase):
 
