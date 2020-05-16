@@ -386,7 +386,58 @@ class DominanceComparator(unittest.TestCase):
         result = dominance.compare(x.costs_signed, y.costs_signed)
         self.assertEqual(2, result)
 
+
 class EpsDominanceComparator(unittest.TestCase):
+
+
+    def test_should_dominance_comparator_work_properly_case_d(self):
+        """ Case 1: solution1 has objectives [-1.0, 5.0, 9.0] and solution2 has [-1.0, 5.0, 8.0]
+        """
+
+        # eps-dominance comparator should give back the same results as pareto-dominance if eps = 1e-5
+
+        dominance = EpsilonDominance(epsilons=1e-2)
+        x = Individual([2, 2])
+        x.costs = [-1.0, 5.0, 9.0]
+        x.costs_signed = [-1.0, 5.0, 9.0, 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 5.01, 8.0]
+        y.costs_signed = [-1.0, 5.01, 8.0, 0]
+
+        result = dominance.compare(x.costs_signed, y.costs_signed)
+
+        self.assertEqual(2, result)
+
+        # eps-dominance comparator should give different results if eps = 1
+
+        dominance = EpsilonDominance(epsilons=1e-3)
+        x = Individual([2, 2])
+        x.costs = [-1.0, 5.0, 9.0]
+        x.costs_signed = [-1.0, 5.0, 9.0, 0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 5.01, 8.0]
+        y.costs_signed = [-1.0, 5.01, 8.0, 0]
+
+        result = dominance.compare(x.costs_signed, y.costs_signed)
+
+        self.assertEqual(0, result)
+
+    def test_should_dominance_comparator_work_properly_with_constrains_case_1(self):
+        """ Case 1: solution2 has a higher degree of constraint violation than solution 1
+        """
+        dominance = EpsilonDominance(epsilons=1e-5)
+        x = Individual([2, 2])
+        x.costs = [-1.0, 6.0, 11.0]
+        x.costs_signed = [-1.0, 6.0, 11.0, -0.1]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 5.0, 10.0]
+        y.costs_signed = [-1.0, 5.0, 10.0, -0.3]
+
+        result = dominance.compare(x.costs_signed, y.costs_signed)
+        self.assertEqual(1, result)
 
     def test_should_dominance_comparator_work_properly_with_constrains_case_2(self):
         """ Case 2: solution1 has a higher degree of constraint violation than solution 1
@@ -414,19 +465,6 @@ class TestTournamentSelector(unittest.TestCase):
         y = Individual([3, 2])  # last index means that the solution is computed correctly
         y.costs = [1.0, 4.0]
         y.signs = [1.0, 4.0, 0.0]
-
-        # solution1 = Solution(3, 2)
-        # solution1.objectives = [2, 3]
-        # solution2 = Solution(3, 2)
-        # solution2.objectives = [1, 4]
-        # solution1.attributes["dominance_ranking"] = 1
-        # solution2.attributes["dominance_ranking"] = 1
-        #
-        # solution_list = [solution1, solution2]
-        # operator = BinaryTournament2Selection[Solution]([SolutionAttributeComparator("key")])
-        # selection1 = operator.execute(solution_list)
-        #
-        # self.assertTrue(1, selection1.attributes["dominance_ranking"])
 
 
 if __name__ == '__main__':

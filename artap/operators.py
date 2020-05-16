@@ -19,6 +19,7 @@ EPSILON = sys.float_info.epsilon
 QDOM = 1
 PDOM = 2
 
+
 class Operator(ABC):
 
     def __init__(self):
@@ -749,49 +750,6 @@ class EpsilonDominance(Dominance):
         else:
             self.epsilons = [epsilons]
 
-    # def same_box(self, p, q):
-    #     # first check constraint violation
-    #     if p.feasible != q.feasible:
-    #         if p.feasible == 0:
-    #             return False
-    #         elif q.feasible == 0:
-    #             return False
-    #         elif p.feasible < q.feasible:
-    #             return False
-    #         elif q.feasible < p.feasible:
-    #             return False
-    #
-    #     # then use epsilon dominance on the objectives
-    #     dominate1 = False
-    #     dominate2 = False
-    #
-    #     for i in range(len(p.costs)):
-    #         o1 = p.costs[i]
-    #         o2 = q.costs[i]
-    #
-    #         # in artap we cannot change the direction of the optimization in this way
-    #         # if problem.directions[i] == Problem.MAXIMIZE:
-    #         #    o1 = -o1
-    #         #    o2 = -o2
-    #
-    #         epsilon = float(self.epsilons[i % len(self.epsilons)])
-    #         i1 = math.floor(o1 / epsilon)
-    #         i2 = math.floor(o2 / epsilon)
-    #
-    #         if i1 < i2:
-    #             dominate1 = True
-    #             if dominate2:
-    #                 return False
-    #         elif i1 > i2:
-    #             dominate2 = True
-    #             if dominate1:
-    #                 return False
-    #
-    #     if not dominate1 and not dominate2:
-    #         return True
-    #     else:
-    #         return False
-
     # def compare(self, p: list, q: list):
     #     """
     #     Here, p and q are tuples, which contains the (feasibility index, cost vector)
@@ -837,18 +795,18 @@ class EpsilonDominance(Dominance):
         dominate_p = False
         dominate_q = False
 
-        for i, (p_costs, q_costs) in enumerate(p[:-1], q[:-1]):
+        for i, (p_costs, q_costs) in enumerate(zip(p[:-1], q[:-1])):
 
             epsilon = float(self.epsilons[i % len(self.epsilons)])
 
-            pepsi = math.floor(p_costs / epsilon)
-            qepsi = math.floor(q_costs / epsilon)
+            p_eps = math.floor(p_costs / epsilon)
+            q_eps = math.floor(q_costs / epsilon)
 
-            if pepsi > qepsi:
+            if p_eps > q_eps:
                 dominate_q = True
                 if dominate_p:
                     return 0
-            elif qepsi > pepsi:
+            elif q_eps > p_eps:
                 dominate_p = True
                 if dominate_q:
                     return 0
@@ -858,15 +816,12 @@ class EpsilonDominance(Dominance):
             dist2 = 0.0
 
             for i in range(len(p.costs)):
-                o1 = p.costs[i]
-                o2 = q.costs[i]
-
                 epsilon = float(self.epsilons[i % len(self.epsilons)])
-                i1 = math.floor(o1 / epsilon)
-                i2 = math.floor(o2 / epsilon)
+                i1 = math.floor(p.costs[i] / epsilon)
+                i2 = math.floor(q.costs[i] / epsilon)
 
-                dist1 += math.pow(o1 - i1 * epsilon, 2.0)
-                dist2 += math.pow(o2 - i2 * epsilon, 2.0)
+                dist1 += math.pow(p.costs[i] - i1 * epsilon, 2.0)
+                dist2 += math.pow(q.costs[i] - i2 * epsilon, 2.0)
 
             if dist1 < dist2:
                 return 1
