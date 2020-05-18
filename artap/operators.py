@@ -750,34 +750,17 @@ class EpsilonDominance(Dominance):
         else:
             self.epsilons = [epsilons]
 
-    # def compare(self, p: list, q: list):
-    #     """
-    #     Here, p and q are tuples, which contains the (feasibility index, cost vector)
-    #     """
-    #
-    #
-    #
-    #     dominate_p = False
-    #     dominate_q = False
-    #
-    #     for (p_costs, q_costs) in zip(p[:-1], q[:-1]):
-    #         if p_costs > q_costs:
-    #             dominate_q = True
-    #             if dominate_p:
-    #                 return 0
-    #         elif q_costs > p_costs:
-    #             dominate_p = True
-    #             if dominate_q:
-    #                 return 0
-    #
-    #     if dominate_q == dominate_p:
-    #         return 0
-    #     elif dominate_p:
-    #         return 1
-    #     else:
-    #         return 2
-
     def compare(self, p: list, q: list):
+        """
+        Eps Dominance comparator, the implementation based on Platypus.
+        This operator works similarly like the normal, Dominance operator. However, it divides the current value with
+        the epsilons and selects which dominates the other. If they are equal it selects those one, which is closer to
+        the boundary.
+
+        :param p: solution p
+        :param q: solution q
+        :return:
+        """
 
         # first check constraint violation, the last item is the feasibility, which is a real number if its zero,
         # it means that the solution is feasible
@@ -831,6 +814,13 @@ class EpsilonDominance(Dominance):
             return 1
         else:
             return 2
+
+    def same_box(self, p, q):
+        # if not dominate1 and not dominate2:
+        if self.compare(p, q) == 0:
+            return True
+        else:
+            return False
 
 
 class ParetoDominance(Dominance):

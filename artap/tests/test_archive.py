@@ -1,6 +1,12 @@
-from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator
-from artap.individual import Individual
-from artap.benchmark_pareto import BiObjectiveTestProblem
-from math import inf
+from archive import Archive
+
 import unittest
+
+
+class TestArchive(unittest.TestCase):
+
+    def setUp(self):
+        self.archive = Archive()
+
+    def test_should_constructor_create_a_non_null_object(self):
+        self.assertIsNotNone(self.archive)
