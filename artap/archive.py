@@ -3,11 +3,13 @@ from operators import ParetoDominance, EpsilonDominance
 
 
 class Archive(object):
-    """ Base archiving class based on platypus. An archive only containing non-dominated solutions."""
+    """ Base archiving class based on platypus. An archive only containing non-dominated solutions.
+        This base class realize the non-dominated sorting archive.
+    """
 
-    def __init__(self, signs, dominance=ParetoDominance):
+    def __init__(self, dominance=ParetoDominance):
         super(Archive, self).__init__()
-        self._dominance = dominance(signs=signs)  # dominance comparator
+        self._dominance = dominance  # dominance comparator
         self._contents = []
 
     def add(self, solution):

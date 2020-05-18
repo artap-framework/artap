@@ -163,6 +163,19 @@ class NSGAII(GeneticAlgorithm):
 
 
 class EpsMOEA(GeneticAlgorithm):
+    """
+    EpsMOEA is proposed by Deb et al[1] which is a efficient algorithm with less computer time because it does not
+    contain a sort process for non-dominate set. The searching space are divided into several hyper-boxes under
+    box dominance concept, when two solutions in same box, only one solutio can survive in the hyperbox, EpsMOEA choose
+    the solution nearer to the hyperbox corner.
+
+    .. Ref::
+
+    [1] K. Deb, M. Mohan, S. Mishra, Evaluating the epsilon-domination based multiobjective evolutionary algorithm for
+        a quick computation of Pareto-optimal solutions, Evolutionary Computation 13(4) (2005) 501 - 525.
+    [2] Siwei Jiang, Zhihua Cai: Enhance the Convergence and Diversity for eps-MOPSO by Uniform Design and
+                                 Minimum Reduce Hypervolume
+    """
 
     def __init__(self, problem: Problem, name="EpsMOEA Algorithm"):
         super().__init__(problem, name)
