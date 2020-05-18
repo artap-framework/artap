@@ -21,3 +21,19 @@ class TestArchive(unittest.TestCase):
         self.archive.add(x)
         self.assertEqual(1, self.archive.size())
         self.assertEqual(x, self.archive._contents[0])
+
+    def test_should_adding_two_solutions_work_properly_if_one_is_dominated(self):
+
+        dominated_solution = Individual([1, 2])
+        dominated_solution.costs = [2.0, 2.0, 0]
+        dominated_solution.costs_signed = [2.0, 2.0, 0]
+
+        dominant_solution = Individual([1, 1])
+        dominant_solution.costs = [1.0, 1.0, 0]
+        dominant_solution.costs_signed = [1.0, 1.0, 0]
+
+        self.archive.add(dominated_solution)
+        self.archive.add(dominant_solution)
+
+        self.assertEqual(1, self.archive.size())
+        self.assertEqual(dominant_solution, self.archive._contents[0])
