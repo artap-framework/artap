@@ -12,15 +12,20 @@ class Archive(object):
         self._dominance = dominance  # dominance comparator
         self._contents = []
 
-    def add(self, solution):
-        flags = [self._dominance.compare(solution, s) for s in self._contents]
+    def add(self, individual):
+        """
+        
+        :param individual: 
+        :return: 
+        """
+        flags = [self._dominance.compare(individual, s) for s in self._contents]
         dominates = [x > 0 for x in flags]
         nondominated = [x == 0 for x in flags]
 
         if any(dominates):
             return False
         else:
-            self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
+            self._contents = list(itertools.compress(self._contents, nondominated)) + [individual]
             return True
 
     def append(self, solution):
@@ -36,6 +41,9 @@ class Archive(object):
             return True
         except ValueError:
             return False
+
+    def size(self) -> int:
+        return len(self._contents)
 
     def __len__(self):
         return len(self._contents)
