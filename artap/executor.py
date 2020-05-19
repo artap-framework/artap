@@ -406,6 +406,8 @@ class CondorPythonJobExecutor(CondorJobExecutor):
 
             """ + python_path + """  $@""")
 
+        self.requirements = "(OpSys == \"LINUX\" && Arch == \"X86_64\")"
+
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
 
@@ -460,9 +462,11 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
 
             """ + matlab_path + """ -nodisplay -nosplash -nodesktop -r ${s%.m}""")
 
+        self.requirements = "(OpSys == \"LINUX\" && Arch == \"X86_64\")"
+
     def _create_job_file(self, remote_dir, individual, client):
-        condor_output_files = self.output_files
         condor_input_files = [self.parameter_file, self.input_files[0]]
+        condor_output_files = self.output_files
 
         # create input file with parameters
         if self.parameter_file:
@@ -507,8 +511,10 @@ class CondorComsolJobExecutor(CondorJobExecutor):
 
         self.request_cpus = 3
         self.request_memory = 30
+        self.requirements = "(OpSys == \"LINUX\" && Arch == \"X86_64\")"
 
     def _create_job_file(self, remote_dir, individual, client):
+        condor_input_files = [self.model_file]
         condor_output_files = self.output_files
 
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
@@ -530,7 +536,55 @@ class CondorComsolJobExecutor(CondorJobExecutor):
         client.root.submit_job(remote_dir=remote_dir,
                                executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
                                arguments=arguments,
-                               input_files=[self.model_file],
+                               input_files=condor_input_files,
+                               output_files=condor_output_files,
+                               requirements=self.requirements,
+                               request_cpus=self.request_cpus,
+                               request_memory=self.request_memory,
+                               hold_on_start=self.hold_on_start,
+                               desc=desc)
+
+
+class CondorCSTJobExecutor(CondorJobExecutor):
+    def __init__(self, problem, model_file, files_from_condor=None, cst_path="\"C:\Program Files (x86)\CST Studio Suite 2020\CST DESIGN ENVIRONMENT.exe\""):
+        self.model_file = ntpath.basename(model_file)
+        super().__init__(problem, [self.model_file], files_from_condor)
+        copyfile(model_file, self.problem.working_dir + self.model_file)
+
+        self.executable = textwrap.dedent("""\
+            """ + cst_path + """ --m --hide -par parameters.txt -project-file {}""".format(self.model_file))
+
+        self.request_cpus = 2
+        self.request_memory = 10
+        self.requirements = "(OpSys == \"WINDOWS\" && Arch == \"X86_64\")"
+
+    def _create_job_file(self, remote_dir, individual, client):
+        condor_input_files = [self.model_file]
+        condor_output_files = self.output_files
+
+        parameters = ""
+        for parameter, value in zip(self.problem.parameters, individual.vector):
+            parameters += "{}={}\n".format(parameter['name'], value)
+
+        parameter_file = "parameters.txt"
+        condor_input_files.append(parameter_file)
+        self._create_file_on_remote(parameter_file, parameters, remote_dir=remote_dir,
+                                    client=client)
+
+        # create executable
+        self._create_file_on_remote("run.bat", self.executable, remote_dir=remote_dir, client=client)
+
+        # desc
+        desc = {}
+        desc["type"] = "cst"
+        desc["extension"] = ".cst"
+        desc["editor"] = False
+        desc["name"] = "CST"
+
+        client.root.submit_job(remote_dir=remote_dir,
+                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.bat",
+                               arguments="",
+                               input_files=condor_input_files,
                                output_files=condor_output_files,
                                requirements=self.requirements,
                                request_cpus=self.request_cpus,
