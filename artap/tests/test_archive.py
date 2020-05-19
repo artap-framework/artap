@@ -1,4 +1,4 @@
-from archive import Archive
+from artap.archive import Archive
 from artap.individual import Individual
 
 import unittest
