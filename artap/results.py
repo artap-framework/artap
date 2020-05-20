@@ -163,8 +163,8 @@ class Results:
         # if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
         # else:
-        if len(self.problem.populations[-1].archives) > 0:
-            min_l = [min(self.problem.populations[-1].archives, key=lambda x: x.costs[index])]
+        if self.problem.archive:
+            min_l = [min(self.problem.archive, key=lambda x: x.costs[index])]
         else:
             if len(self.problem.populations[-1].individuals) != 0:
                 min_l = [min(self.problem.populations[-1].individuals, key=lambda x: x.costs[index])]
