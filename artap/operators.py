@@ -798,13 +798,14 @@ class EpsilonDominance(Dominance):
             dist1 = 0.0
             dist2 = 0.0
 
-            for i in range(len(p.costs)):
+            for i, (p_costs, q_costs) in enumerate(zip(p[:-1], q[:-1])):
                 epsilon = float(self.epsilons[i % len(self.epsilons)])
-                i1 = math.floor(p.costs[i] / epsilon)
-                i2 = math.floor(q.costs[i] / epsilon)
 
-                dist1 += math.pow(p.costs[i] - i1 * epsilon, 2.0)
-                dist2 += math.pow(q.costs[i] - i2 * epsilon, 2.0)
+                i1 = math.floor(p_costs / epsilon)
+                i2 = math.floor(q_costs / epsilon)
+
+                dist1 += math.pow(p_costs - i1 * epsilon, 2.0)
+                dist2 += math.pow(q_costs - i2 * epsilon, 2.0)
 
             if dist1 < dist2:
                 return 1
@@ -902,7 +903,7 @@ class Selector(Operator):
         dominated = False
 
         for i in range(len(population)):
-            flag = self.dominance.compare(individual, self.population[i])
+            flag = self.dominance.compare(individual.costs_signed, population[i].costs_signed)
 
             if flag == 1:
                 dominates.append(i)
@@ -914,7 +915,7 @@ class Selector(Operator):
             population.append(individual)
 
         elif not dominated:
-            population.remove(random.choice(self.population))
+            population.remove(random.choice(population))
             population.append(individual)
 
         return

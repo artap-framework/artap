@@ -220,7 +220,6 @@ class EpsMOEA(GeneticAlgorithm):
         self.problem.logger.info(
             "Eps-MOEA: {}/{}".format(self.options['max_population_number'], self.population_size))
 
-        # optimization
         for it in range(self.options['max_population_number']):
             # generate and evaluate the next generation
             offspring = self.generate(population.individuals, archive=self.problem.archive)
@@ -230,7 +229,7 @@ class EpsMOEA(GeneticAlgorithm):
 
             # pop-acceptance procedure, the dominating offsprings will be preserved in the population and  in the
             # archive
-            population = Population(population)  # make a new population from the previous population
+            population = Population(population.individuals)  # make a new population from the previous population
             self.problem.populations.append(population)
             for individual in offspring:
                 self.selector.pop_acceptance(population.individuals, individual)    # pareto dominated solutions
