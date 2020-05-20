@@ -200,16 +200,16 @@ class RemoteExecutor(Executor):
     @staticmethod
     def _transfer_file_to_remote(source_file, destination_file, remote_dir, client):
         source = source_file
-        dest = remote_dir + os.sep + destination_file
+        dest = "{}/{}".format(remote_dir, destination_file)
 
-        upload_file(client, localpath=source, remotepath=client.root.artap_dir + os.sep + dest)
+        upload_file(client, localpath=source, remotepath="{}/{}".format(client.root.artap_dir, dest))
 
     @staticmethod
     def _transfer_file_from_remote(source_file, destination_file, remote_dir, client):
         dest = destination_file
-        source = remote_dir + os.sep + source_file
+        source = "{}/{}".format(remote_dir, source_file)
 
-        download_file(client, remotepath=client.root.artap_dir + os.sep + source, localpath=dest)
+        download_file(client, remotepath="{}/{}".format(client.root.artap_dir, source), localpath=dest)
 
     @staticmethod
     def _create_dir_on_remote(directory, client):
@@ -220,7 +220,7 @@ class RemoteExecutor(Executor):
         client.exec_command("mkdir " + directory)
 
         # working directory
-        wd = directory + os.sep + "artap-" + ts
+        wd = "{}/artap-{}".format(directory, ts)
         client.exec_command("mkdir " + wd)
 
         return wd
@@ -229,7 +229,7 @@ class RemoteExecutor(Executor):
         # transfer input files
         if self.input_files:
             for file in self.input_files:
-                self._transfer_file_to_remote(self.problem.working_dir + os.sep + file, "." + os.sep + file,
+                self._transfer_file_to_remote("{}/{}".format(self.problem.working_dir, file), "./{}".format(file),
                                               remote_dir=remote_dir, client=client)
 
     def _transfer_files_from_remote(self, client):
@@ -364,9 +364,9 @@ class CondorJobExecutor(RemoteExecutor):
                         os.mkdir(path)
 
                         for file in self.output_files:
-                            self._transfer_file_from_remote(source_file=file, destination_file=path + os.sep + file,
+                            self._transfer_file_from_remote(source_file=file, destination_file="{}/{}".format(path, file),
                                                             remote_dir=remote_dir, client=client)
-                            output_files.append(path + os.sep + file)
+                            output_files.append("{}/{}".format(path, file))
                         success = True
                         result = self.parse_results(output_files, individual)
 
@@ -437,7 +437,7 @@ class CondorPythonJobExecutor(CondorJobExecutor):
         desc["name"] = "Python"
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
+                               executable="{}/{}/run.sh".format(client.root.artap_dir, remote_dir),
                                arguments=arguments,
                                input_files=condor_input_files,
                                output_files=condor_output_files,
@@ -486,7 +486,7 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
         desc["name"] = "Matlab"
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
+                               executable="{}/{}/run.sh".format(client.root.artap_dir, remote_dir),
                                arguments=self.script,
                                input_files=condor_input_files,
                                output_files=condor_output_files,
@@ -534,7 +534,7 @@ class CondorComsolJobExecutor(CondorJobExecutor):
         desc["name"] = "Comsol Multiphysics"
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
+                               executable="{}/{}/run.sh".format(client.root.artap_dir, remote_dir),
                                arguments=arguments,
                                input_files=condor_input_files,
                                output_files=condor_output_files,
@@ -582,7 +582,7 @@ class CondorCSTJobExecutor(CondorJobExecutor):
         desc["name"] = "CST"
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.bat",
+                               executable="{}/{}/run.bat".format(client.root.artap_dir, remote_dir),
                                arguments="",
                                input_files=condor_input_files,
                                output_files=condor_output_files,
