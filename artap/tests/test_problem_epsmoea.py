@@ -2,7 +2,9 @@ import unittest
 
 from artap.benchmark_functions import Ackley
 from artap.algorithm_genetic import EpsMOEA
+from artap.benchmark_pareto import ZDT1
 from artap.results import Results
+from artap.quality_indicator import epsilon_add
 
 
 class TestAckleyN222(unittest.TestCase):
@@ -26,6 +28,24 @@ class TestAckleyN222(unittest.TestCase):
             print("TestAckleyN222::test_local_problem", population_number)
             self.test_local_problem(int(1.5 * population_number))
 
+
+
+class TestZDT1(unittest.TestCase):
+    # integration test -- tests the total functionality of eps-MOEA
+
+    def test_local_problem(self):
+        problem = problem = ZDT1()
+        algorithm = EpsMOEA(problem)
+        algorithm.options['max_population_number'] = 250
+        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_processes'] = 1
+        algorithm.options['epsilons'] = 0.05
+        algorithm.run()
+
+        results = Results(problem)
+        vals = results.pareto_values()
+        exact = problem.pareto_front(vals[0])
+        self.assertLessEqual(epsilon_add(exact, vals), 0.2)
 
 if __name__ == '__main__':
     unittest.main()
