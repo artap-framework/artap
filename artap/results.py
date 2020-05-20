@@ -248,14 +248,15 @@ class Results:
         population = self.problem.populations[-1]
         l_sol = []
 
-        if len(self.problem.populations[-1].archives) < 1:
+        # the pareto values collected in the archive, if the algorithm uses this strategy
+        if self.problem.archive:
+            for individual in self.problem.archive:
+                l_sol.append(individual.costs)
+        else:
             if len(population.individuals) > 1:
                 for individual in population.individuals:
                     l_sol.append(individual.costs)
-        else:
-            if len(population.archives) > 1:
-                for individual in population.archives:
-                    l_sol.append(individual.costs)
+
         return l_sol
 
     def parameters(self):
