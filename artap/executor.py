@@ -189,7 +189,7 @@ class RemoteExecutor(Executor):
 
     @staticmethod
     def _create_file_on_remote(destination_file, content, remote_dir, client):
-        fp = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+        fp = tempfile.NamedTemporaryFile(mode='w+t', delete=False, newline="\n")
         fp.write(content)
         fp.close()
 
@@ -200,16 +200,16 @@ class RemoteExecutor(Executor):
     @staticmethod
     def _transfer_file_to_remote(source_file, destination_file, remote_dir, client):
         source = source_file
-        dest = remote_dir + os.sep + destination_file
+        dest = "{}/{}".format(remote_dir, destination_file)
 
-        upload_file(client, localpath=source, remotepath=client.root.artap_dir + os.sep + dest)
+        upload_file(client, localpath=source, remotepath="{}/{}".format(client.root.artap_dir, dest))
 
     @staticmethod
     def _transfer_file_from_remote(source_file, destination_file, remote_dir, client):
         dest = destination_file
-        source = remote_dir + os.sep + source_file
+        source = "{}/{}".format(remote_dir, source_file)
 
-        download_file(client, remotepath=client.root.artap_dir + os.sep + source, localpath=dest)
+        download_file(client, remotepath="{}/{}".format(client.root.artap_dir, source), localpath=dest)
 
     @staticmethod
     def _create_dir_on_remote(directory, client):
@@ -220,7 +220,7 @@ class RemoteExecutor(Executor):
         client.exec_command("mkdir " + directory)
 
         # working directory
-        wd = directory + os.sep + "artap-" + ts
+        wd = "{}/artap-{}".format(directory, ts)
         client.exec_command("mkdir " + wd)
 
         return wd
@@ -229,7 +229,7 @@ class RemoteExecutor(Executor):
         # transfer input files
         if self.input_files:
             for file in self.input_files:
-                self._transfer_file_to_remote(self.problem.working_dir + os.sep + file, "." + os.sep + file,
+                self._transfer_file_to_remote("{}/{}".format(self.problem.working_dir, file), "./{}".format(file),
                                               remote_dir=remote_dir, client=client)
 
     def _transfer_files_from_remote(self, client):
@@ -364,9 +364,9 @@ class CondorJobExecutor(RemoteExecutor):
                         os.mkdir(path)
 
                         for file in self.output_files:
-                            self._transfer_file_from_remote(source_file=file, destination_file=path + os.sep + file,
+                            self._transfer_file_from_remote(source_file=file, destination_file="{}/{}".format(path, file),
                                                             remote_dir=remote_dir, client=client)
-                            output_files.append(path + os.sep + file)
+                            output_files.append("{}/{}".format(path, file))
                         success = True
                         result = self.parse_results(output_files, individual)
 
@@ -406,6 +406,8 @@ class CondorPythonJobExecutor(CondorJobExecutor):
 
             """ + python_path + """  $@""")
 
+        self.requirements = "(OpSys == \"LINUX\" && Arch == \"X86_64\")"
+
     def _create_job_file(self, remote_dir, individual, client):
         condor_output_files = self.output_files
 
@@ -435,7 +437,7 @@ class CondorPythonJobExecutor(CondorJobExecutor):
         desc["name"] = "Python"
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
+                               executable="{}/{}/run.sh".format(client.root.artap_dir, remote_dir),
                                arguments=arguments,
                                input_files=condor_input_files,
                                output_files=condor_output_files,
@@ -460,9 +462,11 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
 
             """ + matlab_path + """ -nodisplay -nosplash -nodesktop -r ${s%.m}""")
 
+        self.requirements = "(OpSys == \"LINUX\" && Arch == \"X86_64\")"
+
     def _create_job_file(self, remote_dir, individual, client):
-        condor_output_files = self.output_files
         condor_input_files = [self.parameter_file, self.input_files[0]]
+        condor_output_files = self.output_files
 
         # create input file with parameters
         if self.parameter_file:
@@ -482,7 +486,7 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
         desc["name"] = "Matlab"
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
+                               executable="{}/{}/run.sh".format(client.root.artap_dir, remote_dir),
                                arguments=self.script,
                                input_files=condor_input_files,
                                output_files=condor_output_files,
@@ -507,8 +511,10 @@ class CondorComsolJobExecutor(CondorJobExecutor):
 
         self.request_cpus = 3
         self.request_memory = 30
+        self.requirements = "(OpSys == \"LINUX\" && Arch == \"X86_64\")"
 
     def _create_job_file(self, remote_dir, individual, client):
+        condor_input_files = [self.model_file]
         condor_output_files = self.output_files
 
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
@@ -528,9 +534,57 @@ class CondorComsolJobExecutor(CondorJobExecutor):
         desc["name"] = "Comsol Multiphysics"
 
         client.root.submit_job(remote_dir=remote_dir,
-                               executable=client.root.artap_dir + os.sep + remote_dir + os.sep + "run.sh",
+                               executable="{}/{}/run.sh".format(client.root.artap_dir, remote_dir),
                                arguments=arguments,
-                               input_files=[self.model_file],
+                               input_files=condor_input_files,
+                               output_files=condor_output_files,
+                               requirements=self.requirements,
+                               request_cpus=self.request_cpus,
+                               request_memory=self.request_memory,
+                               hold_on_start=self.hold_on_start,
+                               desc=desc)
+
+
+class CondorCSTJobExecutor(CondorJobExecutor):
+    def __init__(self, problem, model_file, files_from_condor=None, cst_path="\"C:\Program Files (x86)\CST Studio Suite 2020\CST DESIGN ENVIRONMENT.exe\""):
+        self.model_file = ntpath.basename(model_file)
+        super().__init__(problem, [self.model_file], files_from_condor)
+        copyfile(model_file, self.problem.working_dir + self.model_file)
+
+        self.executable = textwrap.dedent("""\
+            """ + cst_path + """ --m --hide -par parameters.txt -project-file {}""".format(self.model_file))
+
+        self.request_cpus = 2
+        self.request_memory = 10
+        self.requirements = "(OpSys == \"WINDOWS\" && Arch == \"X86_64\")"
+
+    def _create_job_file(self, remote_dir, individual, client):
+        condor_input_files = [self.model_file]
+        condor_output_files = self.output_files
+
+        parameters = ""
+        for parameter, value in zip(self.problem.parameters, individual.vector):
+            parameters += "{}={}\n".format(parameter['name'], value)
+
+        parameter_file = "parameters.txt"
+        condor_input_files.append(parameter_file)
+        self._create_file_on_remote(parameter_file, parameters, remote_dir=remote_dir,
+                                    client=client)
+
+        # create executable
+        self._create_file_on_remote("run.bat", self.executable, remote_dir=remote_dir, client=client)
+
+        # desc
+        desc = {}
+        desc["type"] = "cst"
+        desc["extension"] = ".cst"
+        desc["editor"] = False
+        desc["name"] = "CST"
+
+        client.root.submit_job(remote_dir=remote_dir,
+                               executable="{}/{}/run.bat".format(client.root.artap_dir, remote_dir),
+                               arguments="",
+                               input_files=condor_input_files,
                                output_files=condor_output_files,
                                requirements=self.requirements,
                                request_cpus=self.request_cpus,
