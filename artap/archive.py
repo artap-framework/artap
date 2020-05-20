@@ -1,5 +1,6 @@
 import itertools
 from operators import ParetoDominance, EpsilonDominance
+from random import choice
 
 
 class Archive(object):
@@ -14,7 +15,11 @@ class Archive(object):
 
     def add(self, individual):
         """
-        :param individual: 
+        Archive acceptance procedure is implemented here, this procedure accepts the individual if it is dominates some
+        individual and at least non-dominatey by any other member of the list, however it not preserves the length of
+        the _contents list.
+
+        :param individual: the examined Individual object from the offsprings.
         :return: 
         """
 
@@ -47,22 +52,19 @@ class Archive(object):
 
         return False
 
-        # flags = [self._dominance.compare(individual.costs_signed, s.costs_signed) for s in self._contents]
-        # dominates = [x == 2 for x in flags]
-        # nondominated = [x == 0 for x in flags]
-        #
-        # if any(dominates):
-        #     return False
-        # else:
-        #     self._contents = list(itertools.compress(self._contents, nondominated)) + [individual]
-        #     return True
+    def rand_choice(self):
+        """
+        Gives back a random element for the selector operator, here we don't need to
+        compare the different levels.
+        """
+        return choice(self._contents)
 
     def append(self, individual):
         self.add(individual)
 
-    def extend(self, solutions):
-        for solution in solutions:
-            self.append(solution)
+    def extend(self, population):
+        for individual in population:
+            self.append(individual)
 
     def remove(self, solution):
         try:
@@ -92,24 +94,23 @@ class Archive(object):
     def __iter__(self):
         return iter(self._contents)
 
-
-class EpsilonBoxArchive(Archive):
-
-    def __init__(self, epsilons):
-        super(EpsilonBoxArchive, self).__init__(EpsilonDominance(epsilons))
-        self.improvements = 0
-
-    def add(self, solution):
-        flags = [self._dominance.compare(solution, s) for s in self._contents]
-        dominates = [x == 1 for x in flags]
-        nondominated = [x == 0 for x in flags]
-        dominated = [x == 2 for x in flags]
-        not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
-
-        if any(dominates):
-            return False
-        else:
-            self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
-
-            if dominated and not_same_box:
-                self.improvements += 1
+# class EpsilonBoxArchive(Archive):
+#
+#     def __init__(self, epsilons):
+#         super(EpsilonBoxArchive, self).__init__(EpsilonDominance(epsilons))
+#         self.improvements = 0
+#
+#     def add(self, solution):
+#         flags = [self._dominance.compare(solution, s) for s in self._contents]
+#         dominates = [x == 1 for x in flags]
+#         nondominated = [x == 0 for x in flags]
+#         dominated = [x == 2 for x in flags]
+#         not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
+#
+#         if any(dominates):
+#             return False
+#         else:
+#             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
+#
+#             if dominated and not_same_box:
+#                 self.improvements += 1

@@ -6,6 +6,7 @@ from .operators import RandomGenerator, SimulatedBinaryCrossover, \
     PmMutator, TournamentSelector, EpsilonDominance, nondominated_truncate, crowding_distance
 from .population import Population
 from .problem import Problem
+from archive import Archive
 
 
 class GeneralEvolutionaryAlgorithm(Algorithm):
@@ -41,14 +42,9 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         for individual in individuals:
             individual.features = self.features.copy()
 
-    def gen_initial_population(self, is_archive=False):
+    def gen_initial_population(self):
         individuals = self.generator.generate()
-
-        # create population
-        if is_archive:
-            population = Population(individuals, individuals)
-        else:
-            population = Population(individuals)
+        population = Population(individuals)
 
         # append to population
         self.problem.populations.append(population)
@@ -75,7 +71,10 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
             repeat = True
             while repeat:
                 if archive:
-                    parent2 = self.selector.select(archive)
+                    if len(archive) <= 1:
+                        parent2 = self.selector.select(parents)
+                    else:
+                        parent2 = archive.rand_choice()
                 else:
                     parent2 = self.selector.select(parents)
 
@@ -166,7 +165,7 @@ class EpsMOEA(GeneticAlgorithm):
     """
     EpsMOEA is proposed by Deb et al[1] which is a efficient algorithm with less computer time because it does not
     contain a sort process for non-dominate set. The searching space are divided into several hyper-boxes under
-    box dominance concept, when two solutions in same box, only one solutio can survive in the hyperbox, EpsMOEA choose
+    box dominance concept, when two solutions in same box, only one solution can survive in the hyperbox, EpsMOEA choose
     the solution nearer to the hyperbox corner.
 
     .. Ref::
@@ -194,33 +193,28 @@ class EpsMOEA(GeneticAlgorithm):
 
     def run(self):
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters)  # the same as in the case of NSGA-II
+        self.generator = RandomGenerator(self.problem.parameters)
         self.generator.init(self.options['max_population_size'])
 
         # set crossover
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
 
-        # Part A: non-dominated sort of individuals
-        # -----
-        selector_pareto = TournamentSelector(self.problem.parameters)
+        # one individual is selected from the archive and one from the population to create a new individual
         self.selector = TournamentSelector(self.problem.parameters)
-        # the same as in the case of NSGA - ii
-        # this operator is used to generate the new individuals
 
         # create initial population and evaluate individuals
-        population = self.gen_initial_population(True)  # archiving True
+        population = self.gen_initial_population()
+
+        # an archive to collect the eps-dominated solutions
+        self.problem.archive = Archive(dominance=EpsilonDominance(epsilons=self.options['epsilons']))
+
         self.evaluate(population.individuals)
         self.add_features(population.individuals)
-        selector_pareto.fast_nondominated_sorting(population.individuals)
-        # selector_pareto.crowding_distance(population.individuals)
 
-        # Part B: eps-dominated sort of the individuals with archiving
-        # -----
-        selector_epsdom = TournamentSelector(self.problem.parameters,
-                                             dominance=EpsilonDominance, epsilons=self.options['epsilons'])
-        selector_epsdom.fast_nondominated_sorting(population.archives)
-        # selector_epsdom.crowding_distance(population.archives)
+        # archiving the eps-dominating solutions
+        for individual in population.individuals:
+            self.problem.archive.add(individual)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -229,34 +223,18 @@ class EpsMOEA(GeneticAlgorithm):
         # optimization
         for it in range(self.options['max_population_number']):
             # generate and evaluate the next generation
-            children = self.generate(population.individuals, population.archives)
+            offspring = self.generate(population.individuals, archive=self.problem.archive)
 
-            population = Population(children)
+            self.evaluate(offspring)
+            self.add_features(offspring)
+
+            # pop-acceptance procedure, the dominating offsprings will be preserved in the population and  in the
+            # archive
+            population = Population(population)  # make a new population from the previous population
             self.problem.populations.append(population)
-            self.evaluate(children)
-            self.add_features(children)
-
-            arch_child = deepcopy(children)
-            # PART A
-            # non-dominated sorting of the newly generated and the older guys like in NSGA-ii
-            # add the parents to the offsprings
-            # children.extend(deepcopy(population.individuals))
-
-            # non-dominated truncate on the guys
-            self.selector.fast_nondominated_sorting(children)
-            # selector_pareto.crowding_distance(children)
-
-            parents = sorted(set(children),
-                             key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
-            child = parents[:self.population_size]  # truncate
-
-            # eps dominated truncate on the guys
-            selector_epsdom.fast_nondominated_sorting(arch_child)
-            # selector_epsdom.crowding_distance(arch_child)
-
-            arch_parents = sorted(set(arch_child),
-                                  key=lambda x: (x.features['front_number'], -x.features['crowding_distance']))
-            population.archives = arch_parents[:self.population_size]  # truncate
+            for individual in offspring:
+                self.selector.pop_acceptance(population.individuals, individual)    # pareto dominated solutions
+                self.problem.archive.add(individual)                                # archived solutions
 
         t = time.time() - t_s
         self.problem.logger.info("Eps-MOEA: {} s".format(t))
