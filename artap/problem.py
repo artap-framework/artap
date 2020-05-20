@@ -93,6 +93,7 @@ class Problem:
 
         # populations
         self.populations = []
+        self.archive = None
 
         self.data_store = None
         self.monitor_service = MonitorService(self)
