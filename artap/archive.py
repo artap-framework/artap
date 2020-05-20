@@ -1,5 +1,5 @@
 import itertools
-from .operators import ParetoDominance, EpsilonDominance
+from artap.operators import ParetoDominance, EpsilonDominance
 from random import choice
 
 
