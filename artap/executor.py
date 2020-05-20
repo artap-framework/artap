@@ -189,7 +189,7 @@ class RemoteExecutor(Executor):
 
     @staticmethod
     def _create_file_on_remote(destination_file, content, remote_dir, client):
-        fp = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+        fp = tempfile.NamedTemporaryFile(mode='w+t', delete=False, newline="\n")
         fp.write(content)
         fp.close()
 
