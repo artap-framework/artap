@@ -72,7 +72,7 @@ class MonitorService:
                 break
             except OSError as e:
                 # print("Error: {}, port = {}".format(e.strerror, port))
-                if e.strerror == "Address already in use":
+                if e.errno == 98: # "Address already in use"
                     port = port + 1
                     continue
 
