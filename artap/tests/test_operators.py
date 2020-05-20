@@ -454,6 +454,20 @@ class EpsDominanceComparator(unittest.TestCase):
         result = dominance.compare(x.costs_signed, y.costs_signed)
         self.assertEqual(2, result)
 
+    def test_should_dominance_comparator_work_properly_select_closer_to_boundary(self):
+        """ Case 3: solution1 closer to the rounded value than solution 2
+        """
+        dominance = EpsilonDominance(epsilons=0.1)
+        x = Individual([2, 2])
+        x.costs = [-1.0, 6.0, 9.05]
+        x.costs_signed = [-1.0, 6.0, 9.05, 0.0]
+
+        y = Individual([2, 2])  # last index means that the solution is computed correctly
+        y.costs = [-1.0, 6.0, 9.06]
+        y.costs_signed = [-1.0, 6.0, 9.06, 0.0]
+
+        result = dominance.compare(x.costs_signed, y.costs_signed)
+        self.assertEqual(1, result)
 
 class TestTournamentSelector(unittest.TestCase):
 
