@@ -8,9 +8,9 @@ class Archive(object):
         This base class realize the non-dominated sorting archive.
     """
 
-    def __init__(self, dominance=ParetoDominance):
+    def __init__(self, dominance=ParetoDominance()):
         super(Archive, self).__init__()
-        self._dominance = dominance()  # dominance comparator
+        self._dominance = dominance  # dominance comparator
         self._contents = []
 
     def add(self, individual):
