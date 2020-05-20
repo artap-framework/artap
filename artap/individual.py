@@ -92,8 +92,6 @@ class Individual(metaclass=ABCMeta):
             diff = set(self.costs_signed) - set(other.costs_signed)
             return  diff == set()
 
-        #    return self.vector == other.vector and self.costs == self.costs and self.custom == self.custom and self.state == self.state
-
     def __hash__(self):
         #return id(self)
         return hash(tuple(self.vector))

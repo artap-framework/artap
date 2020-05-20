@@ -892,6 +892,33 @@ class Selector(Operator):
     def select(self, population):
         pass
 
+    def pop_acceptance(self, population, individual):
+        """
+        This function differs from add() function that it preserves the length of the _content in the archive class.
+        :return:
+        """
+
+        dominates = []
+        dominated = False
+
+        for i in range(len(population)):
+            flag = self.dominance.compare(individual, self.population[i])
+
+            if flag == 1:
+                dominates.append(i)
+            elif flag == 2:
+                dominated = True
+
+        if len(dominates) > 0:
+            del population[random.choice(dominates)]
+            population.append(individual)
+
+        elif not dominated:
+            population.remove(random.choice(self.population))
+            population.append(individual)
+
+        return
+
     def fast_nondominated_sorting(self, population):
 
         pareto_front = [[]]
@@ -1071,6 +1098,7 @@ class TournamentSelector(Selector):
                 selected = random.choice(candidates)
 
         return selected
+
 
 
 # class Archive(object):
