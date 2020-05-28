@@ -36,7 +36,7 @@ class TestZDT1(unittest.TestCase):
     def test_local_problem(self):
         problem = problem = ZDT1()
         algorithm = EpsMOEA(problem)
-        algorithm.options['max_population_number'] = 250
+        algorithm.options['max_population_number'] = 500
         algorithm.options['max_population_size'] = 100  # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.options['epsilons'] = 0.05
