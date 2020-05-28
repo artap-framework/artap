@@ -1,10 +1,12 @@
-from random import randint
+from random import randint, random
 from .problem import Problem
 from .population import Population
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
-from .operators import SwarmMutator, DummySelector, RandomGenerator, SwarmMutatorTVIW
-
+from .operators import SwarmStep, DummySelector, RandomGenerator, SwarmStepTVIW, PmMutator
+from .archive import Archive
+from copy import copy
 import time
+import math
 
 
 class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
@@ -12,41 +14,38 @@ class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
     def __init__(self, problem: Problem, name="General Swarm-based Algorithm"):
         super().__init__(problem, name)
 
-    def iterate(self, parents, archive=None):
-        """
-        Calculates the speed and the new position of the individuals.
-        :param parents:
-        :param archive:
-        :return:
-        """
-        offsprings = []
-        offsprings.extend(parents)
-        while len(offsprings) < 2 * self.population_size:
-            parent1 = self.selector.select(parents)
+    def init_pvelocity(self, population):
+        pass
 
-            repeat = True
-            while repeat:
-                if archive:
-                    parent2 = self.selector.select(archive)
-                else:
-                    parent2 = self.selector.select(parents)
+    def init_gbest(self, population):
+        pass
 
-                if parent1 is not parent2:
-                    repeat = False
+    def update_velocity(self, population):
+        pass
 
-            # crossover
-            child1, child2 = self.crossover.cross(parent1, parent2)
+    def update_gbest(self, population):
+        pass
 
-            # mutation
-            child1 = self.mutator.mutate(child1)
-            child2 = self.mutator.mutate(child2)
+    def update_position(self, population):
+        pass
 
-            if not any(child1 == item for item in offsprings):
-                offsprings.append(deepcopy(child1))  # Always create new individual
-            if not any(child1 == item for item in offsprings):
-                offsprings.append(deepcopy(child2))  # Always create new individual
+    def turbulence(self, population):
+        pass
 
-        # parents.extend(removed_parents)
+    def step(self, population):
+        self.update_velocity(population)
+        self.update_position(population)
+        self.turbulence(population)
+
+        offsprings = copy(population)
+
+        self.evaluator.evaluate(offsprings)
+
+        self.update_global_best(offsprings)
+        self.update_particle_best(offsprings)
+
+        self.problem.populations.append(offsprings)
+
         return offsprings
 
     def run(self):
@@ -74,62 +73,143 @@ class OMOPSO(SwarmAlgorithm):
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
-        self.mutator = SwarmMutator(self.problem.parameters)
+        self.mutator = SwarmStep(self.problem.parameters)
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
         self.features = {'velocity': [],
-                         'best_position': [],
+                         'pbest': None,
                          'max_speed': []}
 
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters)
+        self.leaders = Archive()
+        # constants for the speed and the position calculation
+        self.c1_min = 1.5
+        self.c1_max = 2.5
+        self.c2_min = 1.5
+        self.c2_max = 2.5
+        self.r1_min = 0.0
+        self.r1_max = 1.0
+        self.r2_min = 0.0
+        self.r2_max = 1.0
+        self.min_weight = 0.1
+        self.max_weight = 0.1
+        self.change_velocity1 = -1
+        self.change_velocity2 = -1
+
+        # in this algorithm a polynomial mutation used as a turbulence operator
+        self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
+
+    def __constriction_coefficient(self, c1: float, c2: float) -> float:
+        rho = c1 + c2
+        if rho <= 4:
+            result = 1.0
+        else:
+            result = 2.0 / (2.0 - rho - (rho**2.0 - 4.0 * rho)**0.5)
+
+        return result
+
+    def init_pvelocity(self, population):
+        for individual in population:
+            individual.features['velocity'] = [0] * len(individual.vector)
+
+    def init_gbest(self, population):
+        for individual in population:
+            individual.features['pbest'] = copy(individual)
+
+    def turbulence(self, population):
+        for individual in population:
+            self.mutator.mutate(individual)
+
+    def update_velocity(self, population):
+
+        for individual in population:
+            individual.features['velocity'] = [0] * len(individual.vector)
+            individual.features['best_vector'] = [0] * len(individual.vector)
+
+            for i in range(0, len(individual.vector)):
+                r1 = 0.1 * random()
+                r2 = 0.1 * random()
+
+                vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+                vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+                individual.features['velocity'][i] = self.w * individual.features['velocity'][i] + vel_cognitive + vel_social
+
+    def update_position(self, population):
+        for individual in population:
+            for parameter, i in zip(self.parameters, range(len(individual.vector))):
+                individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
+
+                # adjust maximum position if necessary
+                if individual.vector[i] > parameter['bounds'][1]:
+                    individual.vector[i] = parameter['bounds'][1]
+
+                # adjust minimum position if necessary
+                if individual.vector[i] < parameter['bounds'][0]:
+                    individual.vector[i] = parameter['bounds'][0]
 
     def run(self):
-
-        self.generator.init(self.options['max_population_size'])
-        population = self.gen_initial_population()
-
-        self.evaluate(population.individuals)
-        self.add_features(population.individuals)
-
-        for individual in population.individuals:
-            self.mutator.evaluate_best_individual(individual)
-
-        self.selector.fast_nondominated_sorting(population.individuals)
-
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
                                                      self.options['max_population_size']))
+        # initialize the swarm
+        population = self.gen_initial_population()
+        self.evaluate(population.individuals)
+        self.add_features(population.individuals)
+
+        self.initialize_pvelocity(population)
+        self.initialize_particle_best(population)
+        # self.initialize_global_best(population) not correct to calculate always the crowding distance
 
         i = 0
         while i < self.options['max_population_number']:
-            offsprings = self.selector.select(population.individuals)
-
-            pareto_front = []
-            for individual in offsprings:
-                if individual.features['front_number'] == 1:
-                    pareto_front.append(individual)
-
-            for individual in offsprings:
-                index = randint(0, len(pareto_front) - 1)  # takes random individual from Pareto front
-                best_individual = pareto_front[index]
-                if best_individual is not individual:
-                    self.mutator.update(best_individual)
-                    self.mutator.mutate(individual)
-
-            population = Population(offsprings)
-            self.problem.populations.append(population)
-            self.evaluator.evaluate(offsprings)
-            self.add_features(offsprings)
-
-            for individual in offsprings:
-                self.mutator.evaluate_best_individual(individual)
-
-            self.selector.fast_nondominated_sorting(offsprings)
-
-            i += 1
+            population = self.step(population)
 
         t = time.time() - t_s
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))
+
+        # self.generator.init(self.options['max_population_size'])
+        # population = self.gen_initial_population()
+        #
+        # self.evaluate(population.individuals)
+        # self.add_features(population.individuals)
+        #
+        # for individual in population.individuals:
+        #     self.mutator.evaluate_best_individual(individual)
+        #
+        # self.selector.fast_nondominated_sorting(population.individuals)
+        #
+        # t_s = time.time()
+        # self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
+        #                                              self.options['max_population_size']))
+        #
+        # i = 0
+        # while i < self.options['max_population_number']:
+        #     offsprings = self.selector.select(population.individuals)
+        #
+        #     pareto_front = []
+        #     for individual in offsprings:
+        #         if individual.features['front_number'] == 1:
+        #             pareto_front.append(individual)
+        #
+        #     for individual in offsprings:
+        #         index = randint(0, len(pareto_front) - 1)  # takes random individual from Pareto front
+        #         best_individual = pareto_front[index]
+        #         if best_individual is not individual:
+        #             self.mutator.update(best_individual)
+        #             self.mutator.mutate(individual)
+        #
+        #     population = Population(offsprings)
+        #     self.problem.populations.append(population)
+        #     self.evaluator.evaluate(offsprings)
+        #     self.add_features(offsprings)
+        #
+        #     for individual in offsprings:
+        #         self.mutator.evaluate_best_individual(individual)
+        #
+        #     self.selector.fast_nondominated_sorting(offsprings)
+        #
+        #     i += 1
+        #
 
 
 class PSO_V1(SwarmAlgorithm):
@@ -151,7 +231,7 @@ class PSO_V1(SwarmAlgorithm):
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm - with time varieting inertia weight"):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
-        self.mutator = SwarmMutatorTVIW(self.problem.parameters, self.options['max_population_number'])
+        self.mutator = SwarmStepTVIW(self.problem.parameters, self.options['max_population_number'])
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
 
     def run(self):

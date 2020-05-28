@@ -1,7 +1,7 @@
 from numpy.random import random_sample
 from .problem import Problem
 from .algorithm_genetic import GeneticAlgorithm
-from .operators import FireflyMutator, DummySelector, RandomGenerator
+from .operators import FireflyStep, DummySelector, RandomGenerator
 
 import time
 
@@ -17,7 +17,7 @@ class MoFirefly(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
         super().__init__(problem, name)
         self.n = self.options['max_population_size']
-        self.mutator = FireflyMutator(self.problem.parameters)
+        self.mutator = FireflyStep(self.problem.parameters)
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
 
     def run(self):
