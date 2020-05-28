@@ -59,6 +59,10 @@ class Archive(object):
         """
         return choice(self._contents)
 
+    def truncate(self, density_estimator, max_len):
+
+        return
+
     def append(self, individual):
         self.add(individual)
 
@@ -94,23 +98,3 @@ class Archive(object):
     def __iter__(self):
         return iter(self._contents)
 
-# class EpsilonBoxArchive(Archive):
-#
-#     def __init__(self, epsilons):
-#         super(EpsilonBoxArchive, self).__init__(EpsilonDominance(epsilons))
-#         self.improvements = 0
-#
-#     def add(self, solution):
-#         flags = [self._dominance.compare(solution, s) for s in self._contents]
-#         dominates = [x == 1 for x in flags]
-#         nondominated = [x == 0 for x in flags]
-#         dominated = [x == 2 for x in flags]
-#         not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
-#
-#         if any(dominates):
-#             return False
-#         else:
-#             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
-#
-#             if dominated and not_same_box:
-#                 self.improvements += 1

@@ -151,7 +151,6 @@ class Problem:
         return values
 
     def get_parameter_types(self):
-        # TODO: is it important? or a typecheck is enough?
         p_types = []
         for parameter in self.parameters:
 
