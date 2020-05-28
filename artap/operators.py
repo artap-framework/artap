@@ -332,7 +332,6 @@ class Mutator(Operator):
     def mutate(self, p):
         pass
 
-
 class SimpleMutator(Mutator):
     def __init__(self, parameters, probability):
         super().__init__(parameters, probability)
@@ -420,7 +419,7 @@ class PmMutator(Mutator):
         return x
 
 
-class SwarmMutator(Mutator):
+class SwarmStep(Mutator):
     """
     This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
 
@@ -489,7 +488,7 @@ class SwarmMutator(Mutator):
         return p
 
 
-class SwarmMutatorTVIW(SwarmMutator):
+class SwarmStepTVIW(SwarmStep):
     """
     This is an improvement of the original PSO algorithm with Time Varying Inertia Weight operators.
 
@@ -547,7 +546,7 @@ class SwarmMutatorTVIW(SwarmMutator):
             self.current_iter += 1.
 
 
-class SwarmMutatorRandIW(SwarmMutator):
+class SwarmStepRandIW(SwarmStep):
     """
     In this variation, the inertia weght is changing randomly,the mean value of the inertia weight is 0.75.
     This modification was inspired by Clerc’s constriction factor concept,  in which the inertia weight is
@@ -583,7 +582,7 @@ class SwarmMutatorRandIW(SwarmMutator):
             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
 
 
-class FireflyMutator(SwarmMutator):
+class FireflyStep(SwarmStep):
     """
     Firefly algorithm is a modification of the original pso algorithms. The idea is that it mimics the behaviour of
     the fireflies, which uses specfic light combinations for hunting and dating. This algorithm mimics the dating
@@ -682,7 +681,7 @@ class FireflyMutator(SwarmMutator):
         return
 
 
-class SwarmMutatorTVAC(SwarmMutator):
+class SwarmStepTVAC(SwarmStep):
     """
     Time-varying acceleration coefficients as a new parameter automation strategy for the PSO concept.
 

@@ -27,11 +27,6 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
         self.problem = problem
 
-        self.generator = None
-        self.selector = None
-        self.mutator = None
-        self.crossover = None
-
         # initial population size
         self.population_size = 0
 
@@ -61,6 +56,11 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
     def __init__(self, problem: Problem, name="General Genetic-based Algorithm"):
         super().__init__(problem, name)
+
+        self.generator = None
+        self.selector = None
+        self.mutator = None
+        self.crossover = None
 
     def generate(self, parents, archive=None):
         offsprings = []
