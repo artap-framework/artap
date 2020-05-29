@@ -7,7 +7,7 @@ import rpyc
 from artap.algorithm_sweep import SweepAlgorithm
 from artap.problem import Problem
 from artap.operators import LHSGenerator
-from artap.monitor import MONITOR_PORT
+from artap.monitor import MonitorService, MONITOR_PORT
 
 
 class SleepProblem(Problem):
@@ -17,6 +17,9 @@ class SleepProblem(Problem):
 
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+        # monitor
+        self.monitor_service = MonitorService(self)
 
     def evaluate(self, x):
         time.sleep(random.randrange(1, 3))

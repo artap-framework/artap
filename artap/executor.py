@@ -552,7 +552,10 @@ class CondorCSTJobExecutor(CondorJobExecutor):
         copyfile(model_file, self.problem.working_dir + self.model_file)
 
         self.executable = textwrap.dedent("""\
-            """ + cst_path + """ --m --hide -par parameters.txt -project-file {}""".format(self.model_file))
+            """ + cst_path + """ --se --rebuild --hide -par parameters.txt -project-file {}""".format(self.model_file))
+
+        # add solver directory to output
+        # self.output_files.append(os.path.splitext(self.model_file)[0] + "\Export")
 
         self.request_cpus = 2
         self.request_memory = 10
