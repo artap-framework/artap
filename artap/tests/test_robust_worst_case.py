@@ -9,7 +9,7 @@ class RobustnessProblem(Problem):
     """ Describe simple one objective optimization problem. """
 
     def set(self):
-        self.name = "ComsolProblem"
+        self.name = "RobustnessProblem"
         self.parameters = [{'name': 'a', 'initial_value': 10, 'tol': 1e-1},
                            {'name': 'b', 'initial_value': 10, 'tol': 1e-1}]
         self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
