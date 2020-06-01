@@ -1,6 +1,6 @@
 import itertools
 from artap.operators import ParetoDominance, EpsilonDominance
-from random import choice
+from random import choice, sample
 
 
 class Archive(object):
@@ -59,8 +59,20 @@ class Archive(object):
         """
         return choice(self._contents)
 
-    def truncate(self, density_estimator, max_len):
+    def rand_sample(self, nr=2):
+        """Returns an nr long random list of the population """
+        return sample(self._contents, nr)
 
+    def truncate(self, size, getter, larger_preferred=True):
+        """ Truncates the contents to the given value, which is usually the number of particles/individuals in a
+            population. """
+
+        result = sorted(self._contents, key=getter)
+
+        if larger_preferred:
+            result.reverse()
+
+        self._contents = result[:size]
         return
 
     def append(self, individual):
@@ -97,4 +109,3 @@ class Archive(object):
 
     def __iter__(self):
         return iter(self._contents)
-
