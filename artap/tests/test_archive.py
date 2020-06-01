@@ -1,6 +1,8 @@
 from artap.archive import Archive
 from artap.individual import Individual
+from artap.operators import crowding_distance
 
+from copy import copy
 import unittest
 
 
@@ -99,3 +101,60 @@ class TestArchive(unittest.TestCase):
         self.assertFalse(result)
         self.assertTrue(x in self.archive._contents
                         or y in self.archive._contents)
+
+    def test_crowding_distance_truncate(self):
+        # the cost values for the test function, 16 non-dominated solution, half - of- them should be rejected by their
+        # crowding distance
+
+        test_costs = [[12, 0],
+                      [11.5, 0.5],
+                      [11, 1],
+                      [10.8, 1.2],
+                      [10.5, 1.5],
+                      [10.3, 1.8],
+                      [9.5, 2],
+                      [9, 2.5],
+                      [7, 3],
+                      [5, 4],
+                      [2.5, 6],
+                      [2, 10],
+                      [1.5, 11],
+                      [1, 11.5],
+                      [0.8, 11.7],
+                      [0, 12]]
+
+        for cost in test_costs:
+            x = Individual(cost)
+            x.costs = cost
+            cost.append(0.)
+            x.costs_signed = cost
+            x.features = {'crowding_distance': 0}
+
+            res = self.archive.add(x)
+
+        crowding_distance(self.archive._contents)
+
+        # test the algorithm adds every non-dominated solutions to the list
+        self.assertEqual(self.archive.size(), len(test_costs))
+
+        # ordering and truncate the elements according to their crowding distance,
+        # length of the list should be the given number
+        self.archive.truncate(8, 'crowding_distance')
+        # if ordered by crowding distance the following items should be contained by the new list
+        # the two endpoints
+        x1 = Individual([0, 12])
+        x1.costs = [0, 12]
+        x1.costs_signed = [0, 12, 0.]
+
+        x2 = Individual([12, 0])
+        x2.costs = [12, 0]
+        x2.costs_signed = [12, 0, 0.]
+
+        self.assertIn(x1, self.archive._contents)
+        self.assertIn(x2, self.archive._contents)
+
+        x3 = Individual([1.5, 11])
+        x3.costs = [1.5, 11]
+        x3.costs_signed = [1.5, 11., 0.]
+
+        self.assertIn(x3, self.archive._contents)
