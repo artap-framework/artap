@@ -1,4 +1,4 @@
-import itertools
+import itertools, operator
 from artap.operators import ParetoDominance, EpsilonDominance
 from random import choice, sample
 
@@ -67,7 +67,7 @@ class Archive(object):
         """ Truncates the contents to the given value, which is usually the number of particles/individuals in a
             population. """
 
-        result = sorted(self._contents, key=getter)
+        result = sorted(self._contents, key=lambda x:x.features[getter])
 
         if larger_preferred:
             result.reverse()
