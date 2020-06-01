@@ -332,6 +332,7 @@ class Mutator(Operator):
     def mutate(self, p):
         pass
 
+
 class SimpleMutator(Mutator):
     def __init__(self, parameters, probability):
         super().__init__(parameters, probability)
@@ -1098,7 +1099,6 @@ class TournamentSelector(Selector):
                 selected = random.choice(candidates)
 
         return selected
-
 
 
 # class Archive(object):
