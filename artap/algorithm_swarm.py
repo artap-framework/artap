@@ -1,8 +1,9 @@
-from random import randint, random, uniform
+from random import randint, random, uniform, choice
 from .problem import Problem
 from .population import Population
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
-from .operators import SwarmStep, DummySelector, RandomGenerator, SwarmStepTVIW, PmMutator
+from .operators import SwarmStep, DummySelector, RandomGenerator, SwarmStepTVIW, PmMutator, ParetoDominance, \
+    EpsilonDominance, crowding_distance
 from .archive import Archive
 from copy import copy
 import time
@@ -14,11 +15,13 @@ class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
     def __init__(self, problem: Problem, name="General Swarm-based Algorithm"):
         super().__init__(problem, name)
         # self.options.declare(name='v_max', default=, lower=0., desc='maximum_allowed_speed')
+        self.global_best = None  # swarm algorithms share the information, who is the leader
 
     def init_pvelocity(self, population):
         pass
 
-    def init_gbest(self, population):
+    def init_pbest(self, population):
+        # initiliaze the particle best postion for every individual
         pass
 
     def khi(self, c1: float, c2: float) -> float:
@@ -60,13 +63,16 @@ class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
 
         return velocity
 
+    def select_global_best(self):
+        pass
+
     def inertia_weight(self):
         pass
 
-    def update_velocity(self, population):
+    def update_global_best(self, offsprings):
         pass
 
-    def update_gbest(self, population):
+    def update_velocity(self, population):
         pass
 
     def update_position(self, population):
@@ -83,12 +89,9 @@ class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
         offsprings = copy(population)
 
         self.evaluator.evaluate(offsprings)
-
-        self.update_global_best(offsprings)
         self.update_particle_best(offsprings)
-
         self.problem.populations.append(offsprings)
-
+        self.update_global_best()
         return offsprings
 
     def run(self):
@@ -119,27 +122,23 @@ class OMOPSO(SwarmAlgorithm):
         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
         self.features = {'velocity': [],
                          'pbest': None,
-                         'max_speed': []}
-
+                         'crowding_distance': 0}
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters)
         self.leaders = Archive()
+        self.problem.archive = Archive(dominance=EpsilonDominance(epsilons=self.options['epsilons']))
 
         # constants for the speed and the position calculation
         self.c1_min = 1.5
-        self.c1_max = 2.5
+        self.c1_max = 2.0
         self.c2_min = 1.5
-        self.c2_max = 2.5
-
+        self.c2_max = 2.0
         self.r1_min = 0.0
         self.r1_max = 1.0
         self.r2_min = 0.0
         self.r2_max = 1.0
-
-        self.min_weight = 0.1
-        self.max_weight = 0.1
-        self.change_velocity1 = -1
-        self.change_velocity2 = -1
+        self.weight_min = 0.1
+        self.weight_max = 0.5
 
         # in this algorithm a polynomial mutation used as a turbulence operator
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
@@ -164,7 +163,7 @@ class OMOPSO(SwarmAlgorithm):
             #     individual.features['max_speed'] = delta_i
         return
 
-    def init_gbest(self, population):
+    def init_pbest(self, population):
         for individual in population:
             individual.features['pbest'] = copy(individual)
 
@@ -193,84 +192,83 @@ class OMOPSO(SwarmAlgorithm):
                 individual.features['velocity'][i] = self.speed_constriction(v, self.parameters[i]['bounds'][1],
                                                                              self.parameters[i]['bounds'][0])
 
+    def update_position(self, population):
 
-def update_position(self, population):
-    for individual in population:
-        for parameter, i in zip(self.parameters, range(len(individual.vector))):
-            individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
+        for individual in population:
+            for parameter, i in zip(self.parameters, range(len(individual.vector))):
+                individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
 
-            # adjust maximum position if necessary
-            if individual.vector[i] > parameter['bounds'][1]:
-                individual.vector[i] = parameter['bounds'][1]
+                # adjust maximum position if necessary
+                if individual.vector[i] > parameter['bounds'][1]:
+                    individual.vector[i] = parameter['bounds'][1]
+                    individual.features['velocity'][i] *= -1
 
-            # adjust minimum position if necessary
-            if individual.vector[i] < parameter['bounds'][0]:
-                individual.vector[i] = parameter['bounds'][0]
+                # adjust minimum position if necessary
+                if individual.vector[i] < parameter['bounds'][0]:
+                    individual.vector[i] = parameter['bounds'][0]
+                    individual.features['velocity'][i] *= -1
 
+    def update_global_best(self, swarm):
+        """ Manages the leader class in OMOPSO. """
 
-def run(self):
-    t_s = time.time()
-    self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
-                                                 self.options['max_population_size']))
-    # initialize the swarm
-    population = self.gen_initial_population()
-    self.evaluate(population.individuals)
-    self.add_features(population.individuals)
+        # the fitness of the particles are calculated by their crowding distance
+        crowding_distance(swarm)
 
-    self.initialize_pvelocity(population)
-    self.initialize_particle_best(population)
-    # self.initialize_global_best(population) not correct to calculate always the crowding distance
+        for particle in swarm:
+            # because the two archive can be very different
+            self.leaders.add(particle)
+            self.problem.archive.add(particle)
 
-    i = 0
-    while i < self.options['max_population_number']:
-        population = self.step(population)
+        # the length of the leaders archive cannot be longer than the number of the initial population
 
-    t = time.time() - t_s
-    self.problem.logger.info("PSO: elapsed time: {} s".format(t))
+        return
 
-    # self.generator.init(self.options['max_population_size'])
-    # population = self.gen_initial_population()
-    #
-    # self.evaluate(population.individuals)
-    # self.add_features(population.individuals)
-    #
-    # for individual in population.individuals:
-    #     self.mutator.evaluate_best_individual(individual)
-    #
-    # self.selector.fast_nondominated_sorting(population.individuals)
-    #
-    # t_s = time.time()
-    # self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
-    #                                              self.options['max_population_size']))
-    #
-    # i = 0
-    # while i < self.options['max_population_number']:
-    #     offsprings = self.selector.select(population.individuals)
-    #
-    #     pareto_front = []
-    #     for individual in offsprings:
-    #         if individual.features['front_number'] == 1:
-    #             pareto_front.append(individual)
-    #
-    #     for individual in offsprings:
-    #         index = randint(0, len(pareto_front) - 1)  # takes random individual from Pareto front
-    #         best_individual = pareto_front[index]
-    #         if best_individual is not individual:
-    #             self.mutator.update(best_individual)
-    #             self.mutator.mutate(individual)
-    #
-    #     population = Population(offsprings)
-    #     self.problem.populations.append(population)
-    #     self.evaluator.evaluate(offsprings)
-    #     self.add_features(offsprings)
-    #
-    #     for individual in offsprings:
-    #         self.mutator.evaluate_best_individual(individual)
-    #
-    #     self.selector.fast_nondominated_sorting(offsprings)
-    #
-    #     i += 1
-    #
+    def select_global_best(self):
+        """
+        There are different possibilities to select the global best solution.
+        The leader class in this concept contains everybody after the initialization, every individual expected as a
+        leader, we select 2 from them and select the non-dominated as the global best.
+
+        :return:
+        """
+
+        candidates = self.leaders.rand_sample(2)
+
+        # randomly favourize one of them
+        best_global = choice(candidates)
+
+        # if one of them dominates, it will be selected as global best
+        dom = ParetoDominance.compare(candidates[0], candidates[1])
+
+        if dom == 1:
+            best_global = candidates[0]
+
+        if dom == 2:
+            best_global = candidates[1]
+
+        self.global_best = copy(best_global)
+        return
+
+    def run(self):
+
+        t_s = time.time()
+        self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
+                                                     self.options['max_population_size']))
+        # initialize the swarm
+        population = self.gen_initial_population()
+        self.evaluate(population.individuals)
+        self.add_features(population.individuals)
+
+        self.initialize_pvelocity(population)
+        self.initialize_particle_best(population)
+        # self.initialize_global_best(population) not correct to calculate always the crowding distance
+
+        i = 0
+        while i < self.options['max_population_number']:
+            population = self.step(population)
+
+        t = time.time() - t_s
+        self.problem.logger.info("PSO: elapsed time: {} s".format(t))
 
 
 class PSO_V1(SwarmAlgorithm):
