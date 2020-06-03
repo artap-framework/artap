@@ -2,7 +2,6 @@ from artap.archive import Archive
 from artap.individual import Individual
 from artap.operators import crowding_distance
 
-from copy import copy
 import unittest
 
 
