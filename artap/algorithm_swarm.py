@@ -276,8 +276,8 @@ class OMOPSO(SwarmAlgorithm):
         self.evaluate(population.individuals)
         self.add_features(population.individuals)
 
-        self.init_pvelocity(population)
-        self.init_pbest(population)
+        self.init_pvelocity(population.individuals)
+        self.init_pbest(population.individuals)
         self.update_global_best(population.individuals)
 
         i = 0
@@ -298,7 +298,7 @@ class OMOPSO(SwarmAlgorithm):
             self.update_global_best(offsprings)
 
             # population = self.step(population)
-
+            i += i + 1
         t = time.time() - t_s
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))
 
