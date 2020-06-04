@@ -420,6 +420,36 @@ class PmMutator(Mutator):
         return x
 
 
+class UniformMutator(Mutator):
+    """
+    Uniform mutator -- for omopso .
+    """
+
+    def __init__(self, parameters, probability, perturbation=0.5):
+        super().__init__(parameters, probability)
+        self.perturbation = perturbation
+
+    def mutate(self, parent):
+        vector = []
+
+        for i, parameter in enumerate(self.parameters):
+            if random.uniform(0, 1) < self.probability:
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
+                vector.append(self.uniform_mutation(parent.vector[i], l_b, u_b))
+            else:
+                vector.append(parent.vector[i])
+
+        return parent.__class__(vector)
+
+    def uniform_mutation(self, x, lb, ub):
+
+        x = x + (random.random()-0.5)*self.perturbation
+        x = self.clip(x, lb, ub)
+
+        return x
+
+
 class SwarmStep(Mutator):
     """
     This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
