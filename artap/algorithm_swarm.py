@@ -168,7 +168,7 @@ class OMOPSO(SwarmAlgorithm):
         :param population: list of individuals
         :return
         """
-        for individual in population.individuals:
+        for individual in population:
             # the initial speed is set to zero
             individual.features['velocity'] = [0] * len(individual.vector)
 
@@ -255,7 +255,7 @@ class OMOPSO(SwarmAlgorithm):
         best_global = choice(candidates)
 
         # if one of them dominates, it will be selected as global best
-        dom = ParetoDominance.compare(candidates[0], candidates[1])
+        dom = self.dominance.compare(candidates[0].costs_signed, candidates[1].costs_signed)
 
         if dom == 1:
             best_global = candidates[0]
@@ -263,7 +263,6 @@ class OMOPSO(SwarmAlgorithm):
         if dom == 2:
             best_global = candidates[1]
 
-        self.global_best = copy(best_global)
         return best_global
 
     def run(self):
