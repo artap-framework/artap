@@ -219,4 +219,3 @@ class TestOMOPSOTOOLS(unittest.TestCase):
 
         self.assertEqual(self.omopso.problem.archive.size(), 10) # archive should contain everybody
         self.assertEqual(self.omopso.leaders.size(), 5)  # shuold be truncated to 5
-        

@@ -8,22 +8,19 @@ class TestAckley(unittest.TestCase):
     """ Tests that the PSO can find the global optimum. """
 
     def test_local_problem(self, population_number=50):
-        try:
-            problem = Ackley(**{'dimension': 1})
-            algorithm = OMOPSO(problem)
-            algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 100
-            algorithm.options['max_processes'] = 1
-            algorithm.options['epsilons'] = 0.01
-            algorithm.run()
+        ##try:
+        problem = Ackley(**{'dimension': 1})
+        algorithm = OMOPSO(problem)
+        algorithm.options['max_population_number'] = population_number
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 10
+        algorithm.options['epsilons'] = 0.1
+        algorithm.run()
 
-            b = Results(problem)
-            optimum = b.find_optimum('F_1')  # Takes last cost function
-            self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-        except AssertionError:
-            # stochastic
-            print("TestAckleyN222::test_local_problem", population_number)
-            self.test_local_problem(int(1.5 * population_number))
+        b = Results(problem)
+        optimum = b.find_optimum('F_1')  # Takes last cost function
+        self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
+
 
 # class TestAckleyv1(unittest.TestCase):
 #     """ Tests that the PSO can find the global optimum. """
@@ -44,8 +41,6 @@ class TestAckley(unittest.TestCase):
 #             # stochastic
 #             print("TestAckleyN222::test_local_problem", population_number)
 #             self.test_local_problem(int(1.5 * population_number))
-
-
 
 
 if __name__ == '__main__':
