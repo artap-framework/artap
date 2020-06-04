@@ -1,14 +1,13 @@
 import unittest
-from artap.algorithm_swarm import OMOPSO, PSO_V1
+from artap.algorithm_swarm import OMOPSO
 from artap.results import Results
 from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
 
 
 class TestAckley(unittest.TestCase):
-    """ Tests that the PSO can find the global optimum. """
+    """ Tests that the OMOPSO can find the global optimum. """
 
     def test_local_problem(self, population_number=50):
-        ##try:
         problem = Ackley(**{'dimension': 1})
         algorithm = OMOPSO(problem)
         algorithm.options['max_population_number'] = population_number
