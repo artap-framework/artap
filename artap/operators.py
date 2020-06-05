@@ -489,168 +489,168 @@ class NonUniformMutation(Mutator):
         return x
 
 
-class SwarmStep(Mutator):
-    """
-    This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
+# class SwarmStep(Mutator):
+#     """
+#     This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
+#
+#     PSO shares many similarities with evolutionary computation. Both algorithms start with a group of a randomly
+#     generated population. Both update the population iteratively and search for the optimum with stochastic techniques.
+#     The main difference between them is in the information sharing mechanism. In EA, only the individuals of current
+#     generation share information with each other, and any individual has a chance to give out information to others.
+#     In PSO, actually not the current individuals share information with each other, but the individuals of previous
+#     generation (the optimal particles) give out information to the current ones. In other words, the information sharing
+#     is one-way in PSO.
+#     """
+#
+#     def __init__(self, parameters, probability=1):
+#         super().__init__(parameters, probability)
+#         self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
+#         self.c1 = 2.  # cognitive constant
+#         self.c2 = 1.  # social constant
+#         self.best_individual = None
+#
+#     def evaluate_best_individual(self, individual):
+#         """ Determines the best individual in the swarm """
+#         dominates = True
+#         individual.features['best_costs'] = [0] * len(individual.costs)
+#         for i in range(len(individual.features['best_costs'])):
+#             if individual.costs[i] > individual.features['best_costs'][i]:
+#                 dominates = False
+#
+#         # check to see if the current position is an individual best
+#         if dominates:
+#             individual.features['best_vector'] = individual.vector
+#             individual.features['best_costs'] = individual.costs
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual):
+#         individual.features['velocity'] = [0] * len(individual.vector)
+#         individual.features['best_vector'] = [0] * len(individual.vector)
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.features['velocity'][i] = self.w * individual.features['velocity'][
+#                 i] + vel_cognitive + vel_social
+#
+#     # update the particle position based off new velocity updates
+#     def update_position(self, individual):
+#
+#         for parameter, i in zip(self.parameters, range(len(individual.vector))):
+#             individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
+#
+#             # adjust maximum position if necessary
+#             if individual.vector[i] > parameter['bounds'][1]:
+#                 individual.vector[i] = parameter['bounds'][1]
+#
+#             # adjust minimum position if necessary
+#             if individual.vector[i] < parameter['bounds'][0]:
+#                 individual.vector[i] = parameter['bounds'][0]
+#
+#     def update(self, best_individual):
+#         self.best_individual = best_individual
+#
+#     def mutate(self, p):
+#         self.update_velocity(p)
+#         self.update_position(p)
+#         return p
+#
 
-    PSO shares many similarities with evolutionary computation. Both algorithms start with a group of a randomly
-    generated population. Both update the population iteratively and search for the optimum with stochastic techniques.
-    The main difference between them is in the information sharing mechanism. In EA, only the individuals of current
-    generation share information with each other, and any individual has a chance to give out information to others.
-    In PSO, actually not the current individuals share information with each other, but the individuals of previous
-    generation (the optimal particles) give out information to the current ones. In other words, the information sharing
-    is one-way in PSO.
-    """
+# class SwarmStepTVIW(SwarmStep):
+#     """
+#     This is an improvement of the original PSO algorithm with Time Varying Inertia Weight operators.
+#
+#     Empirical study of particle swarm optimization,” in Proc. IEEE Int. Congr. Evolutionary Computation, vol. 3,
+#     1999, pp. 101–106.
+#
+#     Shi and Eberhart have observed that the optimal solution can be improved by varying the inertia weight value from
+#     0.9 (at the beginning of the search) to 0.4 (at the end of the search) for most problems. This modification to the
+#     original PSO concept has been considered as the basis for two novel strategies introduced in this paper. Hereafter,
+#     in this paper, this version of PSO is referred to as time-varying inertia weight factor method
+#
+#     Contras:
+#     -------
+#     - PSO-TVIW concept is not very effective for tracking dynamic systems
+#
+#     - its ability to fine tune the optimum solution is comparatively weak, mainly due
+#       to the lack of diversity at the end of the search
+#
+#     R. C. Eberhart and Y. Shi, “Tracking and optimizing dynamic systems with particle swarms,” in Proc. IEEE Congr.
+#     Evolutionary Computation 2001, Seoul, Korea, 2001, pp. 94–97
+#     """
+#
+#     def __init__(self, parameters, probability=1, nr_maxgen=100):
+#         super().__init__(parameters, probability)
+#         self.w1 = 0.9  # inertia weight is calculated from w1 and w2
+#         self.w2 = 0.4
+#         self.c1 = 2.  # cognitive constant
+#         self.c2 = 1.  # social constant
+#         self.best_individual = None
+#
+#         # new parameters
+#         self.max_nr_generations = nr_maxgen
+#         self.current_iter = 0.
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual):
+#         """
+#         :param nr_generations: total number of generations, during the calculation, MAXITER
+#         :param iteration_nr: actual generation
+#         """
+#
+#         individual.features['velocity'] = [0] * len(individual.vector)
+#         individual.features['best_vector'] = [0] * len(individual.vector)
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
+#             w = (self.w1 - self.w2) * (self.max_nr_generations - self.current_iter) / self.max_nr_generations + self.w2
+#
+#             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.features['velocity'][i] = w * individual.features['velocity'][i] + vel_cognitive + vel_social
+#
+#             self.current_iter += 1.
+#
 
-    def __init__(self, parameters, probability=1):
-        super().__init__(parameters, probability)
-        self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
-        self.c1 = 2.  # cognitive constant
-        self.c2 = 1.  # social constant
-        self.best_individual = None
-
-    def evaluate_best_individual(self, individual):
-        """ Determines the best individual in the swarm """
-        dominates = True
-        individual.features['best_costs'] = [0] * len(individual.costs)
-        for i in range(len(individual.features['best_costs'])):
-            if individual.costs[i] > individual.features['best_costs'][i]:
-                dominates = False
-
-        # check to see if the current position is an individual best
-        if dominates:
-            individual.features['best_vector'] = individual.vector
-            individual.features['best_costs'] = individual.costs
-
-    # update new particle velocity
-    def update_velocity(self, individual):
-        individual.features['velocity'] = [0] * len(individual.vector)
-        individual.features['best_vector'] = [0] * len(individual.vector)
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
-
-            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.features['velocity'][i] = self.w * individual.features['velocity'][
-                i] + vel_cognitive + vel_social
-
-    # update the particle position based off new velocity updates
-    def update_position(self, individual):
-
-        for parameter, i in zip(self.parameters, range(len(individual.vector))):
-            individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
-
-            # adjust maximum position if necessary
-            if individual.vector[i] > parameter['bounds'][1]:
-                individual.vector[i] = parameter['bounds'][1]
-
-            # adjust minimum position if necessary
-            if individual.vector[i] < parameter['bounds'][0]:
-                individual.vector[i] = parameter['bounds'][0]
-
-    def update(self, best_individual):
-        self.best_individual = best_individual
-
-    def mutate(self, p):
-        self.update_velocity(p)
-        self.update_position(p)
-        return p
-
-
-class SwarmStepTVIW(SwarmStep):
-    """
-    This is an improvement of the original PSO algorithm with Time Varying Inertia Weight operators.
-
-    Empirical study of particle swarm optimization,” in Proc. IEEE Int. Congr. Evolutionary Computation, vol. 3,
-    1999, pp. 101–106.
-
-    Shi and Eberhart have observed that the optimal solution can be improved by varying the inertia weight value from
-    0.9 (at the beginning of the search) to 0.4 (at the end of the search) for most problems. This modification to the
-    original PSO concept has been considered as the basis for two novel strategies introduced in this paper. Hereafter,
-    in this paper, this version of PSO is referred to as time-varying inertia weight factor method
-
-    Contras:
-    -------
-    - PSO-TVIW concept is not very effective for tracking dynamic systems
-
-    - its ability to fine tune the optimum solution is comparatively weak, mainly due
-      to the lack of diversity at the end of the search
-
-    R. C. Eberhart and Y. Shi, “Tracking and optimizing dynamic systems with particle swarms,” in Proc. IEEE Congr.
-    Evolutionary Computation 2001, Seoul, Korea, 2001, pp. 94–97
-    """
-
-    def __init__(self, parameters, probability=1, nr_maxgen=100):
-        super().__init__(parameters, probability)
-        self.w1 = 0.9  # inertia weight is calculated from w1 and w2
-        self.w2 = 0.4
-        self.c1 = 2.  # cognitive constant
-        self.c2 = 1.  # social constant
-        self.best_individual = None
-
-        # new parameters
-        self.max_nr_generations = nr_maxgen
-        self.current_iter = 0.
-
-    # update new particle velocity
-    def update_velocity(self, individual):
-        """
-        :param nr_generations: total number of generations, during the calculation, MAXITER
-        :param iteration_nr: actual generation
-        """
-
-        individual.features['velocity'] = [0] * len(individual.vector)
-        individual.features['best_vector'] = [0] * len(individual.vector)
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
-
-            # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
-            w = (self.w1 - self.w2) * (self.max_nr_generations - self.current_iter) / self.max_nr_generations + self.w2
-
-            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.features['velocity'][i] = w * individual.features['velocity'][i] + vel_cognitive + vel_social
-
-            self.current_iter += 1.
-
-
-class SwarmStepRandIW(SwarmStep):
-    """
-    In this variation, the inertia weght is changing randomly,the mean value of the inertia weight is 0.75.
-    This modification was inspired by Clerc’s constriction factor concept,  in which the inertia weight is
-    kept constant at 0.729 and both acceleration coefficients are kept constant at 1.494.
-    Therefore, when random inertia weight factor method is used the acceleration coefficients are kept constant at 1.494.
-
-    Contras:
-    -------
-    """
-
-    def __init__(self, parameters, probability=1):
-        super().__init__(parameters, probability)
-        self.w = 0.5  # inertia weight -> changed randomly
-        self.c1 = 2.  # cognitive constant
-        self.c2 = 1.  # social constant
-        self.best_individual = None
-
-    # update new particle velocity
-    def update_velocity(self, individual):
-        """
-        :param nr_generations: total number of generations, during the calculation, MAXITER
-        :param iteration_nr: actual generation
-        """
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
-
-            # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
-            w = self.w * random.random() / 2.
-
-            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
-
+# class SwarmStepRandIW(SwarmStep):
+#     """
+#     In this variation, the inertia weght is changing randomly,the mean value of the inertia weight is 0.75.
+#     This modification was inspired by Clerc’s constriction factor concept,  in which the inertia weight is
+#     kept constant at 0.729 and both acceleration coefficients are kept constant at 1.494.
+#     Therefore, when random inertia weight factor method is used the acceleration coefficients are kept constant at 1.494.
+#
+#     Contras:
+#     -------
+#     """
+#
+#     def __init__(self, parameters, probability=1):
+#         super().__init__(parameters, probability)
+#         self.w = 0.5  # inertia weight -> changed randomly
+#         self.c1 = 2.  # cognitive constant
+#         self.c2 = 1.  # social constant
+#         self.best_individual = None
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual):
+#         """
+#         :param nr_generations: total number of generations, during the calculation, MAXITER
+#         :param iteration_nr: actual generation
+#         """
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
+#             w = self.w * random.random() / 2.
+#
+#             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+#
 
 class FireflyStep(SwarmStep):
     """
