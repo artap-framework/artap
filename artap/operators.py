@@ -444,7 +444,46 @@ class UniformMutator(Mutator):
 
     def uniform_mutation(self, x, lb, ub):
 
-        x = x + (random.random()-0.5)*self.perturbation
+        x = x + (random.random() - 0.5) * self.perturbation
+        x = self.clip(x, lb, ub)
+
+        return x
+
+
+class NonUniformMutation(Mutator):
+
+    def __init__(self, parameters, probability, max_iterations, current_iteration, perturbation=0.5, ):
+        super().__init__(parameters, probability)
+        self.perturbation = perturbation
+        self.max_iterations = max_iterations
+        self.current_iteration = current_iteration
+
+    def __delta(self, y: float, b_mutation_parameter: float):
+        return (y * (1.0 - pow(random.random(),
+                               pow((1.0 - 1.0 * self.current_iteration / self.max_iterations), b_mutation_parameter))))
+
+    def mutate(self, parent):
+        vector = []
+
+        for i, parameter in enumerate(self.parameters):
+            if random.uniform(0, 1) < self.probability:
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
+                vector.append(self.non_uniform_mutation(parent.vector[i], l_b, u_b))
+            else:
+                vector.append(parent.vector[i])
+
+        return parent.__class__(vector)
+
+    def non_uniform_mutation(self, x, lb, ub):
+
+        rand = random.random()
+
+        if rand <= 0.5:
+            x = self.__delta(ub - x, self.perturbation)
+        else:
+            x = self.__delta(lb - x, self.perturbation)
+
         x = self.clip(x, lb, ub)
 
         return x
