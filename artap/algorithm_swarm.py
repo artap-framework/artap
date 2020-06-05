@@ -185,13 +185,19 @@ class OMOPSO(SwarmAlgorithm):
     #         mutated = self.mutator.mutate(population[i])
     #         population[i].vector = copy(mutated.vector)
 
-    def turbulence(self, population):
+    def turbulence(self, particles):
         """
         OMOPSO applies a combination of uniform and nonuniform
         mutation to the particle swarm(uniform mutation to the first 30 % of
         the swarm, non - uniform to the next 30 %, and no mutation on the particles)
         """
 
+        for i in particles.size():
+            if i % 3 == 0:
+                mutated = self.mutator.mutate(particles[i])
+            elif i % 3 == 1:
+                mutated = self.mutator.mutate(particles[i])
+            particles[i].vector = copy(mutated.vector)
         return
 
     def update_velocity(self, population):
