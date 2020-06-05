@@ -1,7 +1,9 @@
 from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
-    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator, EpsilonDominance
+    TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator, EpsilonDominance, \
+    UniformMutator, NonUniformMutation
 from artap.individual import Individual
 from artap.benchmark_pareto import BiObjectiveTestProblem
+from artap.problem import Problem
 from math import inf
 import unittest
 
@@ -389,7 +391,6 @@ class DominanceComparator(unittest.TestCase):
 
 class EpsDominanceComparator(unittest.TestCase):
 
-
     def test_should_dominance_comparator_work_properly_case_d(self):
         """ Case 1: solution1 has objectives [-1.0, 5.0, 9.0] and solution2 has [-1.0, 5.0, 8.0]
         """
@@ -469,6 +470,7 @@ class EpsDominanceComparator(unittest.TestCase):
         result = dominance.compare(x.costs_signed, y.costs_signed)
         self.assertEqual(1, result)
 
+
 class TestTournamentSelector(unittest.TestCase):
 
     def test_should_execute_work_properly_case1(self):
@@ -479,6 +481,92 @@ class TestTournamentSelector(unittest.TestCase):
         y = Individual([3, 2])  # last index means that the solution is computed correctly
         y.costs = [1.0, 4.0]
         y.signs = [1.0, 4.0, 0.0]
+
+
+class TestProblem(Problem):
+
+    def set(self):
+        self.name = 'Test Problem'
+        self.parameters = [{'name': '1', 'bounds': [2., 10.]},
+                           {'name': '2', 'bounds': [2., 20.]},
+                           ]
+
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, individual):
+        return [1, 1]
+
+
+class TestUniformMutator(unittest.TestCase):
+
+    def setUp(self):
+        problem = TestProblem()
+        self.um = UniformMutator(problem.parameters, 0)
+
+    def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
+        x = Individual([3, 2])
+        x.costs = [2.0, 3.0]
+        x.signs = [2.0, 3.0, 0.0]
+
+        y = self.um.mutate(x)
+        self.assertEqual(y.vector, [3, 2])
+
+    def test_should_change_if_the_probability_is_one(self):
+        x = Individual([3, 2])
+        x.costs = [2.0, 3.0]
+        x.signs = [2.0, 3.0, 0.0]
+
+        self.um.probability = 1.0
+        y = self.um.mutate(x)
+        self.assertNotEqual(y.vector, [3, 2])
+
+
+class TestUniformMutator(unittest.TestCase):
+
+    def setUp(self):
+        problem = TestProblem()
+        self.um = PmMutator(problem.parameters, 0)
+
+    def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
+        x = Individual([3, 2])
+        x.costs = [2.0, 3.0]
+        x.signs = [2.0, 3.0, 0.0]
+
+        y = self.um.mutate(x)
+        self.assertEqual(y.vector, [3, 2])
+
+    def test_should_change_if_the_probability_is_one(self):
+        x = Individual([3, 2])
+        x.costs = [2.0, 3.0]
+        x.signs = [2.0, 3.0, 0.0]
+
+        self.um.probability = 1.0
+        y = self.um.mutate(x)
+        self.assertNotEqual(y.vector, [3, 2])
+
+
+class TestNonUniformMutator(unittest.TestCase):
+
+    def setUp(self):
+        problem = TestProblem()
+        self.um = NonUniformMutation(problem.parameters, 0, 100, 1)
+
+    def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
+        x = Individual([3, 2])
+        x.costs = [2.0, 3.0]
+        x.signs = [2.0, 3.0, 0.0]
+
+        y = self.um.mutate(x)
+        self.assertEqual(y.vector, [3, 2])
+
+    def test_should_change_if_the_probability_is_one(self):
+        x = Individual([3, 2])
+        x.costs = [2.0, 3.0]
+        x.signs = [2.0, 3.0, 0.0]
+
+        self.um.probability = 1.0
+        y = self.um.mutate(x)
+        self.assertNotEqual(y.vector, [3, 2])
 
 
 if __name__ == '__main__':
