@@ -329,7 +329,7 @@ class Mutator(Operator):
         self.probability = probability
 
     @abstractmethod
-    def mutate(self, p):
+    def mutate(self, p, current_iteration = 0):
         pass
 
 
@@ -337,7 +337,7 @@ class SimpleMutator(Mutator):
     def __init__(self, parameters, probability):
         super().__init__(parameters, probability)
 
-    def mutate(self, p):
+    def mutate(self, p, current_iteration = 0):
         """ uniform random mutation """
         mutation_space = 0.1
         vector = []
@@ -370,7 +370,7 @@ class PmMutator(Mutator):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
-    def mutate(self, parent):
+    def mutate(self, parent, current_iteration = 0):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
@@ -429,7 +429,7 @@ class UniformMutator(Mutator):
         super().__init__(parameters, probability)
         self.perturbation = perturbation
 
-    def mutate(self, parent):
+    def mutate(self, parent, current_iteration = 0):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
@@ -452,37 +452,36 @@ class UniformMutator(Mutator):
 
 class NonUniformMutation(Mutator):
 
-    def __init__(self, parameters, probability, max_iterations, current_iteration, perturbation=0.5, ):
+    def __init__(self, parameters, probability, max_iterations, perturbation=0.5, ):
         super().__init__(parameters, probability)
         self.perturbation = perturbation
         self.max_iterations = max_iterations
-        self.current_iteration = current_iteration
 
-    def __delta(self, y: float, b_mutation_parameter: float):
+    def __delta(self, y: float, b_mutation_parameter: float, current_iteration):
         return (y * (1.0 - pow(random.random(),
-                               pow((1.0 - 1.0 * self.current_iteration / self.max_iterations), b_mutation_parameter))))
+                               pow((1.0 - 1.0 * current_iteration / self.max_iterations), b_mutation_parameter))))
 
-    def mutate(self, parent):
+    def mutate(self, parent, current_iteration = 0):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
             if random.uniform(0, 1) < self.probability:
                 l_b = parameter['bounds'][0]
                 u_b = parameter['bounds'][1]
-                vector.append(self.non_uniform_mutation(parent.vector[i], l_b, u_b))
+                vector.append(self.non_uniform_mutation(parent.vector[i], l_b, u_b, current_iteration))
             else:
                 vector.append(parent.vector[i])
 
         return parent.__class__(vector)
 
-    def non_uniform_mutation(self, x, lb, ub):
+    def non_uniform_mutation(self, x, lb, ub, current_iteration):
 
         rand = random.random()
 
         if rand <= 0.5:
-            x = self.__delta(ub - x, self.perturbation)
+            x = self.__delta(ub - x, self.perturbation, current_iteration)
         else:
-            x = self.__delta(lb - x, self.perturbation)
+            x = self.__delta(lb - x, self.perturbation, current_iteration)
 
         x = self.clip(x, lb, ub)
 
@@ -652,151 +651,151 @@ class NonUniformMutation(Mutator):
 #             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
 #
 
-class FireflyStep(SwarmStep):
-    """
-    Firefly algorithm is a modification of the original pso algorithms. The idea is that it mimics the behaviour of
-    the fireflies, which uses specfic light combinations for hunting and dating. This algorithm mimics the dating
-    behaviour of these bugs. The algorithm is originally published by [1]
-
-    The brightest individual attracts the darkest ones, this starts to go to that direction, if there is not an
-    existing brighter solutions, the algorithm randomly steps one into another direction.
-
-    This operator makes the following
-    ---------------------------------
-
-    - calculates the distance between two points, because its correlates with that value.
-    - the brightness of the other point
-    - the mutator constant, which contains a damping factor [2]?
-
-    The k+1 th position of the j(th) individual is calculated by the following formula
-    ---------------------------------------------------------------------------
-
-        b0=2;               # Attraction Coefficient Base Value
-        a=0.2;              # Mutation Coefficient
-        ad=0.98;            # Mutation Coefficient Damping Ratio -- decreases the initial value of a after each
-                              iteration step
-        gamma = 1.          # light absorbtion coefficient
-
-        x(j,k+1) = x(j,k) + b0*exp(-gamma*r^2) + sum_{i<j}[x(j,k) - x(i,k)] + a*(rand[0,1] - 0.5)
-
-    [1] Yang, Xin-She. "Firefly algorithms for multimodal optimization." International symposium on stochastic algorithms.
-        Springer, Berlin, Heidelberg, 2009.
-    [2] firefly algorithm implementation from www.Yarpiz.com
-
-    [3] https://nl.mathworks.com/matlabcentral/fileexchange/29693-firefly-algorithm
-
-     Similarly, alpha should also be linked with scales, the steps should not too large or too small, often steps
-     are about 1/10 to 1/100 of the domain size. In addition, alpha should be reduced gradually using
-     alpha=alpha_0 delta^t during eteration t.  Typically, delta=0.9 to 0.99 will be a good choice.
-    """
-
-    def __init__(self, parameters, probability=0.05):
-        super().__init__(parameters, probability)
-
-        self.beta = 2.0
-        self.alpha = 0.2
-        self.ad = 0.98
-        self.gamma = 1.
-
-        self.best_individual = None
-
-    def dominate(self, current, other):
-        """True if other dominates over current """
-        dominates = True
-
-        for i in range(len(current.costs)):
-            if other.costs_signed[i] > current.costs_signed[i]:
-                dominates = False
-
-        return dominates
-
-    def update_coefficient_a(self):
-        """ Updates the mutation coefficient with the damping factor, after each iteration step """
-        self.alpha *= self.ad
-        return
-
-    # update new particle velocity
-    def update_velocity_ij(self, current, other):
-        """
-        This algorithm has a two-layered hierarchy, because every individual calculates an approximative next position
-        from the light intensity between two selected points.
-        """
-        r2 = 0.  # euclidean distance
-
-        for i, param in enumerate(self.parameters):
-            lb = param['bounds'][0]
-            ub = param['bounds'][1]
-
-            # elementary distance of the particle
-            e = self.probability * (ub - lb)
-            # distance between the two individuals
-            r2 += current.vector[i] ** 2. + other.vector[i] ** 2.
-            vel_attraction = self.beta * exp(-self.gamma * r2 ** 2.)
-
-            v_rd = self.alpha * (random.random() - 0.5) * e
-            current.velocity_i[i] = vel_attraction + v_rd
-
-            return
-
-    def mutate_ij(self, p, q):
-        """
-        For firefly algorithm, because of the two-layered hierarchy.
-
-        :param p:
-        :param q:
-        :return:
-        """
-        self.update_velocity_ij(p, q)
-        self.update_position(p)
-        return
-
-
-class SwarmStepTVAC(SwarmStep):
-    """
-    Time-varying acceleration coefficients as a new parameter automation strategy for the PSO concept.
-
-    An improved optimum solution for most of the benchmarks was observed when changing c1 from 2.5 to 0.5
-    and changing c2 from 0.5 to 2.5, over the full range of the search.
-    Therefore, these values are used for the rest of the work. With this modification, a significant improvement of
-    the optimum value and the rate of convergence were observed, particularly for unimodal functions, compared with
-    the PSO-TVIW. However, it has been observed that the performance of the PSO-TVAC method is similar or poor
-    for multimodal functions. In contrast, compared with the PSO-RANDIW method an improved performance has been
-    observed with the PSO-TVAC for multimodal functions.
-    However, for unimodal functions, the PSO-RANDIW method showed significantly quick convergence to a good solution
-    compared with the PSO-TVAC method. The results are presented and discussed in Section V.
-
-    Pros: improved convergence rate in case of multi-modal functions
-
-    Cons: significantly slower convergence rate than PSO-RandIW for unimodal functions
-    """
-
-    def __init__(self, parameters, probability=1):
-        super().__init__(parameters, probability)
-        self.w = 0.9  # inertia weight
-        self.c1i = 0.5  # cognitive constant initial value
-        self.c1f = 2.5  # cognitive constant final value
-        self.c2i = 2.5  # social constant initial value
-        self.c2f = 0.5  # social constant final value
-        self.best_individual = None
-
-    # update new particle velocity
-    def update_velocity(self, individual, nr_generations, iteration_nr):
-        """
-        :param nr_generations: total number of generations, during the calculation, MAXITER
-        :param iteration_nr: actual generation
-        """
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
-
-            # (c1f-c1i)*(MAX_ITER-iter)/MAX_ITER +
-            c1 = (self.c1f - self.c1i) * (nr_generations - iteration_nr) / nr_generations + self.c1i
-            c2 = (self.c2f - self.c2i) * (nr_generations - iteration_nr) / nr_generations + self.c2i
-
-            vel_cognitive = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
-
+# class FireflyStep(SwarmStep):
+#     """
+#     Firefly algorithm is a modification of the original pso algorithms. The idea is that it mimics the behaviour of
+#     the fireflies, which uses specfic light combinations for hunting and dating. This algorithm mimics the dating
+#     behaviour of these bugs. The algorithm is originally published by [1]
+#
+#     The brightest individual attracts the darkest ones, this starts to go to that direction, if there is not an
+#     existing brighter solutions, the algorithm randomly steps one into another direction.
+#
+#     This operator makes the following
+#     ---------------------------------
+#
+#     - calculates the distance between two points, because its correlates with that value.
+#     - the brightness of the other point
+#     - the mutator constant, which contains a damping factor [2]?
+#
+#     The k+1 th position of the j(th) individual is calculated by the following formula
+#     ---------------------------------------------------------------------------
+#
+#         b0=2;               # Attraction Coefficient Base Value
+#         a=0.2;              # Mutation Coefficient
+#         ad=0.98;            # Mutation Coefficient Damping Ratio -- decreases the initial value of a after each
+#                               iteration step
+#         gamma = 1.          # light absorbtion coefficient
+#
+#         x(j,k+1) = x(j,k) + b0*exp(-gamma*r^2) + sum_{i<j}[x(j,k) - x(i,k)] + a*(rand[0,1] - 0.5)
+#
+#     [1] Yang, Xin-She. "Firefly algorithms for multimodal optimization." International symposium on stochastic algorithms.
+#         Springer, Berlin, Heidelberg, 2009.
+#     [2] firefly algorithm implementation from www.Yarpiz.com
+#
+#     [3] https://nl.mathworks.com/matlabcentral/fileexchange/29693-firefly-algorithm
+#
+#      Similarly, alpha should also be linked with scales, the steps should not too large or too small, often steps
+#      are about 1/10 to 1/100 of the domain size. In addition, alpha should be reduced gradually using
+#      alpha=alpha_0 delta^t during eteration t.  Typically, delta=0.9 to 0.99 will be a good choice.
+#     """
+#
+#     def __init__(self, parameters, probability=0.05):
+#         super().__init__(parameters, probability)
+#
+#         self.beta = 2.0
+#         self.alpha = 0.2
+#         self.ad = 0.98
+#         self.gamma = 1.
+#
+#         self.best_individual = None
+#
+#     def dominate(self, current, other):
+#         """True if other dominates over current """
+#         dominates = True
+#
+#         for i in range(len(current.costs)):
+#             if other.costs_signed[i] > current.costs_signed[i]:
+#                 dominates = False
+#
+#         return dominates
+#
+#     def update_coefficient_a(self):
+#         """ Updates the mutation coefficient with the damping factor, after each iteration step """
+#         self.alpha *= self.ad
+#         return
+#
+#     # update new particle velocity
+#     def update_velocity_ij(self, current, other):
+#         """
+#         This algorithm has a two-layered hierarchy, because every individual calculates an approximative next position
+#         from the light intensity between two selected points.
+#         """
+#         r2 = 0.  # euclidean distance
+#
+#         for i, param in enumerate(self.parameters):
+#             lb = param['bounds'][0]
+#             ub = param['bounds'][1]
+#
+#             # elementary distance of the particle
+#             e = self.probability * (ub - lb)
+#             # distance between the two individuals
+#             r2 += current.vector[i] ** 2. + other.vector[i] ** 2.
+#             vel_attraction = self.beta * exp(-self.gamma * r2 ** 2.)
+#
+#             v_rd = self.alpha * (random.random() - 0.5) * e
+#             current.velocity_i[i] = vel_attraction + v_rd
+#
+#             return
+#
+#     def mutate_ij(self, p, q):
+#         """
+#         For firefly algorithm, because of the two-layered hierarchy.
+#
+#         :param p:
+#         :param q:
+#         :return:
+#         """
+#         self.update_velocity_ij(p, q)
+#         self.update_position(p)
+#         return
+#
+#
+# class SwarmStepTVAC(SwarmStep):
+#     """
+#     Time-varying acceleration coefficients as a new parameter automation strategy for the PSO concept.
+#
+#     An improved optimum solution for most of the benchmarks was observed when changing c1 from 2.5 to 0.5
+#     and changing c2 from 0.5 to 2.5, over the full range of the search.
+#     Therefore, these values are used for the rest of the work. With this modification, a significant improvement of
+#     the optimum value and the rate of convergence were observed, particularly for unimodal functions, compared with
+#     the PSO-TVIW. However, it has been observed that the performance of the PSO-TVAC method is similar or poor
+#     for multimodal functions. In contrast, compared with the PSO-RANDIW method an improved performance has been
+#     observed with the PSO-TVAC for multimodal functions.
+#     However, for unimodal functions, the PSO-RANDIW method showed significantly quick convergence to a good solution
+#     compared with the PSO-TVAC method. The results are presented and discussed in Section V.
+#
+#     Pros: improved convergence rate in case of multi-modal functions
+#
+#     Cons: significantly slower convergence rate than PSO-RandIW for unimodal functions
+#     """
+#
+#     def __init__(self, parameters, probability=1):
+#         super().__init__(parameters, probability)
+#         self.w = 0.9  # inertia weight
+#         self.c1i = 0.5  # cognitive constant initial value
+#         self.c1f = 2.5  # cognitive constant final value
+#         self.c2i = 2.5  # social constant initial value
+#         self.c2f = 0.5  # social constant final value
+#         self.best_individual = None
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual, nr_generations, iteration_nr):
+#         """
+#         :param nr_generations: total number of generations, during the calculation, MAXITER
+#         :param iteration_nr: actual generation
+#         """
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             # (c1f-c1i)*(MAX_ITER-iter)/MAX_ITER +
+#             c1 = (self.c1f - self.c1i) * (nr_generations - iteration_nr) / nr_generations + self.c1i
+#             c2 = (self.c2f - self.c2i) * (nr_generations - iteration_nr) / nr_generations + self.c2i
+#
+#             vel_cognitive = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
+#
 
 class Dominance(ABC):
     def __init__(self):
