@@ -2,8 +2,8 @@ from random import randint, random, uniform, choice
 from .problem import Problem
 from .population import Population
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
-from .operators import SwarmStep, DummySelector, RandomGenerator, SwarmStepTVIW, PmMutator, ParetoDominance, \
-    EpsilonDominance, crowding_distance
+from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
+    NonUniformMutation, UniformMutator
 from .archive import Archive
 from copy import copy
 import time
@@ -133,7 +133,8 @@ class OMOPSO(SwarmAlgorithm):
         self.options.declare(name='epsilons', default=0.01, lower=1e-6,
                              desc='prob_epsilons')
         self.n = self.options['max_population_size']
-        self.mutator = SwarmStep(self.problem.parameters)
+        self.non_uniform_mutator = NonUniformMutation(self.problem.parameters, self.options['prob_mutation'],
+                                                      self.options['max_population_number'])
         # self.selector = DummySelector(self.problem.parameters, self.problem.signs)
         self.dominance = ParetoDominance()
         self.features = {'velocity': [],

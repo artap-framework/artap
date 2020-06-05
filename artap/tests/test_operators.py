@@ -565,7 +565,7 @@ class TestNonUniformMutator(unittest.TestCase):
         x.signs = [2.0, 3.0, 0.0]
 
         self.um.probability = 1.0
-        y = self.um.mutate(x)
+        y = self.um.mutate(x,2)
         self.assertNotEqual(y.vector, [3, 2])
 
 
