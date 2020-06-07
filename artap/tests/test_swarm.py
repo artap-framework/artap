@@ -128,7 +128,7 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         x.costs_signed = [2.0, 1.0, 0]
 
         self.omopso.leaders.add(x)
-        y = self.omopso.select_global_best()
+        y = self.omopso.select_leader()
 
         self.assertEqual(x, y)
 
@@ -137,7 +137,7 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         z.costs_signed = [0.5, 1.5, 0]
 
         self.omopso.leaders.add(z)
-        y = self.omopso.select_global_best()
+        y = self.omopso.select_leader()
 
         ctr = 0
         if z == y:

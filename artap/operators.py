@@ -483,6 +483,8 @@ class NonUniformMutation(Mutator):
         else:
             x = self.__delta(lb - x, self.perturbation, current_iteration)
 
+        if isinstance(x,complex):
+            print(x)
         x = self.clip(x, lb, ub)
 
         return x
@@ -1117,14 +1119,14 @@ def nondominated_cmp(p, q):
 
 class DummySelector(Selector):
 
-    def __init__(self, parameters, sign, part_num=2):
-        super().__init__(parameters, sign, part_num)
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
     def select(self, individuals):
         selection = []
         for individual in individuals:
             candidate = Individual(individual.vector)
-            candidate.costs = individual.costs
+            candidate.costs = individual.costs.copy()
             candidate.features = individual.features.copy()
             selection.append(candidate)
         return selection
