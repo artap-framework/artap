@@ -29,7 +29,6 @@ class TestAckleyN222(unittest.TestCase):
             self.test_local_problem(int(1.5 * population_number))
 
 
-
 class TestZDT1(unittest.TestCase):
     # integration test -- tests the total functionality of eps-MOEA
 
