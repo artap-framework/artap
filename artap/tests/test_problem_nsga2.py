@@ -11,7 +11,7 @@ class TestZDT1(unittest.TestCase):
     # integration test -- tests the total functionality of nsga2
     # around 11secs according to literature DOI: 10.1007/978-3-642-01020-0_39
     def test_local_problem(self):
-        problem = problem = ZDT1()
+        problem = ZDT1()
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 250
         algorithm.options['max_population_size'] = 100  # according to the literature
