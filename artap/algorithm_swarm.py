@@ -3,7 +3,7 @@ from .problem import Problem
 from .population import Population
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
-    NonUniformMutation, UniformMutator
+    NonUniformMutation, UniformMutator, DummySelector
 from .archive import Archive
 from copy import copy
 import time
@@ -65,7 +65,7 @@ class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
 
         return velocity
 
-    def select_global_best(self):
+    def select_leader(self):
         pass
 
     def inertia_weight(self):
@@ -87,23 +87,8 @@ class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
                 particle.features['best_cost'] = particle.costs_signed
                 particle.features['best_vector'] = particle.vector
 
-    def turbulence(self, population):
+    def turbulence(self, particles, current_step=0):
         pass
-
-    def step(self, population):
-        self.update_velocity(population)
-        self.update_position(population)
-        self.turbulence(population)
-
-        offsprings = copy(population)
-
-        # self.evaluator.evaluate(offsprings)
-        self.evaluate(offsprings.individuals)
-        # self.add_features(offsprings) -- do not reset
-
-        self.update_particle_best(offsprings)
-        self.update_global_best(offsprings.individuals)
-        return offsprings
 
     def run(self):
         pass
@@ -128,14 +113,13 @@ class OMOPSO(SwarmAlgorithm):
 
     def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
         super().__init__(problem, name)
-        self.options.declare(name='prob_mutation', default=0.2, lower=0,
+        self.options.declare(name='prob_mutation', default=0.1, lower=0,
                              desc='prob_mutation'),
         self.options.declare(name='epsilons', default=0.01, lower=1e-6,
                              desc='prob_epsilons')
         self.n = self.options['max_population_size']
-        self.non_uniform_mutator = NonUniformMutation(self.problem.parameters, self.options['prob_mutation'],
-                                                      self.options['max_population_number'])
-        # self.selector = DummySelector(self.problem.parameters, self.problem.signs)
+
+        self.selector = DummySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
         self.features = {'velocity': [],
                          'best_cost': [],  # stores the
@@ -156,9 +140,6 @@ class OMOPSO(SwarmAlgorithm):
         self.r2_max = 1.0
         self.min_weight = 0.1
         self.max_weight = 0.5
-
-        # in this algorithm a polynomial mutation used as a turbulence operator
-        self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
 
     def inertia_weight(self):
         return uniform(self.min_weight, self.max_weight)
@@ -186,18 +167,18 @@ class OMOPSO(SwarmAlgorithm):
     #         mutated = self.mutator.mutate(population[i])
     #         population[i].vector = copy(mutated.vector)
 
-    def turbulence(self, particles):
+    def turbulence(self, particles, current_step=0):
         """
         OMOPSO applies a combination of uniform and nonuniform
         mutation to the particle swarm(uniform mutation to the first 30 % of
         the swarm, non - uniform to the next 30 %, and no mutation on the particles)
         """
 
-        for i in particles.size():
+        for i in range(len(particles)):
             if i % 3 == 0:
-                mutated = self.mutator.mutate(particles[i])
+                mutated = self.uniform_mutator.mutate(particles[i])
             elif i % 3 == 1:
-                mutated = self.mutator.mutate(particles[i])
+                mutated = self.non_uniform_mutator.mutate(particles[i], current_step)
             particles[i].vector = copy(mutated.vector)
         return
 
@@ -206,7 +187,7 @@ class OMOPSO(SwarmAlgorithm):
         for individual in population:
 
             individual.features['velocity'] = [0] * len(individual.vector)
-            global_best = self.select_global_best()
+            global_best = self.select_leader()
 
             r1 = round(uniform(self.r1_min, self.r1_max), 1)
             r2 = round(uniform(self.r2_min, self.r2_max), 1)
@@ -244,17 +225,14 @@ class OMOPSO(SwarmAlgorithm):
         # the fitness of the particles are calculated by their crowding distance
         crowding_distance(swarm)
 
-        for particle in swarm:
-            # because the two archive can be very different
-            if self.leaders.add(particle):
-                self.problem.archive.add(particle)
-
         # the length of the leaders archive cannot be longer than the number of the initial population
+        self.leaders += swarm
         self.leaders.truncate(self.population_size, 'crowding_distance')
+        self.problem.archive += swarm
 
         return
 
-    def select_global_best(self):
+    def select_leader(self):
         """
         There are different possibilities to select the global best solution.
         The leader class in this concept contains everybody after the initialization, every individual expected as a
@@ -269,17 +247,22 @@ class OMOPSO(SwarmAlgorithm):
         candidates = self.leaders.rand_sample(2)
 
         # randomly favourize one of them
-        best_global = choice(candidates)
+        # best_global = choice(candidates)
 
-        # if one of them dominates, it will be selected as global best
-        dom = self.dominance.compare(candidates[0].costs_signed, candidates[1].costs_signed)
+        # should select those which has bigger fitness
+        # # if one of them dominates, it will be selected as global best
+        # dom = self.dominance.compare(candidates[0].costs_signed, candidates[1].costs_signed)
+        #
+        # if dom == 1:
+        #     best_global = candidates[0]
+        #
+        # if dom == 2:
+        #     best_global = candidates[1]
 
-        if dom == 1:
-            best_global = candidates[0]
-
-        if dom == 2:
+        if candidates[1].features['crowding_distance'] > candidates[0].features['crowding_distance']:
             best_global = candidates[1]
-
+        else:
+            best_global = candidates[0]
         return best_global
 
     def run(self):
@@ -287,6 +270,11 @@ class OMOPSO(SwarmAlgorithm):
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
                                                      self.options['max_population_size']))
+        # update mutators
+        self.non_uniform_mutator = NonUniformMutation(self.problem.parameters, self.options['prob_mutation'],
+                                                      self.options['max_population_number'])
+        self.uniform_mutator = UniformMutator(self.problem.parameters, self.options['prob_mutation'],
+                                              self.options['max_population_number'])
         # initialize the swarm
         self.generator.init(self.options['max_population_size'])
         population = self.gen_initial_population()
@@ -299,25 +287,25 @@ class OMOPSO(SwarmAlgorithm):
 
         i = 0
         while i < self.options['max_population_number']:
-            self.update_velocity(population.individuals)
-            self.update_position(population.individuals)
-            self.turbulence(population.individuals)
+            offsprings = self.selector.select(population.individuals)
 
-            offsprings = copy(population.individuals)
 
-            # self.evaluator.evaluate(offsprings)
+            self.update_velocity(offsprings)
+            self.update_position(offsprings)
+            self.turbulence(offsprings, i)
+
             self.evaluate(offsprings)
-            population = Population(offsprings)
 
-            # veolcities are stored in features
             self.update_particle_best(offsprings)
             self.update_global_best(offsprings)
-            # self.add_features(offsprings) -- do not reset
 
+            population = Population(offsprings)
             self.problem.populations.append(population)
 
-            # population = self.step(population)
-            i += i + 1
+            #print(self.problem.archive._contents)
+
+            i += 1
+
         t = time.time() - t_s
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))
 

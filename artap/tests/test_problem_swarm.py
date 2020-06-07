@@ -2,6 +2,8 @@ import unittest
 from artap.algorithm_swarm import OMOPSO
 from artap.results import Results
 from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
+from artap.benchmark_pareto import ZDT1
+from artap.quality_indicator import epsilon_add
 
 
 class TestAckley(unittest.TestCase):
@@ -18,8 +20,30 @@ class TestAckley(unittest.TestCase):
 
         b = Results(problem)
         optimum = b.find_optimum('F_1')  # Takes last cost function
+        print(optimum.costs[0], problem.global_optimum)
         self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
 
+
+class TestZDT1(unittest.TestCase):
+    # integration test -- tests the total functionality of eps-MOEA
+
+    def test_local_problem(self):
+        problem = problem = ZDT1()
+        algorithm = OMOPSO(problem)
+        algorithm.options['max_population_number'] = 500
+        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_processes'] = 1
+        algorithm.options['epsilons'] = 0.05
+        algorithm.run()
+
+        results = Results(problem)
+        vals = results.pareto_values()
+        exact = problem.pareto_front(vals[0])
+        self.assertLessEqual(epsilon_add(exact, vals), 0.2)
+
+
+if __name__ == '__main__':
+    unittest.main()
 
 # class TestAckleyv1(unittest.TestCase):
 #     """ Tests that the PSO can find the global optimum. """
