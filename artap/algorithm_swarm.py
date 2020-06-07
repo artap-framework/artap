@@ -111,7 +111,7 @@ class OMOPSO(SwarmAlgorithm):
         Evolutionary Multi-Criterion Optimization, pp. 495-509
     """
 
-    def __init__(self, problem: Problem, name="Particle Swarm Algorithm"):
+    def __init__(self, problem: Problem, name="OMOPSO"):
         super().__init__(problem, name)
         self.options.declare(name='prob_mutation', default=0.1, lower=0,
                              desc='prob_mutation'),
@@ -289,7 +289,6 @@ class OMOPSO(SwarmAlgorithm):
         while i < self.options['max_population_number']:
             offsprings = self.selector.select(population.individuals)
 
-
             self.update_velocity(offsprings)
             self.update_position(offsprings)
             self.turbulence(offsprings, i)
@@ -302,7 +301,207 @@ class OMOPSO(SwarmAlgorithm):
             population = Population(offsprings)
             self.problem.populations.append(population)
 
-            #print(self.problem.archive._contents)
+            # print(self.problem.archive._contents)
+
+            i += 1
+
+        t = time.time() - t_s
+        self.problem.logger.info("PSO: elapsed time: {} s".format(t))
+
+
+class SMPSO(SwarmAlgorithm):
+    """
+    Implementation of SMPSP, a multi-objective particle swarm optimizer (MOPSO).
+    OMOPSO uses Crowding distance, Mutation and ε-Dominance.
+    According to [3], SMPSP is one of the top-performing PSO algorithms. There are 3 key-differences between OMOPS§ and
+    SMPSO, the mutator is polynomial mutation, the moment component of the velocity is constant, the values of the C1
+    and C2 values are [1.5, 2.5], while in the case of OMOPSO they are selected from [1.5, 2.0].
+    Here, instead of reversing the values from the borders, their speed are reduced by multiplying it by
+    0.001 [3].
+
+    Both of the SMPSO and OMOPSO can be defined with and without epsilon-dominance archive.
+
+    [1] Margarita Reyes SierraCarlos A. Coello Coello
+        Improving PSO-Based Multi-objective Optimization Using Crowding, Mutation and ∈-Dominance
+        DOI https://doi.org/10.1007/978-3-540-31880-4_35
+    [2] S. Mostaghim ; J. Teich :
+        Strategies for finding good local guides in multi-objective particle swarm optimization (MOPSO)
+        DOI: 10.1109/SIS.2003.1202243
+    [3] Durillo, J. J., J. Garcia-Nieto, A. J. Nebro, C. A. Coello Coello, F. Luna, and E. Alba (2009).
+        Multi-Objective Particle Swarm Optimizers: An Experimental Comparison.
+        Evolutionary Multi-Criterion Optimization, pp. 495-509
+    """
+
+    def __init__(self, problem: Problem, name="SMPSO Algorithm"):
+        super().__init__(problem, name)
+        self.options.declare(name='prob_mutation', default=0.1, lower=0,
+                             desc='prob_mutation'),
+        self.n = self.options['max_population_size']
+
+        self.selector = DummySelector(self.problem.parameters)
+        self.dominance = ParetoDominance()
+        self.features = {'velocity': [],
+                         'best_cost': [],  # stores the
+                         'best_vector': []}  #
+        # set random generator
+        self.generator = RandomGenerator(self.problem.parameters)
+        self.leaders = Archive()
+        self.problem.archive = self.leaders
+        self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
+        # constants for the speed and the position calculation
+
+        self.c1_min = 1.5
+        self.c1_max = 2.5
+        self.c2_min = 1.5
+        self.c2_max = 2.5
+        self.r1_min = 0.0
+        self.r1_max = 1.0
+        self.r2_min = 0.0
+        self.r2_max = 1.0
+        self.min_weight = 0.1
+        self.max_weight = 0.1
+
+    def inertia_weight(self):
+        return uniform(self.min_weight, self.max_weight)
+
+    def init_pvelocity(self, population):
+        """
+        Inits the particle velocity and its allowed maximum speed.
+        :param population: list of individuals
+        :return
+        """
+        for individual in population:
+            # the initial speed is set to zero
+            individual.features['velocity'] = [0] * len(individual.vector)
+
+            # for parameter in self.parameters:
+            #     delta_i = (parameter['bounds'][1] - parameter['bounds'][0]) / 2.
+            #     if parameter['v_max']:
+            #         delta_i = min(parameter['v_max'], delta_i)
+            #     individual.features['max_speed'] = delta_i
+        return
+
+    def turbulence(self, particles, current_step=0):
+        """ SMPSO applies polynomial mutation on 15% of the particles """
+
+        for i in range(len(particles)):
+            if i % 6 == 0:
+                mutated = self.mutator.mutate(particles[i])
+                particles[i].vector = copy(mutated.vector)
+
+    def update_velocity(self, population):
+
+        for individual in population:
+
+            individual.features['velocity'] = [0] * len(individual.vector)
+            global_best = self.select_leader()
+
+            r1 = round(uniform(self.r1_min, self.r1_max), 1)
+            r2 = round(uniform(self.r2_min, self.r2_max), 1)
+            c1 = round(uniform(self.c1_min, self.c1_max), 1)
+            c2 = round(uniform(self.c2_min, self.c2_max), 1)
+
+            for i in range(0, len(individual.vector)):
+                momentum = self.inertia_weight() * individual.vector[i]
+                v_cog = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+                v_soc = c2 * r2 * (global_best.vector[i] - individual.vector[i])
+
+                v = self.khi(c1, c2) * (momentum + v_cog + v_soc)
+                individual.features['velocity'][i] = self.speed_constriction(v, self.parameters[i]['bounds'][1],
+                                                                             self.parameters[i]['bounds'][0])
+
+    def update_position(self, population):
+
+        for individual in population:
+            for parameter, i in zip(self.parameters, range(len(individual.vector))):
+                individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
+
+                # adjust maximum position if necessary
+                if individual.vector[i] > parameter['bounds'][1]:
+                    individual.vector[i] = parameter['bounds'][1]
+                    individual.features['velocity'][i] *= 0.001
+
+                # adjust minimum position if necessary
+                if individual.vector[i] < parameter['bounds'][0]:
+                    individual.vector[i] = parameter['bounds'][0]
+                    individual.features['velocity'][i] *= 0.001
+
+    def update_global_best(self, swarm):
+        """ Manages the leader class in OMOPSO. """
+
+        # the fitness of the particles are calculated by their crowding distance
+        crowding_distance(swarm)
+
+        # the length of the leaders archive cannot be longer than the number of the initial population
+        self.leaders += swarm
+        self.leaders.truncate(self.population_size, 'crowding_distance')
+        #self.problem.archive += swarm
+
+        return
+
+    def select_leader(self):
+        """
+        There are different possibilities to select the global best solution.
+        The leader class in this concept contains everybody after the initialization, every individual expected as a
+        leader, we select 2 from them and select the non-dominated as the global best.
+
+        :return:
+        """
+
+        if self.leaders.size() == 1:
+            return self.leaders.rand_choice()
+
+        candidates = self.leaders.rand_sample(2)
+
+        # randomly favourize one of them
+        # best_global = choice(candidates)
+
+        # should select those which has bigger fitness
+        # # if one of them dominates, it will be selected as global best
+        # dom = self.dominance.compare(candidates[0].costs_signed, candidates[1].costs_signed)
+        #
+        # if dom == 1:
+        #     best_global = candidates[0]
+        #
+        # if dom == 2:
+        #     best_global = candidates[1]
+
+        if candidates[1].features['crowding_distance'] > candidates[0].features['crowding_distance']:
+            best_global = candidates[1]
+        else:
+            best_global = candidates[0]
+        return best_global
+
+    def run(self):
+
+        t_s = time.time()
+        self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
+                                                     self.options['max_population_size']))
+        # initialize the swarm
+        self.generator.init(self.options['max_population_size'])
+        population = self.gen_initial_population()
+        self.evaluate(population.individuals)
+        self.add_features(population.individuals)
+
+        self.init_pvelocity(population.individuals)
+        self.init_pbest(population.individuals)
+        self.update_global_best(population.individuals)
+
+        i = 0
+        while i < self.options['max_population_number']:
+            offsprings = self.selector.select(population.individuals)
+
+            self.update_velocity(offsprings)
+            self.update_position(offsprings)
+            self.turbulence(offsprings, i)
+
+            self.evaluate(offsprings)
+
+            self.update_particle_best(offsprings)
+            self.update_global_best(offsprings)
+
+            population = Population(offsprings)
+            self.problem.populations.append(population)
 
             i += 1
 
