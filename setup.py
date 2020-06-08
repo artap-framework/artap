@@ -1,6 +1,7 @@
 from setuptools import Command, setup, find_packages
 from setuptools.command.install import install
 import os
+import datetime
 
 
 class CustomInstallCommand(install):
@@ -39,9 +40,11 @@ def setup_package():
         "zip_safe": False,
     }
 
+    dt = datetime.datetime.now()
+    
     setup(
         name="artap",
-        version="2020.4.30.1",
+        version="{}.{}".format(dt.strftime('%Y.%m.%d'), dt.hour*60+dt.minute*60+dt.second),
         author=u"Artap Team",
         author_email="artap.framework@gmail.com",
         description="Platform for robust design optimization",
