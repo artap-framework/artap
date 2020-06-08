@@ -346,7 +346,7 @@ class Mutator(Operator):
         self.probability = probability
 
     @abstractmethod
-    def mutate(self, p):
+    def mutate(self, p, current_iteration = 0):
         pass
 
 
@@ -354,7 +354,7 @@ class SimpleMutator(Mutator):
     def __init__(self, parameters, probability):
         super().__init__(parameters, probability)
 
-    def mutate(self, p):
+    def mutate(self, p, current_iteration = 0):
         """ uniform random mutation """
         mutation_space = 0.1
         vector = []
@@ -387,7 +387,7 @@ class PmMutator(Mutator):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
-    def mutate(self, parent):
+    def mutate(self, parent, current_iteration = 0):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
@@ -437,314 +437,384 @@ class PmMutator(Mutator):
         return x
 
 
-class SwarmMutator(Mutator):
+class UniformMutator(Mutator):
     """
-    This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
-
-    PSO shares many similarities with evolutionary computation. Both algorithms start with a group of a randomly
-    generated population. Both update the population iteratively and search for the optimum with stochastic techniques.
-    The main difference between them is in the information sharing mechanism. In EA, only the individuals of current
-    generation share information with each other, and any individual has a chance to give out information to others.
-    In PSO, actually not the current individuals share information with each other, but the individuals of previous
-    generation (the optimal particles) give out information to the current ones. In other words, the information sharing
-    is one-way in PSO.
+    Uniform mutator -- for omopso .
     """
 
-    def __init__(self, parameters, probability=1):
+    def __init__(self, parameters, probability, perturbation=0.5):
         super().__init__(parameters, probability)
-        self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
-        self.c1 = 2.  # cognitive constant
-        self.c2 = 1.  # social constant
-        self.best_individual = None
+        self.perturbation = perturbation
 
-    def evaluate_best_individual(self, individual):
-        """ Determines the best individual in the swarm """
-        dominates = True
-        individual.features['best_costs'] = [0] * len(individual.costs)
-        for i in range(len(individual.features['best_costs'])):
-            if individual.costs[i] > individual.features['best_costs'][i]:
-                dominates = False
+    def mutate(self, parent, current_iteration = 0):
+        vector = []
 
-        # check to see if the current position is an individual best
-        if dominates:
-            individual.features['best_vector'] = individual.vector
-            individual.features['best_costs'] = individual.costs
+        for i, parameter in enumerate(self.parameters):
+            if random.uniform(0, 1) < self.probability:
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
+                vector.append(self.uniform_mutation(parent.vector[i], l_b, u_b))
+            else:
+                vector.append(parent.vector[i])
 
-    # update new particle velocity
-    def update_velocity(self, individual):
-        individual.features['velocity'] = [0] * len(individual.vector)
-        individual.features['best_vector'] = [0] * len(individual.vector)
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
+        return parent.__class__(vector)
 
-            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.features['velocity'][i] = self.w * individual.features['velocity'][
-                i] + vel_cognitive + vel_social
+    def uniform_mutation(self, x, lb, ub):
 
-    # update the particle position based off new velocity updates
-    def update_position(self, individual):
+        x = x + (random.random() - 0.5) * self.perturbation
+        x = self.clip(x, lb, ub)
 
-        for parameter, i in zip(self.parameters, range(len(individual.vector))):
-            individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
-
-            # adjust maximum position if necessary
-            if individual.vector[i] > parameter['bounds'][1]:
-                individual.vector[i] = parameter['bounds'][1]
-
-            # adjust minimum position if necessary
-            if individual.vector[i] < parameter['bounds'][0]:
-                individual.vector[i] = parameter['bounds'][0]
-
-    def update(self, best_individual):
-        self.best_individual = best_individual
-
-    def mutate(self, p):
-        self.update_velocity(p)
-        self.update_position(p)
-        return p
+        return x
 
 
-class SwarmMutatorTVIW(SwarmMutator):
-    """
-    This is an improvement of the original PSO algorithm with Time Varying Inertia Weight operators.
+class NonUniformMutation(Mutator):
 
-    Empirical study of particle swarm optimization,” in Proc. IEEE Int. Congr. Evolutionary Computation, vol. 3,
-    1999, pp. 101–106.
-
-    Shi and Eberhart have observed that the optimal solution can be improved by varying the inertia weight value from
-    0.9 (at the beginning of the search) to 0.4 (at the end of the search) for most problems. This modification to the
-    original PSO concept has been considered as the basis for two novel strategies introduced in this paper. Hereafter,
-    in this paper, this version of PSO is referred to as time-varying inertia weight factor method
-
-    Contras:
-    -------
-    - PSO-TVIW concept is not very effective for tracking dynamic systems
-
-    - its ability to fine tune the optimum solution is comparatively weak, mainly due
-      to the lack of diversity at the end of the search
-
-    R. C. Eberhart and Y. Shi, “Tracking and optimizing dynamic systems with particle swarms,” in Proc. IEEE Congr.
-    Evolutionary Computation 2001, Seoul, Korea, 2001, pp. 94–97
-    """
-
-    def __init__(self, parameters, probability=1, nr_maxgen=100):
+    def __init__(self, parameters, probability, max_iterations, perturbation=0.5, ):
         super().__init__(parameters, probability)
-        self.w1 = 0.9  # inertia weight is calculated from w1 and w2
-        self.w2 = 0.4
-        self.c1 = 2.  # cognitive constant
-        self.c2 = 1.  # social constant
-        self.best_individual = None
+        self.perturbation = perturbation
+        self.max_iterations = max_iterations
 
-        # new parameters
-        self.max_nr_generations = nr_maxgen
-        self.current_iter = 0.
+    def __delta(self, y: float, b_mutation_parameter: float, current_iteration):
+        return (y * (1.0 - pow(random.random(),
+                               pow((1.0 - 1.0 * current_iteration / self.max_iterations), b_mutation_parameter))))
 
-    # update new particle velocity
-    def update_velocity(self, individual):
-        """
-        :param nr_generations: total number of generations, during the calculation, MAXITER
-        :param iteration_nr: actual generation
-        """
+    def mutate(self, parent, current_iteration = 0):
+        vector = []
 
-        individual.features['velocity'] = [0] * len(individual.vector)
-        individual.features['best_vector'] = [0] * len(individual.vector)
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
+        for i, parameter in enumerate(self.parameters):
+            if random.uniform(0, 1) < self.probability:
+                l_b = parameter['bounds'][0]
+                u_b = parameter['bounds'][1]
+                vector.append(self.non_uniform_mutation(parent.vector[i], l_b, u_b, current_iteration))
+            else:
+                vector.append(parent.vector[i])
 
-            # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
-            w = (self.w1 - self.w2) * (self.max_nr_generations - self.current_iter) / self.max_nr_generations + self.w2
+        return parent.__class__(vector)
 
-            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.features['velocity'][i] = w * individual.features['velocity'][i] + vel_cognitive + vel_social
+    def non_uniform_mutation(self, x, lb, ub, current_iteration):
 
-            self.current_iter += 1.
+        rand = random.random()
 
+        if rand <= 0.5:
+            x = self.__delta(ub - x, self.perturbation, current_iteration)
+        else:
+            x = self.__delta(lb - x, self.perturbation, current_iteration)
 
-class SwarmMutatorRandIW(SwarmMutator):
-    """
-    In this variation, the inertia weght is changing randomly,the mean value of the inertia weight is 0.75.
-    This modification was inspired by Clerc’s constriction factor concept,  in which the inertia weight is
-    kept constant at 0.729 and both acceleration coefficients are kept constant at 1.494.
-    Therefore, when random inertia weight factor method is used the acceleration coefficients are kept constant at 1.494.
+        if isinstance(x,complex):
+            print(x)
+        x = self.clip(x, lb, ub)
 
-    Contras:
-    -------
-    """
-
-    def __init__(self, parameters, probability=1):
-        super().__init__(parameters, probability)
-        self.w = 0.5  # inertia weight -> changed randomly
-        self.c1 = 2.  # cognitive constant
-        self.c2 = 1.  # social constant
-        self.best_individual = None
-
-    # update new particle velocity
-    def update_velocity(self, individual):
-        """
-        :param nr_generations: total number of generations, during the calculation, MAXITER
-        :param iteration_nr: actual generation
-        """
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
-
-            # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
-            w = self.w * random.random() / 2.
-
-            vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+        return x
 
 
-class FireflyMutator(SwarmMutator):
-    """
-    Firefly algorithm is a modification of the original pso algorithms. The idea is that it mimics the behaviour of
-    the fireflies, which uses specfic light combinations for hunting and dating. This algorithm mimics the dating
-    behaviour of these bugs. The algorithm is originally published by [1]
+# class SwarmStep(Mutator):
+#     """
+#     This swarm mutator operator is made for the original PSO algorithm, which defined by Kennedy and Eberhart in 1995
+#
+#     PSO shares many similarities with evolutionary computation. Both algorithms start with a group of a randomly
+#     generated population. Both update the population iteratively and search for the optimum with stochastic techniques.
+#     The main difference between them is in the information sharing mechanism. In EA, only the individuals of current
+#     generation share information with each other, and any individual has a chance to give out information to others.
+#     In PSO, actually not the current individuals share information with each other, but the individuals of previous
+#     generation (the optimal particles) give out information to the current ones. In other words, the information sharing
+#     is one-way in PSO.
+#     """
+#
+#     def __init__(self, parameters, probability=1):
+#         super().__init__(parameters, probability)
+#         self.w = 0.1  # constant inertia weight (how much to weigh the previous velocity)
+#         self.c1 = 2.  # cognitive constant
+#         self.c2 = 1.  # social constant
+#         self.best_individual = None
+#
+#     def evaluate_best_individual(self, individual):
+#         """ Determines the best individual in the swarm """
+#         dominates = True
+#         individual.features['best_costs'] = [0] * len(individual.costs)
+#         for i in range(len(individual.features['best_costs'])):
+#             if individual.costs[i] > individual.features['best_costs'][i]:
+#                 dominates = False
+#
+#         # check to see if the current position is an individual best
+#         if dominates:
+#             individual.features['best_vector'] = individual.vector
+#             individual.features['best_costs'] = individual.costs
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual):
+#         individual.features['velocity'] = [0] * len(individual.vector)
+#         individual.features['best_vector'] = [0] * len(individual.vector)
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.features['velocity'][i] = self.w * individual.features['velocity'][
+#                 i] + vel_cognitive + vel_social
+#
+#     # update the particle position based off new velocity updates
+#     def update_position(self, individual):
+#
+#         for parameter, i in zip(self.parameters, range(len(individual.vector))):
+#             individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
+#
+#             # adjust maximum position if necessary
+#             if individual.vector[i] > parameter['bounds'][1]:
+#                 individual.vector[i] = parameter['bounds'][1]
+#
+#             # adjust minimum position if necessary
+#             if individual.vector[i] < parameter['bounds'][0]:
+#                 individual.vector[i] = parameter['bounds'][0]
+#
+#     def update(self, best_individual):
+#         self.best_individual = best_individual
+#
+#     def mutate(self, p):
+#         self.update_velocity(p)
+#         self.update_position(p)
+#         return p
+#
 
-    The brightest individual attracts the darkest ones, this starts to go to that direction, if there is not an
-    existing brighter solutions, the algorithm randomly steps one into another direction.
+# class SwarmStepTVIW(SwarmStep):
+#     """
+#     This is an improvement of the original PSO algorithm with Time Varying Inertia Weight operators.
+#
+#     Empirical study of particle swarm optimization,” in Proc. IEEE Int. Congr. Evolutionary Computation, vol. 3,
+#     1999, pp. 101–106.
+#
+#     Shi and Eberhart have observed that the optimal solution can be improved by varying the inertia weight value from
+#     0.9 (at the beginning of the search) to 0.4 (at the end of the search) for most problems. This modification to the
+#     original PSO concept has been considered as the basis for two novel strategies introduced in this paper. Hereafter,
+#     in this paper, this version of PSO is referred to as time-varying inertia weight factor method
+#
+#     Contras:
+#     -------
+#     - PSO-TVIW concept is not very effective for tracking dynamic systems
+#
+#     - its ability to fine tune the optimum solution is comparatively weak, mainly due
+#       to the lack of diversity at the end of the search
+#
+#     R. C. Eberhart and Y. Shi, “Tracking and optimizing dynamic systems with particle swarms,” in Proc. IEEE Congr.
+#     Evolutionary Computation 2001, Seoul, Korea, 2001, pp. 94–97
+#     """
+#
+#     def __init__(self, parameters, probability=1, nr_maxgen=100):
+#         super().__init__(parameters, probability)
+#         self.w1 = 0.9  # inertia weight is calculated from w1 and w2
+#         self.w2 = 0.4
+#         self.c1 = 2.  # cognitive constant
+#         self.c2 = 1.  # social constant
+#         self.best_individual = None
+#
+#         # new parameters
+#         self.max_nr_generations = nr_maxgen
+#         self.current_iter = 0.
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual):
+#         """
+#         :param nr_generations: total number of generations, during the calculation, MAXITER
+#         :param iteration_nr: actual generation
+#         """
+#
+#         individual.features['velocity'] = [0] * len(individual.vector)
+#         individual.features['best_vector'] = [0] * len(individual.vector)
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
+#             w = (self.w1 - self.w2) * (self.max_nr_generations - self.current_iter) / self.max_nr_generations + self.w2
+#
+#             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.features['velocity'][i] = w * individual.features['velocity'][i] + vel_cognitive + vel_social
+#
+#             self.current_iter += 1.
+#
 
-    This operator makes the following
-    ---------------------------------
+# class SwarmStepRandIW(SwarmStep):
+#     """
+#     In this variation, the inertia weght is changing randomly,the mean value of the inertia weight is 0.75.
+#     This modification was inspired by Clerc’s constriction factor concept,  in which the inertia weight is
+#     kept constant at 0.729 and both acceleration coefficients are kept constant at 1.494.
+#     Therefore, when random inertia weight factor method is used the acceleration coefficients are kept constant at 1.494.
+#
+#     Contras:
+#     -------
+#     """
+#
+#     def __init__(self, parameters, probability=1):
+#         super().__init__(parameters, probability)
+#         self.w = 0.5  # inertia weight -> changed randomly
+#         self.c1 = 2.  # cognitive constant
+#         self.c2 = 1.  # social constant
+#         self.best_individual = None
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual):
+#         """
+#         :param nr_generations: total number of generations, during the calculation, MAXITER
+#         :param iteration_nr: actual generation
+#         """
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             # (w1-w2)*(MAX_ITER-iter)/MAX_ITER
+#             w = self.w * random.random() / 2.
+#
+#             vel_cognitive = self.c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = self.c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.velocity_i[i] = w * individual.velocity_i[i] + vel_cognitive + vel_social
+#
 
-    - calculates the distance between two points, because its correlates with that value.
-    - the brightness of the other point
-    - the mutator constant, which contains a damping factor [2]?
-
-    The k+1 th position of the j(th) individual is calculated by the following formula
-    ---------------------------------------------------------------------------
-
-        b0=2;               # Attraction Coefficient Base Value
-        a=0.2;              # Mutation Coefficient
-        ad=0.98;            # Mutation Coefficient Damping Ratio -- decreases the initial value of a after each
-                              iteration step
-        gamma = 1.          # light absorbtion coefficient
-
-        x(j,k+1) = x(j,k) + b0*exp(-gamma*r^2) + sum_{i<j}[x(j,k) - x(i,k)] + a*(rand[0,1] - 0.5)
-
-    [1] Yang, Xin-She. "Firefly algorithms for multimodal optimization." International symposium on stochastic algorithms.
-        Springer, Berlin, Heidelberg, 2009.
-    [2] firefly algorithm implementation from www.Yarpiz.com
-
-    [3] https://nl.mathworks.com/matlabcentral/fileexchange/29693-firefly-algorithm
-
-     Similarly, alpha should also be linked with scales, the steps should not too large or too small, often steps
-     are about 1/10 to 1/100 of the domain size. In addition, alpha should be reduced gradually using
-     alpha=alpha_0 delta^t during eteration t.  Typically, delta=0.9 to 0.99 will be a good choice.
-    """
-
-    def __init__(self, parameters, probability=0.05):
-        super().__init__(parameters, probability)
-
-        self.beta = 2.0
-        self.alpha = 0.2
-        self.ad = 0.98
-        self.gamma = 1.
-
-        self.best_individual = None
-
-    def dominate(self, current, other):
-        """True if other dominates over current """
-        dominates = True
-
-        for i in range(len(current.costs)):
-            if other.costs_signed[i] > current.costs_signed[i]:
-                dominates = False
-
-        return dominates
-
-    def update_coefficient_a(self):
-        """ Updates the mutation coefficient with the damping factor, after each iteration step """
-        self.alpha *= self.ad
-        return
-
-    # update new particle velocity
-    def update_velocity_ij(self, current, other):
-        """
-        This algorithm has a two-layered hierarchy, because every individual calculates an approximative next position
-        from the light intensity between two selected points.
-        """
-        r2 = 0.  # euclidean distance
-
-        for i, param in enumerate(self.parameters):
-            lb = param['bounds'][0]
-            ub = param['bounds'][1]
-
-            # elementary distance of the particle
-            e = self.probability * (ub - lb)
-            # distance between the two individuals
-            r2 += current.vector[i] ** 2. + other.vector[i] ** 2.
-            vel_attraction = self.beta * exp(-self.gamma * r2 ** 2.)
-
-            v_rd = self.alpha * (random.random() - 0.5) * e
-            current.velocity_i[i] = vel_attraction + v_rd
-
-            return
-
-    def mutate_ij(self, p, q):
-        """
-        For firefly algorithm, because of the two-layered hierarchy.
-
-        :param p:
-        :param q:
-        :return:
-        """
-        self.update_velocity_ij(p, q)
-        self.update_position(p)
-        return
-
-
-class SwarmMutatorTVAC(SwarmMutator):
-    """
-    Time-varying acceleration coefficients as a new parameter automation strategy for the PSO concept.
-
-    An improved optimum solution for most of the benchmarks was observed when changing c1 from 2.5 to 0.5
-    and changing c2 from 0.5 to 2.5, over the full range of the search.
-    Therefore, these values are used for the rest of the work. With this modification, a significant improvement of
-    the optimum value and the rate of convergence were observed, particularly for unimodal functions, compared with
-    the PSO-TVIW. However, it has been observed that the performance of the PSO-TVAC method is similar or poor
-    for multimodal functions. In contrast, compared with the PSO-RANDIW method an improved performance has been
-    observed with the PSO-TVAC for multimodal functions.
-    However, for unimodal functions, the PSO-RANDIW method showed significantly quick convergence to a good solution
-    compared with the PSO-TVAC method. The results are presented and discussed in Section V.
-
-    Pros: improved convergence rate in case of multi-modal functions
-
-    Cons: significantly slower convergence rate than PSO-RandIW for unimodal functions
-    """
-
-    def __init__(self, parameters, probability=1):
-        super().__init__(parameters, probability)
-        self.w = 0.9  # inertia weight
-        self.c1i = 0.5  # cognitive constant initial value
-        self.c1f = 2.5  # cognitive constant final value
-        self.c2i = 2.5  # social constant initial value
-        self.c2f = 0.5  # social constant final value
-        self.best_individual = None
-
-    # update new particle velocity
-    def update_velocity(self, individual, nr_generations, iteration_nr):
-        """
-        :param nr_generations: total number of generations, during the calculation, MAXITER
-        :param iteration_nr: actual generation
-        """
-        for i in range(0, len(individual.vector)):
-            r1 = 0.1 * random.random()
-            r2 = 0.1 * random.random()
-
-            # (c1f-c1i)*(MAX_ITER-iter)/MAX_ITER +
-            c1 = (self.c1f - self.c1i) * (nr_generations - iteration_nr) / nr_generations + self.c1i
-            c2 = (self.c2f - self.c2i) * (nr_generations - iteration_nr) / nr_generations + self.c2i
-
-            vel_cognitive = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-            vel_social = c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
-            individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
-
+# class FireflyStep(SwarmStep):
+#     """
+#     Firefly algorithm is a modification of the original pso algorithms. The idea is that it mimics the behaviour of
+#     the fireflies, which uses specfic light combinations for hunting and dating. This algorithm mimics the dating
+#     behaviour of these bugs. The algorithm is originally published by [1]
+#
+#     The brightest individual attracts the darkest ones, this starts to go to that direction, if there is not an
+#     existing brighter solutions, the algorithm randomly steps one into another direction.
+#
+#     This operator makes the following
+#     ---------------------------------
+#
+#     - calculates the distance between two points, because its correlates with that value.
+#     - the brightness of the other point
+#     - the mutator constant, which contains a damping factor [2]?
+#
+#     The k+1 th position of the j(th) individual is calculated by the following formula
+#     ---------------------------------------------------------------------------
+#
+#         b0=2;               # Attraction Coefficient Base Value
+#         a=0.2;              # Mutation Coefficient
+#         ad=0.98;            # Mutation Coefficient Damping Ratio -- decreases the initial value of a after each
+#                               iteration step
+#         gamma = 1.          # light absorbtion coefficient
+#
+#         x(j,k+1) = x(j,k) + b0*exp(-gamma*r^2) + sum_{i<j}[x(j,k) - x(i,k)] + a*(rand[0,1] - 0.5)
+#
+#     [1] Yang, Xin-She. "Firefly algorithms for multimodal optimization." International symposium on stochastic algorithms.
+#         Springer, Berlin, Heidelberg, 2009.
+#     [2] firefly algorithm implementation from www.Yarpiz.com
+#
+#     [3] https://nl.mathworks.com/matlabcentral/fileexchange/29693-firefly-algorithm
+#
+#      Similarly, alpha should also be linked with scales, the steps should not too large or too small, often steps
+#      are about 1/10 to 1/100 of the domain size. In addition, alpha should be reduced gradually using
+#      alpha=alpha_0 delta^t during eteration t.  Typically, delta=0.9 to 0.99 will be a good choice.
+#     """
+#
+#     def __init__(self, parameters, probability=0.05):
+#         super().__init__(parameters, probability)
+#
+#         self.beta = 2.0
+#         self.alpha = 0.2
+#         self.ad = 0.98
+#         self.gamma = 1.
+#
+#         self.best_individual = None
+#
+#     def dominate(self, current, other):
+#         """True if other dominates over current """
+#         dominates = True
+#
+#         for i in range(len(current.costs)):
+#             if other.costs_signed[i] > current.costs_signed[i]:
+#                 dominates = False
+#
+#         return dominates
+#
+#     def update_coefficient_a(self):
+#         """ Updates the mutation coefficient with the damping factor, after each iteration step """
+#         self.alpha *= self.ad
+#         return
+#
+#     # update new particle velocity
+#     def update_velocity_ij(self, current, other):
+#         """
+#         This algorithm has a two-layered hierarchy, because every individual calculates an approximative next position
+#         from the light intensity between two selected points.
+#         """
+#         r2 = 0.  # euclidean distance
+#
+#         for i, param in enumerate(self.parameters):
+#             lb = param['bounds'][0]
+#             ub = param['bounds'][1]
+#
+#             # elementary distance of the particle
+#             e = self.probability * (ub - lb)
+#             # distance between the two individuals
+#             r2 += current.vector[i] ** 2. + other.vector[i] ** 2.
+#             vel_attraction = self.beta * exp(-self.gamma * r2 ** 2.)
+#
+#             v_rd = self.alpha * (random.random() - 0.5) * e
+#             current.velocity_i[i] = vel_attraction + v_rd
+#
+#             return
+#
+#     def mutate_ij(self, p, q):
+#         """
+#         For firefly algorithm, because of the two-layered hierarchy.
+#
+#         :param p:
+#         :param q:
+#         :return:
+#         """
+#         self.update_velocity_ij(p, q)
+#         self.update_position(p)
+#         return
+#
+#
+# class SwarmStepTVAC(SwarmStep):
+#     """
+#     Time-varying acceleration coefficients as a new parameter automation strategy for the PSO concept.
+#
+#     An improved optimum solution for most of the benchmarks was observed when changing c1 from 2.5 to 0.5
+#     and changing c2 from 0.5 to 2.5, over the full range of the search.
+#     Therefore, these values are used for the rest of the work. With this modification, a significant improvement of
+#     the optimum value and the rate of convergence were observed, particularly for unimodal functions, compared with
+#     the PSO-TVIW. However, it has been observed that the performance of the PSO-TVAC method is similar or poor
+#     for multimodal functions. In contrast, compared with the PSO-RANDIW method an improved performance has been
+#     observed with the PSO-TVAC for multimodal functions.
+#     However, for unimodal functions, the PSO-RANDIW method showed significantly quick convergence to a good solution
+#     compared with the PSO-TVAC method. The results are presented and discussed in Section V.
+#
+#     Pros: improved convergence rate in case of multi-modal functions
+#
+#     Cons: significantly slower convergence rate than PSO-RandIW for unimodal functions
+#     """
+#
+#     def __init__(self, parameters, probability=1):
+#         super().__init__(parameters, probability)
+#         self.w = 0.9  # inertia weight
+#         self.c1i = 0.5  # cognitive constant initial value
+#         self.c1f = 2.5  # cognitive constant final value
+#         self.c2i = 2.5  # social constant initial value
+#         self.c2f = 0.5  # social constant final value
+#         self.best_individual = None
+#
+#     # update new particle velocity
+#     def update_velocity(self, individual, nr_generations, iteration_nr):
+#         """
+#         :param nr_generations: total number of generations, during the calculation, MAXITER
+#         :param iteration_nr: actual generation
+#         """
+#         for i in range(0, len(individual.vector)):
+#             r1 = 0.1 * random.random()
+#             r2 = 0.1 * random.random()
+#
+#             # (c1f-c1i)*(MAX_ITER-iter)/MAX_ITER +
+#             c1 = (self.c1f - self.c1i) * (nr_generations - iteration_nr) / nr_generations + self.c1i
+#             c2 = (self.c2f - self.c2i) * (nr_generations - iteration_nr) / nr_generations + self.c2i
+#
+#             vel_cognitive = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+#             vel_social = c2 * r2 * (self.best_individual.vector[i] - individual.vector[i])
+#             individual.velocity_i[i] = self.w * individual.velocity_i[i] + vel_cognitive + vel_social
+#
 
 class Dominance(ABC):
     def __init__(self):
@@ -1066,14 +1136,14 @@ def nondominated_cmp(p, q):
 
 class DummySelector(Selector):
 
-    def __init__(self, parameters, sign, part_num=2):
-        super().__init__(parameters, sign, part_num)
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
     def select(self, individuals):
         selection = []
         for individual in individuals:
             candidate = Individual(individual.vector)
-            candidate.costs = individual.costs
+            candidate.costs = individual.costs.copy()
             candidate.features = individual.features.copy()
             selection.append(candidate)
         return selection
@@ -1116,7 +1186,6 @@ class TournamentSelector(Selector):
                 selected = random.choice(candidates)
 
         return selected
-
 
 
 # class Archive(object):

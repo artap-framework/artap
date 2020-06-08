@@ -1,6 +1,6 @@
-import itertools
+import itertools, operator
 from artap.operators import ParetoDominance, EpsilonDominance
-from random import choice
+from random import choice, sample
 
 
 class Archive(object):
@@ -59,6 +59,22 @@ class Archive(object):
         """
         return choice(self._contents)
 
+    def rand_sample(self, nr=2):
+        """Returns an nr long random list of the population """
+        return sample(self._contents, nr)
+
+    def truncate(self, size, getter, larger_preferred=True):
+        """ Truncates the contents to the given value, which is usually the number of particles/individuals in a
+            population. """
+
+        result = sorted(self._contents, key=lambda x:x.features[getter])
+
+        if larger_preferred:
+            result.reverse()
+
+        self._contents = result[:size]
+        return
+
     def append(self, individual):
         self.add(individual)
 
@@ -93,24 +109,3 @@ class Archive(object):
 
     def __iter__(self):
         return iter(self._contents)
-
-# class EpsilonBoxArchive(Archive):
-#
-#     def __init__(self, epsilons):
-#         super(EpsilonBoxArchive, self).__init__(EpsilonDominance(epsilons))
-#         self.improvements = 0
-#
-#     def add(self, solution):
-#         flags = [self._dominance.compare(solution, s) for s in self._contents]
-#         dominates = [x == 1 for x in flags]
-#         nondominated = [x == 0 for x in flags]
-#         dominated = [x == 2 for x in flags]
-#         not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
-#
-#         if any(dominates):
-#             return False
-#         else:
-#             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
-#
-#             if dominated and not_same_box:
-#                 self.improvements += 1

@@ -27,11 +27,6 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
         self.problem = problem
 
-        self.generator = None
-        self.selector = None
-        self.mutator = None
-        self.crossover = None
-
         # initial population size
         self.population_size = 0
 
@@ -39,6 +34,10 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
         self.generator = RandomGenerator(self.problem.parameters)
 
     def add_features(self, individuals):
+        for individual in individuals:
+            individual.features = self.features.copy()
+
+    def update_particles(self, individuals, offsprings):
         for individual in individuals:
             individual.features = self.features.copy()
 
@@ -61,6 +60,11 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
     def __init__(self, problem: Problem, name="General Genetic-based Algorithm", evaluator_type=None):
         super().__init__(problem, name, evaluator_type)
+
+        self.generator = None
+        self.selector = None
+        self.mutator = None
+        self.crossover = None
 
     def generate(self, parents, archive=None):
         offsprings = []
@@ -122,6 +126,8 @@ class NSGAII(GeneticAlgorithm):
                          'crowding_distance': 0,
                          'domination_counter': 0,
                          'front_number': 0, }
+
+        self.population_size = self.options['max_population_size']
 
         self.generator = RandomGenerator(self.problem.parameters)
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])

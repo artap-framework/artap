@@ -47,6 +47,5 @@ class TestSimpleOptimization(unittest.TestCase):
             print(individual)
 
 
-
 if __name__ == '__main__':
     unittest.main()
