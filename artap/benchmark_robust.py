@@ -69,7 +69,7 @@ class Synthetic1D(BenchmarkFunction):
 
         self.set_dimension(**kwargs)
         self.dimension = 1
-        self.parameters = [{'name': 'x1', 'bounds': [0., 12.]}]
+        self.parameters = [{'name': 'x1', 'bounds': [0., 12.], 'tol': 1e-1}]
 
         self.global_optimum = 3.23
         self.global_optimum_coords = [11.0]
@@ -77,12 +77,13 @@ class Synthetic1D(BenchmarkFunction):
         self.robust_optimum = 3.23
         self.robust_optimum_coords = [11.0]
         # single objective problem
-        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+        self.costs = [{'name': 'f_1', 'criteria': 'maximize'},
+                      {'name': 'f_2', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
         x = x.vector[0]
 
-        res = exp(-(x - 1) ** 2. / 0.5) + 2. * exp(-(x - 1.25) ** 2. / 0.045) + 0.5 * exp(-(x - 1.5) ** 2. / 0.0128) + \
+        res = exp(-(x - 1) ** 2. / 0.5) + 2.5 * exp(-(x - 1.25) ** 2. / 0.045) + 0.5 * exp(-(x - 1.5) ** 2. / 0.0128) + \
               2. * exp(-(x - 1.6) ** 2. / 0.005) + 2.5 * exp(-(x - 1.8) ** 2. / 0.02) + \
               2.5 * exp(-(x - 2.2) ** 2. / 0.02) + 2. * exp(-(x - 2.4) ** 2. / 0.005) + \
               2. * exp(-(x - 2.75) ** 2. / 0.045) + exp(-(x - 3) ** 2. / 0.5) + 2. * exp(-(x - 6.) ** 2. / 0.32) + \
@@ -90,7 +91,7 @@ class Synthetic1D(BenchmarkFunction):
               2.3 * exp(-(x - 9.5) ** 2. / 0.5) + 3.2 * exp(-(x - 11.) ** 2. / 0.18) + 1.2 * exp(
             -(x - 12.) ** 2. / 0.18)
 
-        return [res]
+        return [res, 0]
 
 
 def atom_nd(width, multiplier, x: list, z: list):

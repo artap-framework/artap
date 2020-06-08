@@ -12,8 +12,8 @@ from .archive import Archive
 class GeneralEvolutionaryAlgorithm(Algorithm):
     """ Basis Class for evolutionary algorithms """
 
-    def __init__(self, problem: Problem, name="General Evolutionary Algorithm"):
-        super().__init__(problem, name)
+    def __init__(self, problem: Problem, name="General Evolutionary Algorithm", evaluator_type=None):
+        super().__init__(problem, name, evaluator_type)
 
         self.parameters_length = len(self.problem.parameters)
 
@@ -59,8 +59,8 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
 class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
-    def __init__(self, problem: Problem, name="General Genetic-based Algorithm"):
-        super().__init__(problem, name)
+    def __init__(self, problem: Problem, name="General Genetic-based Algorithm", evaluator_type=None):
+        super().__init__(problem, name, evaluator_type)
 
     def generate(self, parents, archive=None):
         offsprings = []
@@ -102,7 +102,7 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
 class NSGAII(GeneticAlgorithm):
 
-    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm"):
+    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm", evaluator_type=None):
         """
          NSGA-II implementation as described in
 
@@ -110,7 +110,7 @@ class NSGAII(GeneticAlgorithm):
              multiobjective genetic algorithm: NSGA-II," in IEEE Transactions on Evolutionary Computation,
              vol. 6, no. 2, pp. 182-197, Apr 2002. doi: 10.1109/4235.996017
         """
-        super().__init__(problem, name)
+        super().__init__(problem, name, evaluator_type)
 
         self.options.declare(name='prob_cross', default=1.0, lower=0,
                              desc='prob_cross')
