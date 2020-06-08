@@ -78,6 +78,7 @@ class GradientEvaluator(Evaluator):
 
     def add(self, individual):
         self.individuals.append(individual)
+        individual.children = []
         for i in range(len(individual.vector)):
             vector = individual.vector.copy()
             vector[i] -= self.delta
@@ -111,6 +112,11 @@ class GradientEvaluator(Evaluator):
                 gradient[i] = ((individual.costs[0] - child.costs[0]) / self.delta)
                 i += 1
             individual.features['gradient'] = gradient
+            if any(gradient) < 0:
+                individual.costs[-1] = np.inf
+            else:
+                individual.costs[-1] = sum(abs(gradient))
+            individual.costs_signed[-2] = sum(abs(gradient))
         self.individuals = []
         self.to_evaluate = []
 
@@ -123,14 +129,17 @@ class WorstCaseEvaluator(Evaluator):
 
     def add(self, individual):
         parameters = self.algorithm.problem.parameters
+        individual.children = []
+        self.individuals.append(individual)
         for i in range(len(individual.vector)):
             parameter = parameters[i]
             for sign in [-1, 1]:
                 vector = individual.vector.copy()
-                vector[i] += sign * parameter['tol'] * vector[i]
+                vector[i] += sign * parameter['tol']
                 individual.children.append(Individual(vector))
                 individual.children[-1].parents.append(individual)
 
+        self.to_evaluate.append(individual)
         self.to_evaluate.extend(individual.children)
 
     def evaluate(self, individuals):
@@ -151,6 +160,14 @@ class WorstCaseEvaluator(Evaluator):
 
     def run(self):
         super().evaluate(self.to_evaluate)
+        for individual in self.individuals:
+            sensitivity = []
+            for child in individual.children:
+                sensitivity.append(abs(individual.costs[0] - child.costs[0]))
+
+            individual.features['sensitivity'] = sum(sensitivity)
+            individual.costs[-1] = sum(sensitivity)
+            individual.costs_signed[-2] = sum(sensitivity)
 
 
 class Generator(Operator):

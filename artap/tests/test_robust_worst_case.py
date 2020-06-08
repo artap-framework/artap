@@ -1,53 +1,51 @@
 import unittest
+from builtins import int
 
+from artap.benchmark_robust import Synthetic1D, Synthetic2D, Synthetic5D, Synthetic10D
+from artap.operators import EpsilonDominance
 from artap.problem import Problem
-from artap.algorithm_scipy import ScipyOpt
+from artap.algorithm_genetic import NSGAII
 from artap.algorithm import EvaluatorType
-
-
-class RobustnessProblem(Problem):
-    """ Describe simple one objective optimization problem. """
-
-    def set(self):
-        self.name = "ComsolProblem"
-        self.parameters = [{'name': 'a', 'initial_value': 10, 'tol': 1e-1},
-                           {'name': 'b', 'initial_value': 10, 'tol': 1e-1}]
-        self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
-
-    def evaluate(self, individual):
-        x_1 = individual.vector[0]
-        x_2 = individual.vector[1]
-        return [x_1**2 + x_2**2]
+from artap.results import Results
+from artap.archive import Archive
+import numpy as np
+import pylab as plt
 
 
 class TestSimpleOptimization(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-    def test_gradient(self):
-        problem = RobustnessProblem()
-        algorithm = ScipyOpt(problem, evaluator_type=EvaluatorType.GRADIENT)
-        algorithm.options['algorithm'] = 'Nelder-Mead'
-        algorithm.options['tol'] = 1e-4
-        algorithm.run()
-
-        for individual in problem.populations[0].individuals:
-            print(individual.features['gradient'])
-            for child in individual.children:
-                print(child)
-            print("-------------------------")
-
     def test_worst_case(self):
-        problem = RobustnessProblem()
-        algorithm = ScipyOpt(problem, evaluator_type=EvaluatorType.WORST_CASE)
-        algorithm.options['algorithm'] = 'Nelder-Mead'
-        algorithm.options['tol'] = 1e-4
+        problem = Synthetic1D()
+        algorithm = NSGAII(problem, evaluator_type=EvaluatorType.WORST_CASE)
+        algorithm.options['max_population_size'] = 200
+        algorithm.options['max_population_number'] = 25
         algorithm.run()
+        results = Results(problem)
+        # an archive to collect the eps-dominated solutions
+        # archive = Archive(dominance=EpsilonDominance(epsilons=[0.0001, 0.00001]))
+        archive = Archive()
+        # archive.extend(problem.populations[-1].individuals)
+        # archive += problem.populations[-1].individuals
+        problem.plot_1d()
+        for individual in problem.populations[-1].individuals:
+            archive += individual
+            if individual.features['front_number'] == 1:
+                print(individual)
+                x = individual.vector[0]
+                y = individual.costs[0]
+                plt.plot(x, y, 'rx')
 
-        for individual in problem.populations[0].individuals:
+                for child in individual.children:
+                    print('  ', child)
+                    x = child.vector[0]
+                    y = child.costs[0]
+                    plt.plot(x, y, 'bx')
+
+        plt.show()
+        for individual in archive:
             print(individual)
-            for child in individual.children:
-                print(child)
-            print("-------------------------")
+
 
 
 if __name__ == '__main__':
