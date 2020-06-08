@@ -7,7 +7,8 @@ from artap.results import Results
 try:
     from agrossuite import agros as a2d
 
-    from artap.examples.team_benchmarks_agros.team_35x_semi_analytical import ProblemAnalytical
+    from \
+        artap.examples.team_benchmarks_agros.team_35x_semi_analytical import ProblemAnalytical
 
     class AgrosSimple(Problem):
 

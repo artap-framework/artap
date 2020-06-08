@@ -84,8 +84,6 @@ class BenchmarkFunction(Problem):
         plt.xlabel("x")
         plt.ylabel("f(x)")
         plt.grid(True)
-        plt.show()
-
         return
 
     @abstractmethod
