@@ -129,6 +129,10 @@ class OMOPSO(SwarmAlgorithm):
         self.leaders = Archive()
         self.problem.archive = Archive(dominance=EpsilonDominance(epsilons=self.options['epsilons']))
 
+        self.non_uniform_mutator = NonUniformMutation(self.problem.parameters, self.options['prob_mutation'],
+                                                      self.options['max_population_number'])
+        self.uniform_mutator = UniformMutator(self.problem.parameters, self.options['prob_mutation'],
+                                              self.options['max_population_number'])
         # constants for the speed and the position calculation
         self.c1_min = 1.5
         self.c1_max = 2.0
