@@ -96,7 +96,7 @@ class Problem:
         self.archive = None
 
         self.data_store = None
-        self.monitor_service = MonitorService(self)
+        self.monitor_service = None
         self.executor = None
 
         self.output_files = None
@@ -125,10 +125,11 @@ class Problem:
         if self.data_store:
             self.data_store.destroy()
 
-        if self.monitor_service.server is not None:
-            self.monitor_service.server.close()
-            del self.monitor_service.server
-            self.monitor_service.server = None
+        if self.monitor_service is not None:
+            if self.monitor_service.server is not None:
+                self.monitor_service.server.close()
+                del self.monitor_service.server
+                self.monitor_service.server = None
 
         if self.working_dir.startswith(tempfile.gettempdir() + os.sep + "artap-"):
             shutil.rmtree(self.working_dir)
@@ -151,7 +152,6 @@ class Problem:
         return values
 
     def get_parameter_types(self):
-        # TODO: is it important? or a typecheck is enough?
         p_types = []
         for parameter in self.parameters:
 

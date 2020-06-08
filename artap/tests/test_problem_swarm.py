@@ -1,93 +1,80 @@
 import unittest
-from artap.algorithm_swarm import OMOPSO, PSO_V1
+from artap.algorithm_swarm import OMOPSO, SMPSO
 from artap.results import Results
 from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
+from artap.benchmark_pareto import ZDT1
+from artap.quality_indicator import epsilon_add
 
 
-class TestAckley(unittest.TestCase):
-    """ Tests that the PSO can find the global optimum. """
+class TestAckleyOMOPSO(unittest.TestCase):
+    """ Tests that the OMOPSO can find the global optimum. """
 
-    def test_local_problem(self, population_number=30):
-        try:
-            problem = Ackley(**{'dimension': 1})
-            algorithm = OMOPSO(problem)
-            algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 30
-            algorithm.options['max_processes'] = 10
-            algorithm.run()
+    def test_local_problem(self, population_number=50):
+        problem = Ackley(**{'dimension': 1})
+        algorithm = OMOPSO(problem)
+        algorithm.options['max_population_number'] = population_number
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 10
+        algorithm.options['epsilons'] = 0.1
+        algorithm.run()
 
-            b = Results(problem)
-            optimum = b.find_optimum('F_1')  # Takes last cost function
-            self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-        except AssertionError:
-            # stochastic
-            print("TestAckleyN222::test_local_problem", population_number)
-            self.test_local_problem(int(1.5 * population_number))
-
-class TestAckleyv1(unittest.TestCase):
-    """ Tests that the PSO can find the global optimum. """
-
-    def test_local_problem(self, population_number=30):
-        try:
-            problem = Ackley(**{'dimension': 1})
-            algorithm = PSO_V1(problem)
-            algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 30
-            algorithm.options['max_processes'] = 10
-            algorithm.run()
-
-            b = Results(problem)
-            optimum = b.find_optimum('F_1')  # Takes last cost function
-            self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-        except AssertionError:
-            # stochastic
-            print("TestAckleyN222::test_local_problem", population_number)
-            self.test_local_problem(int(1.5 * population_number))
+        b = Results(problem)
+        optimum = b.find_optimum('F_1')  # Takes last cost function
+        print(optimum.costs[0], problem.global_optimum)
+        self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
 
 
-# Very poor performance
+class TestZDT1OMOPSO(unittest.TestCase):
+    # integration test -- tests the total functionality of OMOPSO
 
-# class TestAlpine(unittest.TestCase):
-#
-#
-#     def test_local_problem(self, population_number=30):
-#         try:
-#             problem = AlpineFunction(**{'dimension': 3})
-#             algorithm = PSO(problem)
-#             algorithm.options['max_population_number'] = population_number
-#             algorithm.options['max_population_size'] = 100
-#             algorithm.options['max_processes'] = 3
-#             algorithm.run()
-#
-#             b = Results(problem)
-#             optimum = b.find_minimum('F_1')  # Takes last cost function
-#             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-#         except AssertionError:
-#             # stochastic
-#             print("TestAlpine::test_local_problem", population_number)
-#             self.test_local_problem(int(1.5 * population_number))
+    def test_local_problem(self):
+        problem = problem = ZDT1()
+        algorithm = OMOPSO(problem)
+        algorithm.options['max_population_number'] = 500
+        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_processes'] = 1
+        algorithm.options['epsilons'] = 0.05
+        algorithm.run()
+
+        results = Results(problem)
+        vals = results.pareto_values()
+        exact = problem.pareto_front(vals[0])
+        self.assertLessEqual(epsilon_add(exact, vals), 0.2)
 
 
-# class TestAlpinev1(unittest.TestCase):
-#
-#
-#     def test_local_problem(self, population_number=30):
-#         try:
-#             problem = AlpineFunction(**{'dimension': 3})
-#             algorithm = PSO(problem)
-#             algorithm.options['max_population_number'] = population_number
-#             algorithm.options['max_population_size'] = 100
-#             algorithm.options['max_processes'] = 3
-#             algorithm.run()
-#
-#             b = Results(problem)
-#             optimum = b.find_minimum('F_1')  # Takes last cost function
-#             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-#         except AssertionError:
-#             # stochastic
-#             print("TestAlpine::test_local_problem", population_number)
-#             self.test_local_problem(int(1.5 * population_number))
-#
+class TestAckleySMPSO(unittest.TestCase):
+    """ Tests that the SMPSO can find the global optimum. """
+
+    def test_local_problem(self, population_number=50):
+        problem = Ackley(**{'dimension': 1})
+        algorithm = SMPSO(problem)
+        algorithm.options['max_population_number'] = population_number
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 10
+        algorithm.run()
+
+        b = Results(problem)
+        optimum = b.find_optimum('F_1')  # Takes last cost function
+        print(optimum.costs[0], problem.global_optimum)
+        self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
+
+
+
+class TestZDT1SMPSP(unittest.TestCase):
+    # integration test -- tests the total functionality of SMPSO
+
+    def test_local_problem(self):
+        problem = problem = ZDT1()
+        algorithm = OMOPSO(problem)
+        algorithm.options['max_population_number'] = 500
+        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_processes'] = 1
+        algorithm.run()
+
+        results = Results(problem)
+        vals = results.pareto_values()
+        exact = problem.pareto_front(vals[0])
+        self.assertLessEqual(epsilon_add(exact, vals), 0.2)
 
 
 if __name__ == '__main__':
