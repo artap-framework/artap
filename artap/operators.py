@@ -329,7 +329,7 @@ class Mutator(Operator):
         self.probability = probability
 
     @abstractmethod
-    def mutate(self, p, current_iteration = 0):
+    def mutate(self, p, current_iteration=0):
         pass
 
 
@@ -337,7 +337,7 @@ class SimpleMutator(Mutator):
     def __init__(self, parameters, probability):
         super().__init__(parameters, probability)
 
-    def mutate(self, p, current_iteration = 0):
+    def mutate(self, p, current_iteration=0):
         """ uniform random mutation """
         mutation_space = 0.1
         vector = []
@@ -370,7 +370,7 @@ class PmMutator(Mutator):
         super().__init__(parameters, probability)
         self.distribution_index = distribution_index
 
-    def mutate(self, parent, current_iteration = 0):
+    def mutate(self, parent, current_iteration=0):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
@@ -429,7 +429,7 @@ class UniformMutator(Mutator):
         super().__init__(parameters, probability)
         self.perturbation = perturbation
 
-    def mutate(self, parent, current_iteration = 0):
+    def mutate(self, parent, current_iteration=0):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
@@ -461,7 +461,7 @@ class NonUniformMutation(Mutator):
         return (y * (1.0 - pow(random.random(),
                                pow((1.0 - 1.0 * current_iteration / self.max_iterations), b_mutation_parameter))))
 
-    def mutate(self, parent, current_iteration = 0):
+    def mutate(self, parent, current_iteration=0):
         vector = []
 
         for i, parameter in enumerate(self.parameters):
@@ -483,7 +483,7 @@ class NonUniformMutation(Mutator):
         else:
             x = self.__delta(lb - x, self.perturbation, current_iteration)
 
-        if isinstance(x,complex):
+        if isinstance(x, complex):
             print(x)
         x = self.clip(x, lb, ub)
 
@@ -1170,79 +1170,70 @@ class TournamentSelector(Selector):
 
         return selected
 
+class FireflyStep(Operator):
+    """
+      This operator makes the following
+      ---------------------------------
 
-# class Archive(object):
-#     """ Base archiving class based on platypus. An archive only containing non-dominated solutions."""
-#
-#     def __init__(self, signs, dominance=ParetoDominance):
-#         super(Archive, self).__init__()
-#         self._dominance = dominance(signs=signs) # dominance comparator
-#         self._contents = []
-#
-#     def add(self, solution):
-#         flags = [self._dominance.compare(solution, s) for s in self._contents]
-#         dominates = [x > 0 for x in flags]
-#         nondominated = [x == 0 for x in flags]
-#
-#         if any(dominates):
-#             return False
-#         else:
-#             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
-#             return True
-#
-#     def append(self, solution):
-#         self.add(solution)
-#
-#     def extend(self, solutions):
-#         for solution in solutions:
-#             self.append(solution)
-#
-#     def remove(self, solution):
-#         try:
-#             self._contents.remove(solution)
-#             return True
-#         except ValueError:
-#             return False
-#
-#     def __len__(self):
-#         return len(self._contents)
-#
-#     def __getitem__(self, key):
-#         return self._contents[key]
-#
-#     def __iadd__(self, other):
-#         if hasattr(other, "__iter__"):
-#             for o in other:
-#                 self.add(o)
-#         else:
-#             self.add(other)
-#
-#         return self
-#
-#     def __iter__(self):
-#         return iter(self._contents)
+      - calculates the distance between two points, because its correlates with that value.
+      - the brightness of the other point
+      - the mutator constant, which contains a damping factor [2]?
 
-#
-# class EpsilonBoxArchive(Archive):
-#
-#     def __init__(self, epsilons):
-#         super(EpsilonBoxArchive, self).__init__(EpsilonDominance(epsilons))
-#         self.improvements = 0
-#
-#     def add(self, solution):
-#         flags = [self._dominance.compare(solution, s) for s in self._contents]
-#         dominates = [x > 0 for x in flags]
-#         nondominated = [x == 0 for x in flags]
-#         dominated = [x < 0 for x in flags]
-#         not_same_box = [not self._dominance.same_box(solution, s) for s in self._contents]
-#
-#         if any(dominates):
-#             return False
-#         else:
-#             self._contents = list(itertools.compress(self._contents, nondominated)) + [solution]
-#
-#             if dominated and not_same_box:
-#                 self.improvements += 1
+      The k+1 th position of the j(th) individual is calculated by the following formula
+      ---------------------------------------------------------------------------
+
+          L = ub-lb
+          b=1;               # Attraction Coefficient Base Value, if beta = 0, it becamos a random walk
+          a=0.01*L;              # Mutation Coefficient
+          ad=0.9;            # Mutation Coefficient Damping Ratio -- decreases the initial value of a after each, as same as in simulated annealing
+                                iteration step
+          gamma = 0.5/L^2          # light absorbtion coefficient
+
+
+          x(j,k+1) = x(j,k) + b0*exp(-gamma*r^2) + sum_{i<j}[x(j,k) - x(i,k)] + a*(rand[0,1] - 0.5)
+
+      [1] Yang, Xin-She. "Firefly algorithms for multimodal optimization." International symposium on stochastic algorithms.
+          Springer, Berlin, Heidelberg, 2009.
+
+      [2]: Yang, X. S. (2013). Multiobjective firefly algorithm for continuous optimization.
+              Engineering with computers, 29(2), 175-184.
+    """
+
+    def __init__(self, parameters, alpha = 0.01, beta = 1.0, gamma = 0.5, damping = 0.9, dominance=ParetoDominance()):
+        super().__init__()
+        self.parameters = parameters
+        self.dominance = dominance
+        self.b = beta
+        self.a = alpha
+        self.gamma = gamma
+        self.damping_factor = damping
+
+    def attraction_step(self, current, other, iteration_nr):
+        # refresh the position of the offspring if its more attractive
+        # if it's dominant returns without changing its position
+        if self.dominance.compare(current.costs_signed, other.costs_signed) == 1:
+            return
+        else:
+            for i, param in enumerate(self.parameters):
+                lb = param['bounds'][0]
+                ub = param['bounds'][1]
+
+                L = (ub-lb)
+                Gamma = L*self.gamma
+                alpha = self.a*L*0.9**iteration_nr
+
+                # elementary distance of the particle, random walk
+                e = random.random() * (ub - lb)
+                # distance between the two individuals
+                r2 = current.vector[i] ** 2. + other.vector[i] ** 2.
+                vel_attraction = self.b * exp(-Gamma * r2 ** 2.) * (other.vector[i] - current.vector[i])
+
+                v_rd = alpha * (random.random() - 0.5) * e
+                # position i+1
+                current.vector[i] += vel_attraction + v_rd
+                current.vector[i] = self.clip(current.vector[i], lb, ub)
+        return
+
 
 
 class Crossover(Operator):

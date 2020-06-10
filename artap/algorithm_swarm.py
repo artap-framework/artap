@@ -158,18 +158,7 @@ class OMOPSO(SwarmAlgorithm):
             # the initial speed is set to zero
             individual.features['velocity'] = [0] * len(individual.vector)
 
-            # for parameter in self.parameters:
-            #     delta_i = (parameter['bounds'][1] - parameter['bounds'][0]) / 2.
-            #     if parameter['v_max']:
-            #         delta_i = min(parameter['v_max'], delta_i)
-            #     individual.features['max_speed'] = delta_i
         return
-
-    # for SMPSO on 15% of the particles
-    # def turbulence(self, population):
-    #     for i in range(len(population)):
-    #         mutated = self.mutator.mutate(population[i])
-    #         population[i].vector = copy(mutated.vector)
 
     def turbulence(self, particles, current_step=0):
         """
@@ -378,11 +367,6 @@ class SMPSO(SwarmAlgorithm):
             # the initial speed is set to zero
             individual.features['velocity'] = [0] * len(individual.vector)
 
-            # for parameter in self.parameters:
-            #     delta_i = (parameter['bounds'][1] - parameter['bounds'][0]) / 2.
-            #     if parameter['v_max']:
-            #         delta_i = min(parameter['v_max'], delta_i)
-            #     individual.features['max_speed'] = delta_i
         return
 
     def turbulence(self, particles, current_step=0):
