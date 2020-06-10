@@ -182,8 +182,8 @@ class EpsMOEA(GeneticAlgorithm):
                                  Minimum Reduce Hypervolume
     """
 
-    def __init__(self, problem: Problem, name="EpsMOEA Algorithm"):
-        super().__init__(problem, name)
+    def __init__(self, problem: Problem, name="EpsMOEA Algorithm", evaluator_type=None):
+        super().__init__(problem, name, evaluator_type)
 
         self.options.declare(name='prob_cross', default=0.6, lower=0,
                              desc='prob_cross')
@@ -215,7 +215,7 @@ class EpsMOEA(GeneticAlgorithm):
         # an archive to collect the eps-dominated solutions
         self.problem.archive = Archive(dominance=EpsilonDominance(epsilons=self.options['epsilons']))
 
-        self.evaluate(population.individuals)
+        self.evaluator.evaluate(population.individuals)
         self.add_features(population.individuals)
 
         # archiving the eps-dominating solutions
@@ -230,7 +230,7 @@ class EpsMOEA(GeneticAlgorithm):
             # generate and evaluate the next generation
             offspring = self.generate(population.individuals, archive=self.problem.archive)
 
-            self.evaluate(offspring)
+            self.evaluator.evaluate(offspring)
             self.add_features(offspring)
 
             # pop-acceptance procedure, the dominating offsprings will be preserved in the population and  in the
