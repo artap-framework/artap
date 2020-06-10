@@ -124,7 +124,7 @@ class BenchmarkFunction(Problem):
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=5)
 
-        plt.show()
+        # plt.show()
 
     def set_init_values(self, **kwargs):
         if 'initial_value' in kwargs:
@@ -137,6 +137,22 @@ class BenchmarkFunction(Problem):
         if 'dimension' in kwargs:
             self.dimension = kwargs['dimension']
 
+    def get_data_1d(self, n=100, index_x=0, index_y=0):
+        x = np.linspace(self.parameters[index_x]['bounds'][0], self.parameters[index_x]['bounds'][1], n)
+        y = np.zeros([n])
+        for i, xi in enumerate(x):
+            y[i] = self.evaluate(Individual([xi]))[index_y]
+        return[x, y]
+
+    def get_data_2d(self, n=100, indices_x=[0, 1], index_y=0):
+        x = linspace(self.parameters[indices_x[0]]['bounds'][0],
+                     self.parameters[indices_x[0]]['bounds'][1], num=1000)
+        y = linspace(self.parameters[indices_x[1]]['bounds'][0],
+                     self.parameters[indices_x[1]]['bounds'][1], num=1000)
+
+        x, y = np.meshgrid(x, y)
+        z = self.evaluate(Individual([x, y]))[index_y]
+        return[x, y, z]
 
 class Rosenbrock(BenchmarkFunction):
     """
