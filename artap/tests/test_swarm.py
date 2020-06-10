@@ -93,7 +93,8 @@ class TestOMOPSOTOOLS(unittest.TestCase):
     def setUp(self):
         problem = TestProblem()
         self.omopso = OMOPSO(problem)
-        self.omopso.mutator.probability = 1.0
+        self.omopso.non_uniform_mutator.probability = 1.0
+        self.omopso.uniform_mutator.probability = 1.0
 
     def test_turbulence_should_change_vector(self):
         z = Individual([1, 2])
@@ -103,6 +104,7 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         z.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2]}
 
         population = [z]
+
         self.omopso.turbulence(population)
 
         # the new population vector should be differ from the original one
@@ -128,6 +130,7 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         x = Individual([1, 2])
         x.costs = [2.0, 1.0]
         x.costs_signed = [2.0, 1.0, 0]
+        x.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2], 'crowding_distance':[50]}
 
         self.omopso.leaders.add(x)
         y = self.omopso.select_leader()
@@ -137,16 +140,13 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         z = Individual([3, 2])
         z.costs = [0.5, 1.5]
         z.costs_signed = [0.5, 1.5, 0]
+        z.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2], 'crowding_distance':[100]}
 
         self.omopso.leaders.add(z)
         y = self.omopso.select_leader()
 
-        ctr = 0
-        if z == y:
-            ctr += 1
-        if y == x:
-            ctr += 1
-        self.assertEqual(1, ctr)
+        # the leader has the bigger crowding distance
+        self.assertEqual(z, y)
 
     def test_velocity(self):
 
@@ -214,10 +214,10 @@ class TestOMOPSOTOOLS(unittest.TestCase):
             x.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2]}
             population.append(x)
 
-        self.assertIsInstance(self.omopso.problem.archive, Archive) #archhive is an empty class here
+        self.assertIsInstance(self.omopso.problem.archive, Archive)  # archhive is an empty class here
 
         self.omopso.population_size = 5
         self.omopso.update_global_best(population)
 
-        self.assertEqual(self.omopso.problem.archive.size(), 10) # archive should contain everybody
+        self.assertEqual(self.omopso.problem.archive.size(), 10)  # archive should contain everybody
         self.assertEqual(self.omopso.leaders.size(), 5)  # shuold be truncated to 5
