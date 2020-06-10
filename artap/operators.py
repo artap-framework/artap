@@ -75,13 +75,16 @@ class GradientEvaluator(Evaluator):
         super().__init__(algorithm)
         self.delta = 1e-4
         self.to_evaluate = []
+        self.algorithm.problem.costs.append({'name': 'sensitivity', 'criteria': 'minimize'})
+        self.n = len(algorithm.problem.costs)
 
     def add(self, individual):
         self.individuals.append(individual)
         individual.children = []
+
         for i in range(len(individual.vector)):
             vector = individual.vector.copy()
-            vector[i] -= self.delta
+            vector[i] += self.delta
             individual.children.append(Individual(vector))
             individual.children[-1].parents.append(individual)
 
@@ -112,11 +115,17 @@ class GradientEvaluator(Evaluator):
                 gradient[i] = ((individual.costs[0] - child.costs[0]) / self.delta)
                 i += 1
             individual.features['gradient'] = gradient
-            if any(gradient) < 0:
-                individual.costs[-1] = np.inf
+            if any(gradient < 0):
+                sensitivity = 1000
             else:
-                individual.costs[-1] = sum(abs(gradient))
-            individual.costs_signed[-2] = sum(abs(gradient))
+                sensitivity = sum(abs(gradient))
+            if len(individual.costs) > self.n:
+                individual.costs[-1] = sensitivity
+                individual.costs_signed[-2] = sensitivity
+            else:
+                individual.costs.append(sensitivity)
+                individual.costs_signed.insert(-1, sensitivity)
+
         self.individuals = []
         self.to_evaluate = []
 
@@ -125,6 +134,8 @@ class WorstCaseEvaluator(Evaluator):
 
     def __init__(self, algorithm):
         super().__init__(algorithm)
+        self.algorithm.problem.costs.append({'name': 'sensitivity', 'criteria': 'minimize'})
+        self.n = len(algorithm.problem.costs)
         self.to_evaluate = []
 
     def add(self, individual):
@@ -164,10 +175,14 @@ class WorstCaseEvaluator(Evaluator):
             sensitivity = []
             for child in individual.children:
                 sensitivity.append(abs(individual.costs[0] - child.costs[0]))
-
             individual.features['sensitivity'] = sum(sensitivity)
-            individual.costs[-1] = sum(sensitivity)
-            individual.costs_signed[-2] = sum(sensitivity)
+
+            if len(individual.costs) > self.n:
+                individual.costs[-1] = sum(sensitivity)
+                individual.costs_signed[-2] = sum(sensitivity)
+            else:
+                individual.costs.append(sum(sensitivity))
+                individual.costs_signed.insert(-1, sum(sensitivity))
 
 
 class Generator(Operator):

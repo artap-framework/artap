@@ -5,7 +5,9 @@ from artap.problem import Problem
 from artap.individual import Individual
 from artap.archive import Archive
 
+
 class TestProblem(Problem):
+
 
     def set(self):
         self.name = 'Test Problem'
