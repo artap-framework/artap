@@ -575,6 +575,18 @@ class TestFireflystep(unittest.TestCase):
         problem = TestProblem()
         self.crossover = FireflyStep(problem.parameters, 0, 1.0, 0, 1)
 
+    def test_should_not_change_the_vector_by_the_given_values_if_not_dominates(self):
+        x = Individual([4, 3])
+        x.costs = [2.0, 3.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
+
+        y = Individual([3, 2])
+        y.costs = [1.0, 2.0]
+        y.costs_signed = [1.0, 1.0, 0.0]
+
+        self.crossover.attraction_step(y, x, 1)
+        self.assertEqual([3.0, 2.0], y.vector)
+
     def test_should_change_the_vector_by_the_given_values(self):
         x = Individual([4, 3])
         x.costs = [2.0, 3.0]
