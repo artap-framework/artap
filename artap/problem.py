@@ -94,7 +94,8 @@ class Problem:
         # populations
         self.populations = []
         self.archive = None
-
+        self.buffer = [] # storage for potential individuals, can be used if calculation fails
+        self.failed = [] # storage for failed individuals
         self.data_store = None
         self.monitor_service = None
         self.executor = None
