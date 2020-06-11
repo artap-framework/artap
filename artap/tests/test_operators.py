@@ -1,6 +1,6 @@
 from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
     TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator, EpsilonDominance, \
-    UniformMutator, NonUniformMutation
+    UniformMutator, NonUniformMutation, FireflyStep
 from artap.individual import Individual
 from artap.benchmark_pareto import BiObjectiveTestProblem
 from artap.problem import Problem
@@ -476,11 +476,11 @@ class TestTournamentSelector(unittest.TestCase):
     def test_should_execute_work_properly_case1(self):
         x = Individual([3, 2])
         x.costs = [2.0, 3.0]
-        x.signs = [2.0, 3.0, 0.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
 
         y = Individual([3, 2])  # last index means that the solution is computed correctly
         y.costs = [1.0, 4.0]
-        y.signs = [1.0, 4.0, 0.0]
+        y.costs_signed = [1.0, 4.0, 0.0]
 
 
 class TestProblem(Problem):
@@ -506,7 +506,7 @@ class TestUniformMutator(unittest.TestCase):
     def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
         x = Individual([3, 2])
         x.costs = [2.0, 3.0]
-        x.signs = [2.0, 3.0, 0.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
 
         y = self.um.mutate(x)
         self.assertEqual(y.vector, [3, 2])
@@ -514,7 +514,7 @@ class TestUniformMutator(unittest.TestCase):
     def test_should_change_if_the_probability_is_one(self):
         x = Individual([3, 2])
         x.costs = [2.0, 3.0]
-        x.signs = [2.0, 3.0, 0.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
 
         self.um.probability = 1.0
         y = self.um.mutate(x)
@@ -530,7 +530,7 @@ class TestUniformMutator(unittest.TestCase):
     def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
         x = Individual([3, 2])
         x.costs = [2.0, 3.0]
-        x.signs = [2.0, 3.0, 0.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
 
         y = self.um.mutate(x)
         self.assertEqual(y.vector, [3, 2])
@@ -538,7 +538,7 @@ class TestUniformMutator(unittest.TestCase):
     def test_should_change_if_the_probability_is_one(self):
         x = Individual([3, 2])
         x.costs = [2.0, 3.0]
-        x.signs = [2.0, 3.0, 0.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
 
         self.um.probability = 1.0
         y = self.um.mutate(x)
@@ -554,7 +554,7 @@ class TestNonUniformMutator(unittest.TestCase):
     def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
         x = Individual([3, 2])
         x.costs = [2.0, 3.0]
-        x.signs = [2.0, 3.0, 0.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
 
         y = self.um.mutate(x)
         self.assertEqual(y.vector, [3, 2])
@@ -562,11 +562,42 @@ class TestNonUniformMutator(unittest.TestCase):
     def test_should_change_if_the_probability_is_one(self):
         x = Individual([3, 2])
         x.costs = [2.0, 3.0]
-        x.signs = [2.0, 3.0, 0.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
 
         self.um.probability = 1.0
-        y = self.um.mutate(x,2)
+        y = self.um.mutate(x, 2)
         self.assertNotEqual(y.vector, [3, 2])
+
+
+class TestFireflystep(unittest.TestCase):
+
+    def setUp(self):
+        problem = TestProblem()
+        self.crossover = FireflyStep(problem.parameters, 0, 1.0, 0, 1)
+
+    def test_should_not_change_the_vector_by_the_given_values_if_not_dominates(self):
+        x = Individual([4, 3])
+        x.costs = [2.0, 3.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
+
+        y = Individual([3, 2])
+        y.costs = [1.0, 2.0]
+        y.costs_signed = [1.0, 1.0, 0.0]
+
+        self.crossover.attraction_step(y, x, 1)
+        self.assertEqual([3.0, 2.0], y.vector)
+
+    def test_should_change_the_vector_by_the_given_values(self):
+        x = Individual([4, 3])
+        x.costs = [2.0, 3.0]
+        x.costs_signed = [2.0, 3.0, 0.0]
+
+        y = Individual([3, 2])
+        y.costs = [1.0, 2.0]
+        y.costs_signed = [1.0, 1.0, 0.0]
+
+        self.crossover.attraction_step(x, y, 1)
+        self.assertEqual([3.0, 2.0], x.vector)
 
 
 if __name__ == '__main__':
