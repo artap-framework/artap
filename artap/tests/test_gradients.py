@@ -11,7 +11,7 @@ class ParabolicProblem(Problem):
         self.name = "LocalPythonProblem"
         self.parameters = [{'name': 'x_1', 'initial_value': 2.5, 'bounds': [-5, 5], 'precision': 1e-1},
                            {'name': 'x_2', 'initial_value': 2.5, 'bounds': [-5, 5], 'precision': 1e-1},
-                           {'name': 'x_3', 'initial_value': 2.5, 'bounds': [5, 5], 'precision': 1e-1}]
+                           {'name': 'x_3', 'initial_value': 2.5, 'bounds': [-5, 5], 'precision': 1e-1}]
         self.costs = [{'name': 'F'}]
 
     def evaluate(self, individual):

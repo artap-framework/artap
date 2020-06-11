@@ -112,7 +112,7 @@ class GradientEvaluator(Evaluator):
             gradient = np.zeros(n_params)
             i = 0
             for child in individual.children:
-                gradient[i] = ((individual.costs[0] - child.costs[0]) / self.delta)
+                gradient[i] = ((child.costs[0] - individual.costs[0]) / self.delta)
                 i += 1
             individual.features['gradient'] = gradient
             if any(gradient < 0):
