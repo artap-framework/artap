@@ -1,5 +1,6 @@
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 import time
+import random
 
 
 class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
