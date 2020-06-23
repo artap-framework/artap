@@ -16,7 +16,7 @@ class SweepProblem(Problem):
     def evaluate(self, individual: Individual):
         result = 0
         for i in individual.vector:
-            result += i*i
+            result += i**2
 
         return [result]
 
@@ -34,16 +34,14 @@ class TestJob(unittest.TestCase):
         algorithm.run()
 
         individuals = problem.populations[-1].individuals
+        # print(individuals)
+
         # values
         self.assertEqual(len(individuals), 4)
-        self.assertTrue(problem.parameters[0]['bounds'][0] <= individuals[0].vector[0] <=
-                        problem.parameters[0]['bounds'][1] and
-                        problem.parameters[0]['bounds'][0] <= individuals[1].vector[0] <=
-                        problem.parameters[0]['bounds'][1] and
-                        problem.parameters[0]['bounds'][0] <= individuals[2].vector[0] <=
-                        problem.parameters[0]['bounds'][1] and
-                        problem.parameters[0]['bounds'][0] <= individuals[3].vector[0] <=
-                        problem.parameters[0]['bounds'][1])
+        self.assertAlmostEqual(individuals[0].costs[0], individuals[0].vector[0] ** 2)
+        self.assertAlmostEqual(individuals[1].costs[0], individuals[1].vector[0] ** 2)
+        self.assertAlmostEqual(individuals[2].costs[0], individuals[2].vector[0] ** 2)
+        self.assertAlmostEqual(individuals[3].costs[0], individuals[3].vector[0] ** 2)
 
     def test_sweep_evaluate_serial(self):
         problem = SweepProblem()
