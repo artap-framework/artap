@@ -79,7 +79,7 @@ class Results:
         """
         Returns a list of lists. The first list contains indexes of individuals in population,
             the other lists contains values of the parameters(s).
-        :param name: string reprezenting the name of parameter if it is not given, all parameters are included
+        :param name: string representing the name of parameter if it is not given, all parameters are included
         :param population_index: index of the selected parameter
         :return:
         """
