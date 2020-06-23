@@ -146,17 +146,17 @@ class TestCondor(TestCase):
 
         self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
 
-    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
-    def test_condor_cst_exec(self):
-        """ Tests one calculation of goal function."""
-        problem = CSTProblem()
-
-        individuals = [Individual([0.7])]
-        algorithm = DummyAlgorithm(problem)
-        algorithm.evaluate(individuals)
-
-        # self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
-        self.assertAlmostEqual(0, 0)
+    # @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
+    # def test_condor_cst_exec(self):
+    #     """ Tests one calculation of goal function."""
+    #     problem = CSTProblem()
+    #
+    #     individuals = [Individual([0.7])]
+    #     algorithm = DummyAlgorithm(problem)
+    #     algorithm.evaluate(individuals)
+    #
+    #     # self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
+    #     self.assertAlmostEqual(0, 0)
 
     @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_exec(self):
