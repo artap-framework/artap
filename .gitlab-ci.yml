@@ -16,6 +16,7 @@ build:
     - pip install cython
     - pip install pytest
     - pip install -r requirements.txt
+    - pip install --upgrade agrossuite 
 
     # tests
     - export CONDOR_HOST=edison.fel.zcu.cz
