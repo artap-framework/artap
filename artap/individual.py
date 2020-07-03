@@ -154,5 +154,5 @@ class Individual(metaclass=ABCMeta):
 
 
 
-
+        return string
 
