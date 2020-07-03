@@ -1,7 +1,7 @@
 import platform
 from abc import *
+from collections import Iterable
 from enum import Enum
-from random import uniform
 
 
 class Individual(metaclass=ABCMeta):
@@ -13,19 +13,24 @@ class Individual(metaclass=ABCMeta):
         EVALUATED = 2
         FAILED = 3
 
-        @staticmethod
-        def to_string(state):
-            if state == Individual.State.EMPTY:
-                return "Individual is empty."
-            elif state == Individual.State.IN_PROGRESS:
-                return "Individual is in progress."
-            elif state == Individual.State.EVALUATED:
-                return "Individual is evaluated."
-            elif state == Individual.State.FAILED:
-                return "Individual evaluation failed."
+    @classmethod
+    def to_string(cls, state):
+        if state == cls.State.EMPTY:
+            return 'empty'
+        if state == cls.State.IN_PROGRESS:
+            return 'in_progress'
+        if state == cls.State.EVALUATED:
+            return 'evaluated'
+        if state == cls.State.FAILED:
+            return 'failed'
+
+    counter: int = 0
 
     def __init__(self, vector: list):
+        self.id = Individual.counter
+        Individual.counter += 1
         self.vector = vector.copy()
+        self.population_id = None
         self.costs = []
         self.costs_signed = []
         self.state = self.State.EMPTY
@@ -78,7 +83,7 @@ class Individual(metaclass=ABCMeta):
                     string += ", "
             string += "]"
 
-        string += "; state: '{}', ".format(Individual.State.to_string(self.state))
+        # string += "; state: '{}', ".format(Individual.State.to_string(self.state))
         # string += "; info: {}, ".format(self.info)
 
         return string
@@ -103,3 +108,51 @@ class Individual(metaclass=ABCMeta):
         self.custom = individual.custom
         self.state = individual.state
         self.info = individual.info
+
+    def to_dict(self):
+        output = {'id': self.id, 'vector': self.vector, 'costs': self.costs,
+                  'costs_singed': self.costs_signed, 'custom': self.custom,
+                  'state': self.to_string(self.state), 'info': self.info, 'population_id': self.population_id}
+
+        features = dict()
+        for feature in self.features.items():
+            key = feature[0]
+            if isinstance(feature[1], Iterable):
+                value = []
+                for item in feature[1]:
+                    if isinstance(item, Individual):
+                        value.append(item.id)
+                    else:
+                        value.append(item)
+            else:
+                value = feature[1]
+            features[key] = value
+
+            output['features'] = features
+        return output
+
+    def from_dict(self, dictionary):
+        self.id = dictionary['id']
+        self.vector = dictionary['vector']
+        self.costs = dictionary['costs']
+        self.costs_signed = dictionary['costs_signed']
+        self.custom = dictionary['custom']
+        self.info = dictionary['info']
+        self.id = dictionary['population_id']
+
+        for feature in self.features.items():
+            key = 'feature_' + feature[0]
+            if isinstance(feature[1], Iterable):
+                value = []
+                for item in feature[1]:
+                    if isinstance(item, Individual):
+                        value.append(item.id)
+                    else:
+                        value.append(item)
+            else:
+                value = feature[1]
+
+
+
+
+
