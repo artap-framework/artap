@@ -76,7 +76,7 @@ class TestDataStoreFile(unittest.TestCase):
         problem = MyProblem()
 
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        problem.data_store = FileDataStore(problem, database_name=database_name, mode=FileMode.REWRITE)
+        problem.data_store = FileDataStore(problem, database_name=database_name, mode="REWRITE")
 
         gen = CustomGenerator(problem.parameters)
         gen.init([[1, 2], [3, 3]])

@@ -2,7 +2,6 @@ from abc import abstractmethod, ABC
 import sys
 import random
 import math
-import itertools
 from math import exp
 import numpy as np
 import functools
@@ -53,7 +52,7 @@ class Evaluator(Operator):
 
     def evaluate_serial(self, individuals: list):
         for individual in individuals:
-            if individual.state == Individual.State.EMPTY:
+            if individual.state == individual.State.EMPTY:
                 individual.costs.append(self.job.evaluate(individual))
 
     def evaluate_parallel(self, individuals: list):
@@ -63,7 +62,7 @@ class Evaluator(Operator):
             for individual in individuals)
 
     def evaluate_scalar(self, vector):
-        individual = Individual(vector)
+        individual = Individual(list(vector))
         self.algorithm.problem.populations[-1].individuals.append(individual)
         self.job.evaluate(individual)
         return individual.costs[0]
@@ -192,7 +191,9 @@ class Generator(Operator):
         self.parameters = parameters
         self.individual_class = individual_class
 
-    def create_individual(self, vector: list = []):
+    def create_individual(self, vector=None):
+        if vector is None:
+            vector = []
         return self.individual_class(vector)
 
     @abstractmethod
