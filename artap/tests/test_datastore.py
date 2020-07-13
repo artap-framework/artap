@@ -77,7 +77,6 @@ class TestDataStoreFile(unittest.TestCase):
     def test_read_datastore(self):
         # Path to this script file location
         file_path =str(pathlib.Path(__file__).parent.absolute())
-        print(file_path)
 
         database_name = os.path.join(file_path, "data/data.sqlite")
         problem = ProblemViewDataStore(database_name=database_name)
