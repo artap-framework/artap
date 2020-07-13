@@ -25,4 +25,8 @@ environment_local.json
 _build
 3rdparty/agros/
 3rdparty/nlopt2/
+artap/examples/simple_optimization/pokus/
+artap/examples/simple_optimization/problem.json
+
+
 
