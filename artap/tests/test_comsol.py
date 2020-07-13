@@ -1,10 +1,10 @@
 import unittest
 import os
 
-from artap.executor import LocalComsolExecutor
-from artap.problem import Problem
-from artap.algorithm import DummyAlgorithm
-from artap.individual import Individual
+from ..executor import LocalComsolExecutor
+from ..problem import Problem
+from ..algorithm import DummyAlgorithm
+from ..individual import Individual
 
 __comsol__ = True
 result = os.system('comsol --version')

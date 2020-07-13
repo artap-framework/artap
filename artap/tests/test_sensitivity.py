@@ -1,7 +1,7 @@
 import unittest
 
-from artap.problem import Problem
-from artap.algorithm_sensitivity import Sensitivity, SALibAlgorithm
+from ..problem import Problem
+from ..algorithm_sensitivity import Sensitivity, SALibAlgorithm
 
 import math
 

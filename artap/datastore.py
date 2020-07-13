@@ -2,8 +2,8 @@ from multiprocessing import Process, Event
 from sqlitedict import SqliteDict
 import os
 import json
-from artap.individual import Individual
-from artap.population import Population
+from .individual import Individual
+from .population import Population
 import shutil
 
 
@@ -107,8 +107,8 @@ class FileDataStore:
             if os.path.exists(database_name):
                 os.remove(database_name)
 
-        self.db = SqliteDict(self.database_name, autocommit=True)
         if self.mode == "write":
+            self.db = SqliteDict(self.database_name, autocommit=True, flag='w')
             if os.path.exists(self.database_name):
                 statinfo = os.stat(self.database_name)
                 if statinfo.st_size == 0:
@@ -122,6 +122,7 @@ class FileDataStore:
         elif self.mode == "rewrite":
             self._create_structure()
         elif self.mode == "read":
+            self.db = SqliteDict(self.database_name, flag='r')
             self.read_from_datastore()
 
         self.delay = 2.0

@@ -1,9 +1,9 @@
-from artap.operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
+from ..operators import SimpleMutator, SimulatedBinaryCrossover, SimpleCrossover, \
     TournamentSelector, ParetoDominance, nondominated_truncate, crowding_distance, PmMutator, EpsilonDominance, \
     UniformMutator, NonUniformMutation, FireflyStep
-from artap.individual import Individual
-from artap.benchmark_pareto import BiObjectiveTestProblem
-from artap.problem import Problem
+from ..individual import Individual
+from ..benchmark_pareto import BiObjectiveTestProblem
+from ..problem import Problem
 from math import inf
 import unittest
 

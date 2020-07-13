@@ -1,14 +1,14 @@
 import math
 import unittest
 
-from artap.problem import Problem
-from artap.individual import Individual
-from artap.benchmark_functions import Booth
-from artap.surrogate import SurrogateModelEval
-from artap.surrogate_scikit import SurrogateModelScikit
-from artap.surrogate_smt import SurrogateModelSMT
-from artap.operators import LHSGenerator
-from artap.algorithm_sweep import SweepAlgorithm
+from ..problem import Problem
+from ..individual import Individual
+from ..benchmark_functions import Booth
+from ..surrogate import SurrogateModelEval
+from ..surrogate_scikit import SurrogateModelScikit
+from ..surrogate_smt import SurrogateModelSMT
+from ..operators import LHSGenerator
+from ..algorithm_sweep import SweepAlgorithm
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RationalQuadratic, ExpSineSquared

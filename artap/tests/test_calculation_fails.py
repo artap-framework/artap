@@ -1,8 +1,8 @@
 import unittest
 
-from artap.problem import Problem
-from artap.algorithm_genetic import NSGAII
-from artap.results import Results
+from ..problem import Problem
+from ..algorithm_genetic import NSGAII
+from ..results import Results
 from random import random
 
 

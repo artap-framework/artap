@@ -1,12 +1,12 @@
 import unittest
 from unittest import TestCase, main
 
-from artap.executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor, CondorCSTJobExecutor
-from artap.problem import Problem
-from artap.population import Population
-from artap.algorithm import DummyAlgorithm
-from artap.individual import Individual
-from artap.config import config
+from ..executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor, CondorCSTJobExecutor
+from ..problem import Problem
+from ..population import Population
+from ..algorithm import DummyAlgorithm
+from ..individual import Individual
+from ..config import config
 
 import random
 

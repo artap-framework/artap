@@ -1,7 +1,7 @@
 import time
 from abc import ABCMeta
 from .individual import Individual
-from artap.utils import VectorAndNumbers
+from .utils import VectorAndNumbers
 from math import inf
 
 

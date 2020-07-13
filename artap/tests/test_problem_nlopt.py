@@ -1,24 +1,24 @@
 import unittest
 
 try:
-    from artap.algorithm_nlopt import NLopt
-    from artap.algorithm_nlopt import GN_DIRECT_L
-    from artap.algorithm_nlopt import GN_MLSL
-    from artap.algorithm_nlopt import GN_CRS2_LM
-    from artap.algorithm_nlopt import GN_ISRES
-    from artap.algorithm_nlopt import LN_BOBYQA
-    from artap.algorithm_nlopt import LN_COBYLA
-    from artap.algorithm_nlopt import LN_NELDERMEAD
-    from artap.algorithm_nlopt import LN_SBPLX
-    from artap.algorithm_nlopt import LN_PRAXIS
-    from artap.algorithm_nlopt import LN_AUGLAG_EQ
+    from ..algorithm_nlopt import NLopt
+    from ..algorithm_nlopt import GN_DIRECT_L
+    from ..algorithm_nlopt import GN_MLSL
+    from ..algorithm_nlopt import GN_CRS2_LM
+    from ..algorithm_nlopt import GN_ISRES
+    from ..algorithm_nlopt import LN_BOBYQA
+    from ..algorithm_nlopt import LN_COBYLA
+    from ..algorithm_nlopt import LN_NELDERMEAD
+    from ..algorithm_nlopt import LN_SBPLX
+    from ..algorithm_nlopt import LN_PRAXIS
+    from ..algorithm_nlopt import LN_AUGLAG_EQ
 
     __nlopt__ = True
 except ImportError:
     __nlopt__ = False
 
-from artap.results import Results
-from artap.benchmark_functions import Booth
+from ..results import Results
+from ..benchmark_functions import Booth
 
 
 class TestNLoptOptimization(unittest.TestCase):

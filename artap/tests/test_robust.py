@@ -1,10 +1,10 @@
 import unittest
 
-from artap.benchmark_robust import Synthetic1D
-from artap.algorithm_genetic import EpsMOEA
-from artap.algorithm import EvaluatorType
-from artap.results import Results
-from artap.archive import Archive
+from ..benchmark_robust import Synthetic1D
+from ..algorithm_genetic import EpsMOEA
+from ..algorithm import EvaluatorType
+from ..results import Results
+from ..archive import Archive
 
 
 # Make test to test something

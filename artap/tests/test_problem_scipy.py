@@ -1,8 +1,8 @@
 import unittest
 
-from artap.algorithm_scipy import ScipyOpt
-from artap.benchmark_functions import Ackley,GramacyLee,AlpineFunction
-from artap.results import Results
+from ..algorithm_scipy import ScipyOpt
+from ..benchmark_functions import Ackley,GramacyLee,AlpineFunction
+from ..results import Results
 
 
 class TestSimpleOptimization(unittest.TestCase):

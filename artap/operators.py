@@ -5,10 +5,10 @@ import math
 from math import exp
 import numpy as np
 import functools
-from artap.individual import Individual
-from artap.utils import VectorAndNumbers
-from artap.doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
-from artap.job import Job
+from .individual import Individual
+from .utils import VectorAndNumbers
+from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
+from .job import Job
 from joblib import Parallel, delayed
 from copy import deepcopy
 

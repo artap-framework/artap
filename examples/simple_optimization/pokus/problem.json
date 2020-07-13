@@ -1,0 +1,1 @@
+{"name": "NLopt_BOBYQA", "description": "", "parameters": [{"name": "x_1", "initial_value": 2.5, "bounds": [-10, 10]}, {"name": "x_2", "initial_value": 1.5, "bounds": [-10, 10]}]}

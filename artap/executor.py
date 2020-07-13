@@ -16,7 +16,7 @@ from abc import ABCMeta, abstractmethod
 from .utils import ConfigDictionary
 from shutil import copyfile
 
-from artap.config import config
+from .config import config
 
 
 # parse ip address

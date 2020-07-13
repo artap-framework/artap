@@ -2,9 +2,9 @@
  Module is dedicated to describe optimization problem.
 """
 
-from artap.datastore import FileDataStore, DummyDataStore
-from artap.utils import ConfigDictionary
-from artap.surrogate import SurrogateModelEval
+from .datastore import FileDataStore, DummyDataStore
+from .utils import ConfigDictionary
+from .surrogate import SurrogateModelEval
 from abc import abstractmethod
 
 import logging

@@ -1,9 +1,9 @@
 import unittest
 import math
 
-from artap.problem import Problem
-from artap.individual import Individual
-from artap.results import Results
+from ..problem import Problem
+from ..individual import Individual
+from ..results import Results
 
 try:
     from artap.algorithm_nlopt import NLopt

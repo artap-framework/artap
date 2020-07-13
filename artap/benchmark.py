@@ -1,8 +1,8 @@
-from artap.quality_indicator import epsilon_add
-from artap.algorithm_genetic import NSGAII
-from artap.benchmark_pareto import DTLZI, DTLZII, DTLZIII, DTLZIV
-from artap.results import Results
-from artap.individual import Individual
+from .quality_indicator import epsilon_add
+from .algorithm_genetic import NSGAII
+from .benchmark_pareto import DTLZI, DTLZII, DTLZIII, DTLZIV
+from .results import Results
+from .individual import Individual
 
 """
 Comparison is based on the following paper:

@@ -1,6 +1,6 @@
 import unittest
-from artap.individual import Individual
-from artap.benchmark_robust import Synthetic1D, Synthetic2D, Synthetic5D, Synthetic10D
+from ..individual import Individual
+from ..benchmark_robust import Synthetic1D, Synthetic2D, Synthetic5D, Synthetic10D
 
 
 class TestSynthetic1D(unittest.TestCase):

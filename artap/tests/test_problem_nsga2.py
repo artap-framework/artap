@@ -1,10 +1,10 @@
 import unittest
 
-from artap.benchmark_functions import AlpineFunction, Ackley
-from artap.benchmark_pareto import ZDT1
-from artap.algorithm_genetic import NSGAII
-from artap.results import Results
-from artap.quality_indicator import epsilon_add
+from ..benchmark_functions import AlpineFunction, Ackley
+from ..benchmark_pareto import ZDT1
+from ..algorithm_genetic import NSGAII
+from ..results import Results
+from ..quality_indicator import epsilon_add
 
 
 class TestZDT1(unittest.TestCase):

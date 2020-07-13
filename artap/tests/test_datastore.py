@@ -3,14 +3,15 @@ import unittest
 import tempfile
 import time
 from sqlitedict import SqliteDict
+import pathlib
 
-from artap.problem import Problem, ProblemViewDataStore
-from artap.datastore import FileDataStore
-from artap.algorithm_scipy import ScipyOpt
-from artap.algorithm_sweep import SweepAlgorithm
+from ..problem import Problem, ProblemViewDataStore
+from ..datastore import FileDataStore
+from ..algorithm_scipy import ScipyOpt
+from ..algorithm_sweep import SweepAlgorithm
 
-from artap.results import Results
-from artap.operators import RandomGenerator, CustomGenerator
+from ..results import Results
+from ..operators import RandomGenerator, CustomGenerator
 
 from sys import platform
 if platform == "win32":
@@ -43,6 +44,7 @@ class TestDataStoreFile(unittest.TestCase):
 
         # set data store
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        # database_name = 'data.sqlite'
         problem.data_store = FileDataStore(problem, database_name=database_name)
 
         algorithm = ScipyOpt(problem)
@@ -69,34 +71,24 @@ class TestDataStoreFile(unittest.TestCase):
         db.close()
 
         # remove file
-        # print(database_name)
+
         os.remove(database_name)
 
-    def xtest_read_datastore(self):
-        problem = MyProblem()
-
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        problem.data_store = FileDataStore(problem, database_name=database_name, mode="REWRITE")
-
-        gen = CustomGenerator(problem.parameters)
-        gen.init([[1, 2], [3, 3]])
-
-        algorithm = SweepAlgorithm(problem, generator=gen)
-        algorithm.run()
-
-        problem.data_store.destroy()
-
     def test_read_datastore(self):
-        database_name = "data" + os.sep + "data.sqlite"
+        # Path to this script file location
+        file_path =str(pathlib.Path(__file__).parent.absolute())
+        print(file_path)
+
+        database_name = os.path.join(file_path, "data/data.sqlite")
         problem = ProblemViewDataStore(database_name=database_name)
 
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
 
         individuals = problem.populations[-1].individuals
-        self.assertEqual(individuals[0].vector[0], 1)
-        self.assertEqual(individuals[1].vector[1], 3)
-        self.assertEqual(individuals[0].costs, [5])
-        self.assertEqual(individuals[1].costs, [18])
+        self.assertAlmostEqual(individuals[0].vector[1], 2, 4)
+        self.assertAlmostEqual(individuals[1].vector[0], 3, 4)
+        self.assertAlmostEqual(individuals[0].costs[0], 5, 4)
+        self.assertAlmostEqual(individuals[1].costs[0], 18, 4)
 
 
 class TestDataStoreFileBenchmark(unittest.TestCase):

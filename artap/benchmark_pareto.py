@@ -1,4 +1,5 @@
-from artap.benchmark_functions import BenchmarkFunction
+
+from .benchmark_functions import BenchmarkFunction
 from math import cos, pi, sin, sqrt
 import numpy as np
 

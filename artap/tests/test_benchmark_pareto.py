@@ -1,6 +1,6 @@
 import unittest
-from artap.individual import Individual
-from artap.benchmark_pareto import BiObjectiveTestProblem, DTLZI,DTLZII, DTLZIII, DTLZIV
+from ..individual import Individual
+from ..benchmark_pareto import BiObjectiveTestProblem, DTLZI,DTLZII, DTLZIII, DTLZIV
 
 class TestBiobjective(unittest.TestCase):
 

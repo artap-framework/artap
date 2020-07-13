@@ -1,7 +1,7 @@
 import unittest
 
-from artap.problem import Problem
-from artap.algorithm_gradient import GradientAlgorithm
+from ..problem import Problem
+from ..algorithm_gradient import GradientAlgorithm
 
 
 class ParabolicProblem(Problem):
