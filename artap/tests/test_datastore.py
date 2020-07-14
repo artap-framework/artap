@@ -71,7 +71,6 @@ class TestDataStoreFile(unittest.TestCase):
         db.close()
 
         # remove file
-
         os.remove(database_name)
 
     def test_read_datastore(self):

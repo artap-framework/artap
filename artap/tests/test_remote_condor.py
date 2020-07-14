@@ -113,10 +113,10 @@ class CSTProblem(Problem):
         for file in output_files:
             print(file)
 
-        #with open(output_files[0]) as file:
-        #    content = file.readlines()
-        #return [float(content[0])]
-        return [0]
+        with open(output_files[1], 'rt') as file:
+            content = file.readlines()
+        print(content)
+        return [float(content[0])]
 
 
 class TestCondor(TestCase):
@@ -153,9 +153,7 @@ class TestCondor(TestCase):
 
         individuals = [Individual([0.7])]
         algorithm = DummyAlgorithm(problem)
-        algorithm.evaluate(individuals)
-
-        # self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
+        algorithm.evaluate(individuals)  
         self.assertAlmostEqual(0, 0)
 
     @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")

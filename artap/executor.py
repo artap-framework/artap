@@ -6,6 +6,7 @@ import subprocess
 import datetime
 import time
 import ntpath
+import pathlib
 from string import Template
 
 import rpyc
@@ -552,7 +553,16 @@ class CondorCSTJobExecutor(CondorJobExecutor):
         copyfile(model_file, self.problem.working_dir + self.model_file)
 
         self.executable = textwrap.dedent("""\
-            """ + cst_path + """ --se --rebuild --hide -par parameters.txt -project-file {}""".format(self.model_file))
+            """ + cst_path + """ --se --rebuild --hide -par parameters.txt -project-file {} """.format(self.model_file))
+        self.executable += '\n'
+        i = 1
+        for file in files_from_condor[1:]:
+            filename = pathlib.Path(file)
+            windows_path = pathlib.PureWindowsPath(filename)
+            name = filename.name
+            self.output_files[i] = name
+            self.executable += 'copy "{}" "{}" \n'.format(windows_path, name)
+            i += 1
 
         # add solver directory to output
         # self.output_files.append(os.path.splitext(self.model_file)[0] + "\Export")
