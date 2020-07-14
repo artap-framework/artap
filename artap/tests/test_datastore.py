@@ -43,8 +43,8 @@ class TestDataStoreFile(unittest.TestCase):
         problem = MyProblem()
 
         # set data store
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        # database_name = 'data.sqlite'
+        # database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        database_name = 'data.sqlite'
         problem.data_store = FileDataStore(problem, database_name=database_name)
 
         algorithm = ScipyOpt(problem)
@@ -61,8 +61,7 @@ class TestDataStoreFile(unittest.TestCase):
         problem.data_store.destroy()
 
         # check db
-        db = SqliteDict(database_name, autocommit=True)
-
+        db = SqliteDict(database_name, flag='r')
         populations = db["populations"]
 
         individual = populations[-1].individuals[9]

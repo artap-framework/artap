@@ -102,9 +102,21 @@ class CSTProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 0.1, 'bounds': [0, 1]}]
         self.costs = [{'name': 'F_1'}]
         self.executor = CondorCSTJobExecutor(self,
-                                             model_file="./data/capacitor.cst",
-                                             files_from_condor=["capacitor.cst"])
-        # , "/elstat/Export/Es\ Solver/Energy.txt"
+                                             model_file="./data/elstat.cst",
+                                             files_from_condor=["elstat.cst", "./elstat/Export/Es Solver/Energy.txt"])
+
+
+    def evaluate(self, individual):
+        return self.executor.eval(individual)
+
+    def parse_results(self, output_files, individual):
+        for file in output_files:
+            print(file)
+
+        with open(output_files[1], 'rt') as file:
+            content = file.readlines()
+        print(content)
+        return [float(content[0])]
 
     def evaluate(self, individual):
         return self.executor.eval(individual)
