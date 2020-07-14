@@ -1,12 +1,12 @@
 import unittest
 from unittest import TestCase, main
 
-from artap.executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor, CondorCSTJobExecutor
-from artap.problem import Problem
-from artap.population import Population
-from artap.algorithm import DummyAlgorithm
-from artap.individual import Individual
-from artap.config import config
+from ..executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor, CondorCSTJobExecutor
+from ..problem import Problem
+from ..population import Population
+from ..algorithm import DummyAlgorithm
+from ..individual import Individual
+from ..config import config
 
 import random
 
@@ -102,8 +102,8 @@ class CSTProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 0.1, 'bounds': [0, 1]}]
         self.costs = [{'name': 'F_1'}]
         self.executor = CondorCSTJobExecutor(self,
-                                             model_file="./data/elstat.cst",
-                                             files_from_condor=["elstat.cst"])
+                                             model_file="./data/capacitor.cst",
+                                             files_from_condor=["capacitor.cst"])
         # , "/elstat/Export/Es\ Solver/Energy.txt"
 
     def evaluate(self, individual):
@@ -146,17 +146,17 @@ class TestCondor(TestCase):
 
         self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
 
-    # @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
-    # def test_condor_cst_exec(self):
-    #     """ Tests one calculation of goal function."""
-    #     problem = CSTProblem()
-    #
-    #     individuals = [Individual([0.7])]
-    #     algorithm = DummyAlgorithm(problem)
-    #     algorithm.evaluate(individuals)
-    #
-    #     # self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
-    #     self.assertAlmostEqual(0, 0)
+    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
+    def test_condor_cst_exec(self):
+        """ Tests one calculation of goal function."""
+        problem = CSTProblem()
+
+        individuals = [Individual([0.7])]
+        algorithm = DummyAlgorithm(problem)
+        algorithm.evaluate(individuals)
+
+        # self.assertAlmostEqual(112.94090668383139, individuals[0].costs[0])
+        self.assertAlmostEqual(0, 0)
 
     @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
     def test_condor_python_exec(self):

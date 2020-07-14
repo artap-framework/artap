@@ -2,14 +2,22 @@ from .individual import Individual
 
 
 class Population:
-    def __init__(self, individuals: list = None):
-        if individuals is None:
-            self.individuals = []
-        else:
-            self.individuals = individuals.copy()
 
+    counter = 0
+
+    def __init__(self, individuals=None):
+        self.id = Population.counter
+        Population.counter += 1
+        self.individuals = []
+        if individuals is not None:
+            self.set_individuals(individuals)
         self.pareto_vectors: list = []
         self.pareto_costs: list = []
+
+    def set_individuals(self, individuals=None):
+        self.individuals = individuals
+        for individual in self.individuals:
+            individual.population_id = self.id
 
     def __str__(self):
         string = "individuals: {}\n".format(len(self.individuals))

@@ -1,8 +1,8 @@
 import unittest
 
-from artap.problem import Problem
-from artap.algorithm_gradient_descent import GradientDescent
-from artap.results import Results
+from ..problem import Problem
+from ..algorithm_gradient_descent import GradientDescent
+from ..results import Results
 
 
 class QuadraticProblem(Problem):

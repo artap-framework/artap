@@ -1,9 +1,9 @@
 import unittest
-from artap.algorithm_swarm import OMOPSO, SMPSO
-from artap.results import Results
-from artap.benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
-from artap.benchmark_pareto import ZDT1
-from artap.quality_indicator import epsilon_add
+from ..algorithm_swarm import OMOPSO, SMPSO
+from ..results import Results
+from ..benchmark_functions import BinhAndKorn, AlpineFunction, Ackley
+from ..benchmark_pareto import ZDT1
+from ..quality_indicator import epsilon_add
 
 
 class TestAckleyOMOPSO(unittest.TestCase):

@@ -3,13 +3,13 @@ import math
 import unittest
 from scipy import integrate
 
-from artap.problem import Problem
-from artap.algorithm_genetic import NSGAII
-from artap.algorithm_sweep import SweepAlgorithm
-from artap.benchmark_functions import Booth
-from artap.results import Results
-from artap.operators import LHSGenerator
-from artap.surrogate_scikit import SurrogateModelScikit
+from ..problem import Problem
+from ..algorithm_genetic import NSGAII
+from ..algorithm_sweep import SweepAlgorithm
+from ..benchmark_functions import Booth
+from ..results import Results
+from ..operators import LHSGenerator
+from ..surrogate_scikit import SurrogateModelScikit
 
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import ExtraTreesRegressor

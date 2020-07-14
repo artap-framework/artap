@@ -1,14 +1,14 @@
 import unittest
 
 try:
-    from artap.algorithm_bayesopt import BayesOptSerial, BayesOptParallel
+    from ..algorithm_bayesopt import BayesOptSerial, BayesOptParallel
 
     __bayes_opt__ = True
 except ImportError:
     __bayes_opt__ = False
 
-from artap.results import Results
-from artap.benchmark_functions import Booth
+from ..results import Results
+from ..benchmark_functions import Booth
 
 
 class TestBayesOptOptimization(unittest.TestCase):

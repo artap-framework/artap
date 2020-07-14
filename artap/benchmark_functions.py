@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 from numpy import exp, cos, sin, sqrt, linspace
-import artap.colormaps as cmaps
-from artap.problem import Problem
+from . import colormaps as cmaps
+from .problem import Problem
 from sklearn.model_selection import train_test_split
 from random import uniform
-from artap.individual import Individual
+from .individual import Individual
 from abc import abstractmethod
 
 

@@ -1,7 +1,7 @@
 import unittest
-from artap.problem import Problem
-from artap.individual import Individual
-from artap.job import Job
+from ..problem import Problem
+from ..individual import Individual
+from ..job import Job
 
 
 class JobProblem(Problem):

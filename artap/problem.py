@@ -2,17 +2,15 @@
  Module is dedicated to describe optimization problem.
 """
 
-from artap.datastore import FileDataStore, FileMode
-from artap.utils import ConfigDictionary
-from artap.surrogate import SurrogateModelEval
-from artap.monitor import MonitorService
+from .datastore import FileDataStore, DummyDataStore
+from .utils import ConfigDictionary
+from .surrogate import SurrogateModelEval
 from abc import abstractmethod
 
 import logging
 import datetime
 import tempfile
 import os
-import sys
 import shutil
 import atexit
 
@@ -99,7 +97,7 @@ class Problem:
         self.data_store = None
         self.monitor_service = None
         self.executor = None
-
+        self.data_store = DummyDataStore()
         self.output_files = None
 
         self.working_dir = tempfile.gettempdir() + os.sep + "artap-{}".format(ts) + os.sep
@@ -121,6 +119,13 @@ class Problem:
 
         # clean up
         atexit.register(self.cleanup)
+
+    def to_dict(self):
+        output = {'name': self.name, 'description': self.description, 'parameters': self.parameters}
+        return output
+
+    def from_dict(self):
+        pass
 
     def cleanup(self):
         if self.data_store:
@@ -203,8 +208,7 @@ class Problem:
 class ProblemViewDataStore(Problem):
     def __init__(self, database_name):
         super().__init__()
-
-        self.data_store = FileDataStore(self, database_name=database_name, mode=FileMode.READ)
+        self.data_store = FileDataStore(self, database_name=database_name, mode="read")
 
     def set(self, **kwargs):
         pass

@@ -1,9 +1,9 @@
 import unittest
-from artap.benchmark_functions import Ackley
-from artap.algorithm_swarm import SwarmAlgorithm, OMOPSO
-from artap.problem import Problem
-from artap.individual import Individual
-from artap.archive import Archive
+from ..benchmark_functions import Ackley
+from ..algorithm_swarm import SwarmAlgorithm, OMOPSO
+from ..problem import Problem
+from ..individual import Individual
+from ..archive import Archive
 
 
 class TestProblem(Problem):

@@ -1,6 +1,6 @@
 import unittest
 
-from artap.quality_indicator import gd, epsilon_add
+from ..quality_indicator import gd, epsilon_add
 
 
 class TestGenerationalDistance(unittest.TestCase):

@@ -43,6 +43,8 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
     def gen_initial_population(self):
         individuals = self.generator.generate()
+        for individual in individuals:
+            individual.population_id = 0
         population = Population(individuals)
 
         # append to population
@@ -143,6 +145,8 @@ class NSGAII(GeneticAlgorithm):
 
         # non-dominated sort of individuals
         self.selector.fast_nondominated_sorting(population.individuals)
+        for individual in population.individuals:
+            self.problem.data_store.sync(individual)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -161,7 +165,10 @@ class NSGAII(GeneticAlgorithm):
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
-            population.individuals = nondominated_truncate(offsprings, self.population_size)
+            for individual in population.individuals:
+                self.problem.data_store.sync(individual)
+            population.set_individuals(nondominated_truncate(offsprings, self.population_size))
+
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))

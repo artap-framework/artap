@@ -1,10 +1,10 @@
 import unittest
 
-from artap.benchmark_functions import Ackley
-from artap.algorithm_genetic import EpsMOEA
-from artap.benchmark_pareto import ZDT1
-from artap.results import Results
-from artap.quality_indicator import epsilon_add
+from ..benchmark_functions import Ackley
+from ..algorithm_genetic import EpsMOEA
+from ..benchmark_pareto import ZDT1
+from ..results import Results
+from ..quality_indicator import epsilon_add
 
 
 class TestAckleyN222(unittest.TestCase):

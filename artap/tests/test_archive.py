@@ -1,6 +1,6 @@
-from artap.archive import Archive
-from artap.individual import Individual
-from artap.operators import crowding_distance
+from ..archive import Archive
+from ..individual import Individual
+from ..operators import crowding_distance
 
 import unittest
 

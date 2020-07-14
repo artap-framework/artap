@@ -4,10 +4,10 @@ import random
 import threading
 import rpyc
 
-from artap.algorithm_sweep import SweepAlgorithm
-from artap.problem import Problem
-from artap.operators import LHSGenerator
-from artap.monitor import MonitorService, MONITOR_PORT
+from ..algorithm_sweep import SweepAlgorithm
+from ..problem import Problem
+from ..operators import LHSGenerator
+from ..monitor import MonitorService, MONITOR_PORT
 
 
 class SleepProblem(Problem):

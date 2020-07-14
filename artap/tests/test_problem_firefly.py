@@ -1,7 +1,7 @@
 import unittest
-from artap.problem import Problem
-from artap.algorithm_firefly import MoFirefly
-from artap.results import Results
+from ..problem import Problem
+from ..algorithm_firefly import MoFirefly
+from ..results import Results
 
 # import optproblems as optp
 # import optproblems.cec2005 as cec2005

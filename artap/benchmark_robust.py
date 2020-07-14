@@ -1,4 +1,5 @@
-from artap.benchmark_functions import BenchmarkFunction
+
+from .benchmark_functions import BenchmarkFunction
 from numpy import exp
 
 

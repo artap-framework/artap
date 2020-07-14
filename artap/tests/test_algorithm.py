@@ -1,9 +1,9 @@
 import unittest
-from artap.problem import Problem
-from artap.individual import Individual
-from artap.operators import CustomGenerator, LHSGenerator, Evaluator
-from artap.algorithm import DummyAlgorithm
-from artap.algorithm_sweep import SweepAlgorithm
+from ..problem import Problem
+from ..individual import Individual
+from ..operators import CustomGenerator, LHSGenerator, Evaluator
+from ..algorithm import DummyAlgorithm
+from ..algorithm_sweep import SweepAlgorithm
 
 
 class SweepProblem(Problem):

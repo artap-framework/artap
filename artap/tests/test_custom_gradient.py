@@ -1,6 +1,6 @@
 import unittest
-from artap.problem import Problem
-from artap.algorithm_gradient_descent import GradientDescent
+from ..problem import Problem
+from ..algorithm_gradient_descent import GradientDescent
 
 
 class GradientProblem(Problem):
