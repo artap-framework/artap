@@ -8,10 +8,9 @@ problem.db
 *.status
 __pycache__
 *.pyc
-*.db
 *.pdf
+*.db
 *.png
-*.sqlite
 *.txt
 docs/source/_build/
 build
