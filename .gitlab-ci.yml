@@ -29,9 +29,9 @@ examples:
     - linux
   script:
     # build deps
-    - cd 3rdparty
-    - ./submodules.sh
-    - cd ..
+    # - cd 3rdparty
+    # - ./submodules.sh
+    # - cd ..
 
     # create environment
     - python3 -m venv env
