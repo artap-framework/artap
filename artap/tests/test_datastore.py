@@ -41,7 +41,6 @@ class MyProblem(Problem):
 class TestDataStoreFile(unittest.TestCase):
     def test_read_write_database(self):
         problem = MyProblem()
-
         # set data store
         # database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
         database_name = 'data.sqlite'
@@ -53,30 +52,25 @@ class TestDataStoreFile(unittest.TestCase):
         algorithm.options['verbose_level'] = 0
         algorithm.run()
 
-        results = Results(problem)
-        optimum = results.find_optimum('F')
-        self.assertAlmostEqual(optimum.costs[0], 0, 3)
-
         # remove datastore
         problem.data_store.destroy()
 
         # check db
         db = SqliteDict(database_name, flag='r')
         populations = db["populations"]
-
-        individual = populations[-1].individuals[9]
-        self.assertAlmostEqual(individual.costs[0], 0, 3) # result
-        self.assertAlmostEqual(individual.custom["functions"][0], individual.vector[0]**2)
+        individual = populations[-1].individuals[-1]
+        print(individual)
         db.close()
 
-        # remove file
+        self.assertAlmostEqual(individual.costs[0], 0, 3) # result
+        self.assertAlmostEqual(individual.custom["functions"][0], individual.vector[0]**2)
 
+        # remove file
         os.remove(database_name)
 
     def test_read_datastore(self):
         # Path to this script file location
         file_path =str(pathlib.Path(__file__).parent.absolute())
-
         database_name = os.path.join(file_path, "data/data.sqlite")
         problem = ProblemViewDataStore(database_name=database_name)
 

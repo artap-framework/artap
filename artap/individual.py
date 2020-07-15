@@ -1,6 +1,6 @@
 import platform
 from abc import *
-from collections import Iterable
+from collections.abc import Iterable
 from enum import Enum
 
 

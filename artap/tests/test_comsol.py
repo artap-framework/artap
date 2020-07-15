@@ -5,7 +5,7 @@ from ..executor import LocalComsolExecutor
 from ..problem import Problem
 from ..algorithm import DummyAlgorithm
 from ..individual import Individual
-
+from .tests_root import tests_root_path
 __comsol__ = True
 result = os.system('comsol --version')
 if result != 0:
@@ -21,8 +21,9 @@ class ComsolProblem(Problem):
                            {'name': 'b', 'initial_value': 10}]
         self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
         self.output_files = ["out.txt"]
+        problem_file = os.path.join(tests_root_path, './data/elstat.mph')
         self.executor = LocalComsolExecutor(self,
-                                            problem_file="./data/elstat.mph",
+                                            problem_file=problem_file,
                                             output_files=self.output_files)
 
     def evaluate(self, individual):

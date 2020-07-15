@@ -3,13 +3,13 @@ from unittest import TestCase, main
 
 from ..executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor, CondorCSTJobExecutor
 from ..problem import Problem
-from ..population import Population
 from ..algorithm import DummyAlgorithm
 from ..individual import Individual
 from ..config import config
 
 import random
-
+import pathlib
+import os
 
 class CondorMatlabProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -19,8 +19,9 @@ class CondorMatlabProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
                       {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
         self.costs = [{'name': 'F_1'}]
+        file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/run_input.m")
         self.executor = CondorMatlabJobExecutor(self,
-                                                script="./data/run_input.m",
+                                                script=file_path,
                                                 parameter_file="input.txt",
                                                 files_from_condor=["output.txt"])
 
@@ -42,7 +43,8 @@ class ComsolProblem(Problem):
                            {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
 
         self.costs = [{'name': 'F_1'}]
-        self.executor = CondorComsolJobExecutor(self, model_file="./data/elstat.mph",
+        file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/elstat.mph")
+        self.executor = CondorComsolJobExecutor(self, model_file=file_path,
                                                 files_from_condor=["out.txt", "elstat.mph"])
 
     def evaluate(self, individual):
@@ -62,8 +64,9 @@ class PythonExecProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
                            {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
         self.costs = [{'name': 'F_1'}]
+        file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/run_exec.py")
         self.executor = CondorPythonJobExecutor(self,
-                                                script="./data/run_exec.py",
+                                                script=file_path,
                                                 parameter_file=None,
                                                 output_files=["output.txt"])
 
@@ -82,8 +85,9 @@ class PythonInputProblem(Problem):
         self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
                            {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
         self.costs = [{'name': 'F_1'}]
+        file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/run_input.py")
         self.executor = CondorPythonJobExecutor(self,
-                                                script="./data/run_input.py",
+                                                script=file_path,
                                                 parameter_file="input.txt",
                                                 output_files=["output.txt"])
 
@@ -101,10 +105,10 @@ class CSTProblem(Problem):
     def set(self):
         self.parameters = [{'name': 'a', 'initial_value': 0.1, 'bounds': [0, 1]}]
         self.costs = [{'name': 'F_1'}]
+        file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/elstat.cst")
         self.executor = CondorCSTJobExecutor(self,
-                                             model_file="./data/elstat.cst",
+                                             model_file=file_path,
                                              files_from_condor=["elstat.cst", "./elstat/Export/Es Solver/Energy.txt"])
-
 
     def evaluate(self, individual):
         return self.executor.eval(individual)
@@ -120,15 +124,6 @@ class CSTProblem(Problem):
 
     def evaluate(self, individual):
         return self.executor.eval(individual)
-
-    def parse_results(self, output_files, individual):
-        for file in output_files:
-            print(file)
-
-        #with open(output_files[0]) as file:
-        #    content = file.readlines()
-        #return [float(content[0])]
-        return [0]
 
 
 class TestCondor(TestCase):
