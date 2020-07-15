@@ -1,6 +1,8 @@
 import unittest
 import importlib.util
 import os
+import pathlib
+import sys
 
 
 def make_test_function(name, filename):
@@ -36,6 +38,8 @@ class TestExamples(unittest.TestCase):
 
 
 # create tests dynamically
+artap_path = str(pathlib.Path(__file__).parent.absolute().parent.absolute())
+# sys.path.append(artap_path)
 TestExamples.init_tests()
 
 if __name__ == '__main__':
