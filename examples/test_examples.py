@@ -39,7 +39,7 @@ class TestExamples(unittest.TestCase):
 
 # create tests dynamically
 artap_path = str(pathlib.Path(__file__).parent.absolute().parent.absolute())
-# sys.path.append(artap_path)
+sys.path.append(artap_path)
 TestExamples.init_tests()
 
 if __name__ == '__main__':
