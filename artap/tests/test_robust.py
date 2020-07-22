@@ -24,7 +24,7 @@ class TestSimpleOptimization(unittest.TestCase):
         # archive.extend(problem.populations[-1].individuals)
         # archive += problem.populations[-1].individuals
 
-        for individual in problem.populations[-1].individuals:
+        for individual in problem.last_population().individuals:
             archive += individual
 
             for child in individual.children:

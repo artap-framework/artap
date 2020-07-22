@@ -2,9 +2,10 @@
  Module is dedicated to describe optimization problem.
 """
 
-from .datastore import FileDataStore, DummyDataStore
+from .datastore import TinyDataStore, FileDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
+from .population import Population
 from abc import abstractmethod
 
 import logging
@@ -90,7 +91,7 @@ class Problem:
         self.signs = []
 
         # populations
-        self.populations = []
+        self.individuals = []
         self.archive = None
         self.buffer = [] # storage for potential individuals, can be used if calculation fails
         self.failed = [] # storage for failed individuals
@@ -120,11 +121,38 @@ class Problem:
         # clean up
         atexit.register(self.cleanup)
 
+    def populations(self):
+        populations = {}
+        for individual in self.individuals:
+            if individual.population_id not in populations:
+                populations[individual.population_id] = []
+            populations[individual.population_id].append(individual)
+
+        return populations
+
+    def last_population(self):
+        # TODO: temporary solution - faster implementation with TinyDB
+
+        # find max index
+        max_index = -1
+        for individual in self.individuals:
+            if individual.population_id > max_index:
+                max_index = individual.population_id
+
+        # add to population
+        individuals = []
+        for individual in self.individuals:
+            if individual.population_id == max_index:
+                individuals.append(individual)
+
+        return Population(individuals)
+
     def to_dict(self):
         output = {'name': self.name, 'description': self.description, 'parameters': self.parameters}
         return output
 
-    def from_dict(self):
+    @staticmethod
+    def from_dict():
         pass
 
     def cleanup(self):
@@ -206,9 +234,9 @@ class Problem:
 
 
 class ProblemViewDataStore(Problem):
-    def __init__(self, database_name):
+    def __init__(self, database_name, class_datastore=FileDataStore):
         super().__init__()
-        self.data_store = FileDataStore(self, database_name=database_name, mode="read")
+        self.data_store = class_datastore(self, database_name=database_name, mode="read")
 
     def set(self, **kwargs):
         pass

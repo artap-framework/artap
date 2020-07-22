@@ -29,6 +29,7 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
         # initial population size
         self.population_size = 0
+        self.populations = []
 
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters)
@@ -43,15 +44,14 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
     def gen_initial_population(self):
         individuals = self.generator.generate()
-        for individual in individuals:
-            individual.population_id = 0
         population = Population(individuals)
 
         # append to population
-        self.problem.populations.append(population)
+        self.populations.append(population)
 
         # set current size
         self.population_size = len(individuals)
+
         return population
 
     def run(self):
@@ -138,15 +138,21 @@ class NSGAII(GeneticAlgorithm):
 
     def run(self):
         self.generator.init(self.options['max_population_size'])
+
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
+
+        # append to problem
+        for individual in population.individuals:
+            self.problem.individuals.append(individual)
+
         self.evaluate(population.individuals)
         self.add_features(population.individuals)
 
         # non-dominated sort of individuals
         self.selector.fast_nondominated_sorting(population.individuals)
         for individual in population.individuals:
-            self.problem.data_store.sync(individual)
+            self.problem.data_store.sync_individual(individual)
 
         t_s = time.time()
         self.problem.logger.info(
@@ -159,16 +165,23 @@ class NSGAII(GeneticAlgorithm):
             offsprings = self.generate(population.individuals)
             # evaluate the offsprings
             population = Population(offsprings)
-            self.problem.populations.append(population)
+            self.populations.append(population)
             self.evaluate(offsprings)
             self.add_features(offsprings)
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
             for individual in population.individuals:
-                self.problem.data_store.sync(individual)
-            population.set_individuals(nondominated_truncate(offsprings, self.population_size))
+                self.problem.data_store.sync_individual(individual)
 
+            # set individuals to population
+            population.individuals = nondominated_truncate(offsprings, self.population_size)
+            for individual in population.individuals:
+                individual.population_id = population.id
+
+            # append to problem
+            for individual in population.individuals:
+                self.problem.individuals.append(individual)
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
@@ -243,7 +256,7 @@ class EpsMOEA(GeneticAlgorithm):
             # pop-acceptance procedure, the dominating offsprings will be preserved in the population and  in the
             # archive
             population = Population(population.individuals)  # make a new population from the previous population
-            self.problem.populations.append(population)
+            self.populations.append(population)
             for individual in offspring:
                 self.selector.pop_acceptance(population.individuals, individual)    # pareto dominated solutions
                 self.problem.archive.add(individual)                                # archived solutions

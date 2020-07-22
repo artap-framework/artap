@@ -18,7 +18,7 @@ if __name__ == '__main__':
     ax.plot_surface(x, y, z, cmap=cmaps.viridis,
                     linewidth=0, antialiased=True)
 
-    for individual in problem.populations[-1].individuals:
+    for individual in problem.last_population():
         x_1 = individual.vector[0]
         x_2 = individual.vector[1]
         y = individual.costs[0]

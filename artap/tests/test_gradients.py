@@ -37,7 +37,7 @@ class TestGradients(unittest.TestCase):
         algorithm.options['max_population_size'] = 10
         algorithm.run()
 
-        for individual in problem.populations[0].individuals:
+        for individual in problem.individuals:
             gradient = individual.features['gradient']
             ref_gradient = analytic_gradient(individual)
             for i in range(len(gradient)):

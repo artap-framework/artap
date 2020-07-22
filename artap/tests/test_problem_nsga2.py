@@ -18,6 +18,8 @@ class TestZDT1(unittest.TestCase):
         algorithm.options['max_processes'] = 1
         algorithm.run()
 
+        # populations = problem.populations()
+
         results = Results(problem)
         vals = results.pareto_values()
         exact = problem.pareto_front(vals[0])

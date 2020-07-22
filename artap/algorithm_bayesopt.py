@@ -115,9 +115,6 @@ class BayesOptClassSerial(BayesOptContinuous):
         self.ub = np.empty((n,))
         self.params = {}
 
-        population = Population()
-        self.algorithm.problem.populations.append(population)
-
     def evaluateSample(self, x):
         return self.algorithm.evaluator.evaluate_scalar(x)
 

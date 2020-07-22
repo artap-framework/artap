@@ -33,8 +33,8 @@ class BenchmarkFunction(Problem):
         self.dimension: int
         self.global_optimum: float
         self.global_optimum_coords: list
-        self.robust_optimum:float
-        self.robust_optimum_coords:list
+        self.robust_optimum: float
+        self.robust_optimum_coords: list
 
     def generate_paramlist(self, dimension, lb, ub, **kwargs):
         """Defines an n-dimensional list for the optimization"""
@@ -58,7 +58,7 @@ class BenchmarkFunction(Problem):
         objective_functions = []
 
         if 'm' in kwargs:
-            for i in range(0,kwargs['m']):
+            for i in range(0, kwargs['m']):
                 dict = {'name': 'f_' + str(i), 'criteria': criteria}
                 objective_functions.append(dict)
 
@@ -142,7 +142,7 @@ class BenchmarkFunction(Problem):
         y = np.zeros([n])
         for i, xi in enumerate(x):
             y[i] = self.evaluate(Individual([xi]))[index_y]
-        return[x, y]
+        return [x, y]
 
     def get_data_2d(self, n=100, indices_x=[0, 1], index_y=0):
         x = linspace(self.parameters[indices_x[0]]['bounds'][0],
@@ -152,7 +152,8 @@ class BenchmarkFunction(Problem):
 
         x, y = np.meshgrid(x, y)
         z = self.evaluate(Individual([x, y]))[index_y]
-        return[x, y, z]
+        return [x, y, z]
+
 
 class Rosenbrock(BenchmarkFunction):
     """

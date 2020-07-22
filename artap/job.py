@@ -6,9 +6,8 @@ from math import inf
 
 
 class Job(metaclass=ABCMeta):
-    def __init__(self, problem, population=None):
+    def __init__(self, problem):
         self.problem = problem
-        self.population = population
 
     def evaluate(self, individual):
         # try to calculate the goal function of the individual in case of failure the individual is
@@ -41,14 +40,10 @@ class Job(metaclass=ABCMeta):
 
                 # set evaluated
                 individual.state = individual.State.EVALUATED
-                # add to population
-                if self.population is not None:
-                    self.population.individuals.append(individual)
-                    individual.population_id = self.population.id
-                    individual.info["population"] = self.problem.populations.index(self.population)
                 # info
                 individual.info["finish_time"] = time.time()
-                self.problem.data_store.write(individual)
+                # write to store
+                self.problem.data_store.sync_individual(individual)
                 return
 
             except (TimeoutError, RuntimeError) as e:

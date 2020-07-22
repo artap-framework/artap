@@ -59,9 +59,6 @@ class NLopt(Algorithm):
     def __init__(self, problem: Problem, name="NLopt"):
         super().__init__(problem, name)
 
-        population = Population()
-        self.problem.populations.append(population)
-
         self.options.declare(name='algorithm', default=LN_BOBYQA, values=_algorithm,
                              desc='Algorithm')
         self.options.declare(name='n_iterations', default=50, lower=1,

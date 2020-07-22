@@ -36,12 +36,11 @@ class GradientDescent(GeneticAlgorithm):
         population = self.gen_initial_population()
         self.add_features(population.individuals)
         self.evaluate(population.individuals)
-        self.problem.populations.append(population)
 
         # TODO: add adaptive step size
         for it in range(self.options['max_population_number']):
             population = Population()
-            for individual in self.problem.populations[it].individuals:
+            for individual in self.populations[it].individuals:
                 x = []
                 for i in range(len(individual.vector)):
                     x.append(individual.vector[i] - h * individual.features['gradient'][i])
@@ -49,5 +48,5 @@ class GradientDescent(GeneticAlgorithm):
                 population.individuals.append(individual)
             self.add_features(population.individuals)
             self.evaluate(population.individuals)
-            self.problem.populations.append(population)
+            self.populations.append(population)
 

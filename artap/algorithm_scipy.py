@@ -25,8 +25,6 @@ class ScipyOpt(Algorithm):
         self.save_all = True
 
     def run(self):
-        self.problem.populations.append(Population())
-
         # initial vector
         x0 = self.problem.get_initial_values()
 

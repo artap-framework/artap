@@ -292,7 +292,7 @@ class OMOPSO(SwarmAlgorithm):
             self.update_global_best(offsprings)
 
             population = Population(offsprings)
-            self.problem.populations.append(population)
+            self.populations.append(population)
 
             # print(self.problem.archive._contents)
 
@@ -489,7 +489,7 @@ class SMPSO(SwarmAlgorithm):
             self.update_global_best(offsprings)
 
             population = Population(offsprings)
-            self.problem.populations.append(population)
+            self.populations.append(population)
 
             i += 1
 
@@ -536,7 +536,7 @@ class SMPSO(SwarmAlgorithm):
 #                 individual)  # TODO: all evaluating should be derived from Evaluator class
 #
 #         self.selector.fast_nondominated_sorting(population.individuals)
-#         self.problem.populations.append(population)
+#         self.populations.append(population)
 #
 #         t_s = time.time()
 #         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
@@ -566,7 +566,7 @@ class SMPSO(SwarmAlgorithm):
 #
 #             self.selector.fast_nondominated_sorting(offsprings)
 #             population = Population(offsprings)
-#             self.problem.populations.append(population)
+#             self.populations.append(population)
 #
 #             i += 1
 #

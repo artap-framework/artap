@@ -17,6 +17,11 @@ class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
 
         # create initial population and evaluate individuals
         population = self.gen_initial_population()
+
+        # append to problem
+        for individual in population.individuals:
+            self.problem.individuals.append(individual)
+
         self.evaluate(population.individuals)
 
         t = time.time() - t_s

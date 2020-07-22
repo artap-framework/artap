@@ -119,7 +119,7 @@ class CSTProblem(Problem):
 
         with open(output_files[1], 'rt') as file:
             content = file.readlines()
-        print(content)
+
         return [float(content[0])]
 
     def evaluate(self, individual):

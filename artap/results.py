@@ -166,8 +166,8 @@ class Results:
         if self.problem.archive:
             min_l = [min(self.problem.archive, key=lambda x: x.costs[index])]
         else:
-            if len(self.problem.populations[-1].individuals) != 0:
-                min_l = [min(self.problem.populations[-1].individuals, key=lambda x: x.costs[index])]
+            if len(self.problem.individuals) > 0:
+                min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
@@ -245,7 +245,7 @@ class Results:
                 l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
         """
 
-        population = self.problem.populations[-1]
+        population = self.problem.last_population()
         l_sol = []
 
         # the pareto values collected in the archive, if the algorithm uses this strategy

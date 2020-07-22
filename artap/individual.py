@@ -26,18 +26,21 @@ class Individual(metaclass=ABCMeta):
 
     counter: int = 0
 
-    def __init__(self, vector: list):
+    def __init__(self, vector: list = []):
         self.id = Individual.counter
         Individual.counter += 1
+
         self.vector = vector.copy()
-        self.population_id = None
         self.costs = []
         self.costs_signed = []
         self.state = self.State.EMPTY
+        self.population_id = -1
+
         self.parents = []
         self.children = []
         self.features = {}
         self.custom = {}
+
         self.feasible = 0.0  # the distance from the feasibility region in min norm, its an index, not a
         self.precision = 7   # the default value of the considered decimals
 
@@ -105,13 +108,18 @@ class Individual(metaclass=ABCMeta):
         self.vector = individual.vector
         self.costs = individual.costs
         self.costs_signed = individual.costs_signed
-        self.custom = individual.custom
         self.state = individual.state
-        self.info = individual.info
+        self.population_id = individual.population_id
+        self.parents = individual.parents
+        self.children = individual.children
+        self.features = individual.features
+        self.custom = individual.custom
+        self.feasible = individual.feasible
+        self.precision = individual.precision
 
     def to_dict(self):
         output = {'id': self.id, 'vector': self.vector, 'costs': self.costs,
-                  'costs_singed': self.costs_signed, 'custom': self.custom,
+                  'costs_signed': self.costs_signed, 'custom': self.custom,
                   'state': self.to_string(self.state), 'info': self.info, 'population_id': self.population_id}
 
         features = dict()
@@ -129,18 +137,22 @@ class Individual(metaclass=ABCMeta):
             features[key] = value
 
             output['features'] = features
+
         return output
 
-    def from_dict(self, dictionary):
-        self.id = dictionary['id']
-        self.vector = dictionary['vector']
-        self.costs = dictionary['costs']
-        self.costs_signed = dictionary['costs_signed']
-        self.custom = dictionary['custom']
-        self.info = dictionary['info']
-        self.id = dictionary['population_id']
+    @staticmethod
+    def from_dict(dictionary):
+        individual = Individual()
+        individual.id = dictionary['id']
+        individual.population_id = dictionary['population_id']
 
-        for feature in self.features.items():
+        individual.vector = dictionary['vector']
+        individual.costs = dictionary['costs']
+        individual.costs_signed = dictionary['costs_signed']
+        individual.custom = dictionary['custom']
+        individual.info = dictionary['info']
+
+        for feature in individual.features.items():
             key = 'feature_' + feature[0]
             if isinstance(feature[1], Iterable):
                 value = []
@@ -152,7 +164,5 @@ class Individual(metaclass=ABCMeta):
             else:
                 value = feature[1]
 
-
-
-        return string
+        return individual
 

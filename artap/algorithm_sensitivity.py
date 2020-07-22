@@ -80,15 +80,17 @@ class SALibAlgorithm(Algorithm):
 
         # set current size
         self.population_size = len(individuals)
+
+        # append to problem
+        for individual in individuals:
+            self.problem.individuals.append(individual)
+
         # evaluate individuals
         self.evaluate(individuals)
 
         for individual in individuals:
             self.samples_y.append(individual.costs[0]) # TODO: fix index [0]
         self.samples_y = np.array(self.samples_y)
-
-        population = Population(individuals)
-        self.problem.populations.append(population)
 
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))
@@ -147,8 +149,6 @@ class Sensitivity(Algorithm):
         for parameter in self.problem.parameters:
             parameters.append(float(parameter['initial_value']))
 
-        population = Population()
-
         for parameter_name in self.parameters:
             parameter_values = []
 
@@ -162,18 +162,18 @@ class Sensitivity(Algorithm):
 
             individuals = []
             for i in range(self.options['max_population_size']):
-                value = VectorAndNumbers.gen_number(selected_parameter['bounds'], selected_parameter['precision'],
-                                              'normal')
+                value = VectorAndNumbers.gen_number(selected_parameter['bounds'], selected_parameter['precision'], 'normal')
                 parameters[index] = value
                 parameter_values.append(value)
                 individual = Individual(parameters.copy())
                 individuals.append(individual)
 
-            self.evaluate(population.individuals)
-            costs = []
-            # TODO: Make also for multi-objective
-            for individual in population.individuals:
-                costs.append(individual.costs)
+            self.evaluate(individuals)
+            # costs = []
+            # # TODO: Make also for multi-objective
+            # for individual in individuals:
+            #     costs.append(individual.costs)
 
-        # append population
-        self.problem.populations.append(population)
+        # append individuals
+        for individual in individuals:
+            self.problem.individuals.append(individual)
