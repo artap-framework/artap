@@ -9,7 +9,6 @@ import json
 import shutil
 
 from .individual import Individual
-from .population import Population
 
 
 class Timer(Process):

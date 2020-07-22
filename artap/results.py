@@ -46,19 +46,19 @@ class Results:
             raise ValueError('There is not a cost function with given name: {}'.format(name))
         return index
 
-    def population(self, population_index):
+    def population(self, population_id):
         # Returns population with given index
-        if population_index >= len(self.problem.populations):
-            raise ValueError('Index of population exceeds the number of populations.')
+        #if population_id >= len(self.problem.populations):
+        #    raise ValueError('Index of population exceeds the number of populations.')
 
-        population = self.problem.populations[population_index]
+        population = self.problem.population(population_id)
         return population
 
-    def goal_on_index(self, name=None, population_index=-1):
+    def goal_on_index(self, name=None, population_id=-1):
         """ Returns a list of lists. The first list contains indexes of individuals in population,
             the other lists contains values of the goal function(s).
         """
-        population = self.population(population_index)
+        population = self.population(population_id)
         n = range(len(population.individuals))
 
         table = [list(n)]
@@ -75,16 +75,16 @@ class Results:
 
         return table
 
-    def parameter_on_index(self, name=None, population_index=-1):
+    def parameter_on_index(self, name=None, population_id=-1):
         """
         Returns a list of lists. The first list contains indexes of individuals in population,
             the other lists contains values of the parameters(s).
         :param name: string representing the name of parameter if it is not given, all parameters are included
-        :param population_index: index of the selected parameter
+        :param population_id: index of the selected parameter
         :return:
         """
 
-        population = self.population(population_index)
+        population = self.population(population_id)
         n = range(len(population.individuals))
         table = [list(n)]
         if name is None:
@@ -106,16 +106,16 @@ class Results:
         sorted_list = [x for _, x in sorted(zipped_pairs)]
         return sorted_list
 
-    def goal_on_parameter(self, parameter_name, goal_name, population_index=-1):
+    def goal_on_parameter(self, parameter_name, goal_name, population_id=-1):
         """
         The method returns the dependance of selected goal function on particular parameter
         :param parameter_name: string specifying particular parameter
         :param goal_name: string specifying name of required goal function
-        :param population_index: index of required population, if it is not given the last population is used
+        :param population_id: index of required population, if it is not given the last population is used
         :return: list of two lists, the first contains sorted parameter values, the second values of selected goal
         function
         """
-        population = self.population(population_index)
+        population = self.population(population_id)
         parameter_index = self.parameter_index(parameter_name)
         goal_index = self.goal_index(goal_name)
         parameter_values = []
@@ -129,8 +129,8 @@ class Results:
         parameter_values.sort()
         return [parameter_values, goal_values]
 
-    def parameter_on_parameter(self, parameter_1, parameter_2, population_index=-1):
-        population = self.population(population_index)
+    def parameter_on_parameter(self, parameter_1, parameter_2, population_id=-1):
+        population = self.population(population_id)
         index_1 = self.parameter_index(parameter_1)
         index_2 = self.parameter_index(parameter_2)
         values_1 = []
@@ -172,12 +172,12 @@ class Results:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
 
-    def pareto_front(self, population_index=-1):
+    def pareto_front(self, population_id=-1):
         """
 
         :return:
         """
-        population = self.population(population_index)
+        population = self.population(population_id)
         n = self.goal_function_number()
         pareto_front = []
         for i in range(n):

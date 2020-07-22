@@ -130,6 +130,14 @@ class Problem:
 
         return populations
 
+    def population(self, id):
+        population = Population()
+        for individual in self.individuals:
+            if individual.population_id == id:
+                population.append(individual)
+
+        return population
+
     def last_population(self):
         # TODO: temporary solution - faster implementation with TinyDB
 
