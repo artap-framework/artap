@@ -1,8 +1,7 @@
 from multiprocessing import Process, Event
-from sqlitedict import SqliteDict
 import sqlite3
 from tinydb import TinyDB, Query
-from tinydb.storages import MemoryStorage, JSONStorage
+from tinydb.storages import JSONStorage
 from tinydb.middlewares import CachingMiddleware
 import os
 import json
