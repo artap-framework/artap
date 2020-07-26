@@ -9,7 +9,6 @@ sklearn
 SALib
 appdirs
 nlopt
-sqlitedict
 scikit-learn
 pyDOE2
 numpydoc

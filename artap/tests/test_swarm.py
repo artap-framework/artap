@@ -7,8 +7,6 @@ from ..archive import Archive
 
 
 class TestProblem(Problem):
-
-
     def set(self):
         self.name = 'Test Problem'
         self.parameters = [{'name': '1', 'bounds': [2., 10.]},
@@ -22,7 +20,6 @@ class TestProblem(Problem):
 
 
 class TestSwarm(unittest.TestCase):
-
     def setUp(self):
         problem = TestProblem()
 
@@ -89,7 +86,6 @@ class TestSwarm(unittest.TestCase):
 
 
 class TestOMOPSOTOOLS(unittest.TestCase):
-
     def setUp(self):
         problem = TestProblem()
         self.omopso = OMOPSO(problem)
@@ -126,7 +122,6 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         self.assertEqual(z.features['velocity'], [0, 0])
 
     def test_global_best(self):
-
         x = Individual([1, 2])
         x.costs = [2.0, 1.0]
         x.costs_signed = [2.0, 1.0, 0]
@@ -149,7 +144,6 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         self.assertEqual(z, y)
 
     def test_velocity(self):
-
         # if every parameter set to one and we are not on the borders, we shuold got back the velocity
         # mocking the random numbers
         self.omopso.c1_min = 1.
@@ -204,7 +198,6 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         self.assertEqual(population[0].features['velocity'], [-1, -2])  # particle should turn back
 
     def test_update_global_best(self):
-
         population = []
         for i in range(0, 10):
             x = Individual([i, 20 - i])
@@ -214,10 +207,10 @@ class TestOMOPSOTOOLS(unittest.TestCase):
             x.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2]}
             population.append(x)
 
-        self.assertIsInstance(self.omopso.problem.archive, Archive)  # archhive is an empty class here
+        self.assertIsInstance(self.omopso.archive, Archive)  # archhive is an empty class here
 
-        self.omopso.population_size = 5
+        self.omopso.options['max_population_size'] = 5
         self.omopso.update_global_best(population)
 
-        self.assertEqual(self.omopso.problem.archive.size(), 10)  # archive should contain everybody
+        self.assertEqual(self.omopso.archive.size(), 10)  # archive should contain everybody
         self.assertEqual(self.omopso.leaders.size(), 5)  # shuold be truncated to 5

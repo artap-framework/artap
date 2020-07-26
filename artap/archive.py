@@ -67,7 +67,7 @@ class Archive(object):
         """ Truncates the contents to the given value, which is usually the number of particles/individuals in a
             population. """
 
-        result = sorted(self._contents, key=lambda x:x.features[getter])
+        result = sorted(self._contents, key=lambda x: x.features[getter])
 
         if larger_preferred:
             result.reverse()
@@ -78,8 +78,8 @@ class Archive(object):
     def append(self, individual):
         self.add(individual)
 
-    def extend(self, population):
-        for individual in population:
+    def extend(self, individuals):
+        for individual in individuals:
             self.append(individual)
 
     def remove(self, solution):

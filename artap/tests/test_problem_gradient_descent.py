@@ -18,17 +18,16 @@ class QuadraticProblem(Problem):
         return [x[0]**2 + x[1]**2]
 
 
-class TestNSGA2Optimization(unittest.TestCase):
+class TestGradientDescent(unittest.TestCase):
     """ Tests simple one objective optimization problem."""
 
-    def test_local_problem_nsga2(self):
+    def test_gradient_descent(self):
         problem = QuadraticProblem()
 
         algorithm = GradientDescent(problem)
         algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 10
         algorithm.run()
-        print("OK")
 
 
 

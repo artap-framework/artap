@@ -43,9 +43,6 @@ class DummyDataStore:
     def sync_individual(self, individuals):
         pass
 
-    def sync(self):
-        pass
-
     def destroy(self):
         pass
 
@@ -105,90 +102,6 @@ class JsonDataStore(DummyDataStore):
         pass
 
 
-class FileDataStore(DummyDataStore):
-    def __init__(self, problem, database_name, mode="write"):
-        self._should_continue = False
-        self.is_running = False
-
-        self.problem = problem
-        self.database_name = database_name
-        self.mode = mode
-
-        if not self.database_name:
-            raise RuntimeError("FileDataStoreCacheThread: database name is empty.")
-
-        elif self.mode == "write":
-            if os.path.exists(database_name):
-                os.remove(database_name)
-
-        if self.mode == "write":
-            self.db = SqliteDict(self.database_name, autocommit=True, flag='w')
-            if os.path.exists(self.database_name):
-                statinfo = os.stat(self.database_name)
-                if statinfo.st_size == 0:
-                    # raise RuntimeError("FileDataStoreCacheThread: database file already exists.
-                    # Mode is WRITE (for automatic rewrite you can use REWRITE mode.")
-                    self.read_from_datastore()
-                else:
-                    self._create_structure()
-            else:
-                self._create_structure()
-        elif self.mode == "rewrite":
-            self._create_structure()
-        elif self.mode == "read":
-            self.db = SqliteDict(self.database_name, flag='r')
-            self.read_from_datastore()
-
-        self.delay = 2.0
-        self.start()
-
-    def _handle_target(self):
-        self.is_running = True
-        self.sync()
-        self.is_running = False
-
-    def _start_timer(self):
-        if self._should_continue:
-            # if self.timer is not None:
-            #     self.timer.cancel()
-            #     del self.timer
-            #     self.timer = None
-            timer = Timer(self.delay, self._handle_target)
-            timer.start()
-
-    def _create_structure(self):
-        self.db["name"] = self.problem.name
-        self.db["description"] = self.problem.description
-        self.db["parameters"] = self.problem.parameters
-        self.db["costs"] = self.problem.costs
-
-        self.db["individuals"] = []
-
-    def read_from_datastore(self):
-        self.problem.name = self.db["name"]
-        self.problem.description = self.db["description"]
-        self.problem.parameters = self.db["parameters"]
-        self.problem.costs = self.db["costs"]
-
-        self.problem.individuals = self.db["individuals"]
-
-    def start(self):
-        if not self._should_continue and not self.is_running:
-            self._should_continue = True
-            self._start_timer()
-
-    def destroy(self):
-        self._should_continue = False
-
-        self.sync()
-        self.db.close()
-
-    def sync_individual(self, individual):
-        if self.mode == "write" or self.mode == "rewrite":
-            if len(self.problem.individuals) > 0 and self.db.conn is not None:
-                self.db["individuals"] = self.problem.individuals
-
-
 class SqliteDataStore(DummyDataStore):
     sql_main_table = "CREATE TABLE IF NOT EXISTS main (name text NOT NULL, description text NOT NULL);"
     sql_parameters_table = "CREATE TABLE IF NOT EXISTS parameters (name text PRIMARY KEY, parameter json not null);"
@@ -205,16 +118,18 @@ class SqliteDataStore(DummyDataStore):
     sql_parameters_select = "SELECT * FROM parameters;"
     sql_costs_select = "SELECT * FROM costs;"
     sql_individuals_select = "SELECT * FROM individuals;"
+    # SELECT json_extract(individual, '$.costs[0]') as cost FROM individuals where cost>10;
 
-    def __init__(self, problem, database_name, mode="write"):
+    def __init__(self, problem, database_name, mode="write", thread_safe=False):
         self.problem = problem
         self.database_name = database_name
         self.mode = mode
+        self.thread_safe = thread_safe
         # cache
         self._conn = None
 
         if not self.database_name:
-            raise RuntimeError("FileDataStoreCacheThread: database name is empty.")
+            raise RuntimeError("SqliteDataStoreCacheThread: database name is empty.")
 
         elif self.mode == "write":
             if os.path.exists(database_name):
@@ -235,20 +150,35 @@ class SqliteDataStore(DummyDataStore):
             self.read_from_datastore()
 
     def conn(self):
-        if self._conn is None:
+        if self.thread_safe:
             try:
                 if self.mode == "write":
-                    self._conn = sqlite3.connect(self.database_name, isolation_level='Exclusive')
-                    c = self._conn.cursor()
+                    conn = sqlite3.connect(self.database_name, isolation_level='Exclusive')
+                    c = conn.cursor()
                     c.execute('PRAGMA synchronous = 0')
-                    c.execute('PRAGMA journal_mode = OFF')
-                    self._conn.commit()
+                    c.execute('PRAGMA journal_mode = ON')
+                    conn.commit()
                 else:
-                    self._conn = sqlite3.connect(self.database_name)
+                    conn = sqlite3.connect(self.database_name)
             except sqlite3.Error as e:
                 print(e)
 
-        return self._conn
+            return conn
+        else:
+            if self._conn is None:
+                try:
+                    if self.mode == "write":
+                        self._conn = sqlite3.connect(self.database_name, isolation_level='Exclusive')
+                        c = self._conn.cursor()
+                        c.execute('PRAGMA synchronous = 0')
+                        c.execute('PRAGMA journal_mode = OFF')
+                        self._conn.commit()
+                    else:
+                        self._conn = sqlite3.connect(self.database_name)
+                except sqlite3.Error as e:
+                    print(e)
+
+            return self._conn
 
     def _create_structure(self):
         conn = self.conn()
@@ -340,7 +270,7 @@ class TinyDataStore(DummyDataStore):
             if os.path.exists(self.database_name):
                 statinfo = os.stat(self.database_name)
                 if statinfo.st_size == 0:
-                    # raise RuntimeError("FileDataStoreCacheThread: database file already exists.
+                    # raise RuntimeError("TinyDataStoreCacheThread: database file already exists.
                     # Mode is WRITE (for automatic rewrite you can use REWRITE mode.")
                     self._create_structure()
                 else:

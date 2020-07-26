@@ -3,7 +3,7 @@ from .problem import Problem
 from .population import Population
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
-    NonUniformMutation, UniformMutator, DummySelector
+    NonUniformMutation, UniformMutator, CopySelector
 from .archive import Archive
 from copy import copy
 import time
@@ -11,7 +11,6 @@ import math
 
 
 class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
-
     def __init__(self, problem: Problem, name="General Swarm-based Algorithm"):
         super().__init__(problem, name)
         # self.options.declare(name='v_max', default=, lower=0., desc='maximum_allowed_speed')
@@ -119,15 +118,18 @@ class OMOPSO(SwarmAlgorithm):
                              desc='prob_epsilons')
         self.n = self.options['max_population_size']
 
-        self.selector = DummySelector(self.problem.parameters)
+        self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
-        self.features = {'velocity': [],
-                         'best_cost': [],  # stores the
-                         'best_vector': []}  #
+
+        self.individual_features = dict()
+        self.individual_features['velocity'] = dict()
+        self.individual_features['best_cost'] = dict()
+        self.individual_features['best_vector'] = dict()
+
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters)
+        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
         self.leaders = Archive()
-        self.problem.archive = Archive(dominance=EpsilonDominance(epsilons=self.options['epsilons']))
+        self.archive = Archive(dominance=EpsilonDominance(epsilons=self.options['epsilons']))
 
         self.non_uniform_mutator = NonUniformMutation(self.problem.parameters, self.options['prob_mutation'],
                                                       self.options['max_population_number'])
@@ -175,10 +177,8 @@ class OMOPSO(SwarmAlgorithm):
             particles[i].vector = copy(mutated.vector)
         return
 
-    def update_velocity(self, population):
-
-        for individual in population:
-
+    def update_velocity(self, individuals):
+        for individual in individuals:
             individual.features['velocity'] = [0] * len(individual.vector)
             global_best = self.select_leader()
 
@@ -196,9 +196,8 @@ class OMOPSO(SwarmAlgorithm):
                 individual.features['velocity'][i] = self.speed_constriction(v, self.parameters[i]['bounds'][1],
                                                                              self.parameters[i]['bounds'][0])
 
-    def update_position(self, population):
-
-        for individual in population:
+    def update_position(self, individuals):
+        for individual in individuals:
             for parameter, i in zip(self.parameters, range(len(individual.vector))):
                 individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
 
@@ -220,8 +219,8 @@ class OMOPSO(SwarmAlgorithm):
 
         # the length of the leaders archive cannot be longer than the number of the initial population
         self.leaders += swarm
-        self.leaders.truncate(self.population_size, 'crowding_distance')
-        self.problem.archive += swarm
+        self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
+        self.archive += swarm
 
         return
 
@@ -259,7 +258,6 @@ class OMOPSO(SwarmAlgorithm):
         return best_global
 
     def run(self):
-
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
                                                      self.options['max_population_size']))
@@ -270,33 +268,49 @@ class OMOPSO(SwarmAlgorithm):
                                               self.options['max_population_number'])
         # initialize the swarm
         self.generator.init(self.options['max_population_size'])
-        population = self.gen_initial_population()
-        self.evaluate(population.individuals)
-        self.add_features(population.individuals)
+        individuals = self.generator.generate()
 
-        self.init_pvelocity(population.individuals)
-        self.init_pbest(population.individuals)
-        self.update_global_best(population.individuals)
+        for individual in individuals:
+            # append to problem
+            self.problem.individuals.append(individual)
+            # add to population
+            individual.population_id = 0
 
-        i = 0
-        while i < self.options['max_population_number']:
-            offsprings = self.selector.select(population.individuals)
+        self.evaluate(individuals)
+
+        self.init_pvelocity(individuals)
+        self.init_pbest(individuals)
+        self.update_global_best(individuals)
+
+        # sync to datastore
+        for individual in individuals:
+            self.problem.data_store.sync_individual(individual)
+
+        it = 0
+        while it < self.options['max_population_number']:
+            offsprings = self.selector.select(individuals)
 
             self.update_velocity(offsprings)
             self.update_position(offsprings)
-            self.turbulence(offsprings, i)
+            self.turbulence(offsprings, it)
 
             self.evaluate(offsprings)
 
             self.update_particle_best(offsprings)
             self.update_global_best(offsprings)
 
-            population = Population(offsprings)
-            self.populations.append(population)
+            # update individuals
+            individuals = offsprings
 
-            # print(self.problem.archive._contents)
+            for individual in individuals:
+                # add to population
+                individual.population_id = it + 1
+                # append to problem
+                self.problem.individuals.append(individual)
+                # sync to datastore
+                self.problem.data_store.sync_individual(individual)
 
-            i += 1
+            it += 1
 
         t = time.time() - t_s
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))
@@ -331,15 +345,15 @@ class SMPSO(SwarmAlgorithm):
                              desc='prob_mutation'),
         self.n = self.options['max_population_size']
 
-        self.selector = DummySelector(self.problem.parameters)
+        self.individual_features['velocity'] = dict()
+        self.individual_features['best_cost'] = dict()
+        self.individual_features['best_vector'] = dict()
+
+        self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
-        self.features = {'velocity': [],
-                         'best_cost': [],  # stores the
-                         'best_vector': []}  #
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters)
+        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
         self.leaders = Archive()
-        self.problem.archive = self.leaders
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # constants for the speed and the position calculation
 
@@ -357,13 +371,13 @@ class SMPSO(SwarmAlgorithm):
     def inertia_weight(self):
         return uniform(self.min_weight, self.max_weight)
 
-    def init_pvelocity(self, population):
+    def init_pvelocity(self, individuals):
         """
         Inits the particle velocity and its allowed maximum speed.
         :param population: list of individuals
         :return
         """
-        for individual in population:
+        for individual in individuals:
             # the initial speed is set to zero
             individual.features['velocity'] = [0] * len(individual.vector)
 
@@ -377,10 +391,8 @@ class SMPSO(SwarmAlgorithm):
                 mutated = self.mutator.mutate(particles[i])
                 particles[i].vector = copy(mutated.vector)
 
-    def update_velocity(self, population):
-
-        for individual in population:
-
+    def update_velocity(self, individuals):
+        for individual in individuals:
             individual.features['velocity'] = [0] * len(individual.vector)
             global_best = self.select_leader()
 
@@ -398,9 +410,8 @@ class SMPSO(SwarmAlgorithm):
                 individual.features['velocity'][i] = self.speed_constriction(v, self.parameters[i]['bounds'][1],
                                                                              self.parameters[i]['bounds'][0])
 
-    def update_position(self, population):
-
-        for individual in population:
+    def update_position(self, individuals):
+        for individual in individuals:
             for parameter, i in zip(self.parameters, range(len(individual.vector))):
                 individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
 
@@ -422,7 +433,7 @@ class SMPSO(SwarmAlgorithm):
 
         # the length of the leaders archive cannot be longer than the number of the initial population
         self.leaders += swarm
-        self.leaders.truncate(self.population_size, 'crowding_distance')
+        self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
         #self.problem.archive += swarm
 
         return
@@ -461,37 +472,54 @@ class SMPSO(SwarmAlgorithm):
         return best_global
 
     def run(self):
-
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
                                                      self.options['max_population_size']))
         # initialize the swarm
         self.generator.init(self.options['max_population_size'])
-        population = self.gen_initial_population()
-        self.evaluate(population.individuals)
-        self.add_features(population.individuals)
+        individuals = self.generator.generate()
 
-        self.init_pvelocity(population.individuals)
-        self.init_pbest(population.individuals)
-        self.update_global_best(population.individuals)
+        for individual in individuals:
+            # append to problem
+            self.problem.individuals.append(individual)
+            # add to population
+            individual.population_id = 0
 
-        i = 0
-        while i < self.options['max_population_number']:
-            offsprings = self.selector.select(population.individuals)
+        self.evaluate(individuals)
+
+        self.init_pvelocity(individuals)
+        self.init_pbest(individuals)
+        self.update_global_best(individuals)
+
+        # sync to datastore
+        for individual in individuals:
+            self.problem.data_store.sync_individual(individual)
+
+        it = 0
+        while it < self.options['max_population_number']:
+            offsprings = self.selector.select(individuals)
 
             self.update_velocity(offsprings)
             self.update_position(offsprings)
-            self.turbulence(offsprings, i)
+            self.turbulence(offsprings, it)
 
             self.evaluate(offsprings)
 
             self.update_particle_best(offsprings)
             self.update_global_best(offsprings)
 
-            population = Population(offsprings)
-            self.populations.append(population)
+            # update individuals
+            individuals = offsprings
 
-            i += 1
+            for individual in individuals:
+                # add to population
+                individual.population_id = it + 1
+                # append to problem
+                self.problem.individuals.append(individual)
+                # sync to datastore
+                self.problem.data_store.sync_individual(individual)
+
+            it += 1
 
         t = time.time() - t_s
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))

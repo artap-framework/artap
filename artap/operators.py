@@ -189,16 +189,10 @@ class WorstCaseEvaluator(Evaluator):
 
 
 class Generator(Operator):
-
-    def __init__(self, parameters=None, individual_class=Individual):
+    def __init__(self, parameters=None, features=dict()):
         super().__init__()
         self.parameters = parameters
-        self.individual_class = individual_class
-
-    def create_individual(self, vector=None):
-        if vector is None:
-            vector = []
-        return self.individual_class(vector)
+        self.features = features
 
     @abstractmethod
     def generate(self):
@@ -206,9 +200,8 @@ class Generator(Operator):
 
 
 class CustomGenerator(Generator):
-
-    def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class)
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
         self.vectors = []
 
     def init(self, vectors):
@@ -217,14 +210,13 @@ class CustomGenerator(Generator):
     def generate(self):
         individuals = []
         for vector in self.vectors:
-            individuals.append(self.create_individual(vector))
+            individuals.append(Individual(vector, self.features))
         return individuals
 
 
 class RandomGenerator(Generator):
-
-    def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class)
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
         self.number = 0
 
     def init(self, number):
@@ -234,7 +226,7 @@ class RandomGenerator(Generator):
         individuals = []
         for i in range(self.number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
-            individuals.append(self.create_individual(vector))
+            individuals.append(Individual(vector, self.features))
         return individuals
 
 
@@ -244,8 +236,8 @@ class FullFactorGenerator(Generator):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class)
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
         self.center = False
 
     def init(self, center):
@@ -267,7 +259,7 @@ class FullFactorGenerator(Generator):
 
         individuals = []
         for vector in df:
-            individuals.append(self.create_individual(vector))
+            individuals.append(Individual(vector, self.features))
         return individuals
 
 
@@ -277,8 +269,8 @@ class PlackettBurmanGenerator(Generator):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class)
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
 
     def generate(self):
         dict_vars = {}
@@ -293,7 +285,7 @@ class PlackettBurmanGenerator(Generator):
 
         individuals = []
         for vector in df:
-            individuals.append(self.create_individual(vector))
+            individuals.append(Individual(vector, self.features))
         return individuals
 
 
@@ -309,8 +301,8 @@ class BoxBehnkenGenerator(Generator):
     https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
     """
 
-    def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class, )
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
 
     def generate(self):
         dict_vars = {}
@@ -325,7 +317,7 @@ class BoxBehnkenGenerator(Generator):
 
         individuals = []
         for vector in df:
-            individuals.append(self.create_individual(vector))
+            individuals.append(Individual(vector, self.features))
         return individuals
 
 
@@ -334,8 +326,8 @@ class LHSGenerator(Generator):
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
 
-    def __init__(self, parameters=None, individual_class=Individual):
-        super().__init__(parameters, individual_class)
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
         self.number = 0
 
     def init(self, number):
@@ -354,12 +346,11 @@ class LHSGenerator(Generator):
 
         individuals = []
         for vector in df:
-            individuals.append(self.create_individual(vector))
+            individuals.append(Individual(vector, self.features))
         return individuals
 
 
 class Mutator(Operator):
-
     def __init__(self, parameters, probability):
         super().__init__()
         self.parameters = parameters
@@ -391,7 +382,7 @@ class SimpleMutator(Mutator):
             else:
                 vector.append(p.vector[i])
 
-        p_new = p.__class__(vector)
+        p_new = Individual(vector, p.features)
         return p_new
 
 
@@ -418,7 +409,7 @@ class PmMutator(Mutator):
             else:
                 vector.append(parent.vector[i])
 
-        return parent.__class__(vector)
+        return Individual(vector, parent.features)
 
     def pm_mutation(self, x, lb, ub):
         """
@@ -477,7 +468,7 @@ class UniformMutator(Mutator):
             else:
                 vector.append(parent.vector[i])
 
-        return parent.__class__(vector)
+        return Individual(vector, parent.features)
 
     def uniform_mutation(self, x, lb, ub):
 
@@ -509,7 +500,7 @@ class NonUniformMutation(Mutator):
             else:
                 vector.append(parent.vector[i])
 
-        return parent.__class__(vector)
+        return Individual(vector, parent.features)
 
     def non_uniform_mutation(self, x, lb, ub, current_iteration):
 
@@ -947,6 +938,7 @@ class ParetoDominance(Dominance):
         """
         Here, p and q are tuples, which contains the (feasibility index, cost vector)
         """
+        # assert len(p) == len(q)
 
         # first check constraint violation, the last item is the feasibility, which is a real number if its zero,
         # it means that the solution is feasible
@@ -1000,7 +992,7 @@ class Selector(Operator):
     def select(self, population):
         pass
 
-    def pop_acceptance(self, population, individual):
+    def pop_acceptance(self, individuals, individual):
         """
         This function differs from add() function that it preserves the length of the _content in the archive class.
         :return:
@@ -1009,8 +1001,8 @@ class Selector(Operator):
         dominates = []
         dominated = False
 
-        for i in range(len(population)):
-            flag = self.dominance.compare(individual.costs_signed, population[i].costs_signed)
+        for i in range(len(individuals)):
+            flag = self.dominance.compare(individual.costs_signed, individuals[i].costs_signed)
 
             if flag == 1:
                 dominates.append(i)
@@ -1018,12 +1010,12 @@ class Selector(Operator):
                 dominated = True
 
         if len(dominates) > 0:
-            del population[random.choice(dominates)]
-            population.append(individual)
+            del individuals[random.choice(dominates)]
+            individuals.append(individual)
 
         elif not dominated:
-            population.remove(random.choice(population))
-            population.append(individual)
+            individuals.remove(random.choice(individuals))
+            individuals.append(individual)
 
         return
 
@@ -1155,7 +1147,14 @@ def nondominated_cmp(p, q):
 
 
 class DummySelector(Selector):
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
+    def select(self, individuals):
+        return individuals
+
+
+class CopySelector(Selector):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -1163,19 +1162,19 @@ class DummySelector(Selector):
         selection = []
         for individual in individuals:
             candidate = Individual(individual.vector)
-            candidate.costs = individual.costs.copy()
-            candidate.features = individual.features.copy()
+            candidate.costs = deepcopy(individual.costs)
+            candidate.features = deepcopy(individual.features)
+            candidate.population_id = -1
             selection.append(candidate)
         return selection
 
 
 class TournamentSelector(Selector):
-
     def __init__(self, parameters, dominance=ParetoDominance, epsilons=None):
         super().__init__(parameters)
         self.dominance = dominance(epsilons=epsilons)
 
-    def select(self, population):
+    def select(self, individuals):
         """
         Binary tournament selection:
 
@@ -1183,12 +1182,11 @@ class TournamentSelector(Selector):
         back the dominant (or random).
         """
 
-        if len(population) == 1:
-            selected = population[0]
-
+        if len(individuals) == 1:
+            selected = individuals[0]
         else:
             # Sampling two individuals without a replacement
-            candidates = random.sample(population, 2)
+            candidates = random.sample(individuals, 2)
 
             # they should have this at this stage
             if candidates[0].features['front_number'] < candidates[1].features['front_number']:
@@ -1206,6 +1204,7 @@ class TournamentSelector(Selector):
                 selected = random.choice(candidates)
 
         return selected
+
 
 class FireflyStep(Operator):
     """
@@ -1272,7 +1271,6 @@ class FireflyStep(Operator):
         return
 
 
-
 class Crossover(Operator):
 
     def __init__(self, parameters, probability):
@@ -1286,7 +1284,6 @@ class Crossover(Operator):
 
 
 class SimpleCrossover(Crossover):
-
     def __init__(self, parameters, probability):
         super().__init__(parameters, probability)
 
@@ -1311,8 +1308,8 @@ class SimpleCrossover(Crossover):
             parent_a = parameter1
             parent_b = parameter2
 
-        offspring_a = p1.__class__(parent_a)
-        offspring_b = p2.__class__(parent_b)
+        offspring_a = Individual(parent_a, p1.features)
+        offspring_b = Individual(parent_b, p2.features)
 
         return offspring_a, offspring_b
 
@@ -1385,4 +1382,4 @@ class SimulatedBinaryCrossover(Crossover):
                         else:
                             x1[i], x2[i] = c1, c2
 
-        return p1.__class__(x1), p2.__class__(x2)
+        return Individual(x1, p1.features), Individual(x2, p2.features)

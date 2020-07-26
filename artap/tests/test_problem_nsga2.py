@@ -7,6 +7,22 @@ from ..results import Results
 from ..quality_indicator import epsilon_add
 
 
+class TestNSGA2(unittest.TestCase):
+    def test_local_problem(self):
+        problem = ZDT1()
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 5
+        algorithm.options['max_population_size'] = 3
+        algorithm.options['max_processes'] = 1
+        algorithm.run()
+
+        populations = problem.populations()
+
+        self.assertEqual(len(populations), algorithm.options['max_population_number'] + 1)
+        for individuals in populations.values():
+            self.assertEqual(len(individuals), algorithm.options['max_population_size'])
+
+
 class TestZDT1(unittest.TestCase):
     # integration test -- tests the total functionality of nsga2
     # around 11secs according to literature DOI: 10.1007/978-3-642-01020-0_39
@@ -14,11 +30,9 @@ class TestZDT1(unittest.TestCase):
         problem = ZDT1()
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 250
-        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_population_size'] = 100    # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.run()
-
-        # populations = problem.populations()
 
         results = Results(problem)
         vals = results.pareto_values()

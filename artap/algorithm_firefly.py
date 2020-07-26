@@ -59,12 +59,14 @@ class MoFirefly(SwarmAlgorithm):
 
         self.selector = DummySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
-        self.features = {'dominate': set(),
-                         'crowding_distance': 0,
-                         'domination_counter': 0,
-                         'front_number': 0, }
+
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters)
+        self.individual_features = dict()
+        self.individual_features['dominate'] = set()
+        self.individual_features['crowding_distance'] = 0
+        self.individual_features['domination_counter'] = 0
+        self.individual_features['front_number'] = 0
+        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
 
         # default parameters
         self.beta = 2.0  # attraction constant
@@ -132,27 +134,26 @@ class MoFirefly(SwarmAlgorithm):
 
         # the length of the leaders archive cannot be longer than the number of the initial population
         self.leaders += swarm
-        self.leaders.truncate(self.population_size, 'crowding_distance')
+        self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
         # self.problem.archive += swarm
 
         return
 
     def run(self):
-
         t_s = time.time()
         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
                                                      self.options['max_population_size']))
         # initialize the swarm
         self.generator.init(self.options['max_population_size'])
-        population = self.gen_initial_population()
-        self.evaluate(population.individuals)
-        self.add_features(population.individuals)
+        individuals = self.generator.generate()
+        self.evaluate(individuals)
+        self.add_features(individuals)
 
-        self.update_global_best(population.individuals)
+        self.update_global_best(individuals)
 
         i = 0
         while i < self.options['max_population_number']:
-            offsprings = self.selector.select(population.individuals)
+            offsprings = self.selector.select(individuals)
 
             self.update_velocity(offsprings)
             self.update_position(offsprings)
@@ -162,9 +163,6 @@ class MoFirefly(SwarmAlgorithm):
 
             self.update_particle_best(offsprings)
             self.update_global_best(offsprings)
-
-            population = Population(offsprings)
-            self.problem.populations.append(population)
 
             i += 1
 

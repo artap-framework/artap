@@ -42,7 +42,7 @@ class TestZDT1(unittest.TestCase):
         algorithm.run()
 
         results = Results(problem)
-        vals = results.pareto_values()
+        vals = results.pareto_values(algorithm.archive)
         exact = problem.pareto_front(vals[0])
         self.assertLessEqual(epsilon_add(exact, vals), 0.2)
 

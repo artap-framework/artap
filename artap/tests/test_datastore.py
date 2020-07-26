@@ -3,15 +3,15 @@ import unittest
 import tempfile
 import time
 import json
-from sqlitedict import SqliteDict
 import sqlite3
 import pathlib
 
 from ..problem import Problem, ProblemViewDataStore
 from ..individual import Individual
-from ..datastore import FileDataStore, TinyDataStore, SqliteDataStore
+from ..datastore import TinyDataStore, SqliteDataStore
 from ..algorithm_scipy import ScipyOpt
 from ..algorithm_sweep import SweepAlgorithm
+from ..algorithm_genetic import NSGAII
 
 from ..operators import RandomGenerator
 
@@ -45,14 +45,18 @@ class TestDataStoreSqlite(unittest.TestCase):
         problem = MyProblem()
         # set data store
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        # database_name = 'data.json'
         problem.data_store = SqliteDataStore(problem, database_name=database_name)
 
-        algorithm = ScipyOpt(problem)
-        algorithm.options['algorithm'] = 'CG'
-        algorithm.options['tol'] = 1e-8
-        algorithm.options['verbose_level'] = 0
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 3
+        algorithm.options['max_population_size'] = 4
+        algorithm.options['max_processes'] = 1
         algorithm.run()
+
+        # cache individuals
+        individuals = {}
+        for individual in problem.individuals:
+            individuals[individual.id] = individual
 
         # remove datastore
         problem.data_store.destroy()
@@ -60,13 +64,13 @@ class TestDataStoreSqlite(unittest.TestCase):
         # check json
         conn = sqlite3.connect(database_name)
         c = conn.cursor()
-        c.execute("SELECT * FROM individuals WHERE ID = (SELECT MAX(id) FROM individuals)")
+        print(list(individuals.keys())[6])
+        c.execute("SELECT * FROM individuals WHERE ID = ?", [list(individuals.keys())[6]])
         row = c.fetchall()
         individual = Individual.from_dict(json.loads(row[0][1]))
 
         # result
-        self.assertAlmostEqual(individual.costs[0], 0, 3)
-        self.assertAlmostEqual(individual.custom["functions"][0], individual.vector[0]**2)
+        self.assertAlmostEqual(individual.costs[0], individuals[individual.id].costs[0], 3)
 
         # remove file
         os.remove(database_name)
@@ -79,15 +83,16 @@ class TestDataStoreSqlite(unittest.TestCase):
 
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
 
-        population = problem.last_population()
-        self.assertAlmostEqual(population.individuals[0].vector[1], 1.5, 4)
-        self.assertAlmostEqual(population.individuals[1].vector[0], 2.5, 4)
-        self.assertAlmostEqual(population.individuals[0].costs[0], 8.5, 4)
-        self.assertAlmostEqual(population.individuals[5].costs[0], 3.6308, 4)
+        individuals = problem.last_population()
+        self.assertAlmostEqual(individuals[0].vector[1], -0.412096, 4)
+        self.assertAlmostEqual(individuals[1].vector[0], 0.26419, 4)
+        self.assertAlmostEqual(individuals[0].costs[0], 0.218191, 4)
+
 
 class TestDataStoreBenchmark(unittest.TestCase):
     def setUp(self):
-        self.n = 5000
+        self.n = 300
+        self.max_processes = 5
 
     def test_benchmark_sqlite_data_store(self):
         t_s = time.time()
@@ -95,18 +100,19 @@ class TestDataStoreBenchmark(unittest.TestCase):
 
         # set data store
         database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        problem.data_store = SqliteDataStore(problem, database_name=database_name)
+        problem.data_store = SqliteDataStore(problem, database_name=database_name, thread_safe=(self.max_processes > 1))
 
         gen = RandomGenerator(problem.parameters)
         gen.init(self.n)
 
         algorithm = SweepAlgorithm(problem, generator=gen)
-        algorithm.options['max_processes'] = 1
+        algorithm.options['max_processes'] = self.max_processes
         algorithm.run()
 
-        individual = problem.individuals[int(self.n / 2)]
-        id = individual.id
-        cost = individual.costs[0]
+        # cache individuals
+        individuals = {}
+        for individual in problem.individuals:
+            individuals[individual.id] = individual
 
         # sync
         problem.data_store.destroy()
@@ -120,11 +126,14 @@ class TestDataStoreBenchmark(unittest.TestCase):
 
         conn = sqlite3.connect(database_name)
         c = conn.cursor()
-        c.execute("SELECT * FROM individuals WHERE ID = ?", [id])
-        row = c.fetchall()
-        individual = Individual.from_dict(json.loads(row[0][1]))
-
-        self.assertAlmostEqual(individual.costs[0], cost, 3)
+        # c.execute("SELECT * FROM individuals WHERE ID = ?", [id])
+        # row = c.fetchall()
+        # individual = Individual.from_dict(json.loads(row[0][1]))
+        c.execute("SELECT * FROM individuals;")
+        rows = c.fetchall()
+        for row in rows:
+            individual = Individual.from_dict(json.loads(row[1]))
+            self.assertAlmostEqual(individual.costs[0], individuals[individual.id].costs[0], 3)
 
         # remove file
         # print(database_name)
@@ -145,10 +154,13 @@ class TestDataStoreBenchmark(unittest.TestCase):
         gen.init(self.n)
 
         algorithm = SweepAlgorithm(problem, generator=gen)
-        algorithm.options['max_processes'] = 1
+        algorithm.options['max_processes'] = self.max_processes
         algorithm.run()
 
-        cost = problem.individuals[int(self.n / 2)].costs[0]
+        # cache individuals
+        individuals = {}
+        for individual in problem.individuals:
+            individuals[individual.id] = individual
 
         # sync
         problem.data_store.destroy()
@@ -161,50 +173,9 @@ class TestDataStoreBenchmark(unittest.TestCase):
         # check json
         with open(database_name) as json_file:
             data = json.load(json_file)
-            individual = Individual.from_dict(list(data['individuals'].values())[int(self.n / 2)])
-
-            # self.assertEqual(len(individuals), self.n)
-            self.assertAlmostEqual(individual.costs[0], cost, 3)
-
-        # remove file
-        # print(database_name)
-        os.remove(database_name)
-
-        t = time.time() - t_s
-        problem.logger.info("read elapsed time: {} s".format(t))
-
-    def test_benchmark_file_data_store(self):
-        t_s = time.time()
-        problem = MyProblem()
-
-        # set data store
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        problem.data_store = FileDataStore(problem, database_name=database_name)
-
-        gen = RandomGenerator(problem.parameters)
-        gen.init(self.n)
-
-        algorithm = SweepAlgorithm(problem, generator=gen)
-        algorithm.options['max_processes'] = 1
-        algorithm.run()
-
-        cost = problem.individuals[int(self.n / 2)].costs[0]
-
-        # sync
-        problem.data_store.destroy()
-
-        t = time.time() - t_s
-        problem.logger.info("write elapsed time: {} s, size: {} MB, n: {}".format(t, self.get_size(database_name) / 1024 / 1024, self.n))
-
-        # check db
-        t_s = time.time()
-        db = SqliteDict(database_name, autocommit=True)
-
-        individuals = db["individuals"]
-
-        self.assertEqual(len(individuals), self.n)
-        self.assertAlmostEqual(individuals[int(self.n / 2)].costs[0], cost, 3)
-        db.close()
+            for row in list(data['individuals'].values()):
+                individual = Individual.from_dict(row)
+                self.assertAlmostEqual(individual.costs[0], individuals[individual.id].costs[0], 3)
 
         # remove file
         # print(database_name)
@@ -265,56 +236,11 @@ class TestDataStoreTiny(unittest.TestCase):
 
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
 
-        population = problem.last_population()
-        self.assertAlmostEqual(population.individuals[0].vector[1], 1.5, 4)
-        self.assertAlmostEqual(population.individuals[1].vector[0], 2.5, 4)
-        self.assertAlmostEqual(population.individuals[0].costs[0], 8.5, 4)
-        self.assertAlmostEqual(population.individuals[5].costs[0], 3.6308, 4)
-
-
-class TestDataStoreFile(unittest.TestCase):
-    def test_read_write_database(self):
-        problem = MyProblem()
-        # set data store
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".file").name
-        # database_name = 'data.sqlite'
-        problem.data_store = FileDataStore(problem, database_name=database_name)
-
-        algorithm = ScipyOpt(problem)
-        algorithm.options['algorithm'] = 'CG'
-        algorithm.options['tol'] = 1e-8
-        algorithm.options['verbose_level'] = 0
-        algorithm.run()
-
-        # remove datastore
-        problem.data_store.destroy()
-
-        # check db
-        db = SqliteDict(database_name, flag='r')
-        individuals = db["individuals"]
-        individual = individuals[-1]
-        print(individual)
-        db.close()
-
-        self.assertAlmostEqual(individual.costs[0], 0, 3) # result
-        self.assertAlmostEqual(individual.custom["functions"][0], individual.vector[0]**2)
-
-        # remove file
-        os.remove(database_name)
-
-    def test_read_datastore(self):
-        # Path to this script file location
-        file_path = str(pathlib.Path(__file__).parent.absolute())
-        database_name = os.path.join(file_path, "data/data.file")
-        problem = ProblemViewDataStore(database_name=database_name)
-
-        self.assertEqual(problem.name, 'NLopt_BOBYQA')
-
-        population = problem.last_population()
-        self.assertAlmostEqual(population.individuals[0].vector[1], 1.5, 4)
-        self.assertAlmostEqual(population.individuals[1].vector[0], 2.5, 4)
-        self.assertAlmostEqual(population.individuals[0].costs[0], 8.5, 4)
-        self.assertAlmostEqual(population.individuals[5].costs[0], 3.6308, 4)
+        individuals = problem.last_population()
+        self.assertAlmostEqual(individuals[0].vector[1], 1.5, 4)
+        self.assertAlmostEqual(individuals[1].vector[0], 2.5, 4)
+        self.assertAlmostEqual(individuals[0].costs[0], 8.5, 4)
+        self.assertAlmostEqual(individuals[5].costs[0], 3.6308, 4)
 
 
 if __name__ == '__main__':

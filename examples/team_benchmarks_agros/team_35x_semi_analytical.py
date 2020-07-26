@@ -14,7 +14,7 @@ from scipy import integrate
 from artap.problem import Problem
 from artap.individual import Individual
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
-from artap.datastore import FileDataStore
+from artap.datastore import SqliteDataStore
 from artap.results import Results
 
 
@@ -46,7 +46,7 @@ class ProblemAnalytical(Problem):
                       {'name': 'f_2', 'criteria': 'minimize'}]
 
         # Initialize a database to store the data into the given space
-        self.data_store = FileDataStore(self, database_name="/tmp/team_multi.db", mode="write")
+        self.data_store = SqliteDataStore(self, database_name="/tmp/team_multi.sqlite", mode="write")
 
     def intl22(self, R2, R, dZ, phi):
         return math.sqrt(R2 ** 2 + R ** 2 - 2.0 * R2 * R * math.cos(phi) + dZ ** 2)

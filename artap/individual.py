@@ -1,4 +1,3 @@
-import platform
 from abc import *
 from collections.abc import Iterable
 from enum import Enum
@@ -26,7 +25,7 @@ class Individual(metaclass=ABCMeta):
 
     counter: int = 0
 
-    def __init__(self, vector: list = []):
+    def __init__(self, vector: list = [], features=dict()):
         self.id = Individual.counter
         Individual.counter += 1
 
@@ -38,27 +37,25 @@ class Individual(metaclass=ABCMeta):
 
         self.parents = []
         self.children = []
-        self.features = {}
+
+        self.features = dict()
+        self.features["start_time"] = 0.0
+        self.features["finish_time"] = 0.0
+        self.features["feasible"] = 0.0   # the distance from the feasibility region in min norm, its an index, not a
+        self.features["precision"] = 7   # the default value of the considered decimals
+        for key, value in features.items():
+            if not key in self.features:
+                self.features[key] = value
+
         self.custom = {}
-
-        self.feasible = 0.0  # the distance from the feasibility region in min norm, its an index, not a
-        self.precision = 7   # the default value of the considered decimals
-
-        self.info = {"start_time": 0.0,
-                     "finish_time": 0.0,
-                     "population": -1,
-                     "processor": platform.processor(),
-                     "system": platform.system(),
-                     "python": platform.python_version(),
-                     "hostname": platform.node()}
 
     def calc_signed_costs(self, p_signs):
         """
         This function calculates the signed costs for every vector and insert the feasibility after
         :return:
         """
-        self.costs_signed = list(map(lambda x, y: x * round(y, ndigits=self.precision), p_signs, self.costs))
-        self.costs_signed.append(self.feasible)
+        self.costs_signed = list(map(lambda x, y: x * round(y, ndigits=self.features["precision"]), p_signs, self.costs))
+        self.costs_signed.append(self.features["feasible"])
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """
@@ -92,7 +89,6 @@ class Individual(metaclass=ABCMeta):
         return string
 
     def __eq__(self, other):
-
         if self.costs_signed == []:
             diff = set(self.vector) - set(other.vector)
             return diff == set()
@@ -110,47 +106,63 @@ class Individual(metaclass=ABCMeta):
         self.costs_signed = individual.costs_signed
         self.state = individual.state
         self.population_id = individual.population_id
+
         self.parents = individual.parents
         self.children = individual.children
+
         self.features = individual.features
+
         self.custom = individual.custom
-        self.feasible = individual.feasible
-        self.precision = individual.precision
 
     def to_dict(self):
-        output = {'id': self.id, 'vector': self.vector, 'costs': self.costs,
-                  'costs_signed': self.costs_signed, 'custom': self.custom,
-                  'state': self.to_string(self.state), 'info': self.info, 'population_id': self.population_id}
+        output = {'id': self.id,
+                  'vector': self.vector,
+                  'costs': self.costs,
+                  'costs_signed': self.costs_signed,
+                  'state': self.to_string(self.state),
+                  'population_id': self.population_id,
+                  'custom': self.custom}
+
+        parents = []
+        for parent in self.parents:
+            parents.append(self._replace_individual_id(parent))
+        output['parents'] = parents
+
+        children = []
+        for child in self.children:
+            children.append(self._replace_individual_id(child))
+        output['children'] = children
 
         features = dict()
-        for feature in self.features.items():
-            key = feature[0]
-            if isinstance(feature[1], Iterable):
-                value = []
-                for item in feature[1]:
-                    if isinstance(item, Individual):
-                        value.append(item.id)
-                    else:
-                        value.append(item)
-            else:
-                value = feature[1]
-            features[key] = value
-
-            output['features'] = features
+        for key, value in self.features.items():
+            features[key] = self._replace_individual_id(value)
+        output['features'] = features
 
         return output
+
+    def _replace_individual_id(self, value):
+        if isinstance(value, Iterable):
+            val = []
+            for item in value:
+                val.append(self._replace_individual_id(item))
+            return val
+        elif isinstance(value, Individual):
+            return value.id
+        else:
+            return value
 
     @staticmethod
     def from_dict(dictionary):
         individual = Individual()
         individual.id = dictionary['id']
-        individual.population_id = dictionary['population_id']
 
         individual.vector = dictionary['vector']
         individual.costs = dictionary['costs']
+        individual.state = dictionary['state']
         individual.costs_signed = dictionary['costs_signed']
+        individual.population_id = dictionary['population_id']
+
         individual.custom = dictionary['custom']
-        individual.info = dictionary['info']
 
         for feature in individual.features.items():
             key = 'feature_' + feature[0]

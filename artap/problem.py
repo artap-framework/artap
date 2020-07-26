@@ -2,7 +2,7 @@
  Module is dedicated to describe optimization problem.
 """
 
-from .datastore import TinyDataStore, FileDataStore, DummyDataStore
+from .datastore import TinyDataStore, SqliteDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
 from .population import Population
@@ -14,6 +14,7 @@ import tempfile
 import os
 import shutil
 import atexit
+import platform
 
 CRITICAL = logging.CRITICAL
 FATAL = logging.FATAL
@@ -90,14 +91,18 @@ class Problem:
         self.costs: dict = dict()
         self.signs = []
 
+        self.info = {"processor": platform.processor(),
+                     "system": platform.system(),
+                     "python": platform.python_version(),
+                     "hostname": platform.node()}
+
+
         # populations
         self.individuals = []
-        self.archive = None
-        self.buffer = [] # storage for potential individuals, can be used if calculation fails
-        self.failed = [] # storage for failed individuals
         self.data_store = None
         self.monitor_service = None
         self.executor = None
+        self.failed = []  # storage for failed individuals
         self.data_store = DummyDataStore()
         self.output_files = None
 
@@ -122,21 +127,21 @@ class Problem:
         atexit.register(self.cleanup)
 
     def populations(self):
-        populations = {}
+        individuals = {}
         for individual in self.individuals:
-            if individual.population_id not in populations:
-                populations[individual.population_id] = []
-            populations[individual.population_id].append(individual)
+            if individual.population_id not in individuals:
+                individuals[individual.population_id] = []
+            individuals[individual.population_id].append(individual)
 
-        return populations
+        return individuals
 
     def population(self, id):
-        population = Population()
+        individuals = []
         for individual in self.individuals:
             if individual.population_id == id:
-                population.append(individual)
+                individuals.append(individual)
 
-        return population
+        return individuals
 
     def last_population(self):
         # TODO: temporary solution - faster implementation with TinyDB
@@ -148,12 +153,7 @@ class Problem:
                 max_index = individual.population_id
 
         # add to population
-        individuals = []
-        for individual in self.individuals:
-            if individual.population_id == max_index:
-                individuals.append(individual)
-
-        return Population(individuals)
+        return self.population(max_index)
 
     def to_dict(self):
         output = {'name': self.name, 'description': self.description, 'parameters': self.parameters}
@@ -242,7 +242,7 @@ class Problem:
 
 
 class ProblemViewDataStore(Problem):
-    def __init__(self, database_name, class_datastore=FileDataStore):
+    def __init__(self, database_name, class_datastore=SqliteDataStore):
         super().__init__()
         self.data_store = class_datastore(self, database_name=database_name, mode="read")
 

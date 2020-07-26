@@ -78,9 +78,6 @@ class SALibAlgorithm(Algorithm):
         for vector in self.samples_x:
             individuals.append(Individual(vector))
 
-        # set current size
-        self.population_size = len(individuals)
-
         # append to problem
         for individual in individuals:
             self.problem.individuals.append(individual)
@@ -143,8 +140,6 @@ class Sensitivity(Algorithm):
                              desc='Maximal number of individuals in population')
 
     def run(self):
-        self.population_size = self.options['max_population_size']
-
         parameters = []
         for parameter in self.problem.parameters:
             parameters.append(float(parameter['initial_value']))

@@ -21,10 +21,13 @@ class TestCrossover(unittest.TestCase):
         self.i1 = Individual([1, 2, 2])
         self.i2 = Individual([3, 2, 1])
 
-        self.features = {'dominate': set(),
-                         'crowding_distance': 0,
-                         'domination_counter': 0,
-                         'front_number': None}
+        self.features = {}
+        self.features['dominate'] = set()
+        self.features['crowding_distance'] = 0
+        self.features['domination_counter'] = 0
+        self.features['front_number'] = 0
+        self.features['precision'] = 7
+        self.features['feasible'] = 0.0
 
     def test_simple_mutation(self):
         sm = SimpleMutator(self.parameters, 0.7)

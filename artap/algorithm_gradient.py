@@ -18,14 +18,15 @@ class GradientAlgorithm(GeneticAlgorithm):
         self.generator.init(self.options['max_population_size'])
         t_s = time.time()
 
-        # create initial population and evaluate individuals
-        population = self.gen_initial_population()
+        # create initial population
+        individuals = self.generator.generate()
 
         # append to problem
-        for individual in population.individuals:
+        for individual in individuals:
             self.problem.individuals.append(individual)
 
-        self.evaluate(population.individuals)
+        # evaluate individuals
+        self.evaluate(individuals)
 
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))

@@ -45,6 +45,8 @@ class Algorithm(metaclass=ABCMeta):
         self.options.declare(name='n_iterations', default=10,
                              desc='Max number of iterations')
 
+        self.individual_features = dict()
+
     def evaluate(self, individuals):
         self.evaluator.evaluate(individuals)
 

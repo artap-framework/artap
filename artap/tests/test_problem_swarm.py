@@ -37,7 +37,7 @@ class TestZDT1OMOPSO(unittest.TestCase):
         algorithm.run()
 
         results = Results(problem)
-        vals = results.pareto_values()
+        vals = results.pareto_values(algorithm.archive)
         exact = problem.pareto_front(vals[0])
         self.assertLessEqual(epsilon_add(exact, vals), 0.2)
 
@@ -57,7 +57,6 @@ class TestAckleySMPSO(unittest.TestCase):
         optimum = b.find_optimum('F_1')  # Takes last cost function
         print(optimum.costs[0], problem.global_optimum)
         self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-
 
 
 class TestZDT1SMPSP(unittest.TestCase):

@@ -19,7 +19,7 @@ class Job(metaclass=ABCMeta):
 
         for i in range(5):
             # info
-            individual.info["start_time"] = time.time()
+            individual.features["start_time"] = time.time()
             t_s = time.time()
 
             # set in progress
@@ -29,7 +29,7 @@ class Job(metaclass=ABCMeta):
             constraints = self.problem.evaluate_constraints(individual)
 
             if constraints:
-                individual.feasible = sum(map(abs, constraints))
+                individual.features["feasible"] = sum(map(abs, constraints))
 
             # problem cost function evaluate only in that case when the problem fits the constraints
             try:
@@ -41,7 +41,7 @@ class Job(metaclass=ABCMeta):
                 # set evaluated
                 individual.state = individual.State.EVALUATED
                 # info
-                individual.info["finish_time"] = time.time()
+                individual.features["finish_time"] = time.time()
                 # write to store
                 self.problem.data_store.sync_individual(individual)
                 return
@@ -49,8 +49,8 @@ class Job(metaclass=ABCMeta):
             except (TimeoutError, RuntimeError) as e:
                 failed_individual = Individual(individual.vector)
                 failed_individual.state = individual.State.FAILED
-                if individual.feasible == 0.0:
-                    individual.feasible = inf  # TODO: genetic algorithms uses this information, i dont know the
+                if individual.features["feasible"] == 0.0:
+                    individual.features["feasible"] = inf  # TODO: genetic algorithms uses this information, i dont know the
                     # correct solution
                 self.problem.failed.append(failed_individual)
                 # in the case of failure generate new random individual

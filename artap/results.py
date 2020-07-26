@@ -115,13 +115,13 @@ class Results:
         :return: list of two lists, the first contains sorted parameter values, the second values of selected goal
         function
         """
-        population = self.population(population_id)
+        individuals = self.population(population_id)
         parameter_index = self.parameter_index(parameter_name)
         goal_index = self.goal_index(goal_name)
         parameter_values = []
         goal_values = []
 
-        for individual in population.individuals:
+        for individual in individuals:
             parameter_values.append(individual.vector[parameter_index])
             goal_values.append(individual.costs[goal_index])
 
@@ -130,13 +130,13 @@ class Results:
         return [parameter_values, goal_values]
 
     def parameter_on_parameter(self, parameter_1, parameter_2, population_id=-1):
-        population = self.population(population_id)
+        individuals = self.population(population_id)
         index_1 = self.parameter_index(parameter_1)
         index_2 = self.parameter_index(parameter_2)
         values_1 = []
         values_2 = []
 
-        for individual in population.individuals:
+        for individual in individuals:
             values_1.append(individual.vector[index_1])
             values_2.append(individual.costs[index_2])
 
@@ -163,11 +163,11 @@ class Results:
         # if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
         # else:
-        if self.problem.archive:
-            min_l = [min(self.problem.archive, key=lambda x: x.costs[index])]
-        else:
-            if len(self.problem.individuals) > 0:
-                min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
+        #if self.problem.archive:
+        #    min_l = [min(self.problem.archive, key=lambda x: x.costs[index])]
+        #else:
+        if len(self.problem.individuals) > 0:
+            min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
@@ -177,12 +177,12 @@ class Results:
 
         :return:
         """
-        population = self.population(population_id)
+        individuals = self.population(population_id)
         n = self.goal_function_number()
         pareto_front = []
         for i in range(n):
             pareto_front.append([])
-            for individual in population.individuals:
+            for individual in individuals:
                 if individual.features['front_number'] == 1:
                     pareto_front[i].append(individual.costs[i])
 
@@ -239,22 +239,22 @@ class Results:
         plt.show()
         return
 
-    def pareto_values(self):
+    def pareto_values(self, archive=None):
         """
         :return: a list of lists which contains the optimal values of the cost function:
                 l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
         """
 
-        population = self.problem.last_population()
+        individuals = self.problem.last_population()
         l_sol = []
 
         # the pareto values collected in the archive, if the algorithm uses this strategy
-        if self.problem.archive:
-            for individual in self.problem.archive:
+        if archive:
+            for individual in archive:
                 l_sol.append(individual.costs)
         else:
-            if len(population.individuals) > 1:
-                for individual in population.individuals:
+            if len(individuals) > 1:
+                for individual in individuals:
                     l_sol.append(individual.costs)
 
         return l_sol

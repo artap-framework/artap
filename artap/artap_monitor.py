@@ -84,13 +84,13 @@ while True:
                 elif state.value == 3:
                     state_str = "failed"
 
-                if individual.info["start_time"] > 0:
-                    dt_startime = datetime.datetime.fromtimestamp(individual.info["start_time"]).strftime("%H.%M.%S")
+                if individual.features["start_time"] > 0:
+                    dt_startime = datetime.datetime.fromtimestamp(individual.features["start_time"]).strftime("%H.%M.%S")
                 else:
                     dt_startime = ""
-                if individual.info["finish_time"] > 0:
-                    dt_finishtime = datetime.datetime.fromtimestamp(individual.info["finish_time"]).strftime("%H.%M.%S")
-                    dt_elapsedtime = (datetime.datetime.fromtimestamp(individual.info["finish_time"]) - datetime.datetime.fromtimestamp(individual.info["start_time"])).microseconds / 1000
+                if individual.features["finish_time"] > 0:
+                    dt_finishtime = datetime.datetime.fromtimestamp(individual.features["finish_time"]).strftime("%H.%M.%S")
+                    dt_elapsedtime = (datetime.datetime.fromtimestamp(individual.features["finish_time"]) - datetime.datetime.fromtimestamp(individual.features["start_time"])).microseconds / 1000
                 else:
                     dt_finishtime = ""
                     dt_elapsedtime = datetime.timedelta().microseconds * 1000

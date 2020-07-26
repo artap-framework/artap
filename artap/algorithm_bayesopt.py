@@ -187,9 +187,6 @@ class BayesOptClassParallel(Process, BayesOptContinuous):
         self.ub = np.empty((n,))
         self.params = {}
 
-        population = Population()
-        self.algorithm.problem.populations.append(population)
-
     def run(self):
         mvalue, x_out, error = self.optimize()
         self.pipe.send('STOP')
