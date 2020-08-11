@@ -64,7 +64,6 @@ class TestDataStoreSqlite(unittest.TestCase):
         # check json
         conn = sqlite3.connect(database_name)
         c = conn.cursor()
-        print(list(individuals.keys())[6])
         c.execute("SELECT * FROM individuals WHERE ID = ?", [list(individuals.keys())[6]])
         row = c.fetchall()
         individual = Individual.from_dict(json.loads(row[0][1]))
@@ -84,9 +83,9 @@ class TestDataStoreSqlite(unittest.TestCase):
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
 
         individuals = problem.last_population()
-        self.assertAlmostEqual(individuals[0].vector[1], -0.412096, 4)
-        self.assertAlmostEqual(individuals[1].vector[0], 0.26419, 4)
-        self.assertAlmostEqual(individuals[0].costs[0], 0.218191, 4)
+        self.assertAlmostEqual(individuals[0].vector[1], 6.58962945, 4)
+        self.assertAlmostEqual(individuals[1].vector[0], 1.8944488, 4)
+        self.assertAlmostEqual(individuals[0].costs[0], 49.0245242, 4)
 
 
 class TestDataStoreBenchmark(unittest.TestCase):
