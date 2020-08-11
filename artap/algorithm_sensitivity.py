@@ -1,6 +1,5 @@
 from .utils import VectorAndNumbers
 from .algorithm import Algorithm
-from .population import Population
 from .individual import Individual
 from .job import Job
 from .problem import Problem

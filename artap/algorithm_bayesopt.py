@@ -1,7 +1,6 @@
 from .problem import Problem
 from .algorithm import Algorithm
 from .config import artap_root
-from .population import Population
 
 import time
 import numpy as np

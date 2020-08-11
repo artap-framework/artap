@@ -1,7 +1,6 @@
 from .problem import Problem
 from .algorithm_genetic import GeneticAlgorithm
 from .operators import GradientEvaluator, RandomGenerator
-from .population import Population
 from .individual import Individual
 
 

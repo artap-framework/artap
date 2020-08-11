@@ -3,7 +3,6 @@ import nlopt
 
 from .problem import Problem
 from .algorithm import Algorithm
-from .population import Population
 
 GN_DIRECT = nlopt.GN_DIRECT
 GN_DIRECT_L = nlopt.GN_DIRECT_L

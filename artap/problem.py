@@ -5,7 +5,6 @@
 from .datastore import TinyDataStore, SqliteDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
-from .population import Population
 from abc import abstractmethod
 
 import logging

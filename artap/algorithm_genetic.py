@@ -4,7 +4,6 @@ from copy import deepcopy
 from .algorithm import Algorithm
 from .operators import RandomGenerator, SimulatedBinaryCrossover, \
     PmMutator, TournamentSelector, EpsilonDominance, nondominated_truncate, crowding_distance
-from .population import Population
 from .problem import Problem
 from .archive import Archive
 

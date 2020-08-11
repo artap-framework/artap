@@ -1,6 +1,5 @@
 from random import randint, random, uniform, choice
 from .problem import Problem
-from .population import Population
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
     NonUniformMutation, UniformMutator, CopySelector
