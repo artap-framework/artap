@@ -120,7 +120,6 @@ class OMOPSO(SwarmAlgorithm):
         self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
 
-        self.individual_features = dict()
         self.individual_features['velocity'] = dict()
         self.individual_features['best_cost'] = dict()
         self.individual_features['best_vector'] = dict()

@@ -34,6 +34,7 @@ class Individual(metaclass=ABCMeta):
         self.costs_signed = []
         self.state = self.State.EMPTY
         self.population_id = -1
+        self.algorithm_id = 0
 
         self.parents = []
         self.children = []
@@ -106,6 +107,7 @@ class Individual(metaclass=ABCMeta):
         self.costs_signed = individual.costs_signed
         self.state = individual.state
         self.population_id = individual.population_id
+        self.algorithm_id = individual.algorithm_id
 
         self.parents = individual.parents
         self.children = individual.children
@@ -121,6 +123,7 @@ class Individual(metaclass=ABCMeta):
                   'costs_signed': self.costs_signed,
                   'state': self.to_string(self.state),
                   'population_id': self.population_id,
+                  'algorithm_id': self.algorithm_id,
                   'custom': self.custom}
 
         parents = []
@@ -161,6 +164,7 @@ class Individual(metaclass=ABCMeta):
         individual.state = dictionary['state']
         individual.costs_signed = dictionary['costs_signed']
         individual.population_id = dictionary['population_id']
+        individual.algorithm_id = dictionary['algorithm_id']
 
         individual.custom = dictionary['custom']
 

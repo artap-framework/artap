@@ -10,7 +10,7 @@ from abc import ABCMeta
 from .operators import Evaluator, GradientEvaluator, WorstCaseEvaluator
 
 from enum import Enum
-
+from uuid import uuid1
 
 class EvaluatorType(Enum):
     SIMPLE = 0
@@ -22,6 +22,7 @@ class Algorithm(metaclass=ABCMeta):
     """ Base class for optimization algorithms. """
 
     def __init__(self, problem: Problem, name="Algorithm", evaluator_type=EvaluatorType.SIMPLE):
+        self.uuid = uuid1().hex
         self.name = name
         self.problem = problem
         if evaluator_type == EvaluatorType.SIMPLE or evaluator_type is None:
@@ -48,9 +49,16 @@ class Algorithm(metaclass=ABCMeta):
         self.individual_features = dict()
 
     def evaluate(self, individuals):
+        # set algorithm id
+        for individual in individuals:
+            individual.algorithm_id = self.uuid
+
         self.evaluator.evaluate(individuals)
 
     def evaluate_scalar(self, individual):
+        # set algorithm id
+        individual.algorithm_id = self.uuid
+
         self.evaluator.evaluate_scalar(individual)
         return individual.costs[0]
 

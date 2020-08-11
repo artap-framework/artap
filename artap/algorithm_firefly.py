@@ -61,7 +61,6 @@ class MoFirefly(SwarmAlgorithm):
         self.dominance = ParetoDominance()
 
         # set random generator
-        self.individual_features = dict()
         self.individual_features['dominate'] = set()
         self.individual_features['crowding_distance'] = 0
         self.individual_features['domination_counter'] = 0

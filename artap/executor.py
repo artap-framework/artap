@@ -257,6 +257,15 @@ class CondorJobExecutor(RemoteExecutor):
     def _create_job_file(self, remote_dir, individual, client):
         pass
 
+    def _create_desc(self, individual):
+        desc = {}
+        desc["individual_id"] = individual.id
+        desc["individual_population_id"] = individual.population_id
+        desc["individual_algorithm_id"] = individual.algorithm_id
+        desc["individual_vector"] = '[' + ', '.join(str(e) for e in individual.vector) + ']'
+
+        return desc
+
     def eval(self, individual):
         if config["condor_host"] is None:
             raise Exception("Condor host is not defined.")
@@ -370,6 +379,8 @@ class CondorJobExecutor(RemoteExecutor):
                             output_files.append("{}/{}".format(path, file))
                         success = True
                         result = self.parse_results(output_files, individual)
+                        # update cost on remote server
+                        client.root.log_update_cost(remote_dir, individual, result)
 
                     # remove job dir
                     if result is not None:
@@ -431,7 +442,7 @@ class CondorPythonJobExecutor(CondorJobExecutor):
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
         # desc
-        desc = {}
+        desc = self._create_desc(individual)
         desc["type"] = "python"
         desc["extension"] = ".py"
         desc["editor"] = True
@@ -480,7 +491,7 @@ class CondorMatlabJobExecutor(CondorJobExecutor):
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
         # desc
-        desc = {}
+        desc = self._create_desc(individual)
         desc["type"] = "matlab"
         desc["extension"] = ".m"
         desc["editor"] = False
@@ -528,7 +539,7 @@ class CondorComsolJobExecutor(CondorJobExecutor):
         self._create_file_on_remote("run.sh", self.executable, remote_dir=remote_dir, client=client)
 
         # desc
-        desc = {}
+        desc = self._create_desc(individual)
         desc["type"] = "comsol"
         desc["extension"] = ".mph"
         desc["editor"] = False
@@ -588,7 +599,7 @@ class CondorCSTJobExecutor(CondorJobExecutor):
         self._create_file_on_remote("run.bat", self.executable, remote_dir=remote_dir, client=client)
 
         # desc
-        desc = {}
+        desc = self._create_desc(individual)
         desc["type"] = "cst"
         desc["extension"] = ".cst"
         desc["editor"] = False

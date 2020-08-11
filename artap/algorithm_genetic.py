@@ -111,7 +111,6 @@ class NSGAII(GeneticAlgorithm):
                              desc='prob_mutation')
 
         # set random generator
-        self.individual_features = dict()
         self.individual_features['dominate'] = set()
         self.individual_features['crowding_distance'] = 0
         self.individual_features['domination_counter'] = 0
@@ -202,7 +201,6 @@ class EpsMOEA(GeneticAlgorithm):
         self.archive = None
 
         # set random generator
-        self.individual_features = dict()
         self.individual_features['dominate'] = set()
         self.individual_features['crowding_distance'] = 0
         self.individual_features['domination_counter'] = 0

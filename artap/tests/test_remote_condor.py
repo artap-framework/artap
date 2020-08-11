@@ -2,6 +2,7 @@ import unittest
 from unittest import TestCase, main
 
 from ..executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor, CondorCSTJobExecutor
+from ..algorithm_genetic import NSGAII
 from ..problem import Problem
 from ..algorithm import DummyAlgorithm
 from ..individual import Individual
@@ -10,6 +11,7 @@ from ..config import config
 import random
 import pathlib
 import os
+
 
 class CondorMatlabProblem(Problem):
     """ Describe simple one objective optimization problem. """
@@ -79,6 +81,27 @@ class PythonExecProblem(Problem):
         return [float(content[0])]
 
 
+class PythonExecProblemNSGAII(Problem):
+    """ Describe simple one objective optimization problem. """
+    def set(self):
+        self.parameters = [{'name': 'a', 'initial_value': 10, 'bounds': [0, 20]},
+                           {'name': 'b', 'initial_value': 10, 'bounds': [5, 15]}]
+        self.costs = [{'name': 'F_1'}]
+        file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/run_exec.py")
+        self.executor = CondorPythonJobExecutor(self,
+                                                script=file_path,
+                                                parameter_file=None,
+                                                output_files=["output.txt"])
+
+    def evaluate(self, individual):
+        return self.executor.eval(individual)
+
+    def parse_results(self, output_files, individual):
+        with open(output_files[0]) as file:
+            content = file.readlines()
+        return [float(content[0])]
+
+
 class PythonInputProblem(Problem):
     """ Describe simple one objective optimization problem. """
     def set(self):
@@ -114,9 +137,8 @@ class CSTProblem(Problem):
         return self.executor.eval(individual)
 
     def parse_results(self, output_files, individual):
-        for file in output_files:
-            print(file)
-
+        # for file in output_files:
+        #     print(file)
         with open(output_files[1], 'rt') as file:
             content = file.readlines()
 
@@ -201,6 +223,23 @@ class TestCondor(TestCase):
         algorithm.evaluator.evaluate(individuals)
 
         self.assertAlmostEqual(5, individuals[0].costs[0])
+
+
+    @unittest.skipIf(config["condor_host"] is None, "Condor is not defined.")
+    def test_condor_python_exec_nsgaii(self):
+        problem = PythonExecProblemNSGAII()
+
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 5
+        algorithm.options['max_population_size'] = 3
+        algorithm.options['max_processes'] = 3
+        algorithm.run()
+
+        populations = problem.populations()
+
+        self.assertEqual(len(populations), algorithm.options['max_population_number'] + 1)
+        for individuals in populations.values():
+            self.assertEqual(len(individuals), algorithm.options['max_population_size'])
 
 
 if __name__ == '__main__':
