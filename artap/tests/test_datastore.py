@@ -50,7 +50,7 @@ class TestDataStoreSqlite(unittest.TestCase):
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 3
         algorithm.options['max_population_size'] = 4
-        algorithm.options['max_processes'] = 1
+        algorithm.options['max_processes'] = 4
         algorithm.run()
 
         # cache individuals
@@ -78,7 +78,7 @@ class TestDataStoreSqlite(unittest.TestCase):
         # Path to this script file location
         file_path = str(pathlib.Path(__file__).parent.absolute())
         database_name = os.path.join(file_path, "data/data.sqlite")
-        problem = ProblemViewDataStore(database_name=database_name, class_datastore=SqliteDataStore)
+        problem = ProblemViewDataStore(database_name=database_name, class_datastore=SqliteDataStore, thread_safe=False)
 
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
 

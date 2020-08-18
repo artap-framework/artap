@@ -119,7 +119,7 @@ class SqliteDataStore(DummyDataStore):
     sql_individuals_select = "SELECT * FROM individuals;"
     # SELECT json_extract(individual, '$.costs[0]') as cost FROM individuals where cost>10;
 
-    def __init__(self, problem, database_name, mode="write", thread_safe=False):
+    def __init__(self, problem, database_name, mode="write", thread_safe=True):
         self.problem = problem
         self.database_name = database_name
         self.mode = mode
