@@ -92,7 +92,7 @@ class TestDataStoreSqlite(unittest.TestCase):
 class TestDataStoreBenchmark(unittest.TestCase):
     def setUp(self):
         self.n = 300
-        self.max_processes = 5
+        self.max_processes = 10
 
     def test_benchmark_sqlite_data_store(self):
         t_s = time.time()

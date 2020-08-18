@@ -243,8 +243,13 @@ class SqliteDataStore(DummyDataStore):
             c = conn.cursor()
 
             # data
-            c.execute(self.sql_individuals_upsert, [individual.id, json.dumps(individual.to_dict())])
-            conn.commit()
+            try:
+                c.execute(self.sql_individuals_upsert, [individual.id, json.dumps(individual.to_dict())])
+                conn.commit()
+            except sqlite3.OperationalError as e:
+                # try again
+                print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ERROR")
+                self.sync_individual(individual)
 
 
 class TinyDataStore(DummyDataStore):
