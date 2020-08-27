@@ -566,6 +566,9 @@ class CondorCSTJobExecutor(CondorJobExecutor):
         self.executable = textwrap.dedent("""\
             """ + cst_path + """ --se --rebuild --hide -par parameters.txt -project-file {} """.format(self.model_file))
         self.executable += '\n'
+        self.executable += '"C:\Program Files\\7-Zip\\7z.exe" a "{}.zip" "{}\\"'.format(os.path.splitext(self.model_file)[0], os.path.splitext(self.model_file)[0])
+        self.executable += '\n'
+
         i = 1
         for file in files_from_condor[1:]:
             filename = pathlib.Path(file)

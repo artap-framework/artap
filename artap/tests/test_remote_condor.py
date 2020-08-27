@@ -11,6 +11,7 @@ from ..config import config
 import random
 import pathlib
 import os
+import zipfile
 
 
 class CondorMatlabProblem(Problem):
@@ -131,16 +132,15 @@ class CSTProblem(Problem):
         file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/elstat.cst")
         self.executor = CondorCSTJobExecutor(self,
                                              model_file=file_path,
-                                             files_from_condor=["elstat.cst", "./elstat/Export/Es Solver/Energy.txt"])
+                                             files_from_condor=["elstat.zip"])
 
     def evaluate(self, individual):
         return self.executor.eval(individual)
 
     def parse_results(self, output_files, individual):
-        # for file in output_files:
-        #     print(file)
-        with open(output_files[1], 'rt') as file:
-            content = file.readlines()
+        archive = zipfile.ZipFile(output_files[0], 'r')
+        file = archive.open('elstat/Export/Es Solver/Energy.txt')
+        content = file.readlines()
 
         return [float(content[0])]
 
