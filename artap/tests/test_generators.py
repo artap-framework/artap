@@ -1,6 +1,6 @@
 import unittest
-from ..operators import CustomGenerator, RandomGenerator, FullFactorGenerator, PlackettBurmanGenerator, \
-    BoxBehnkenGenerator, LHSGenerator
+from ..operators import CustomGenerator, RandomGenerator, FullFactorGenerator, FullFactorLevelsGenerator, PlackettBurmanGenerator, \
+    BoxBehnkenGenerator, LHSGenerator, GSDGenerator, HaltonGenerator
 
 
 class TestDOE(unittest.TestCase):
@@ -106,6 +106,71 @@ class TestDOE(unittest.TestCase):
                         self.parameters[0]['bounds'][0] <= individuals[2].vector[0] <= self.parameters[0]['bounds'][1] and
                         self.parameters[1]['bounds'][0] <= individuals[2].vector[1] <= self.parameters[1]['bounds'][1] and
                         self.parameters[2]['bounds'][0] <= individuals[2].vector[2] <= self.parameters[2]['bounds'][1])
+
+    # Randomized Designs
+    def test_halton_generation(self):
+        # Halton
+        gen = HaltonGenerator(parameters=self.parameters)
+        gen.init(number=3)
+        individuals = gen.generate()
+
+        # size
+        self.assertEqual(len(individuals), 3)
+        # values
+        self.assertTrue(self.parameters[0]['bounds'][0] <= individuals[0].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[0].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[0].vector[2] <= self.parameters[2]['bounds'][1] and
+                        self.parameters[0]['bounds'][0] <= individuals[1].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[1].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[1].vector[2] <= self.parameters[2]['bounds'][1] and
+                        self.parameters[0]['bounds'][0] <= individuals[2].vector[0] <= self.parameters[0]['bounds'][1] and
+                        self.parameters[1]['bounds'][0] <= individuals[2].vector[1] <= self.parameters[1]['bounds'][1] and
+                        self.parameters[2]['bounds'][0] <= individuals[2].vector[2] <= self.parameters[2]['bounds'][1])
+        # values
+        self.assertEqual(individuals[0].vector[2], 6.8)
+        self.assertEqual(individuals[2].vector[0], 3.125)
+
+    # Factorial Designs - levels
+    def test_full_fact_levels_generator(self):
+        # GSD
+        self.parameters = [{'name': 'U_1'},
+                           {'name': 'U_2'},
+                           {'name': 'U_3'},
+                           {'name': 'PH_1'},
+                           {'name': 'PH_2'},
+                           {'name': 'PH_3'}]
+        gen = FullFactorLevelsGenerator(parameters=self.parameters)
+        amp = [0, 0.25, 0.5, 0.75, 1]
+        phase = [-90.000, -67.500, -45.000, -22.500, 0.000, 22.500, 45.000, 67.500, 90.000]
+        gen.init([amp, amp, amp, phase, phase, phase])
+        individuals = gen.generate()
+
+        # size
+        self.assertEqual(len(individuals), 91125)
+        # values
+        self.assertEqual(individuals[152].vector[1], 0)
+        self.assertEqual(individuals[8596].vector[0], 0.25)
+        self.assertEqual(individuals[70153].vector[3], -22.5)
+        self.assertEqual(individuals[90454].vector[5], 90.0)
+
+    # Generalized Subset Design (GSD) (C) 2018 - Rickard Sjoegren
+    def test_gsd_generator(self):
+        # GSD
+        # self.parameters = [{'name': 'U_1'}, {'name': 'U_2'}, {'name': 'U_3'}, {'name': 'PH_1'}, {'name': 'PH_2'}, {'name': 'PH_3'}]
+        self.parameters = [{'name': 'U_1'}, {'name': 'U_2'}]
+        gen = GSDGenerator(parameters=self.parameters)
+        gen.init([[1, 3, 2], [6, 8, 4]], reduction=2)
+        # amp = [0, 0.25, 0.5, 0.75, 1]
+        # phase = [-90.000, -67.500, -45.000, -22.500, 0.000, 22.500, 45.000, 67.500, 90.000]
+        # gen.init([amp, amp, amp, phase, phase, phase], reduction=10)
+        individuals = gen.generate()
+
+        # size
+        self.assertEqual(len(individuals), 5)
+        # values
+        self.assertEqual(individuals[0].vector[1], 6)
+        self.assertEqual(individuals[2].vector[0], 2)
+        self.assertEqual(individuals[4].vector[0], 3)
 
 
 if __name__ == '__main__':

@@ -78,7 +78,7 @@ class TestDataStoreSqlite(unittest.TestCase):
         # Path to this script file location
         file_path = str(pathlib.Path(__file__).parent.absolute())
         database_name = os.path.join(file_path, "data/data.sqlite")
-        problem = ProblemViewDataStore(database_name=database_name, class_datastore=SqliteDataStore, thread_safe=False)
+        problem = ProblemViewDataStore(database_name=database_name, class_datastore=SqliteDataStore)
 
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
 

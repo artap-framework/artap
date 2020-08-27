@@ -5,9 +5,10 @@ import math
 from math import exp
 import numpy as np
 import functools
+
 from .individual import Individual
 from .utils import VectorAndNumbers
-from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman
+from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman, build_gsd, build_halton
 from .job import Job
 from joblib import Parallel, delayed
 from copy import deepcopy
@@ -263,6 +264,32 @@ class FullFactorGenerator(Generator):
         return individuals
 
 
+class FullFactorLevelsGenerator(Generator):
+    """
+    Create a general full-factorial design
+    Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
+    """
+
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
+        self.values = []
+
+    def init(self, values):
+        self.values = values
+
+    def generate(self):
+        dict_vars = {}
+        for value, parameter in zip(self.values, self.parameters):
+            dict_vars[parameter['name']] = value
+
+        df = build_full_fact(dict_vars)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector, self.features))
+        return individuals
+
+
 class PlackettBurmanGenerator(Generator):
     """
     Create a general full-factorial design
@@ -347,6 +374,68 @@ class LHSGenerator(Generator):
         individuals = []
         for vector in df:
             individuals.append(Individual(vector, self.features))
+        return individuals
+
+
+class HaltonGenerator(Generator):
+    """
+    Builds a Halton sequence.
+    """
+
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
+        self.number = 0
+
+    def init(self, number):
+        self.number = number
+
+    def generate(self):
+        dict_vars = {}
+        for parameter in self.parameters:
+            name = parameter["name"]
+            l_b = parameter['bounds'][0]
+            u_b = parameter['bounds'][1]
+            dict_vars[name] = [l_b, u_b]
+
+        df = build_halton(dict_vars, num_samples=self.number)
+        print(df)
+
+        individuals = []
+        for vector in df:
+            individuals.append(Individual(vector, self.features))
+        return individuals
+
+
+class GSDGenerator(Generator):
+    """
+    Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
+    """
+
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
+        self.values = []
+        self.reduction = 1
+        self.n = 1
+
+    def init(self, values, reduction, n=1):
+        self.values = values
+        self.reduction = reduction
+        self.n = n
+
+    def generate(self):
+        levels = []
+        for value in self.values:
+            levels.append(len(value))
+
+        df = build_gsd(levels, self.reduction, self.n)
+        # print(df)
+
+        individuals = []
+        for vector in df:
+            vals = []
+            for i in range(len(vector)):
+                vals.append(self.values[i][vector[i]])
+            individuals.append(Individual(vals, self.features))
         return individuals
 
 
