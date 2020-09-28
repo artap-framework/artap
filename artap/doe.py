@@ -1,6 +1,10 @@
 import numpy as np
-from scipy.linalg import toeplitz, hankel
+from scipy.linalg import toeplitz, hankel, cholesky
+from scipy import spatial
+from scipy import stats
+from numpy import ma
 import re
+import itertools
 
 """
 This code was originally published by the following individuals for use with
@@ -17,6 +21,9 @@ Abraham Lee.
 
 https://github.com/tirthajyoti/Design-of-experiment-Python
 https://pythonhosted.org/pyDOE/
+
+GSD Copyright (C) 2018 - Rickard Sjoegren
+https://github.com/clicumu/pyDOE2/blob/master/pyDOE2
 """
 
 
@@ -108,10 +115,7 @@ def build_box_behnken(factor_level_ranges):
     x = bbdesign(factor_count, center=1)
     x = x + 1  # Adjusting the index up by 1
 
-    print(x)
-
     df = construct_df(x, factor_lists)
-    
 
     return df
 
@@ -727,15 +731,13 @@ def build_lhs(factor_level_ranges, num_samples=None):
     return df
 
 
-def lhs(n, samples=None, criterion=None, iterations=None):
+def lhs(n, samples=None, criterion=None, iterations=None, random_state=None, correlation_matrix=None):
     """
     Generate a latin-hypercube design
-
     Parameters
     ----------
     n : int
         The number of factors to generate samples for
-
     Optional
     --------
     samples : int
@@ -747,95 +749,101 @@ def lhs(n, samples=None, criterion=None, iterations=None):
     iterations : int
         The number of iterations in the maximin and correlations algorithms
         (Default: 5).
-
+    randomstate : np.random.RandomState, int
+         Random state (or seed-number) which controls the seed and random draws
+    correlation_matrix : ndarray
+         Enforce correlation between factors (only used in lhsmu)
     Returns
     -------
     H : 2d-array
         An n-by-samples design matrix that has been normalized so factor values
         are uniformly spaced between zero and one.
-
     Example
     -------
     A 3-factor design (defaults to 3 samples)::
-
-        >>> lhs(3)
-        array([[ 0.40069325,  0.08118402,  0.69763298],
-               [ 0.19524568,  0.41383587,  0.29947106],
-               [ 0.85341601,  0.75460699,  0.360024  ]])
-
+        >>> lhs(3, random_state=42)
+        array([[ 0.12484671,  0.95539205,  0.24399798],
+               [ 0.53288616,  0.38533955,  0.86703834],
+               [ 0.68602787,  0.31690477,  0.38533151]])
     A 4-factor design with 6 samples::
-
-        >>> lhs(4, samples=6)
-        array([[ 0.27226812,  0.02811327,  0.62792445,  0.91988196],
-               [ 0.76945538,  0.43501682,  0.01107457,  0.09583358],
-               [ 0.45702981,  0.76073773,  0.90245401,  0.18773015],
-               [ 0.99342115,  0.85814198,  0.16996665,  0.65069309],
-               [ 0.63092013,  0.22148567,  0.33616859,  0.36332478],
-               [ 0.05276917,  0.5819198 ,  0.67194243,  0.78703262]])
-
+        >>> lhs(4, samples=6, random_state=42)
+        array([[ 0.06242335,  0.19266575,  0.88202411,  0.89439364],
+               [ 0.19266977,  0.53538985,  0.53030416,  0.49498498],
+               [ 0.71737371,  0.75412607,  0.17634727,  0.71520486],
+               [ 0.63874044,  0.85658231,  0.33676408,  0.31102936],
+               [ 0.43351917,  0.45134543,  0.12199899,  0.53056742],
+               [ 0.93530882,  0.15845238,  0.7386575 ,  0.09977641]])
     A 2-factor design with 5 centered samples::
-
-        >>> lhs(2, samples=5, criterion='center')
-        array([[ 0.3,  0.5],
-               [ 0.7,  0.9],
-               [ 0.1,  0.3],
-               [ 0.9,  0.1],
-               [ 0.5,  0.7]])
-
+        >>> lhs(2, samples=5, criterion='center', random_state=42)
+        array([[ 0.1,  0.9],
+               [ 0.5,  0.5],
+               [ 0.7,  0.1],
+               [ 0.3,  0.7],
+               [ 0.9,  0.3]])
     A 3-factor design with 4 samples where the minimum distance between
     all samples has been maximized::
-
-        >>> lhs(3, samples=4, criterion='maximin')
-        array([[ 0.02642564,  0.55576963,  0.50261649],
-               [ 0.51606589,  0.88933259,  0.34040838],
-               [ 0.98431735,  0.0380364 ,  0.01621717],
-               [ 0.40414671,  0.33339132,  0.84845707]])
-
+        >>> lhs(3, samples=4, criterion='maximin', random_state=42)
+        array([[ 0.69754389,  0.2997106 ,  0.96250964],
+               [ 0.10585037,  0.09872038,  0.73157522],
+               [ 0.25351996,  0.65148999,  0.07337204],
+               [ 0.91276926,  0.97873992,  0.42783549]])
     A 4-factor design with 5 samples where the samples are as uncorrelated
     as possible (within 10 iterations)::
-
-        >>> lhs(4, samples=5, criterion='correlate', iterations=10)
-
+        >>> lhs(4, samples=5, criterion='correlation', iterations=10, random_state=42)
+        array([[ 0.72088348,  0.05121366,  0.97609357,  0.92487081],
+               [ 0.49507404,  0.51265511,  0.00808672,  0.37915272],
+               [ 0.22217816,  0.2878673 ,  0.24034384,  0.42786629],
+               [ 0.91977309,  0.93895699,  0.64061224,  0.14213258],
+               [ 0.04719698,  0.70796822,  0.53910322,  0.78857071]])
     """
     H = None
+
+    if random_state is None:
+        random_state = np.random.RandomState()
+    elif not isinstance(random_state, np.random.RandomState):
+        random_state = np.random.RandomState(random_state)
 
     if samples is None:
         samples = n
 
     if criterion is not None:
-        assert criterion.lower() in ('center', 'c', 'maximin', 'm',
+        if not criterion.lower() in ('center', 'c', 'maximin', 'm',
                                      'centermaximin', 'cm', 'correlation',
-                                     'corr'), 'Invalid value for "criterion": {}'.format(criterion)
+                                     'corr', 'lhsmu'):
+            raise ValueError('Invalid value for "criterion": {}'.format(criterion))
+
     else:
-        H = _lhsclassic(n, samples)
+        H = _lhsclassic(n, samples, random_state)
 
     if criterion is None:
         criterion = 'center'
-
     if iterations is None:
         iterations = 5
 
     if H is None:
         if criterion.lower() in ('center', 'c'):
-            H = _lhscentered(n, samples)
+            H = _lhscentered(n, samples, random_state)
         elif criterion.lower() in ('maximin', 'm'):
-            H = _lhsmaximin(n, samples, iterations, 'maximin')
+            H = _lhsmaximin(n, samples, iterations, 'maximin', random_state)
         elif criterion.lower() in ('centermaximin', 'cm'):
-            H = _lhsmaximin(n, samples, iterations, 'centermaximin')
-        elif criterion.lower() in ('correlate', 'corr'):
-            H = _lhscorrelate(n, samples, iterations)
+            H = _lhsmaximin(n, samples, iterations, 'centermaximin', random_state)
+        elif criterion.lower() in ('correlation', 'corr'):
+            H = _lhscorrelate(n, samples, iterations, random_state)
+        elif criterion.lower() in ('lhsmu'):
+            # as specified by the paper. M is set to 5
+            H = _lhsmu(n, samples, correlation_matrix, random_state, M=5)
 
     return H
 
 
 ################################################################################
 
-def _lhsclassic(n, samples):
+def _lhsclassic(n, samples, randomstate):
     # Generate the intervals
     cut = np.linspace(0, 1, samples + 1)
 
     # Fill points uniformly in each interval
-    u = np.random.rand(samples, n)
+    u = randomstate.rand(samples, n)
     a = cut[:samples]
     b = cut[1:samples + 1]
     rdpoints = np.zeros_like(u)
@@ -845,7 +853,7 @@ def _lhsclassic(n, samples):
     # Make the random pairings
     H = np.zeros_like(rdpoints)
     for j in range(n):
-        order = np.random.permutation(range(samples))
+        order = randomstate.permutation(range(samples))
         H[:, j] = rdpoints[order, j]
 
     return H
@@ -853,12 +861,12 @@ def _lhsclassic(n, samples):
 
 ################################################################################
 
-def _lhscentered(n, samples):
+def _lhscentered(n, samples, randomstate):
     # Generate the intervals
     cut = np.linspace(0, 1, samples + 1)
 
     # Fill points uniformly in each interval
-    u = np.random.rand(samples, n)
+    u = randomstate.rand(samples, n)
     a = cut[:samples]
     b = cut[1:samples + 1]
     _center = (a + b) / 2
@@ -866,24 +874,24 @@ def _lhscentered(n, samples):
     # Make the random pairings
     H = np.zeros_like(u)
     for j in range(n):
-        H[:, j] = np.random.permutation(_center)
+        H[:, j] = randomstate.permutation(_center)
 
     return H
 
 
 ################################################################################
 
-def _lhsmaximin(n, samples, iterations, lhstype):
+def _lhsmaximin(n, samples, iterations, lhstype, randomstate):
     maxdist = 0
 
     # Maximize the minimum distance between points
     for i in range(iterations):
         if lhstype == 'maximin':
-            Hcandidate = _lhsclassic(n, samples)
+            Hcandidate = _lhsclassic(n, samples, randomstate)
         else:
-            Hcandidate = _lhscentered(n, samples)
+            Hcandidate = _lhscentered(n, samples, randomstate)
 
-        d = _pdist(Hcandidate)
+        d = spatial.distance.pdist(Hcandidate, 'euclidean')
         if maxdist < np.min(d):
             maxdist = np.min(d)
             H = Hcandidate.copy()
@@ -893,19 +901,78 @@ def _lhsmaximin(n, samples, iterations, lhstype):
 
 ################################################################################
 
-def _lhscorrelate(n, samples, iterations):
+def _lhscorrelate(n, samples, iterations, randomstate):
     mincorr = np.inf
 
     # Minimize the components correlation coefficients
     for i in range(iterations):
         # Generate a random LHS
-        Hcandidate = _lhsclassic(n, samples)
-        R = np.corrcoef(Hcandidate)
+        Hcandidate = _lhsclassic(n, samples, randomstate)
+        R = np.corrcoef(Hcandidate.T)
         if np.max(np.abs(R[R != 1])) < mincorr:
             mincorr = np.max(np.abs(R - np.eye(R.shape[0])))
-            print('new candidate solution found with max,abs corrcoef = {}'.format(mincorr))
             H = Hcandidate.copy()
 
+    return H
+
+
+################################################################################
+
+def _lhsmu(N, samples=None, corr=None, random_state=None, M=5):
+    if random_state is None:
+        random_state = np.random.RandomState()
+    elif not isinstance(random_state, np.random.RandomState):
+        random_state = np.random.RandomState(random_state)
+
+    if samples is None:
+        samples = N
+
+    I = M * samples
+
+    rdpoints = random_state.uniform(size=(I, N))
+
+    dist = spatial.distance.cdist(rdpoints, rdpoints, metric='euclidean')
+    D_ij = ma.masked_array(dist, mask=np.identity(I))
+
+    index_rm = np.zeros(I - samples, dtype=int)
+    i = 0
+    while i < I - samples:
+        order = ma.sort(D_ij, axis=1)
+
+        avg_dist = ma.mean(order[:, 0:2], axis=1)
+        min_l = ma.argmin(avg_dist)
+
+        D_ij[min_l, :] = ma.masked
+        D_ij[:, min_l] = ma.masked
+
+        index_rm[i] = min_l
+        i += 1
+
+    rdpoints = np.delete(rdpoints, index_rm, axis=0)
+
+    if (corr is not None):
+        # check if covariance matrix is valid
+        assert type(corr) == np.ndarray
+        assert corr.ndim == 2
+        assert corr.shape[0] == corr.shape[1]
+        assert corr.shape[0] == N
+
+        norm_u = stats.norm().ppf(rdpoints)
+        L = cholesky(corr, lower=True)
+
+        norm_u = np.matmul(norm_u, L)
+
+        H = stats.norm().cdf(norm_u)
+    else:
+        H = np.zeros_like(rdpoints, dtype=float)
+        rank = np.argsort(rdpoints, axis=0)
+
+        for l in range(samples):
+            low = float(l) / samples
+            high = float(l + 1) / samples
+
+            l_pos = rank == l
+            H[l_pos] = random_state.uniform(low, high, size=N)
     return H
 
 
@@ -1222,3 +1289,294 @@ def star(n, alpha='faced', center=(1, 1)):
     H *= a
 
     return H, a
+
+
+def build_gsd(levels, reduction, n=1):
+    """
+    Create a Generalized Subset Design (GSD).
+    Parameters
+    ----------
+    levels : array-like
+        Number of factor levels per factor in design.
+    reduction : int
+        Reduction factor (bigger than 1). Larger `reduction` means fewer
+        experiments in the design and more possible complementary designs.
+    n : int
+        Number of complementary GSD-designs (default 1). The complementary
+        designs are balanced analogous to fold-over in two-level fractional
+        factorial designs.
+    Returns
+    -------
+    H : 2d-array | list of 2d-arrays
+        `n` m-by-k matrices where k is the number of factors (equal
+        to the length of `factor_levels`. The number of rows, m, will
+        be approximately equal to the grand product of the factor levels
+        divided by `reduction`.
+    Raises
+    ------
+    ValueError
+        If input is valid or if design construction fails. Design can fail
+        if `reduction` is too large compared to values of `levels`.
+    Notes
+    -----
+    The Generalized Subset Design (GSD) [1]_ or generalized factorial design is
+    a generalization of traditional fractional factorial designs to problems
+    where factors can have more than two levels.
+    In many application problems factors can have categorical or quantitative
+    factors on more than two levels. Previous reduced designs have not been
+    able to deal with such types of problems. Full multi-level factorial
+    designs can handle such problems but are however not economical regarding
+    the number of experiments.
+    Note for commercial users, the application of GSD to testing of product
+    characteristics in a processing facility is patented [2]_
+    Examples
+    --------
+    An example with three factors using three, four and
+    six levels respectively reduced with a factor 4 ::
+        >>> gsd([3, 4, 6], 4)
+        array([[0, 0, 0],
+               [0, 0, 4],
+               [0, 1, 1],
+               [0, 1, 5],
+               [0, 2, 2],
+               [0, 3, 3],
+               [1, 0, 1],
+               [1, 0, 5],
+               [1, 1, 2],
+               [1, 2, 3],
+               [1, 3, 0],
+               [1, 3, 4],
+               [2, 0, 2],
+               [2, 1, 3],
+               [2, 2, 0],
+               [2, 2, 4],
+               [2, 3, 1],
+               [2, 3, 5]])
+    Two complementary designs with two factors using three and
+    four levels reduced with a factor 2 ::
+        >>> gsd([3, 4], 2, n=2)[0]
+        array([[0, 0],
+               [0, 2],
+               [2, 0],
+               [2, 2],
+               [1, 1],
+               [1, 3]])
+        >>> gsd([3, 4], 2, n=2)[1]
+        array([[0, 1],
+               [0, 3],
+               [2, 1],
+               [2, 3],
+               [1, 0],
+               [1, 2]])
+    If design fails ValueError is raised ::
+        >>> gsd([2, 3], 5)
+        Traceback (most recent call last):
+         ...
+        ValueError: reduction too large compared to factor levels
+    References
+    ----------
+    .. [1] Surowiec, Izabella, Ludvig Vikstrom, Gustaf Hector, Erik Johansson,
+       Conny Vikstrom, and Johan Trygg. "Generalized Subset Designs in
+       Analytical Chemistry." Analytical Chemistry 89, no. 12 (June 20, 2017):
+       6491-97. https://doi.org/10.1021/acs.analchem.7b00506.
+    .. [2] Vikstrom, Ludvig, Conny Vikstrom, Erik Johansson, and Gustaf Hector.
+       Computer-implemented systems and methods for generating
+       generalized fractional designs. US9746850 B2, filed May 9,
+       2014, and issued August 29, 2017. http://www.google.se/patents/US9746850.
+    """
+    try:
+        assert all(isinstance(v, int) for v in levels), \
+            'levels has to be sequence of integers'
+        assert isinstance(reduction, int) and reduction > 1, \
+            'reduction has to be integer larger than 1'
+        assert isinstance(n, int) and n > 0, \
+            'n has to be positive integer'
+    except AssertionError as e:
+        raise ValueError(e)
+
+    partitions = _make_partitions(levels, reduction)
+    latin_square = _make_latin_square(reduction)
+    ortogonal_arrays = _make_orthogonal_arrays(latin_square, len(levels))
+
+    try:
+        designs = [_map_partitions_to_design(partitions, oa) - 1 for oa in
+                   ortogonal_arrays]
+    except ValueError:
+        raise ValueError('reduction too large compared to factor levels')
+
+    if n == 1:
+        return designs[0]
+    else:
+        return designs[:n]
+
+
+def _make_orthogonal_arrays(latin_square, n_cols):
+    """
+    Augment latin-square to the specified number of columns to produce
+    an orthogonal array.
+    """
+    p = len(latin_square)
+
+    first_row = latin_square[0]
+    A_matrices = [np.array([[v]]) for v in first_row]
+
+    while A_matrices[0].shape[1] < n_cols:
+        new_A_matrices = list()
+
+        for i, A_matrix in enumerate(A_matrices):
+            sub_a = list()
+            for constant, other_A in zip(first_row,
+                                         np.array(A_matrices)[latin_square[i]]):
+                constant_vec = np.repeat(constant, len(other_A))[:, np.newaxis]
+                combined = np.hstack([constant_vec, other_A])
+                sub_a.append(combined)
+
+            new_A_matrices.append(np.vstack(sub_a))
+
+        A_matrices = new_A_matrices
+
+        if A_matrices[0].shape[1] == n_cols:
+            break
+
+    return A_matrices
+
+
+def _map_partitions_to_design(partitions, ortogonal_array):
+    """
+    Map partitioned factor to final design using orthogonal-array produced
+    by augmenting latin square.
+    """
+    assert len(
+        partitions) == ortogonal_array.max() + 1 and ortogonal_array.min() == 0, \
+        'Orthogonal array indexing does not match partition structure'
+
+    mappings = list()
+    for row in ortogonal_array:
+        if any(not partitions[p][factor] for factor, p in enumerate(row)):
+            continue
+
+        partition_sets = [partitions[p][factor] for factor, p in enumerate(row)]
+        mapping = list(itertools.product(*partition_sets))
+        mappings.append(mapping)
+
+    return np.vstack(mappings)
+
+
+def _make_partitions(factor_levels, num_partitions):
+    """
+    Balanced partitioning of factors.
+    """
+    partitions = list()
+    for partition_i in range(1, num_partitions + 1):
+        partition = list()
+
+        for num_levels in factor_levels:
+            part = list()
+            for level_i in range(1, num_levels):
+                index = partition_i + (level_i - 1) * num_partitions
+                if index <= num_levels:
+                    part.append(index)
+
+            partition.append(part)
+
+        partitions.append(partition)
+
+    return partitions
+
+
+def _make_latin_square(n):
+    numbers = np.arange(n)
+    latin_square = np.vstack([np.roll(numbers, -i) for i in range(n)])
+    return latin_square
+
+
+def build_halton(factor_level_ranges, num_samples=None):
+    """
+    Builds a quasirandom dataframe from a dictionary of factor/level ranges using prime numbers as seed.
+    Only min and max values of the range are required.
+    Example of the dictionary which is needed as the input:
+    {'Pressure':[50,70],'Temperature':[290, 350],'Flow rate':[0.9,1.0]}
+    num_samples: Number of samples to be generated
+    Quasirandom sequence using the default initialization with first n prime numbers equal to the number of factors/variables.
+    """
+    for key in factor_level_ranges:
+        if len(factor_level_ranges[key]) != 2:
+            factor_level_ranges[key][1] = factor_level_ranges[key][-1]
+            factor_level_ranges[key] = factor_level_ranges[key][:2]
+            print(
+                f"{key} had more than two levels. Assigning the end point to the high level."
+            )
+
+    factor_count = len(factor_level_ranges)
+    factor_lists = []
+
+    if num_samples == None:
+        num_samples = factor_count
+
+    for key in factor_level_ranges:
+        factor_lists.append(factor_level_ranges[key])
+
+    x = halton(
+        num_points=num_samples, dimension=factor_count
+    )  # create Halton matrix design
+    factor_lists = np.array(factor_lists)
+
+    df = construct_df_from_random_matrix(x, factor_lists)
+    # df.columns = factor_level_ranges.keys()
+    return df
+
+
+def halton(num_points, dimension):
+    """Halton sequence.
+    :param int dim: dimension
+    :param int n_sample: number of samples.
+    :return: sequence of Halton.
+    :rtype: array_like (n_samples, n_features)
+    """
+    big_number = 10
+    while 'Not enought primes':
+        base = _primes_from_2_to(big_number)[:dimension]
+        if len(base) == dimension:
+            break
+        big_number += 1000
+
+    # Generate a sample using a Van der Corput sequence per dimension.
+    sample = [_van_der_corput(num_points + 1, dimension) for dimension in base]
+    sample = np.stack(sample, axis=-1)[1:]
+
+    return sample
+
+
+def _primes_from_2_to(n):
+    """Prime number from 2 to n.
+    From `StackOverflow <https://stackoverflow.com/questions/2068372>`_.
+    :param int n: sup bound with ``n >= 6``.
+    :return: primes in 2 <= p < n.
+    :rtype: list
+    """
+    sieve = np.ones(n // 3 + (n % 6 == 2), dtype=np.bool)
+    for i in range(1, int(n ** 0.5) // 3 + 1):
+        if sieve[i]:
+            k = 3 * i + 1 | 1
+            sieve[k * k // 3::2 * k] = False
+            sieve[k * (k - 2 * (i & 1) + 4) // 3::2 * k] = False
+    return np.r_[2, 3, ((3 * np.nonzero(sieve)[0][1:] + 1) | 1)]
+
+
+def _van_der_corput(n_sample, base=2):
+    """Van der Corput sequence.
+    :param int n_sample: number of element of the sequence.
+    :param int base: base of the sequence.
+    :return: sequence of Van der Corput.
+    :rtype: list (n_samples,)
+    """
+    sequence = []
+    for i in range(n_sample):
+        n_th_number, denom = 0., 1.
+        while i > 0:
+            i, remainder = divmod(i, base)
+            denom *= base
+            n_th_number += remainder / denom
+        sequence.append(n_th_number)
+
+    return sequence
