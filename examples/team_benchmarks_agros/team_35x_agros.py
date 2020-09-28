@@ -3,9 +3,9 @@ from artap.problem import Problem
 from artap.individual import Individual
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
-
+import agrossuite as a2d
 try:
-    from agrossuite import agros as a2d
+#    from agrossuite import agros as a2d
 
     from \
         artap.examples.team_benchmarks_agros.team_35x_semi_analytical import ProblemAnalytical
@@ -25,7 +25,8 @@ try:
                                {'name': 'x7', 'bounds': [5.01e-3, 50e-3]},
                                {'name': 'x8', 'bounds': [5.01e-3, 50e-3]},
                                {'name': 'x9', 'bounds': [5.01e-3, 50e-3]},
-                               {'name': 'x10', 'bounds': [5.01e-3, 50e-3]}]
+                               {'name': 'x10', 'bounds': [5.01e-3, 50e-3]}
+                               ]
 
             self.costs = [{'name': 'F1', 'criteria': 'minimize'},
                           {'name': 'F2', 'criteria': 'minimize'}]
@@ -42,7 +43,6 @@ try:
             problem.parameters["MW"] = 0.1
             problem.parameters["h"] = 0.00145
             problem.parameters["r1"] = x[0]
-            problem.parameters["r10"] = x[9]
             problem.parameters["r2"] = x[1]
             problem.parameters["r3"] = x[2]
             problem.parameters["r4"] = x[3]
@@ -51,6 +51,18 @@ try:
             problem.parameters["r7"] = x[6]
             problem.parameters["r8"] = x[7]
             problem.parameters["r9"] = x[8]
+            problem.parameters["r10"] = x[9]
+            problem.parameters["r11"] = x[10]
+            problem.parameters["r12"] = x[11]
+            problem.parameters["r13"] = x[12]
+            problem.parameters["r14"] = x[13]
+            problem.parameters["r15"] = x[14]
+            problem.parameters["r16"] = x[15]
+            problem.parameters["r17"] = x[16]
+            problem.parameters["r18"] = x[17]
+            problem.parameters["r19"] = x[18]
+            problem.parameters["r20"] = x[19]
+
             problem.parameters["w"] = 0.001
 
             # fields
@@ -65,7 +77,7 @@ try:
 
             # boundaries
             magnetic.add_boundary("A=0", "magnetic_potential", {"magnetic_potential_real": 0})
-            magnetic.add_boundary("Symmetry", "magnetic_surface_current", {"magnetic_surface_current_real": 0})
+            #magnetic.add_boundary("Symmetry", "magnetic_surface_current", {"magnetic_surface_current_real": 0})
 
             # materials
             magnetic.add_material("air", {"magnetic_conductivity": 0, "magnetic_current_density_external_real": 0,
