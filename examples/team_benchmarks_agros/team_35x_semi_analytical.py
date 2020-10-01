@@ -210,7 +210,7 @@ def check_plot():
     pl.xlabel('r [m]')
     pl.show()
 
-
-# check_analytical()
-check_plot()
-optim_single()
+if __name__ == '__main__':
+    # check_analytical()
+    check_plot()
+    optim_single()
