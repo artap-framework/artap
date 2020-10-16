@@ -261,15 +261,15 @@ class Results:
 
     def parameters(self):
         out = []
-        for population in self.problem.populations:
-            for individual in population.individuals:
+        for individuals in self.problem.populations():
+            for individual in individuals:
                 out.append(individual.vector)
         return out
 
     def costs(self):
         out = []
-        for population in self.problem.populations:
-            for individual in population.individuals:
+        for individuals in self.problem.populations():
+            for individual in individuals:
                 out.append(individual.costs)
         return out
 

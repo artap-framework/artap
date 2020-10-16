@@ -67,6 +67,7 @@ class TestDataStoreSqlite(unittest.TestCase):
         c.execute("SELECT * FROM individuals WHERE ID = ?", [list(individuals.keys())[6]])
         row = c.fetchall()
         individual = Individual.from_dict(json.loads(row[0][1]))
+        print(individual)
 
         # result
         self.assertAlmostEqual(individual.costs[0], individuals[individual.id].costs[0], 3)

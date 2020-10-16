@@ -56,7 +56,7 @@ def setup_package():
         cmdclass={'install': CustomInstallCommand},
         packages=find_packages(),
         include_package_data=True,
-        # data_files=[('artap/lib', ['artap/lib/bayesopt.so']),
+        # data_files=[('artap/lib', 'artap/lib/bayesopt.so']),
         # install_requires=requirements,
         # scripts=['3rdparty/submodules.sh'],
         classifiers=[

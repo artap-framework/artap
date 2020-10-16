@@ -267,7 +267,7 @@ class CondorJobExecutor(RemoteExecutor):
         return desc
 
     def eval(self, individual):
-        if config["condor_host"] is None:
+        if self.options["hostname"] is None:
             raise Exception("Condor host is not defined.")
 
         super().eval(individual)
