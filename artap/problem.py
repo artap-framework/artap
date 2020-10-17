@@ -2,7 +2,7 @@
  Module is dedicated to describe optimization problem.
 """
 
-from .datastore import TinyDataStore, SqliteDataStore, DummyDataStore
+from .datastore import SqliteDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
 from abc import abstractmethod

@@ -29,4 +29,8 @@ class GradientAlgorithm(GeneticAlgorithm):
         self.evaluate(individuals)
 
         t = time.time() - t_s
-        self.problem.logger.info("Sweep: elapsed time: {} s".format(t))
+        self.problem.logger.info("Gradient: elapsed time: {} s".format(t))
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
+

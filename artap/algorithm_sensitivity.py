@@ -89,7 +89,11 @@ class SALibAlgorithm(Algorithm):
         self.samples_y = np.array(self.samples_y)
 
         t = time.time() - t_s
-        self.problem.logger.info("Sweep: elapsed time: {} s".format(t))
+        self.problem.logger.info("Sensitivity: elapsed time: {} s".format(t))
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
+
 
     def analyze(self):
         if self.options["method"] == "rbd_fast":
@@ -171,3 +175,7 @@ class Sensitivity(Algorithm):
         # append individuals
         for individual in individuals:
             self.problem.individuals.append(individual)
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
+

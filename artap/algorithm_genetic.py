@@ -111,7 +111,7 @@ class NSGAII(GeneticAlgorithm):
                              desc='prob_mutation')
 
         # set random generator
-        self.individual_features['dominate'] = set()
+        self.individual_features['dominate'] = []
         self.individual_features['crowding_distance'] = 0
         self.individual_features['domination_counter'] = 0
         self.individual_features['front_number'] = 0
@@ -172,6 +172,9 @@ class NSGAII(GeneticAlgorithm):
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
 
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
+
 
 class EpsMOEA(GeneticAlgorithm):
     """
@@ -201,7 +204,7 @@ class EpsMOEA(GeneticAlgorithm):
         self.archive = None
 
         # set random generator
-        self.individual_features['dominate'] = set()
+        self.individual_features['dominate'] = []
         self.individual_features['crowding_distance'] = 0
         self.individual_features['domination_counter'] = 0
         self.individual_features['front_number'] = 0
@@ -268,3 +271,7 @@ class EpsMOEA(GeneticAlgorithm):
 
         t = time.time() - t_s
         self.problem.logger.info("Eps-MOEA: {} s".format(t))
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
+

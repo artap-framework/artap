@@ -12,6 +12,7 @@ from .operators import Evaluator, GradientEvaluator, WorstCaseEvaluator
 from enum import Enum
 from uuid import uuid1
 
+
 class EvaluatorType(Enum):
     SIMPLE = 0
     GRADIENT = 1

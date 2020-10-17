@@ -1108,8 +1108,14 @@ class Selector(Operator):
 
         return
 
-    def fast_nondominated_sorting(self, population):
+    def individual(self, polulation, id):
+        for individual in polulation:
+            if individual.id == id:
+                return individual
 
+        return None
+
+    def fast_nondominated_sorting(self, population):
         pareto_front = [[]]
         front_number = 1
 
@@ -1117,18 +1123,18 @@ class Selector(Operator):
         for p in population:
             p.features['domination_counter'] = 0
             p.features['front_number'] = None
-            p.features['dominate'] = set()
+            p.features['dominate'] = []
 
         for i, p in enumerate(population):
             for j in range(i + 1, len(population)):
                 q = population[j]
                 dom = self.comparator.compare(p.costs_signed, q.costs_signed)
                 if dom == 1:
-                    p.features['dominate'].add(q)
+                    p.features['dominate'].append(q.id)
                     q.features['domination_counter'] += 1
                 elif dom == 2:
                     p.features['domination_counter'] += 1
-                    q.features['dominate'].add(p)
+                    q.features['dominate'].append(p.id)
 
             # selects the pareto values
             if p.features['domination_counter'] == 0:
@@ -1139,7 +1145,8 @@ class Selector(Operator):
             front_number += 1
             pareto_front.append([])
             for p in pareto_front[front_number - 2]:
-                for q in p.features['dominate']:
+                for individual_id in p.features['dominate']:
+                    q = self.individual(population, individual_id)
                     q.features['domination_counter'] -= 1
                     if q.features['domination_counter'] == 0 and q.features['front_number'] is None:
                         q.features['front_number'] = front_number

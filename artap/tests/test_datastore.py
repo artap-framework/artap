@@ -8,8 +8,7 @@ import pathlib
 
 from ..problem import Problem, ProblemViewDataStore
 from ..individual import Individual
-from ..datastore import TinyDataStore, SqliteDataStore
-from ..algorithm_scipy import ScipyOpt
+from ..datastore import SqliteDataStore
 from ..algorithm_sweep import SweepAlgorithm
 from ..algorithm_genetic import NSGAII
 
@@ -48,7 +47,7 @@ class TestDataStoreSqlite(unittest.TestCase):
         problem.data_store = SqliteDataStore(problem, database_name=database_name)
 
         algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 3
+        algorithm.options['max_population_number'] = 6
         algorithm.options['max_population_size'] = 4
         algorithm.options['max_processes'] = 4
         algorithm.run()
@@ -67,10 +66,17 @@ class TestDataStoreSqlite(unittest.TestCase):
         c.execute("SELECT * FROM individuals WHERE ID = ?", [list(individuals.keys())[6]])
         row = c.fetchall()
         individual = Individual.from_dict(json.loads(row[0][1]))
-        print(individual)
+        # print(individual)
 
         # result
-        self.assertAlmostEqual(individual.costs[0], individuals[individual.id].costs[0], 3)
+        individual_orig = individuals[individual.id]
+        self.assertAlmostEqual(individual.costs[0], individual_orig.costs[0], 3)
+        self.assertAlmostEqual(individual.vector[0], individual_orig.vector[0], 3)
+        self.assertAlmostEqual(individual.vector[1], individual_orig.vector[1], 3)
+        for key, value in individual_orig.custom.items():
+            self.assertEqual(value, individual.custom[key])
+        for key, value in individual_orig.features.items():
+            self.assertEqual(value, individual.features[key])
 
         # remove file
         os.remove(database_name)
@@ -127,56 +133,11 @@ class TestDataStoreBenchmark(unittest.TestCase):
 
         conn = sqlite3.connect(database_name)
         c = conn.cursor()
-        # c.execute("SELECT * FROM individuals WHERE ID = ?", [id])
-        # row = c.fetchall()
-        # individual = Individual.from_dict(json.loads(row[0][1]))
         c.execute("SELECT * FROM individuals;")
         rows = c.fetchall()
         for row in rows:
             individual = Individual.from_dict(json.loads(row[1]))
             self.assertAlmostEqual(individual.costs[0], individuals[individual.id].costs[0], 3)
-
-        # remove file
-        # print(database_name)
-        os.remove(database_name)
-
-        t = time.time() - t_s
-        problem.logger.info("read elapsed time: {} s".format(t))
-
-    def test_benchmark_tiny_data_store(self):
-        t_s = time.time()
-        problem = MyProblem()
-
-        # set data store
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".json").name
-        problem.data_store = TinyDataStore(problem, database_name=database_name)
-
-        gen = RandomGenerator(problem.parameters)
-        gen.init(self.n)
-
-        algorithm = SweepAlgorithm(problem, generator=gen)
-        algorithm.options['max_processes'] = self.max_processes
-        algorithm.run()
-
-        # cache individuals
-        individuals = {}
-        for individual in problem.individuals:
-            individuals[individual.id] = individual
-
-        # sync
-        problem.data_store.destroy()
-
-        t = time.time() - t_s
-        problem.logger.info("write elapsed time: {} s, size: {} MB, n: {}".format(t, self.get_size(database_name) / 1024 / 1024, self.n))
-
-        # check db
-        t_s = time.time()
-        # check json
-        with open(database_name) as json_file:
-            data = json.load(json_file)
-            for row in list(data['individuals'].values()):
-                individual = Individual.from_dict(row)
-                self.assertAlmostEqual(individual.costs[0], individuals[individual.id].costs[0], 3)
 
         # remove file
         # print(database_name)
@@ -198,50 +159,6 @@ class TestDataStoreBenchmark(unittest.TestCase):
                         total_size += os.path.getsize(fp)
 
             return total_size
-
-
-class TestDataStoreTiny(unittest.TestCase):
-    def test_read_write_database(self):
-        problem = MyProblem()
-        # set data store
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".json").name
-        # database_name = 'data.json'
-        problem.data_store = TinyDataStore(problem, database_name=database_name)
-
-        algorithm = ScipyOpt(problem)
-        algorithm.options['algorithm'] = 'CG'
-        algorithm.options['tol'] = 1e-8
-        algorithm.options['verbose_level'] = 0
-        algorithm.run()
-
-        # remove datastore
-        problem.data_store.destroy()
-
-        # check json
-        with open(database_name) as json_file:
-            data = json.load(json_file)
-            individual = Individual.from_dict(list(data['individuals'].values())[-1])
-
-            # result
-            self.assertAlmostEqual(individual.costs[0], 0, 3)
-            self.assertAlmostEqual(individual.custom["functions"][0], individual.vector[0]**2)
-
-        # remove file
-        os.remove(database_name)
-
-    def test_read_datastore(self):
-        # Path to this script file location
-        file_path = str(pathlib.Path(__file__).parent.absolute())
-        database_name = os.path.join(file_path, "data/data.json")
-        problem = ProblemViewDataStore(database_name=database_name, class_datastore=TinyDataStore)
-
-        self.assertEqual(problem.name, 'NLopt_BOBYQA')
-
-        individuals = problem.last_population()
-        self.assertAlmostEqual(individuals[0].vector[1], 1.5, 4)
-        self.assertAlmostEqual(individuals[1].vector[0], 2.5, 4)
-        self.assertAlmostEqual(individuals[0].costs[0], 8.5, 4)
-        self.assertAlmostEqual(individuals[5].costs[0], 3.6308, 4)
 
 
 if __name__ == '__main__':

@@ -313,6 +313,9 @@ class OMOPSO(SwarmAlgorithm):
         t = time.time() - t_s
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))
 
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
+
 
 class SMPSO(SwarmAlgorithm):
     """
@@ -521,6 +524,9 @@ class SMPSO(SwarmAlgorithm):
 
         t = time.time() - t_s
         self.problem.logger.info("PSO: elapsed time: {} s".format(t))
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
 
 # ........................
 #

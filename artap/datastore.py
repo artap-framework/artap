@@ -10,31 +10,6 @@ import shutil
 from .individual import Individual
 
 
-class Timer(Process):
-    def __init__(self, interval, function, args=None, kwargs=None):
-        if kwargs is None:
-            kwargs = {}
-        if args is None:
-            args = []
-        super(Timer, self).__init__(*args, **kwargs)
-        self.interval = interval
-        self.function = function
-        self.args = args
-        self.kwargs = kwargs
-        self.finished = Event()
-
-        self.daemon = True
-
-    def cancel(self):
-        self.finished.set()
-
-    def run(self):
-        while not self.finished.is_set():
-            self.function(*self.args, **self.kwargs)
-            self.finished.wait(self.interval)
-        self.finished.set()
-
-
 class DummyDataStore:
     def __init__(self):
         pass
@@ -42,60 +17,8 @@ class DummyDataStore:
     def sync_individual(self, individuals):
         pass
 
-    def destroy(self):
+    def sync_all(self):
         pass
-
-
-class JsonDataStore(DummyDataStore):
-    def __init__(self, problem, database_name, mode="write"):
-        self.path = os.path.join(os.getcwd(), database_name)
-        self.mode = mode
-        self.problem = problem
-
-        if mode == "write":
-            if not os.path.exists(self.path):
-                pass
-            else:
-                shutil.rmtree(self.path)
-            os.makedirs(self.path)
-
-        file_name = os.path.join(self.path, 'problem.json')
-        data = json.dumps(problem.to_dict())
-        with open(file_name, 'w') as file:
-            file.write(data)
-
-    def read(self):
-        for filename in os.listdir(self.path):
-            if '.json' in filename:
-                with open(os.path.join(self.path, filename), 'r') as file:
-                    individual = Individual([])
-                    individual.__dict__ = json.load(file)
-                    population.individuals.append(individual)
-
-    def insert(self, individual):
-        file_name = os.path.join(self.path, str(individual.id) + '.json')
-        with open(file_name,  'w') as file:
-            individual_dict = individual.to_dict()
-            data = json.dumps(individual_dict)
-            file.write(data)
-
-    def update(self, individual):
-        path = ""
-        file_name = os.path.join(self.path, str(individual.id) + '.json')
-        if os.path.exists(file_name):
-            os.remove(file_name)
-
-        if individual.population_id != -1:
-            path = os.path.join(self.path, "population_{}".format(individual.population_id))
-            if not os.path.exists(path):
-                os.mkdir(path)
-        else:
-            path = self.path
-        file_name = os.path.join(path, str(individual.id) + '.json')
-        with open(file_name, 'w') as file:
-            individual_dict = individual.to_dict()
-            data = json.dumps(individual_dict)
-            file.write(data)
 
     def destroy(self):
         pass
@@ -248,72 +171,14 @@ class SqliteDataStore(DummyDataStore):
                 conn.commit()
             except sqlite3.OperationalError as e:
                 # try again
-                print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ERROR")
                 self.sync_individual(individual)
 
+    def sync_all(self):
+        if self.mode == "write" or self.mode == "rewrite":
+            conn = self.conn()
+            c = conn.cursor()
 
-class TinyDataStore(DummyDataStore):
-    def __init__(self, problem, database_name, mode="write"):
-        self.problem = problem
-        self.database_name = database_name
-        self.mode = mode
+            for individual in self.problem.individuals:
+                c.execute(self.sql_individuals_upsert, [individual.id, json.dumps(individual.to_dict())])
 
-        if not self.database_name:
-            raise RuntimeError("TinyDataStoreCacheThread: database name is empty.")
-
-        elif self.mode == "write":
-            if os.path.exists(database_name):
-                os.remove(database_name)
-
-        if self.mode == "write":
-            # self.db = TinyDB(self.database_name)
-            # self.db = TinyDB(storage=MemoryStorage)
-            self.db = TinyDB(self.database_name, storage=CachingMiddleware(JSONStorage))
-            # sort_keys=True, indent=4
-
-            if os.path.exists(self.database_name):
-                statinfo = os.stat(self.database_name)
-                if statinfo.st_size == 0:
-                    # raise RuntimeError("TinyDataStoreCacheThread: database file already exists.
-                    # Mode is WRITE (for automatic rewrite you can use REWRITE mode.")
-                    self._create_structure()
-                else:
-                    self.read_from_datastore()
-            else:
-                self._create_structure()
-        elif self.mode == "rewrite":
-            self._create_structure()
-        elif self.mode == "read":
-            self.db = TinyDB(self.database_name)
-            self.read_from_datastore()
-
-    def _create_structure(self):
-        main = self.db.table('main')
-        main.insert({'name': self.problem.name,
-                     'description': self.problem.description})
-        main.insert({'parameters': self.problem.parameters})
-        main.insert({'costs': self.problem.costs})
-
-        individuals = self.db.table('individuals')
-
-    def read_from_datastore(self):
-        main = self.db.table('main')
-        main_all = main.all()
-        self.problem.name = main_all[0]["name"]
-        self.problem.description = main_all[0]["description"]
-        self.problem.parameters = main_all[1]["parameters"]
-        self.problem.costs = main_all[2]["costs"]
-
-        individuals = self.db.table('individuals')
-        individuals_all = individuals.all()
-        for data in individuals_all:
-            individual = Individual()
-            self.problem.individuals.append(Individual.from_dict(data))
-
-    def sync_individual(self, individual):
-        individuals = self.db.table('individuals')
-        individual_query = Query()
-        individuals.upsert(individual.to_dict(), individual_query.id == individual.id)
-
-    def destroy(self):
-        self.db.close()
+            conn.commit()

@@ -11,7 +11,7 @@ class Results:
     def parameter_names(self):
         parameter_names = []
         for parameter in self.problem.parameters:
-            parameter_names.append(parameter['name'])
+            parameter_names.append(parameter)
         return parameter_names
 
     def parameter_number(self):

@@ -29,8 +29,13 @@ class ScipyOpt(Algorithm):
 
         # optimization
         t_s = time.time()
+
         self.problem.logger.info("ScipyOpt: {}".format(self.options['algorithm']))
         minimize(self.evaluator.evaluate_scalar, x0, method=self.options['algorithm'], tol=self.options['tol'],
                  bounds=self.options['bounds'], options={'maxiter': self.options['n_iterations']})
+
         t = time.time() - t_s
         self.problem.logger.info("ScipyOpt: elapsed time: {} s".format(t))
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
