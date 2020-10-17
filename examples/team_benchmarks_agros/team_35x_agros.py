@@ -38,6 +38,8 @@ class AgrosSimple(Problem):
                       {'name': 'F2', 'criteria': 'minimize'}]
 
     def evaluate(self, x):
+
+
         x = x.vector
 
         # problem

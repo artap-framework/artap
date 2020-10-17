@@ -37,7 +37,9 @@ class ProblemAnalytical(Problem):
                            {'name': 'x6', 'initial_value': 0.01, 'bounds': [5.01e-3, 50e-3]},
                            {'name': 'x7', 'initial_value': 0.01, 'bounds': [5.01e-3, 50e-3]},
                            {'name': 'x8', 'initial_value': 0.01, 'bounds': [5.01e-3, 50e-3]},
-                           {'name': 'x9', 'initial_value': 0.01, 'bounds': [5.01e-3, 50e-3]}]
+                           {'name': 'x9', 'initial_value': 0.01, 'bounds': [5.01e-3, 50e-3]},
+                           {'name': 'x10', 'initial_value': 0.01, 'bounds': [5.01e-3, 50e-3]},
+                           ]
         # The three, separate optimization functions and the direction of the optimization
         # is set to minimization. It is also possible to use the maximize keyword.
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
