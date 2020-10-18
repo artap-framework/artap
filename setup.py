@@ -41,10 +41,17 @@ def setup_package():
     }
 
     dt = datetime.datetime.now()
-    
+    version = "{}.{}".format(dt.strftime('%Y.%m.%d'), dt.hour*60+dt.minute*60+dt.second)
+
+    # replace version in __init__.py
+    import fileinput
+    for line in fileinput.input("artap/__init__.py", inplace=True):
+        if str(line).startswith("__version__"):
+            print("__version__ = '{}'".format(version))
+
     setup(
         name="artap",
-        version="{}.{}".format(dt.strftime('%Y.%m.%d'), dt.hour*60+dt.minute*60+dt.second),
+        version=version,
         author=u"Artap Team",
         author_email="artap.framework@gmail.com",
         description="Platform for robust design optimization",
@@ -56,7 +63,7 @@ def setup_package():
         cmdclass={'install': CustomInstallCommand},
         packages=find_packages(),
         include_package_data=True,
-        # data_files=[('artap/lib', ['artap/lib/bayesopt.so']),
+        # data_files=[('artap/lib', 'artap/lib/bayesopt.so']),
         # install_requires=requirements,
         # scripts=['3rdparty/submodules.sh'],
         classifiers=[

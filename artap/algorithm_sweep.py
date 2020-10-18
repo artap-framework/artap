@@ -27,3 +27,6 @@ class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
 
         t = time.time() - t_s
         self.problem.logger.info("Sweep: elapsed time: {} s".format(t))
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()

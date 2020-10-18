@@ -11,7 +11,7 @@ class Results:
     def parameter_names(self):
         parameter_names = []
         for parameter in self.problem.parameters:
-            parameter_names.append(parameter['name'])
+            parameter_names.append(parameter)
         return parameter_names
 
     def parameter_number(self):
@@ -261,15 +261,15 @@ class Results:
 
     def parameters(self):
         out = []
-        for population in self.problem.populations:
-            for individual in population.individuals:
+        for individuals in self.problem.populations():
+            for individual in individuals:
                 out.append(individual.vector)
         return out
 
     def costs(self):
         out = []
-        for population in self.problem.populations:
-            for individual in population.individuals:
+        for individuals in self.problem.populations():
+            for individual in individuals:
                 out.append(individual.costs)
         return out
 

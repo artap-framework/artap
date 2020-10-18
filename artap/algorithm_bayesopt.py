@@ -149,10 +149,15 @@ class BayesOptSerial(BayesOpt):
         self.bo.params['verbose_level'] = self.options['verbose_level']
 
         t_s = time.time()
+
         self.problem.logger.info("BayesOpt: surr_name{}".format(self.options['surr_name']))
         mvalue, x_out, error = self.bo.optimize()
+
         t = time.time() - t_s
         self.problem.logger.info("BayesOpt: elapsed time: {} s".format(t))
+
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
 
         if error != 0:
             print('Optimization FAILED.')

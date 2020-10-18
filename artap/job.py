@@ -1,4 +1,5 @@
 import time
+import sys
 from abc import ABCMeta
 from .individual import Individual
 from .utils import VectorAndNumbers
@@ -45,8 +46,8 @@ class Job(metaclass=ABCMeta):
                 # write to store
                 self.problem.data_store.sync_individual(individual)
                 return
-
             except (TimeoutError, RuntimeError) as e:
+                print("Job: error:", e)
                 failed_individual = Individual(individual.vector)
                 failed_individual.state = individual.State.FAILED
                 if individual.features["feasible"] == 0.0:
@@ -58,6 +59,8 @@ class Job(metaclass=ABCMeta):
                 individual.vector = VectorAndNumbers.gen_vector(self.problem.parameters)
                 individual.state = individual.State.EMPTY
                 continue
+            except:
+                print("Job: unexpected error:", sys.exc_info()[0])
+                raise
 
         raise RuntimeError("To many failures has appeared.")
-

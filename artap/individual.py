@@ -78,9 +78,17 @@ class Individual(metaclass=ABCMeta):
 
         if len(self.custom) > 0:
             string += "; custom:["
-            for i, number in enumerate(self.custom):
-                string += str(number)
+            for key, value in self.custom.items():
+                string += "'{}': {}".format(key, value)
                 if i < len(self.custom) - 1:
+                    string += ", "
+            string += "]"
+
+        if len(self.features) > 0:
+            string += "; features:["
+            for key, value in self.features.items():
+                string += "'{}': {}".format(key, value)
+                if i < len(self.features) - 1:
                     string += ", "
             string += "]"
 
@@ -124,7 +132,8 @@ class Individual(metaclass=ABCMeta):
                   'state': self.to_string(self.state),
                   'population_id': self.population_id,
                   'algorithm_id': self.algorithm_id,
-                  'custom': self.custom}
+                  'custom': self.custom,
+                  'features': self.features}
 
         parents = []
         for parent in self.parents:
@@ -167,18 +176,19 @@ class Individual(metaclass=ABCMeta):
         individual.algorithm_id = dictionary['algorithm_id']
 
         individual.custom = dictionary['custom']
+        individual.features = dictionary['features']
 
-        for feature in individual.features.items():
-            key = 'feature_' + feature[0]
-            if isinstance(feature[1], Iterable):
-                value = []
-                for item in feature[1]:
-                    if isinstance(item, Individual):
-                        value.append(item.id)
-                    else:
-                        value.append(item)
-            else:
-                value = feature[1]
+        # for feature in individual.features.items():
+        #     key = 'feature_' + feature[0]
+        #     if isinstance(feature[1], Iterable):
+        #         value = []
+        #         for item in feature[1]:
+        #             if isinstance(item, Individual):
+        #                 value.append(item.id)
+        #             else:
+        #                 value.append(item)
+        #     else:
+        #         value = feature[1]
 
         return individual
 
