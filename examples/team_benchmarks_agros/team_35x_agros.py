@@ -1,5 +1,4 @@
 import math
-import os
 from artap.problem import Problem
 from artap.individual import Individual
 from artap.algorithm_genetic import NSGAII
@@ -8,10 +7,8 @@ from artap.results import Results
 try:
     from agrossuite import agros as a2d
 
-    __agros__ = True
 except ImportError:
     print("Agros is not present test skipped")
-    __agros__ = False
 
 from examples.team_benchmarks_agros.team_35x_semi_analytical import ProblemAnalytical
 
@@ -31,8 +28,7 @@ class AgrosSimple(Problem):
                            {'name': 'x7', 'bounds': [5.01e-3, 50e-3]},
                            {'name': 'x8', 'bounds': [5.01e-3, 50e-3]},
                            {'name': 'x9', 'bounds': [5.01e-3, 50e-3]},
-                           {'name': 'x10', 'bounds': [5.01e-3, 50e-3]}
-                           ]
+                           {'name': 'x10', 'bounds': [5.01e-3, 50e-3]}]
 
         self.costs = [{'name': 'F1', 'criteria': 'minimize'},
                       {'name': 'F2', 'criteria': 'minimize'}]
@@ -49,6 +45,7 @@ class AgrosSimple(Problem):
         problem.parameters["MW"] = 0.1
         problem.parameters["h"] = 0.00145
         problem.parameters["r1"] = x[0]
+        problem.parameters["r10"] = x[9]
         problem.parameters["r2"] = x[1]
         problem.parameters["r3"] = x[2]
         problem.parameters["r4"] = x[3]
@@ -57,8 +54,6 @@ class AgrosSimple(Problem):
         problem.parameters["r7"] = x[6]
         problem.parameters["r8"] = x[7]
         problem.parameters["r9"] = x[8]
-        problem.parameters["r10"] = x[9]
-
         problem.parameters["w"] = 0.001
 
         # fields
@@ -81,12 +76,11 @@ class AgrosSimple(Problem):
                                       "magnetic_remanence_angle": 0, "magnetic_total_current_prescribed": 0,
                                       "magnetic_total_current_real": 0, "magnetic_velocity_angular": 0,
                                       "magnetic_velocity_x": 0, "magnetic_velocity_y": 0})
-        magnetic.add_material("uniform_field",
-                              {"magnetic_conductivity": 0, "magnetic_current_density_external_real": 0,
-                               "magnetic_permeability": 1, "magnetic_remanence": 0,
-                               "magnetic_remanence_angle": 0, "magnetic_total_current_prescribed": 0,
-                               "magnetic_total_current_real": 0, "magnetic_velocity_angular": 0,
-                               "magnetic_velocity_x": 0, "magnetic_velocity_y": 0})
+        magnetic.add_material("uniform_field", {"magnetic_conductivity": 0, "magnetic_current_density_external_real": 0,
+                                                "magnetic_permeability": 1, "magnetic_remanence": 0,
+                                                "magnetic_remanence_angle": 0, "magnetic_total_current_prescribed": 0,
+                                                "magnetic_total_current_real": 0, "magnetic_velocity_angular": 0,
+                                                "magnetic_velocity_x": 0, "magnetic_velocity_y": 0})
         magnetic.add_material("turn",
                               {"magnetic_conductivity": "58*1e6", "magnetic_current_density_external_real": "2*1e6",
                                "magnetic_permeability": 1, "magnetic_remanence": 0, "magnetic_remanence_angle": 0,
@@ -207,17 +201,14 @@ def check_analytical_agros():
     vec = [5.1e-3] * 10
     vec = [0.016932781137, 0.020220367784, 0.040397700883, 0.039838420509, 0.028051772403, 0.02469698998,
            0.024829362232, 0.014442787471, 0.024972441459, 0.037526654441]
-    vec = [0.020798867779511312, 0.006138154021970008, 0.010012220217557183, 0.00690835649565163,
-           0.012212694015280686,
+    vec = [0.020798867779511312, 0.006138154021970008, 0.010012220217557183, 0.00690835649565163, 0.012212694015280686,
            0.00809716361914133, 0.018352792299856494, 0.00878331012406535, 0.02486595541682808, 0.00983825681954835]
-    vec = [0.01020404406824542, 0.007528926158292741, 0.008708935266330736, 0.007283700503797654,
-           0.005215395421823215,
-           0.01894915013137104, 0.020218991198109815, 0.005188444416722139, 0.015520989779088109,
-           0.0160617361729709]
+    vec = [0.01020404406824542, 0.007528926158292741, 0.008708935266330736, 0.007283700503797654, 0.005215395421823215,
+           0.01894915013137104, 0.020218991198109815, 0.005188444416722139, 0.015520989779088109, 0.0160617361729709]
     # vec = Individual([10e-3] * 10)
     ind = Individual(vec)
 
-    problem_analytical = ProblembAnalytical()
+    problem_analytical = ProblemAnalytical()
     a = problem_analytical.evaluate(ind)
     problem_agros = AgrosSimple()
     n = problem_agros.evaluate(ind)
@@ -238,7 +229,7 @@ def optim_single():
     b = Results(problem)
     b.pareto_plot()
 
-
 if __name__ == '__main__':
+
     # check_analytical_agros()
     optim_single()
