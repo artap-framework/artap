@@ -134,10 +134,10 @@ class Problem:
 
         return individuals
 
-    def population(self, id):
+    def population(self, population_id):
         individuals = []
         for individual in self.individuals:
-            if individual.population_id == id:
+            if individual.population_id == population_id:
                 individuals.append(individual)
 
         return individuals

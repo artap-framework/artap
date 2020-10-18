@@ -17,61 +17,67 @@ class Results:
     def parameter_number(self):
         return len(self.problem.parameters)
 
-    def goal_function_number(self):
+    def goal_number(self):
         return len(self.problem.costs)
 
-    def goal_function_names(self):
+    def goal_names(self):
         cost_names = []
         for cost in self.problem.costs:
-            cost_names.append(cost['name'])
+            cost_names.append(cost)
         return cost_names
 
     def parameter_index(self, name):
-        index = -1
-        for i in range(len(self.problem.parameters)):
-            parameter = self.problem.parameters[i]
-            if parameter['name'] == name:
-                index = i
-        if index == -1:
+        try:
+            return list(self.problem.parameters.keys()).index(name)
+        except ValueError as e:
             raise ValueError('There is not a parameter with given name: {}'.format(name))
-        return index
 
     def goal_index(self, name):
-        index = -1
-        for i in range(len(self.problem.costs)):
-            cost = self.problem.costs[i]
-            if cost['name'] == name:
-                index = i
-        if index == -1:
+        try:
+            return list(self.problem.costs).index(name)
+        except ValueError as e:
             raise ValueError('There is not a cost function with given name: {}'.format(name))
-        return index
 
-    def population(self, population_id):
+    def parameters(self):
+        out = []
+        for individuals in self.problem.populations().values():
+            for individual in individuals:
+                out.append(individual.vector)
+        return out
+
+    def costs(self):
+        out = []
+        for individuals in self.problem.populations().values():
+            for individual in individuals:
+                out.append(individual.costs)
+        return out
+
+    def population(self, population_id=-1):
         # Returns population with given index
         #if population_id >= len(self.problem.populations):
         #    raise ValueError('Index of population exceeds the number of populations.')
 
-        population = self.problem.population(population_id)
-        return population
+        individuals = self.problem.population(population_id)
+        return individuals
 
     def goal_on_index(self, name=None, population_id=-1):
         """ Returns a list of lists. The first list contains indexes of individuals in population,
             the other lists contains values of the goal function(s).
         """
-        population = self.population(population_id)
-        n = range(len(population.individuals))
+        individuals = self.population(population_id)
+        n = range(len(individuals))
 
         table = [list(n)]
         if name is None:
             for j in range(len(self.problem.costs)):
                 table.append([])
                 for i in n:
-                    table[j + 1].append(population.individuals[i].costs[j])
+                    table[j + 1].append(individuals[i].costs[j])
         else:
             table.append([])
             index = self.goal_index(name)
             for i in n:
-                table[1].append(population.individuals[i].costs[index])
+                table[1].append(individuals[i].costs[index])
 
         return table
 
@@ -84,19 +90,19 @@ class Results:
         :return:
         """
 
-        population = self.population(population_id)
-        n = range(len(population.individuals))
+        individuals = self.population(population_id)
+        n = range(len(individuals))
         table = [list(n)]
         if name is None:
             for j in range(len(self.problem.parameters)):
                 table.append([])
                 for i in n:
-                    table[j + 1].append(population.individuals[i].vector[j])
+                    table[j + 1].append(individuals[i].vector[j])
         else:
             table.append([])
             index = self.parameter_index(name)
             for i in n:
-                table[1].append(population.individuals[i].vector[index])
+                table[1].append(individuals[i].vector[index])
 
         return table
 
@@ -106,7 +112,7 @@ class Results:
         sorted_list = [x for _, x in sorted(zipped_pairs)]
         return sorted_list
 
-    def goal_on_parameter(self, parameter_name, goal_name, population_id=-1):
+    def goal_on_parameter(self, parameter_name, goal_name, population_id=-1, sorted=False):
         """
         The method returns the dependance of selected goal function on particular parameter
         :param parameter_name: string specifying particular parameter
@@ -125,9 +131,15 @@ class Results:
             parameter_values.append(individual.vector[parameter_index])
             goal_values.append(individual.costs[goal_index])
 
-        goal_values = self.sort_list(parameter_values, goal_values)
-        parameter_values.sort()
+        if sorted:
+            goal_values = self.sort_list(parameter_values, goal_values)
+            parameter_values.sort()
+
         return [parameter_values, goal_values]
+
+    def parameter_on_goal(self, goal_name, parameter_name, population_id=-1, sorted=False):
+        goal_values, parameter_values = self.goal_on_parameter(parameter_name, goal_name, population_id, sorted)
+        return [goal_values, parameter_values]
 
     def parameter_on_parameter(self, parameter_1, parameter_2, population_id=-1):
         individuals = self.population(population_id)
@@ -144,7 +156,35 @@ class Results:
         values_1.sort()
         return [values_1, dependent_values]
 
+    def export_to_csv(self, filename):
+        """
+        Writes out populations into a csv file, the file contains the costs and the parameters
+        :return:
+        """
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            # names
+            out = []
+            for parameter in self.problem.parameters:
+                out.append(parameter)
+            for cost in self.problem.costs:
+                out.append(cost)
+
+            writer.writerows([out])
+
+            # values
+            for individuals in self.problem.populations().values():
+                for individual in individuals:
+                    out = []
+                    for i in individual.costs:
+                        out.append(i)
+                    for j in individual.vector:
+                        out.append(j)
+
+                    writer.writerows([out])
+
     # TODO: Generalize
+    # TODO: add test
     def find_optimum(self, name=None):
         """
         Search the optimal value for the given (by name parameter) single objective .
@@ -172,6 +212,7 @@ class Results:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
 
+    # TODO: add test
     def pareto_front(self, population_id=-1):
         """
 
@@ -188,6 +229,28 @@ class Results:
 
         return pareto_front
 
+    # TODO: same function - David, could you check it and write test?
+    def pareto_values(self, archive=None):
+        """
+        :return: a list of lists which contains the optimal values of the cost function:
+                l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
+        """
+
+        individuals = self.problem.last_population()
+        l_sol = []
+
+        # the pareto values collected in the archive, if the algorithm uses this strategy
+        if archive:
+            for individual in archive:
+                l_sol.append(individual.costs)
+        else:
+            if len(individuals) > 1:
+                for individual in individuals:
+                    l_sol.append(individual.costs)
+
+        return l_sol
+
+    # TODO: add test
     def performance_measure(self, reference: list, type='epsilon'):
         """
         This function compares the result with a given, reference pareto-set. By default it offers to make
@@ -207,6 +270,7 @@ class Results:
 
         return result
 
+    # TODO: remove or add to special class and file
     def pareto_plot(self, cost_x=0, cost_y=1):
         """
         A simple 2d - pareto plot from the variable 1 and 2 by default.
@@ -238,62 +302,3 @@ class Results:
 
         plt.show()
         return
-
-    def pareto_values(self, archive=None):
-        """
-        :return: a list of lists which contains the optimal values of the cost function:
-                l_sol[[c11, c12, ... c1n], ... [cm1, cm2, ... cmn]]
-        """
-
-        individuals = self.problem.last_population()
-        l_sol = []
-
-        # the pareto values collected in the archive, if the algorithm uses this strategy
-        if archive:
-            for individual in archive:
-                l_sol.append(individual.costs)
-        else:
-            if len(individuals) > 1:
-                for individual in individuals:
-                    l_sol.append(individual.costs)
-
-        return l_sol
-
-    def parameters(self):
-        out = []
-        for individuals in self.problem.populations():
-            for individual in individuals:
-                out.append(individual.vector)
-        return out
-
-    def costs(self):
-        out = []
-        for individuals in self.problem.populations():
-            for individual in individuals:
-                out.append(individual.costs)
-        return out
-
-    def write_out_populations(self):
-        """
-        Writes out every population into a a csv file, the file contains the costs and the parameters and the
-        auxiliary variables if they are exist.
-        :return:
-        """
-        for population in self.problem.populations:
-            out_file = self.problem.working_dir + "population_" + \
-                       str(self.problem.populations.index(population)) + "_costs.csv"
-
-            with open(out_file, 'w', newline='') as f:
-                writer = csv.writer(f)
-
-                for index, individual in enumerate(population.individuals):
-                    out = []
-                    for i in individual.costs:
-                        out.append(i)
-                    for j in individual.vector:
-                        out.append(j)
-
-                    if hasattr(individual, 'auxvar'):
-                        for k in individual.auxvar:
-                            out.append(k)
-                    writer.writerows([out])
