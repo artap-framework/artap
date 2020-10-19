@@ -11,7 +11,7 @@ class Results:
     def parameter_names(self):
         parameter_names = []
         for parameter in self.problem.parameters:
-            parameter_names.append(parameter)
+            parameter_names.append(parameter["name"])
         return parameter_names
 
     def parameter_number(self):
@@ -28,7 +28,7 @@ class Results:
 
     def parameter_index(self, name):
         try:
-            return list(self.problem.parameters.keys()).index(name)
+            return next((index for (index, d) in enumerate(self.problem.parameters) if d["name"] == name), None)
         except ValueError as e:
             raise ValueError('There is not a parameter with given name: {}'.format(name))
 
@@ -51,6 +51,17 @@ class Results:
             for individual in individuals:
                 out.append(individual.costs)
         return out
+
+    def table(self, transpose=True):
+        out = []
+        for individuals in self.problem.populations().values():
+            for individual in individuals:
+                out.append(individual.vector + individual.costs)
+
+        if transpose:
+            return list(zip(*out))
+        else:
+            return out
 
     def population(self, population_id=-1):
         # Returns population with given index
@@ -106,12 +117,6 @@ class Results:
 
         return table
 
-    @staticmethod
-    def sort_list(list_1, list_2):
-        zipped_pairs = zip(list_1, list_2)
-        sorted_list = [x for _, x in sorted(zipped_pairs)]
-        return sorted_list
-
     def goal_on_parameter(self, parameter_name, goal_name, population_id=-1, sorted=False):
         """
         The method returns the dependance of selected goal function on particular parameter
@@ -138,10 +143,14 @@ class Results:
         return [parameter_values, goal_values]
 
     def parameter_on_goal(self, goal_name, parameter_name, population_id=-1, sorted=False):
-        goal_values, parameter_values = self.goal_on_parameter(parameter_name, goal_name, population_id, sorted)
+        parameter_values, goal_values = self.goal_on_parameter(parameter_name, goal_name, population_id, sorted=False)
+        if sorted:
+            parameter_values = self.sort_list(goal_values, parameter_values)
+            goal_values.sort()
+
         return [goal_values, parameter_values]
 
-    def parameter_on_parameter(self, parameter_1, parameter_2, population_id=-1):
+    def parameter_on_parameter(self, parameter_1, parameter_2, population_id=-1, sorted=False):
         individuals = self.population(population_id)
         index_1 = self.parameter_index(parameter_1)
         index_2 = self.parameter_index(parameter_2)
@@ -150,11 +159,13 @@ class Results:
 
         for individual in individuals:
             values_1.append(individual.vector[index_1])
-            values_2.append(individual.costs[index_2])
+            values_2.append(individual.vector[index_2])
 
-        dependent_values = self.sort_list(values_1, values_2)
-        values_1.sort()
-        return [values_1, dependent_values]
+        if sorted:
+            values_2 = self.sort_list(values_1, values_2)
+            values_1.sort()
+
+        return [values_1, values_2]
 
     def export_to_csv(self, filename):
         """
@@ -166,7 +177,7 @@ class Results:
             # names
             out = []
             for parameter in self.problem.parameters:
-                out.append(parameter)
+                out.append(parameter["name"])
             for cost in self.problem.costs:
                 out.append(cost)
 
@@ -182,6 +193,32 @@ class Results:
                         out.append(j)
 
                     writer.writerows([out])
+
+    def pareto_front(self, population_id=None):
+        """
+
+        :return: pareto front
+        """
+        if population_id is not None:
+            individuals = self.population(population_id)
+        else:
+            individuals = self.problem.individuals
+
+        n = self.goal_number()
+        pareto_front = []
+        for i in range(n):
+            pareto_front.append([])
+            for individual in individuals:
+                if individual.features['front_number'] == 1:
+                    pareto_front[i].append(individual.costs[i])
+
+        return pareto_front
+
+    @staticmethod
+    def sort_list(list_1, list_2):
+        zipped_pairs = zip(list_1, list_2)
+        sorted_list = [x for _, x in sorted(zipped_pairs)]
+        return sorted_list
 
     # TODO: Generalize
     # TODO: add test
@@ -211,23 +248,6 @@ class Results:
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
-
-    # TODO: add test
-    def pareto_front(self, population_id=-1):
-        """
-
-        :return:
-        """
-        individuals = self.population(population_id)
-        n = self.goal_function_number()
-        pareto_front = []
-        for i in range(n):
-            pareto_front.append([])
-            for individual in individuals:
-                if individual.features['front_number'] == 1:
-                    pareto_front[i].append(individual.costs[i])
-
-        return pareto_front
 
     # TODO: same function - David, could you check it and write test?
     def pareto_values(self, archive=None):
