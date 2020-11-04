@@ -300,7 +300,7 @@ class CondorJobExecutor(RemoteExecutor):
 
                 events = []
                 cnt = 0
-                return_value = -1
+                successful_job = False
                 delay = 0.5
 
                 run = True
@@ -320,24 +320,20 @@ class CondorJobExecutor(RemoteExecutor):
 
                             if tp == "submit":
                                 # SUBMIT
-                                if "ReturnValue" in event["info"]:
-                                    return_value = event["info"]["ReturnValue"]
+                                pass
                             elif tp == "execute":
                                 # EXECUTE
-                                if "ExecuteHost" in event["info"]:
-                                    args += "ExecuteHost: {}, ".format(parse_address(event["info"]["ExecuteHost"]))
+                                args += "ExecuteHost: {}, ".format(event["execute_host"])
+                                pass
                             elif tp == "image_size":
                                 # IMAGE_SIZE
                                 pass
                             elif tp == "job_terminated":
                                 # JOB_TERMINATED
-                                if "ReturnValue" in event["info"]:
-                                    return_value = event["info"]["ReturnValue"]
+                                successful_job = event["successful"]
                                 run = False
                             elif tp == "job_held":
                                 # JOB_HELD
-                                if "ReturnValue" in event["info"]:
-                                    return_value = event["info"]["ReturnValue"]
 
                                 self.problem.logger.error("Job {}.{} is '{}' at {}".format(event["cluster"], event["proc"], event["type"], ""))
                                 run = False
@@ -364,8 +360,7 @@ class CondorJobExecutor(RemoteExecutor):
                 if (end - start) > self.problem.options["time_out"]:
                     raise TimeoutError
 
-                # successfull
-                if return_value == 0:
+                if successful_job:
                     if len(self.output_files) > 0:
                         output_files = []
                         d = datetime.datetime.now()
