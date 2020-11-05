@@ -8,6 +8,7 @@ import time
 import ntpath
 import pathlib
 from string import Template
+from uuid import uuid1
 
 import rpyc
 from rpyc.core.async_ import AsyncResultTimeout
@@ -36,6 +37,7 @@ class Executor(metaclass=ABCMeta):
     """
 
     def __init__(self, problem):
+        self.uuid = uuid1().hex
         self.problem = problem
 
         self.options = ConfigDictionary()
@@ -259,6 +261,7 @@ class CondorJobExecutor(RemoteExecutor):
 
     def _create_desc(self, individual):
         desc = {}
+        desc["executor_id"] = self.uuid
         desc["individual_id"] = individual.id
         desc["individual_population_id"] = individual.population_id
         desc["individual_algorithm_id"] = individual.algorithm_id
