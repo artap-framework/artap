@@ -34,7 +34,8 @@ class Results:
 
     def goal_index(self, name):
         try:
-            return list(self.problem.costs).index(name)
+            return next((index for (index, d) in enumerate(self.problem.costs) if d["name"] == name), None)
+            # return list(self.problem.costs).index(name)
         except ValueError as e:
             raise ValueError('There is not a cost function with given name: {}'.format(name))
 

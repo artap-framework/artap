@@ -2,6 +2,7 @@ from artap.problem import Problem
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
+
 class BiObjectiveTestProblem(Problem):
     """
     The goal of this example to show, how we can use Artap to solve a simple,
