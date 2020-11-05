@@ -23,7 +23,7 @@ class Results:
     def goal_names(self):
         cost_names = []
         for cost in self.problem.costs:
-            cost_names.append(cost)
+            cost_names.append(cost["name"])
         return cost_names
 
     def parameter_index(self, name):
@@ -180,7 +180,7 @@ class Results:
             for parameter in self.problem.parameters:
                 out.append(parameter["name"])
             for cost in self.problem.costs:
-                out.append(cost)
+                out.append(cost["name"])
 
             writer.writerows([out])
 

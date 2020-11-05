@@ -16,7 +16,7 @@ class TestProblem(Problem):
     def set(self):
         self.parameters = [{'name': 'x_1', 'initial_value': 10.0, 'bounds': [-10, 20]},
                            {'name': 'x_2', 'initial_value': 10.0, 'bounds': [-10, 20]}]
-        self.costs = ['F_1']
+        self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, individual):
         result = 0
