@@ -99,7 +99,6 @@ class Problem:
         # populations
         self.individuals = []
         self.data_store = None
-        self.monitor_service = None
         self.executor = None
         self.failed = []  # storage for failed individuals
         self.data_store = DummyDataStore()
@@ -165,12 +164,6 @@ class Problem:
     def cleanup(self):
         if self.data_store:
             self.data_store.destroy()
-
-        if self.monitor_service is not None:
-            if self.monitor_service.server is not None:
-                self.monitor_service.server.close()
-                del self.monitor_service.server
-                self.monitor_service.server = None
 
         if self.working_dir.startswith(tempfile.gettempdir() + os.sep + "artap-"):
             shutil.rmtree(self.working_dir)

@@ -255,6 +255,20 @@ class CondorJobExecutor(RemoteExecutor):
         self.request_memory = -1
         self.hold_on_start = False
 
+        # executor id -  create client
+        # check if running on condor
+        env = os.environ.keys()
+        if '_CONDOR_JOB_AD' in env:
+            # read condor job ad
+            with open(os.environ['_CONDOR_JOB_AD'], 'r') as file:
+                for line in file.readlines():
+                    # update remote dir with executor_id
+                    if line.startswith("OrigIwd = "):
+                        remote_dir = line[11:-2].split("/")[-1]
+                        client = self._create_client()
+                        client.root.log_update_executor(remote_dir, self.uuid)
+
+
     @abstractmethod
     def _create_job_file(self, remote_dir, individual, client):
         pass
