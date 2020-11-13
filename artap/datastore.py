@@ -138,7 +138,7 @@ class SqliteDataStore(DummyDataStore):
         rows = c.fetchall()
         for row in rows:
             parameter = json.loads(row[1])
-            self.problem.parameters[parameter["name"]] = parameter
+            self.problem.parameters.append(parameter)
 
         # costs
         self.problem.costs.clear()
@@ -146,7 +146,7 @@ class SqliteDataStore(DummyDataStore):
         rows = c.fetchall()
         for row in rows:
             cost = json.loads(row[1])
-            self.problem.costs[cost["name"]] = cost
+            self.problem.costs.append(cost)
 
         # individuals
         self.problem.individuals.clear()

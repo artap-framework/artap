@@ -176,7 +176,7 @@ class Results:
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f)
             # names
-            out = []
+            out = ["population_id"]
             for parameter in self.problem.parameters:
                 out.append(parameter["name"])
             for cost in self.problem.costs:
@@ -185,15 +185,17 @@ class Results:
             writer.writerows([out])
 
             # values
+            population_id = 0
             for individuals in self.problem.populations().values():
                 for individual in individuals:
-                    out = []
+                    out = [population_id]
                     for i in individual.costs:
                         out.append(i)
                     for j in individual.vector:
                         out.append(j)
 
                     writer.writerows([out])
+                population_id += 1
 
     def pareto_front(self, population_id=None):
         """

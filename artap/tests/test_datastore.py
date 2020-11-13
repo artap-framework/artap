@@ -90,7 +90,7 @@ class TestDataStoreSqlite(unittest.TestCase):
         self.assertEqual(problem.name, 'NLopt_BOBYQA')
 
         individuals = problem.last_population()
-        self.assertAlmostEqual(problem.parameters['x_1']['bounds'][0], -10)
+        self.assertAlmostEqual(problem.parameters[0]['bounds'][0], -10)
         self.assertAlmostEqual(individuals[0].vector[1], 6.58962945, 4)
         self.assertAlmostEqual(individuals[1].vector[0], 1.8944488, 4)
         self.assertAlmostEqual(individuals[0].costs[0], 49.0245242, 4)

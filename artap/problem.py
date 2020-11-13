@@ -86,8 +86,8 @@ class Problem:
 
         self.name: str = str()
         self.description: str = str()
-        self.parameters: dict = dict()
-        self.costs: dict = dict()
+        self.parameters: list = list()
+        self.costs: list = list()
         self.signs = []
 
         self.info = {"processor": platform.processor(),
