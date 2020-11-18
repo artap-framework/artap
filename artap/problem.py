@@ -205,12 +205,12 @@ class Problem:
         return p_types
 
     @abstractmethod
-    def evaluate(self, x):
-        """ :param x: individual """
+    def evaluate(self, individual):
+        """ :param individual: Individual """
         pass
 
-    def evaluate_constraints(self, x):
-        """ :param x: individual """
+    def evaluate_constraints(self, individual):
+        """ :param individual: Individual """
         pass
 
     def __setattr__(self, key, value):
@@ -234,12 +234,12 @@ class Problem:
 
 
 class ProblemViewDataStore(Problem):
-    def __init__(self, database_name, class_datastore=SqliteDataStore):
+    def __init__(self, database_name):
         super().__init__()
-        self.data_store = class_datastore(self, database_name=database_name, mode="read")
+        self.data_store = SqliteDataStore(self, database_name=database_name, mode="read")
 
     def set(self, **kwargs):
         pass
 
-    def evaluate(self, x):
+    def evaluate(self, individual):
         pass
