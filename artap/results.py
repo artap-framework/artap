@@ -323,5 +323,5 @@ class Results:
         ax.spines['right'].set_visible(False)  # adds major gridlines
         ax.grid(color='grey', linestyle='-', linewidth=0.25, alpha=0.5)
 
-        plt.show()
+        #plt.show()
         return
