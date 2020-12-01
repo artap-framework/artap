@@ -66,7 +66,6 @@ algorithm.run()
 results = Results(problem)
 results.pareto_values()
 results.pareto_plot()
-
 # Convergence plot on a selected goal function and parameter
 slice = results.goal_on_parameter('x_2', 'f_2')
 import pylab as plt

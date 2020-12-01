@@ -9,6 +9,7 @@ import ntpath
 import pathlib
 from string import Template
 from uuid import uuid1
+from sys import platform
 
 import rpyc
 from rpyc.core.async_ import AsyncResultTimeout
@@ -30,7 +31,6 @@ def parse_address(address):
 
 
 class Executor(metaclass=ABCMeta):
-
     """
     Function is a class representing objective or cost function for
     optimization problems.
@@ -41,14 +41,14 @@ class Executor(metaclass=ABCMeta):
         self.problem = problem
 
         self.options = ConfigDictionary()
-        # parse method
-        self.parse_results = None
+
+        # set default parse method from problem (can be overridden)
+        if "parse_results" in dir(self.problem):
+            self.parse_results = self.problem.parse_results
 
     @abstractmethod
-    def eval(self, x):
-        # set default parse method from problem (can be overridden)
-        if self.parse_results is None and "parse_results" in dir(self.problem):
-            self.parse_results = self.problem.parse_results
+    def eval(self, individual):
+        pass
 
     @staticmethod
     def _join_parameters_names(parameters, sep=","):
@@ -86,7 +86,6 @@ class Executor(metaclass=ABCMeta):
 
 
 class LocalComsolExecutor(Executor):
-
     comsol_command = Template("comsol batch -inputfile $input_file -nosave -pname $param_names -plist $param_values")
 
     def __init__(self, problem, problem_file, input_files=None, output_files=None):
@@ -131,6 +130,79 @@ class LocalComsolExecutor(Executor):
             return result
         except Exception as e:
             err = "Cannot run COMSOL Multiphysics.\n\n {}".format(e)
+            self.problem.logger.error(err)
+            raise RuntimeError(err)
+
+
+class LocalFEMMExecutor(Executor):
+    """
+    Appends the problem parameters to the beginning of the script file, than runs the FEMM in a subprocess and retrieves
+    the data in this command window.
+    """
+
+    def __init__(self, problem, script_file, output_files):
+        super().__init__(problem)
+        self.script_file = ntpath.basename(script_file)
+
+        self.femm_command = 'wine ~/.wine/drive_c/femm42/bin/femm.exe'
+
+        self.output_files = output_files
+
+    # def feed_lua_script(self, param_string, param_values):
+    #
+    #     with open(self.script_file, 'r') as f:
+    #         lua_script = f.read()
+    #
+    #     params = param_string.split(',')
+    #     values = param_values.split(',')
+    #
+    #     text_elements = []
+    #     for i, param in enumerate(params):
+    #         temp = str(param) + " = " + str(values[i]) + "\n"
+    #         text_elements.append(temp)
+    #     text_elements.append(lua_script)
+    #     res = str('').join(text_elements)
+    #
+    #     return res
+
+    def eval(self, individual):
+        super().eval(individual)
+
+        param_names_string = Executor._join_parameters_names(self.problem.parameters)
+        param_values_string = Executor._join_parameters_values(individual.vector)
+
+        lua_path = os.path.abspath(self.script_file)
+        if os.path.isfile(lua_path) and platform == 'linux':
+            arg = '"' + os.popen('winepath -w "' + lua_path + '"').read().strip() + '"'
+
+        # cmd_string = self.femm_command + ' -lua-script={} -lua-var={} -lua-var={} -windowhide'.format(arg, 'radius=200',
+        #                                                                                              'c=42')
+        cmd_string = self.femm_command + ' -lua-script={}'.format(arg)
+
+        params = param_names_string.split(',')
+        values = param_values_string.split(',')
+        #
+        for i in range(len(params)):
+            temp = str(params[i])+'='+str(values[i])
+            cmd_string += ' -lua-var={}'.format(temp)
+
+        try:
+
+            out = subprocess.run(cmd_string, shell=True, stdout=subprocess.PIPE)
+
+            if out.returncode != 0:
+                err = "Unknown error"
+                if out.stderr is not None:
+                    err = "Cannot run FEMM.\n\n {}".format(out.stderr)
+
+                self.problem.logger.error(err)
+                raise RuntimeError(err)
+
+            result = self.parse_results(self.output_files, individual)
+            return result
+
+        except Exception as e:
+            err = "Cannot run FEMM with wine.\n\n {}".format(e)
             self.problem.logger.error(err)
             raise RuntimeError(err)
 
@@ -185,7 +257,7 @@ class RemoteExecutor(Executor):
             remote_dir = client.root.create_job_dir()
             return remote_dir
         except RuntimeError as e:
-            #self.problem.logger.error("Cannot create remote directory '{}' on ''".format(directory,
+            # self.problem.logger.error("Cannot create remote directory '{}' on ''".format(directory,
             #                                                                             self.options["hostname"]))
             print("ERROR --------------------------------")
             pass
@@ -243,6 +315,7 @@ class CondorJobExecutor(RemoteExecutor):
     """
     Allows distributing of calculation of objective functions.
     """
+
     def __init__(self, problem, files_to_condor, files_from_condor=None):
         super().__init__(problem, "", files_to_condor, files_from_condor)
 
@@ -266,7 +339,6 @@ class CondorJobExecutor(RemoteExecutor):
                         remote_dir = line[11:-2].split("/")[-1]
                         client = self._create_client()
                         client.root.log_update_executor(remote_dir, self.uuid)
-
 
     @abstractmethod
     def _create_job_file(self, remote_dir, individual, client):
@@ -351,12 +423,14 @@ class CondorJobExecutor(RemoteExecutor):
                             elif tp == "job_held":
                                 # JOB_HELD
 
-                                self.problem.logger.error("Job {}.{} is '{}' at {}".format(event["cluster"], event["proc"], event["type"], ""))
+                                self.problem.logger.error(
+                                    "Job {}.{} is '{}' at {}".format(event["cluster"], event["proc"], event["type"],
+                                                                     ""))
                                 run = False
                                 # read log
-                                #content_log = self._read_file_from_remote("{}.log".format(self.output_files[0]),
+                                # content_log = self._read_file_from_remote("{}.log".format(self.output_files[0]),
                                 #                                          remote_dir=remote_dir, client=client)
-                                #self.problem.logger.error(content_log)
+                                # self.problem.logger.error(content_log)
                                 # remove job
                                 # self._run_command_on_remote("condor_rm {}".format(process_id),
                                 #                            remote_dir=remote_dir, client=client)
@@ -365,7 +439,9 @@ class CondorJobExecutor(RemoteExecutor):
                             if len(args) > 0:
                                 args = args[:-2]
 
-                            self.problem.logger.info("Job {}.{} ({}) is '{}' at {}".format(event["cluster"], event["proc"], remote_dir, event["type"], args))
+                            self.problem.logger.info(
+                                "Job {}.{} ({}) is '{}' at {}".format(event["cluster"], event["proc"], remote_dir,
+                                                                      event["type"], args))
                             # print("{}: {} ({})".format(eventlog[i].timestamp, eventlog[i].type, args))
 
                     if run:
@@ -385,7 +461,8 @@ class CondorJobExecutor(RemoteExecutor):
                         os.mkdir(path)
 
                         for file in self.output_files:
-                            self._transfer_file_from_remote(source_file=file, destination_file="{}/{}".format(path, file),
+                            self._transfer_file_from_remote(source_file=file,
+                                                            destination_file="{}/{}".format(path, file),
                                                             remote_dir=remote_dir, client=client)
                             output_files.append("{}/{}".format(path, file))
                         success = True
@@ -472,7 +549,8 @@ class CondorPythonJobExecutor(CondorJobExecutor):
 
 
 class CondorMatlabJobExecutor(CondorJobExecutor):
-    def __init__(self, problem, script, parameter_file, files_from_condor=None, matlab_path="/opt/matlab-R2018b/bin/matlab"):
+    def __init__(self, problem, script, parameter_file, files_from_condor=None,
+                 matlab_path="/opt/matlab-R2018b/bin/matlab"):
         self.script = ntpath.basename(script)
         super().__init__(problem, [self.script], files_from_condor)
         self.parameter_file = parameter_file
@@ -569,7 +647,8 @@ class CondorComsolJobExecutor(CondorJobExecutor):
 
 
 class CondorCSTJobExecutor(CondorJobExecutor):
-    def __init__(self, problem, model_file, files_from_condor=None, cst_path="\"C:\Program Files (x86)\CST Studio Suite 2020\CST DESIGN ENVIRONMENT.exe\""):
+    def __init__(self, problem, model_file, files_from_condor=None,
+                 cst_path="\"C:\Program Files (x86)\CST Studio Suite 2020\CST DESIGN ENVIRONMENT.exe\""):
         self.model_file = ntpath.basename(model_file)
         super().__init__(problem, [self.model_file], files_from_condor)
         copyfile(model_file, self.problem.working_dir + self.model_file)
@@ -577,7 +656,8 @@ class CondorCSTJobExecutor(CondorJobExecutor):
         self.executable = textwrap.dedent("""\
             """ + cst_path + """ --se --rebuild --hide -par parameters.txt -project-file {} """.format(self.model_file))
         self.executable += '\n'
-        self.executable += '"C:\Program Files\\7-Zip\\7z.exe" a "{}.zip" "{}\\"'.format(os.path.splitext(self.model_file)[0], os.path.splitext(self.model_file)[0])
+        self.executable += '"C:\Program Files\\7-Zip\\7z.exe" a "{}.zip" "{}\\"'.format(
+            os.path.splitext(self.model_file)[0], os.path.splitext(self.model_file)[0])
         self.executable += '\n'
 
         i = 1

@@ -2,6 +2,7 @@ import csv
 from .quality_indicator import gd, epsilon_add
 from matplotlib import pylab, rc, axis
 
+
 class Results:
     """ Class Results offers tools for interpreting calculated data. """
 
@@ -120,7 +121,7 @@ class Results:
 
         return table
 
-    def goal_on_parameter(self, parameter_name, goal_name, population_id=-1, sorted=True):
+    def goal_on_parameter(self, parameter_name, goal_name, population_id=-1, sorted=False):
         """
         The method returns the dependance of selected goal function on particular parameter
         :param parameter_name: string specifying particular parameter
@@ -144,7 +145,7 @@ class Results:
             parameter_values.append(individual.vector[parameter_index])
             goal_values.append(individual.costs[goal_index])
 
-        if sorted:
+        if sorted is True:
             goal_values = self.sort_list(parameter_values, goal_values)
             parameter_values.sort()
 
