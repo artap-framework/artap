@@ -66,11 +66,14 @@ algorithm.run()
 results = Results(problem)
 results.pareto_values()
 results.pareto_plot()
+
 # Convergence plot on a selected goal function and parameter
-slice = results.goal_on_parameter('x_2', 'f_2')
-import pylab as plt
-plt.plot(slice[0], slice[1])
-plt.show()
+results.goal_on_parameter_plot('x_2', 'f_2')
+
+# slice = results.goal_on_parameter('x_2', 'f_2', sorted=True)
+# import pylab as plt
+# plt.plot(slice[0], slice[1])
+# plt.show()
 
 # Measure the quality of the solution with the aid of the built-in performace metrics
 # We have to define a solution, which is a list of the [x, 1/x] tuples in the given area.
