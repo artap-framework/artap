@@ -8,6 +8,24 @@ class Results:
 
     def __init__(self, problem):
         self.problem = problem
+        self.use_latex = True
+        self.label_size = 16
+        self.tick_size = 14
+        self.title_size = 18
+        self.legend = True
+        self.width = 8
+        self.hight = 5
+
+        if self.use_latex:
+            # allows using Latex
+            rc('font', **{'family': ' DejaVu Sans', 'sans-serif': ['Helvetica']})
+            rc('text', usetex=True)
+
+        # sets the legend font size
+        params = {'legend.fontsize': 14,
+                  'legend.handlelength': 2}
+
+        pylab.rcParams.update(params)
 
     def parameter_names(self):
         parameter_names = []
@@ -300,31 +318,6 @@ class Results:
             result = gd(reference, computed)
 
         return result
-
-
-class GraphicalResults(Results):
-
-    def __init__(self, problem):
-        self.problem = problem
-        self.use_latex = True
-        self.label_size = 16
-        self.tick_size = 14
-        self.title_size = 18
-        self.legend = True
-        self.width = 8
-        self.hight = 5
-
-        if self.use_latex:
-            # allows using Latex
-            rc('font', **{'family': ' DejaVu Sans', 'sans-serif': ['Helvetica']})
-            rc('text', usetex=True)
-
-        # sets the legend font size
-        params = {'legend.fontsize': 14,
-                  'legend.handlelength': 2}
-
-        pylab.rcParams.update(params)
-
 
     def set_figure(self):
         # We change the fontsize of minor ticks label

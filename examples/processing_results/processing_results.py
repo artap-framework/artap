@@ -1,6 +1,6 @@
 from artap.problem import Problem
 from artap.algorithm_genetic import NSGAII
-from artap.results import GraphicalResults
+from artap.results import Results
 
 
 class BiObjectiveTestProblem(Problem):
@@ -41,7 +41,7 @@ algorithm.options['max_population_number'] = 1
 algorithm.options['max_population_size'] = 1000
 algorithm.run()
 
-gr = GraphicalResults(problem)
+gr =Results(problem)
 
 # gr.objectives_plot()
 # gr.pareto_plot()
