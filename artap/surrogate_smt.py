@@ -17,9 +17,6 @@ class SurrogateModelSMT(SurrogateModel):
         self.sigma_threshold = 10
         self.score_threshold = 0.5
 
-        # stats
-        self.xxx = None
-
     @staticmethod
     def get_rbf_regressor(verbose=1):
         # Radial basis functions
@@ -154,5 +151,5 @@ class SurrogateModelSMT(SurrogateModel):
 
         # print("Evaluate = {}, \t value = {}".format(evaluate, value))
         self.problem.logger.info("surrogate: predict / eval counter: {0:5.0f} / {1:5.0f}, total: {2:5.0f}".format(self.problem.surrogate.predict_counter, self.problem.surrogate.eval_counter,
-                                                                                                                self.problem.surrogate.predict_counter + self.problem.surrogate.eval_counter))
+                                                                                                                  self.problem.surrogate.predict_counter + self.problem.surrogate.eval_counter))
         return value

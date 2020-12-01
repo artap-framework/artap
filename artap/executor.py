@@ -41,14 +41,14 @@ class Executor(metaclass=ABCMeta):
         self.problem = problem
 
         self.options = ConfigDictionary()
-        # parse method
-        self.parse_results = None
+
+        # set default parse method from problem (can be overridden)
+        if "parse_results" in dir(self.problem):
+            self.parse_results = self.problem.parse_results
 
     @abstractmethod
-    def eval(self, x):
-        # set default parse method from problem (can be overridden)
-        if self.parse_results is None and "parse_results" in dir(self.problem):
-            self.parse_results = self.problem.parse_results
+    def eval(self, individual):
+        pass
 
     @staticmethod
     def _join_parameters_names(parameters, sep=","):
@@ -140,11 +140,13 @@ class LocalFEMMExecutor(Executor):
     the data in this command window.
     """
 
-    def __init__(self, problem, script_file=None):
+    def __init__(self, problem, script_file, output_files):
         super().__init__(problem)
         self.script_file = ntpath.basename(script_file)
 
         self.femm_command = 'wine ~/.wine/drive_c/femm42/bin/femm.exe'
+
+        self.output_files = output_files
 
     # def feed_lua_script(self, param_string, param_values):
     #
@@ -191,12 +193,12 @@ class LocalFEMMExecutor(Executor):
             if out.returncode != 0:
                 err = "Unknown error"
                 if out.stderr is not None:
-                    err = "Cannot run COMSOL Multiphysics.\n\n {}".format(out.stderr)
+                    err = "Cannot run FEMM.\n\n {}".format(out.stderr)
 
                 self.problem.logger.error(err)
                 raise RuntimeError(err)
 
-            result = self.parse_results(out.stdout)
+            result = self.parse_results(self.output_files, individual)
             return result
 
         except Exception as e:
