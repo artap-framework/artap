@@ -88,7 +88,7 @@ class ProblemSphere1D(Problem):
 
 
 class TestSurrogateFunction(unittest.TestCase):
-    def test_smt(self):
+    def test_function(self):
         problem = ProblemBranin()
         # problem = ProblemSphere1D()
 
@@ -123,7 +123,7 @@ class TestSurrogateFunction(unittest.TestCase):
         # algorithm.run()
 
         algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 30
+        algorithm.options['max_population_number'] = 40
         algorithm.options['max_population_size'] = 10
         algorithm.options['max_processes'] = 10
         algorithm.run()
@@ -131,8 +131,10 @@ class TestSurrogateFunction(unittest.TestCase):
         b = Results(problem)
         optimum = b.find_optimum('F_1')  # Takes last cost function
         # print(optimum.vector, optimum.costs)
-        self.assertTrue(0.9 < optimum.vector[0] < 1.1)
-        self.assertTrue(2.8 < optimum.vector[1] < 3.2)
+        self.assertGreater(optimum.vector[0], 0.9)
+        self.assertLess(optimum.vector[0], 1.1)
+        self.assertGreater(optimum.vector[1], 2.8)
+        self.assertLess(optimum.vector[1], 3.2)
         self.assertLess(optimum.costs[0], 0.05)
         self.assertGreater(problem.surrogate.predict_counter, 100)
 
