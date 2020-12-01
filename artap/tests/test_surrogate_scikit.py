@@ -6,7 +6,6 @@ from ..individual import Individual
 from ..benchmark_functions import Booth
 from ..surrogate import SurrogateModelEval
 from ..surrogate_scikit import SurrogateModelScikit
-from ..surrogate_smt import SurrogateModelSMT
 from ..operators import LHSGenerator
 from ..algorithm_sweep import SweepAlgorithm
 
@@ -28,19 +27,7 @@ class MyProblemSin(Problem):
         return [x[0] * math.sin(x[0])]
 
 
-# class MyProblemBooth(Problem):
-#     """ Describe simple one objective optimization problem. """
-#
-#     def set(self):
-#         self.parameters = [{'name': 'x_1', 'initial_value': 0, 'bounds': [-5, 5]},
-#                            {'name': 'x_2', 'initial_value': 0, 'bounds': [-5, 5]}]
-#         self.costs = [{'name': 'F'}]
-#
-#     def evaluate(self, individual):
-#         return [Booth.eval(individual.vector)]
-
-
-class TestSurrogate(unittest.TestCase):
+class TestSurrogateScikit(unittest.TestCase):
     def _check_scikit_one(self, problem, threshold=5.0):
         xmeas = [0., 0.5, 1., 2., 3., 4., 5., 5.4, 6., 7., 7.7, 8., 10.]
 
@@ -78,7 +65,7 @@ class TestSurrogate(unittest.TestCase):
                 step += 1
 
     def test_eval(self):
-        problem = Booth()#MyProblemBooth()
+        problem = Booth()
         problem.surrogate = SurrogateModelEval(problem)
 
         x_ref = Individual([2.5, 1.5])
@@ -204,65 +191,6 @@ class TestSurrogate(unittest.TestCase):
 
         self.assertLess(percent, 5.0)
 
-    def _check_smt(self, regressor, percent=1.0):
-        problem = Booth()
-        problem.surrogate = SurrogateModelSMT(problem)
-        # set custom regressor
-        problem.surrogate.regressor = regressor
-        # set threshold
-        problem.surrogate.train_step = 12
-
-        # train
-        problem.surrogate.evaluate(Individual([1.0, 3.1]))
-        problem.surrogate.evaluate(Individual([1.3, 3.2]))
-        problem.surrogate.evaluate(Individual([1.8, 2.7]))
-        problem.surrogate.evaluate(Individual([0.9, 3.3]))
-        problem.surrogate.evaluate(Individual([0.8, 3.1]))
-        problem.surrogate.evaluate(Individual([1.4, 2.8]))
-        problem.surrogate.evaluate(Individual([0.1, 3.0]))
-        problem.surrogate.evaluate(Individual([0.2, 3.4]))
-        problem.surrogate.evaluate(Individual([0.95, 3.03]))
-        problem.surrogate.evaluate(Individual([0.98, 2.96]))
-        problem.surrogate.evaluate(Individual([1.02, 2.98]))
-        problem.surrogate.evaluate(Individual([1.01, 2.99]))
-
-        # check values
-        x_ref = Individual([0.2, 3.1])
-        # eval reference
-        value_problem = problem.evaluate(x_ref)[0]
-        # eval surrogate
-        value_surrogate = problem.surrogate.predict(x_ref.vector)
-
-        percent_check = 100.0 * math.fabs(value_problem - value_surrogate) / math.fabs(value_problem)
-        problem.logger.info(
-            "{}: surrogate.value: eval = {}, pred = {}, diff = {} ({} %)".format(problem.name, value_problem,
-                                                                                 value_surrogate,
-                                                                                 math.fabs(
-                                                                                     value_problem - value_surrogate),
-                                                                                 percent_check))
-
-        self.assertLess(percent_check, percent)
-
-    def test_smt_rbf(self):
-        self._check_smt(SurrogateModelSMT.get_rbf_regressor())
-
-    #def test_smt_idw(self):
-    #    self._check_smt(SurrogateModelSMT.get_idw_regressor())
-
-    def test_smt_kpls(self):
-        self._check_smt(SurrogateModelSMT.get_kpls_regressor())
-
-    def test_smt_kplsk(self):
-        self._check_smt(SurrogateModelSMT.get_kplsk_regressor())
-
-    #def test_smt_ls(self):
-    #    self._check_smt(SurrogateModelSMT.get_ls_regressor())
-
-    def test_smt_qp(self):
-        self._check_smt(SurrogateModelSMT.get_qp_regressor())
-
-    def test_smt_krg(self):
-        self._check_smt(SurrogateModelSMT.get_krg_regressor())
 
 
 if __name__ == '__main__':

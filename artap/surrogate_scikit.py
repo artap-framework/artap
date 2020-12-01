@@ -1,6 +1,6 @@
 from .utils import flatten
 
-from .surrogate import SurrogateModel
+from .surrogate import SurrogateModelPredict
 
 import warnings
 
@@ -21,7 +21,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 
 
-class SurrogateModelScikit(SurrogateModel):
+class SurrogateModelScikit(SurrogateModelPredict):
     def __init__(self, problem):
         super().__init__(problem)
 
@@ -201,100 +201,100 @@ class SurrogateModelScikit(SurrogateModel):
         self.trained = self.score >= self.score_threshold
         self.trained = True
 
-    def evaluate(self, individual):
-        evaluate = True
-
-        if self.trained:
-            # disable sklearn warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-
-                if self.has_epsilon:
-                    p, sigma = self.predict(individual.vector)
-                else:
-                    p = self.predict(individual.vector)
-                    sigma = 0
-
-            # compute minimal parameter distance
-            if self.distance_metric is not None:
-                dist = float("inf")
-                for parameter in self.x_data:
-                    if self.distance_metric == 'chebyshev':
-                        dist = min(dist, distance.chebyshev(individual.vector, parameter))
-                    else:
-                        assert 0
-
-                # print("dist = {}".format(dist))
-                # print("sigma = {}".format(sigma))
-
-            # estimated value
-            value = flatten(p[0])
-
-            """
-            val = self.problem.evaluate(x)
-            # self.problem.logger.info("SurrogateGaussianProcess: predict: x: {}, prediction: {}, sigma: {}".format(x, p[0], sigma))
-            self.problem.logger.info("SurrogateGaussianProcess: predict: x: {}, prediction: {}, value: {}".format(x, p[0], val))
-            value = val
-            """
-
-            # increase counter
-            self.predict_counter += 1
-            evaluate = False
-
-        if evaluate:
-            # evaluate problem
-            value = self.problem.evaluate(individual)
-            # increase counter
-            self.eval_counter += 1
-            # add training date to surrogate model
-            # self.add_data(np.array(x), np.array(value))
-            self.add_data(individual.vector, value)
-
-            if self.eval_counter % self.train_step == 0:
-                # init default regressor
-                if self.regressor is None:
-                    self.init_default_regressor()
-
-                # train model
-                self.train()
-
-        """
-        if self.trained:
-            p, sigma = self.predict([x], return_std=True)
-            self.problem.logger.info(
-                "SurrogateGaussianProcess: predict: x: {}, prediction: {}, sigma: {}".format(x, p[0], sigma))
-
-            if sigma < self.options['sigma_threshold']:
-                # estimated value
-                value = p[0].tolist()
-
-                # increase counter
-                self.predict_counter += 1
-                evaluate = False
-
-        if evaluate:
-            # evaluate problem
-            value = self.problem.evaluate(x)
-            # increase counter
-            self.eval_counter += 1
-            # add training date to surrogate model
-            self.add_data(x, value)
-
-            if self.eval_counter % self.options['train_step'] == 0:
-                # surrogate model
-                counter_eff = 100.0 * self.predict_counter / (
-                            self.eval_counter + self.predict_counter)
-                # speed up - increase train step
-                if counter_eff > 30:
-                    self.options['train_step'] = int(self.options['train_step'] * 1.3)
-                self.problem.logger.info("Surrogate: learning: {}, predict eff: {}, train_step: {}"
-                                  .format(self.predict_counter, counter_eff, self.options['train_step']))
-
-                # init default regressor
-                if self.regressor is not None:
-                    self.init_default_regressor()
-
-                # train model
-                self.train()
-        """
-        return value
+    # def evaluate(self, individual):
+    #     evaluate = True
+    #
+    #     if self.trained:
+    #         # disable sklearn warnings
+    #         with warnings.catch_warnings():
+    #             warnings.simplefilter("ignore")
+    #
+    #             if self.has_epsilon:
+    #                 p, sigma = self.predict(individual.vector)
+    #             else:
+    #                 p = self.predict(individual.vector)
+    #                 sigma = 0
+    #
+    #         # compute minimal parameter distance
+    #         if self.distance_metric is not None:
+    #             dist = float("inf")
+    #             for parameter in self.x_data:
+    #                 if self.distance_metric == 'chebyshev':
+    #                     dist = min(dist, distance.chebyshev(individual.vector, parameter))
+    #                 else:
+    #                     assert 0
+    #
+    #             # print("dist = {}".format(dist))
+    #             # print("sigma = {}".format(sigma))
+    #
+    #         # estimated value
+    #         value = flatten(p[0])
+    #
+    #         """
+    #         val = self.problem.evaluate(x)
+    #         # self.problem.logger.info("SurrogateGaussianProcess: predict: x: {}, prediction: {}, sigma: {}".format(x, p[0], sigma))
+    #         self.problem.logger.info("SurrogateGaussianProcess: predict: x: {}, prediction: {}, value: {}".format(x, p[0], val))
+    #         value = val
+    #         """
+    #
+    #         # increase counter
+    #         self.predict_counter += 1
+    #         evaluate = False
+    #
+    #     if evaluate:
+    #         # evaluate problem
+    #         value = self.problem.evaluate(individual)
+    #         # increase counter
+    #         self.eval_counter += 1
+    #         # add training date to surrogate model
+    #         # self.add_data(np.array(x), np.array(value))
+    #         self.add_data(individual.vector, value)
+    #
+    #         if self.eval_counter % self.train_step == 0:
+    #             # init default regressor
+    #             if self.regressor is None:
+    #                 self.init_default_regressor()
+    #
+    #             # train model
+    #             self.train()
+    #
+    #     """
+    #     if self.trained:
+    #         p, sigma = self.predict([x], return_std=True)
+    #         self.problem.logger.info(
+    #             "SurrogateGaussianProcess: predict: x: {}, prediction: {}, sigma: {}".format(x, p[0], sigma))
+    #
+    #         if sigma < self.options['sigma_threshold']:
+    #             # estimated value
+    #             value = p[0].tolist()
+    #
+    #             # increase counter
+    #             self.predict_counter += 1
+    #             evaluate = False
+    #
+    #     if evaluate:
+    #         # evaluate problem
+    #         value = self.problem.evaluate(x)
+    #         # increase counter
+    #         self.eval_counter += 1
+    #         # add training date to surrogate model
+    #         self.add_data(x, value)
+    #
+    #         if self.eval_counter % self.options['train_step'] == 0:
+    #             # surrogate model
+    #             counter_eff = 100.0 * self.predict_counter / (
+    #                         self.eval_counter + self.predict_counter)
+    #             # speed up - increase train step
+    #             if counter_eff > 30:
+    #                 self.options['train_step'] = int(self.options['train_step'] * 1.3)
+    #             self.problem.logger.info("Surrogate: learning: {}, predict eff: {}, train_step: {}"
+    #                               .format(self.predict_counter, counter_eff, self.options['train_step']))
+    #
+    #             # init default regressor
+    #             if self.regressor is not None:
+    #                 self.init_default_regressor()
+    #
+    #             # train model
+    #             self.train()
+    #     """
+    #     return value

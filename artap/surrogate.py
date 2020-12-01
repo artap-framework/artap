@@ -71,8 +71,51 @@ class SurrogateModel(metaclass=ABCMeta):
         return dist
 
     @abstractmethod
-    def evaluate(self, x):
+    def evaluate(self, individual):
         pass
+
+
+class SurrogateModelPredict(SurrogateModel):
+    def __init__(self, problem):
+        super().__init__(problem)
+
+    def evaluate(self, individual):
+        values = None
+        if self.trained and "predict" in dir(self.problem):
+            values = self.problem.predict(individual)
+            if values is not None:
+                # count prediction
+                self.problem.surrogate.predict_counter += 1
+
+        if values is None:
+            # evaluate model
+            values = self.evaluate_individual(individual)
+
+        # self.problem.logger.info("surrogate: predict / eval counter: {0:5.0f} / {1:5.0f}, total: {2:5.0f}".format(
+        #     self.problem.surrogate.predict_counter,
+        #     self.problem.surrogate.eval_counter,
+        #     self.problem.surrogate.predict_counter + self.problem.surrogate.eval_counter))
+
+        return values
+
+    def evaluate_individual(self, individual):
+        # evaluate problem
+        value = self.problem.evaluate(individual)
+        # increase counter
+        self.eval_counter += 1
+        # add training date to surrogate model
+        self.add_data(individual.vector, value)
+
+        if self.train_step != -1:
+            if self.eval_counter % self.train_step == 0:
+                # init default regressor
+                if self.regressor is None:
+                    self.init_default_regressor()
+
+                # train model
+                self.train()
+
+        return value
 
 
 class SurrogateModelEval(SurrogateModel):
