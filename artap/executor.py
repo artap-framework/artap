@@ -148,23 +148,6 @@ class LocalFEMMExecutor(Executor):
 
         self.output_files = output_files
 
-    # def feed_lua_script(self, param_string, param_values):
-    #
-    #     with open(self.script_file, 'r') as f:
-    #         lua_script = f.read()
-    #
-    #     params = param_string.split(',')
-    #     values = param_values.split(',')
-    #
-    #     text_elements = []
-    #     for i, param in enumerate(params):
-    #         temp = str(param) + " = " + str(values[i]) + "\n"
-    #         text_elements.append(temp)
-    #     text_elements.append(lua_script)
-    #     res = str('').join(text_elements)
-    #
-    #     return res
-
     def eval(self, individual):
         super().eval(individual)
 
