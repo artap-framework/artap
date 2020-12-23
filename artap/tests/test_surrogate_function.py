@@ -21,7 +21,7 @@ class ProblemBranin(Problem):
 
     def set(self):
         self.parameters = [{'name': 'x_1', 'initial_value': 3, 'bounds': [-5, 10]},
-                           {'name': 'x_2', 'initial_value': 10, 'bounds': [0, 15]}]
+                           {'name': 'x_2', 'initial_value': 10, 'bounds': [-5, 15]}]
         self.costs = [{'name': 'F'}]
 
     def evaluate(self, individual):

@@ -1,5 +1,3 @@
-from .utils import flatten
-
 from .surrogate import SurrogateModelPredict
 
 import numpy as np
