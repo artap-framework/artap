@@ -148,23 +148,6 @@ class LocalFEMMExecutor(Executor):
 
         self.output_files = output_files
 
-    # def feed_lua_script(self, param_string, param_values):
-    #
-    #     with open(self.script_file, 'r') as f:
-    #         lua_script = f.read()
-    #
-    #     params = param_string.split(',')
-    #     values = param_values.split(',')
-    #
-    #     text_elements = []
-    #     for i, param in enumerate(params):
-    #         temp = str(param) + " = " + str(values[i]) + "\n"
-    #         text_elements.append(temp)
-    #     text_elements.append(lua_script)
-    #     res = str('').join(text_elements)
-    #
-    #     return res
-
     def eval(self, individual):
         super().eval(individual)
 
@@ -203,6 +186,53 @@ class LocalFEMMExecutor(Executor):
 
         except Exception as e:
             err = "Cannot run FEMM with wine.\n\n {}".format(e)
+            self.problem.logger.error(err)
+            raise RuntimeError(err)
+
+
+
+class LocalAnsysExecutor(Executor):
+    """
+    runs an ansys executable python script
+    """
+
+    def __init__(self, problem, script_file, output_files):
+        super().__init__(problem)
+        self.script_file = ntpath.basename(script_file)
+
+        self.ansys_path = r'C:\Program Files\AnsysEM\AnsysEM20.2\Win64\ansysedt.exe'
+        #"D:\tmp\Example_Conductor.py"
+        self.output_files = output_files
+
+    def eval(self, individual):
+        super().eval(individual)
+
+        param_names_string = Executor._join_parameters_names(self.problem.parameters)
+        param_values_string = Executor._join_parameters_values(individual.vector)
+
+        #lua_path = os.path.abspath(self.script_file)
+        #if os.path.isfile(lua_path) and platform == 'linux':
+        #    arg = '"' + os.popen('winepath -w "' + lua_path + '"').read().strip() + '"'
+
+        cmd_string = self.ansys_path + ' - runscript'.format(self.script_file)
+
+        try:
+
+            out = subprocess.run(cmd_string, shell=True, stdout=subprocess.PIPE)
+
+            if out.returncode != 0:
+                err = "Unknown error"
+                if out.stderr is not None:
+                    err = "Cannot run Ansys.\n\n {}".format(out.stderr)
+
+                self.problem.logger.error(err)
+                raise RuntimeError(err)
+
+            result = self.parse_results(self.output_files, individual)
+            return result
+
+        except Exception as e:
+            err = "Cannot run Ansys.\n\n {}".format(e)
             self.problem.logger.error(err)
             raise RuntimeError(err)
 
