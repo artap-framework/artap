@@ -4,12 +4,12 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
-from numpy import exp, cos, sin, sqrt, linspace
-from . import colormaps as cmaps
-from .problem import Problem
+from numpy import linspace
+import artap.colormaps as cmaps
+from artap.problem import Problem
 from sklearn.model_selection import train_test_split
 from random import uniform
-from .individual import Individual
+from artap.individual import Individual
 from abc import abstractmethod
 
 
@@ -84,6 +84,7 @@ class BenchmarkFunction(Problem):
         plt.xlabel("x")
         plt.ylabel("f(x)")
         plt.grid(True)
+        plt.show()
         return
 
     @abstractmethod
@@ -124,7 +125,7 @@ class BenchmarkFunction(Problem):
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, aspect=5)
 
-        # plt.show()
+        plt.show()
 
     def set_init_values(self, **kwargs):
         if 'initial_value' in kwargs:
