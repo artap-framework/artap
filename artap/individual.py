@@ -126,8 +126,8 @@ class Individual(metaclass=ABCMeta):
 
     def to_dict(self):
         output = {'id': self.id,
-                  'vector': self.vector,
-                  'costs': self.costs,
+                  'vector': list(self.vector),
+                  'costs': list(self.costs),
                   'costs_signed': self.costs_signed,
                   'state': self.to_string(self.state),
                   'population_id': self.population_id,

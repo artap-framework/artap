@@ -154,7 +154,8 @@ class Problem:
         return self.population(max_index)
 
     def to_dict(self):
-        output = {'name': self.name, 'description': self.description, 'parameters': self.parameters}
+        parameters = list(self.parameters)
+        output = {'name': self.name, 'description': self.description, 'parameters': parameters}
         return output
 
     @staticmethod

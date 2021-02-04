@@ -49,20 +49,18 @@ class SqliteDataStore(DummyDataStore):
         if not self.database_name:
             raise RuntimeError("SqliteDataStoreCacheThread: database name is empty.")
 
-        elif self.mode == "write":
-            if os.path.exists(database_name):
-                os.remove(database_name)
-
         if self.mode == "write":
             if os.path.exists(self.database_name):
                 statinfo = os.stat(self.database_name)
                 if statinfo.st_size == 0:
-                    self.read_from_datastore()
-                else:
                     self._create_structure()
+                else:
+                    self.read_from_datastore()
             else:
                 self._create_structure()
         elif self.mode == "rewrite":
+            if os.path.exists(database_name):
+                os.remove(database_name)
             self._create_structure()
         elif self.mode == "read":
             self.read_from_datastore()

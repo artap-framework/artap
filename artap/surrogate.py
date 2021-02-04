@@ -28,9 +28,8 @@ class SurrogateModel(metaclass=ABCMeta):
         self.y_data.append(y)
 
     def read_from_data_store(self):
-        for population in self.problem.populations:
-            for individual in population.individuals:
-                self.add_data(individual.vector, individual.costs)
+        for individual in self.problem.individuals:
+            self.add_data(individual.vector, individual.costs)
 
     def init_default_regressor(self):
         pass
