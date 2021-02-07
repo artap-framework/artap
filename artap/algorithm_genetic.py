@@ -24,7 +24,7 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
                              desc='Maximal number of individuals in population')
 
         self.problem = problem
-
+        self.__only_single_objective = False
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
 
