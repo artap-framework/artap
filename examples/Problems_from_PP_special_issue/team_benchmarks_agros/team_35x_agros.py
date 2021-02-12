@@ -10,7 +10,7 @@ try:
 except ImportError:
     print("Agros is not present test skipped")
 
-from examples.team_benchmarks_agros.team_35x_semi_analytical import ProblemAnalytical
+from examples.Problems_from_PP_special_issue.team_benchmarks_agros.team_35x_semi_analytical import ProblemAnalytical
 
 
 class AgrosSimple(Problem):
@@ -222,8 +222,8 @@ def optim_single():
     problem = AgrosSimple()
     # optimization
     algorithm = NSGAII(problem)
-    algorithm.options['max_population_number'] = 100
-    algorithm.options['max_population_size'] = 100
+    algorithm.options['max_population_number'] = 3
+    algorithm.options['max_population_size'] = 3
     algorithm.run()
 
     b = Results(problem)
