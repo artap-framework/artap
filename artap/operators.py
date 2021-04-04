@@ -215,6 +215,26 @@ class CustomGenerator(Generator):
         return individuals
 
 
+class UniformGenerator(Generator):
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
+        self.number = 0
+
+    def init(self, number):
+        self.number = number
+
+    def generate(self):
+        individuals = []
+        for i in range(self.number):
+            vector = []
+            for parameter in self.parameters:
+                delta = (parameter['bounds'][1] - parameter['bounds'][0]) / (self.number - 1)
+                vector.append(parameter['bounds'][0] + i*delta)
+
+            individuals.append(Individual(vector, self.features))
+        return individuals
+
+
 class RandomGenerator(Generator):
     def __init__(self, parameters=None, features=dict()):
         super().__init__(parameters, features)

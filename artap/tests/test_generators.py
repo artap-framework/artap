@@ -1,6 +1,6 @@
 import unittest
 from ..operators import CustomGenerator, RandomGenerator, FullFactorGenerator, FullFactorLevelsGenerator, PlackettBurmanGenerator, \
-    BoxBehnkenGenerator, LHSGenerator, GSDGenerator, HaltonGenerator
+    BoxBehnkenGenerator, LHSGenerator, GSDGenerator, HaltonGenerator, UniformGenerator
 
 
 class TestDOE(unittest.TestCase):
@@ -36,6 +36,22 @@ class TestDOE(unittest.TestCase):
         self.assertEqual(individuals[1].vector[0], -1)
         self.assertEqual(individuals[1].vector[1], 3)
         self.assertEqual(individuals[1].vector[2], 8)
+
+    def test_uniform_generator(self):
+        gen = UniformGenerator(parameters=self.parameters)
+        gen.init(2)
+        individuals = gen.generate()
+        print(individuals)
+        # values
+        self.assertEqual(individuals[0].vector[0], -2.5)
+        self.assertEqual(individuals[0].vector[1], 1.0)
+        self.assertEqual(individuals[0].vector[2], 6.0)
+        self.assertEqual(individuals[1].vector[0], 1.25)
+        self.assertEqual(individuals[1].vector[1], 2.2)
+        self.assertEqual(individuals[1].vector[2], 8.0)
+        self.assertEqual(individuals[2].vector[0], 5.0)
+        self.assertEqual(individuals[2].vector[1], 3.4)
+        self.assertEqual(individuals[2].vector[2], 10.0)
 
     # Factorial Designs
     def test_full_fact_generator(self):
