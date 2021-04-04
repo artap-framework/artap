@@ -39,19 +39,17 @@ class TestDOE(unittest.TestCase):
 
     def test_uniform_generator(self):
         gen = UniformGenerator(parameters=self.parameters)
-        gen.init(2)
+        gen.init(4)
         individuals = gen.generate()
-        print(individuals)
+
         # values
-        self.assertEqual(individuals[0].vector[0], -2.5)
-        self.assertEqual(individuals[0].vector[1], 1.0)
+        self.assertEqual(len(individuals), 4**len(self.parameters))
         self.assertEqual(individuals[0].vector[2], 6.0)
-        self.assertEqual(individuals[1].vector[0], 1.25)
-        self.assertEqual(individuals[1].vector[1], 2.2)
-        self.assertEqual(individuals[1].vector[2], 8.0)
-        self.assertEqual(individuals[2].vector[0], 5.0)
-        self.assertEqual(individuals[2].vector[1], 3.4)
-        self.assertEqual(individuals[2].vector[2], 10.0)
+        self.assertEqual(individuals[1].vector[0], -2.5)
+        self.assertEqual(individuals[12].vector[1], 3.4)
+        self.assertEqual(individuals[28].vector[2], 6.0)
+        self.assertEqual(individuals[35].vector[0], 2.5)
+        self.assertEqual(individuals[63].vector[2], 10.0)
 
     # Factorial Designs
     def test_full_fact_generator(self):

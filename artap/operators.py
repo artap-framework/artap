@@ -5,6 +5,7 @@ import math
 from math import exp
 import numpy as np
 import functools
+import itertools
 
 from .individual import Individual
 from .utils import VectorAndNumbers
@@ -225,13 +226,16 @@ class UniformGenerator(Generator):
 
     def generate(self):
         individuals = []
-        for i in range(self.number):
-            vector = []
-            for parameter in self.parameters:
-                delta = (parameter['bounds'][1] - parameter['bounds'][0]) / (self.number - 1)
-                vector.append(parameter['bounds'][0] + i*delta)
+        vectors = []
+        for parameter in self.parameters:
+            vectors.append([])
+            delta = (parameter['bounds'][1] - parameter['bounds'][0]) / (self.number - 1)
+            for i in range(self.number):
+                vectors[-1].append(parameter['bounds'][0] + i*delta)
 
-            individuals.append(Individual(vector, self.features))
+        for combination in itertools.product(*vectors):
+            individuals.append(Individual(list(combination), self.features))
+
         return individuals
 
 
