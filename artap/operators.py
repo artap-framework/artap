@@ -5,6 +5,7 @@ import math
 from math import exp
 import numpy as np
 import functools
+import itertools
 
 from .individual import Individual
 from .utils import VectorAndNumbers
@@ -212,6 +213,29 @@ class CustomGenerator(Generator):
         individuals = []
         for vector in self.vectors:
             individuals.append(Individual(vector, self.features))
+        return individuals
+
+
+class UniformGenerator(Generator):
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
+        self.number = 0
+
+    def init(self, number):
+        self.number = number
+
+    def generate(self):
+        individuals = []
+        vectors = []
+        for parameter in self.parameters:
+            vectors.append([])
+            delta = (parameter['bounds'][1] - parameter['bounds'][0]) / (self.number - 1)
+            for i in range(self.number):
+                vectors[-1].append(parameter['bounds'][0] + i*delta)
+
+        for combination in itertools.product(*vectors):
+            individuals.append(Individual(list(combination), self.features))
+
         return individuals
 
 
