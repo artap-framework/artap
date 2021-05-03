@@ -6,9 +6,9 @@ This is base class for all algorithms
 
 from .problem import Problem
 from .utils import ConfigDictionary
-from abc import ABCMeta
 from .operators import Evaluator, GradientEvaluator, WorstCaseEvaluator
 
+from abc import ABCMeta
 from enum import Enum
 from uuid import uuid1
 
@@ -74,4 +74,5 @@ class DummyAlgorithm(Algorithm):
 
     def run(self):
         pass
+
 
