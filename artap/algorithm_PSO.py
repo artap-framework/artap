@@ -31,4 +31,31 @@ class PSOAlgorithm(GeneralEvolutionaryAlgorithm):
         self.best_global = self.options['init_position']
         self.best_particle = self.particle_pos
 
-# TODO Define : def Update_positions and def Update_velocity
+    def UpdatePosition(self, x, v):
+        x = np.array(x)
+        v = np.array(v)
+        new_pos = x + v
+        return new_pos
+
+    def UpdateVelocity(self, x, v, best_particle, best_global, c1=0.5, c2=1.5, w=0.75):
+        """
+        x & v : particle current position and velocity
+        best_particle : particle's best position
+        best_global : best position among all the particles
+        c1 & c2 : cognitive scaling constant & social scaling constant
+        w : inertia weight
+        """
+        x = np.array(x)
+        v = np.array(v)
+        best_particle = np.array(best_particle)
+        best_global = np.array(best_global)
+
+        """
+        position and velocity must have same shape
+        """
+        assert x.shape == v.shape
+        random_number = uniform()
+        new_velocity = w * v + c1 * random_number * (best_particle - x) + c1 * random_number * (best_global - x)
+        return new_velocity
+
+# TODO Define : def run()
