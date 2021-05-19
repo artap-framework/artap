@@ -1,6 +1,6 @@
 import unittest
 from ..benchmark_functions import Ackley
-from ..algorithm_swarm import SwarmAlgorithm, OMOPSO
+from ..algorithm_swarm import SwarmAlgorithm, OMOPSO, SMPSO
 from ..problem import Problem
 from ..individual import Individual
 from ..archive import Archive
@@ -125,7 +125,7 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         x = Individual([1, 2])
         x.costs = [2.0, 1.0]
         x.costs_signed = [2.0, 1.0, 0]
-        x.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2], 'crowding_distance':[50]}
+        x.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2], 'crowding_distance': [50]}
 
         self.omopso.leaders.add(x)
         y = self.omopso.select_leader()
@@ -135,7 +135,7 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         z = Individual([3, 2])
         z.costs = [0.5, 1.5]
         z.costs_signed = [0.5, 1.5, 0]
-        z.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2], 'crowding_distance':[100]}
+        z.features = {'velocity': [1, 2], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2], 'crowding_distance': [100]}
 
         self.omopso.leaders.add(z)
         y = self.omopso.select_leader()
@@ -214,3 +214,40 @@ class TestOMOPSOTOOLS(unittest.TestCase):
 
         self.assertEqual(self.omopso.archive.size(), 10)  # archive should contain everybody
         self.assertEqual(self.omopso.leaders.size(), 5)  # shuold be truncated to 5
+
+
+class TestSMPSOTOOLS(unittest.TestCase):
+    def setUp(self):
+        problem = TestProblem()
+        self.smpso = SMPSO(problem)
+        # self.mutator = 0.1
+
+    def test_turbulence(self):
+        x = Individual([1, 3])
+        x.costs = [0.5, 1.5]
+        x.costs_signed = [0.5, 1.5, 0]
+        x.features = {
+            'velocity': [1, 2],
+            'best_cost': [0, 0, 0],
+            'best_vector': [1, 2]}
+        population = [x]
+        self.smpso.turbulence(population)
+        # print(population)
+        # print(population[0].vector)
+        self.assertNotEqual(population[0].vector, [1, 2])
+        self.assertEqual(population[0].features, x.features)
+
+    def test_global_best(self):
+        x = Individual([4, 5])
+        x.costs = [0.5, 1.5]
+        x.costs_signed = [0.5, 1.5, 0]
+        x.features = {
+            'velocity': [1, 2],
+            'best_cost': [0, 0, 0],
+            'best_vector': [1, 2],
+            'crowding_distance': [100]
+        }
+        self.smpso.leaders.add(x)
+        y = self.smpso.select_leader()
+        # print(y)
+        self.assertEqual(x, y)
