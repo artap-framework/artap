@@ -251,3 +251,57 @@ class TestSMPSOTOOLS(unittest.TestCase):
         y = self.smpso.select_leader()
         # print(y)
         self.assertEqual(x, y)
+
+    def test_initial_velocity(self):
+        x = Individual([3, 4])
+        x.costs = [0.5, 1.5]
+        x.costs_signed = [0.5, 1.5, 0]
+        x.features = {
+            'velocity': [],
+            'best_cost': [0, 0, 0],
+            'best_vector': [3, 4]}
+        population = [x]
+        self.smpso.init_pvelocity(population)
+        """
+            initial value for velocity is zero, 
+            the init_pvelocity must return zero
+        """
+        self.assertEqual(x.features['velocity'], [0, 0])
+
+    def test_update_velocity(self):
+        self.smpso.c1_min = 1
+        self.smpso.c1_max = 1
+        self.smpso.c2_min = 1
+        self.smpso.c2_max = 1
+        self.smpso.r1_min = 1
+        self.smpso.r1_max = 1
+        self.smpso.r2_min = 1
+        self.smpso.r2_max = 1
+        self.smpso.min_weight = 1
+        self.smpso.max_weight = 1
+
+        x = Individual([3, 4])
+        x.costs = [0.5, 1.5]
+        x.costs_signed = [0.5, 1.5, 0]
+        x.features = {
+            'velocity': [3, 4],
+            'best_cost': [0, 0, 0],
+            'best_vector': [2, 2]}
+
+        self.smpso.leaders.add(x)
+        population = [x]
+        self.smpso.update_velocity(population)
+        self.assertNotEqual(population[0].features['velocity'], [1, 2])
+
+    def test_update_position(self):
+        x = Individual([5, 10])
+        x.costs = [5, 10]
+        x.costs_signed = [5, 10, 0]
+        x.features = {
+            'velocity': [1, 2],
+            'best_cost': [0, 0, 0],
+            'best_vector': [1, 2]}
+        population = [x]
+        self.smpso.update_position(population)
+
+        self.assertEqual(population[0].vector, [6, 12])
