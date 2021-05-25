@@ -1,7 +1,7 @@
 import unittest
 from ..algorithm_swarm import OMOPSO, SMPSO
 from ..results import Results
-from ..benchmark_functions import BinhAndKorn, AlpineFunction, Ackley, Rosenbrock
+from ..benchmark_functions import BinhAndKorn, AlpineFunction, Ackley, Rosenbrock, Rastrigin
 from ..benchmark_pareto import ZDT1
 from ..quality_indicator import epsilon_add
 
@@ -139,6 +139,22 @@ class TestAlpineFunctionOMOPSO(unittest.TestCase):
         result = Results(problem)
         optimum = result.find_optimum('f_1')
         self.assertEqual(optimum.costs[0], 0.0)
+
+
+class TestRastriginFunctionSMPSO(unittest.TestCase):
+    # unit-test    benchmark : Rastrigin Function, algorithm : SMPSO
+    def test_local_problem(self):
+        problem = Rastrigin(**{'dimension': 1})
+        algorithm = SMPSO(problem)
+        algorithm.options['max_population_number'] = 200
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 1
+        algorithm.run()
+
+        result = Results(problem)
+        optimum = result.find_optimum('f_1')
+        # print(optimum)
+        self.assertEqual(optimum.costs[0], 0)
 
 
 if __name__ == '__main__':
