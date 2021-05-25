@@ -37,13 +37,13 @@ problem = SpringDamperSMPSO()
 algorithm = SMPSO(problem)
 # algorithm = OMOPSO(problem)
 
-algorithm.options['max_population_number'] = 100
-algorithm.options['max_population_size'] = 1000
+algorithm.options['max_population_number'] = 20
+algorithm.options['max_population_size'] = 100
 s = algorithm.run()
 
 results = Results(problem)
 solution = results.pareto_values()
 # solution = results.find_optimum()
 
-plot(solution)
+plot(solution, 'o')
 show()
