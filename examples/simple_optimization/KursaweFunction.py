@@ -3,7 +3,6 @@ import numpy as np
 from artap.algorithm_swarm import SMPSO, OMOPSO
 from artap.problem import Problem
 from artap.results import Results
-from artap.benchmark_functions import BenchmarkFunction
 from pylab import cos, sin, exp, plot, show, xlabel, ylabel
 
 
@@ -11,7 +10,6 @@ class KursaweFunctionProblem(Problem):
 
     def set(self, **kwargs):
         self.name = 'Kursawe Function'
-        p = BenchmarkFunction()
         if 'dimension' in kwargs:
             self.dimension = kwargs['dimension']
         self.parameters = [{'name': 'x', 'bounds': [-5, 5]}]
@@ -24,7 +22,7 @@ class KursaweFunctionProblem(Problem):
         f1 = []
         f2 = []
         for i in range(0, self.dimension):
-            f_1 = np.sum(-10 * exp(-0.2 * np.sqrt(np.square(x[i]))))
+            f_1 = np.sum(-10 * exp(-0.2 * np.sqrt(np.square(x[i]) + np.square(x[i - 1]))))
             f1 = f_1
 
         for i in range(0, self.dimension):
