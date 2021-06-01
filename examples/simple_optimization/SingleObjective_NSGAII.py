@@ -13,22 +13,22 @@ class SingleObjectiveProblem_NSGAII(Problem):
         self.costs = [{'name': 'f_1'}]
 
     def evaluate(self, individual):
-        x = individual.vector
-        f1 = np.sum(k ** 2 for k in x)
+        x = individual.vector[0]
+        f1 = np.sum(x ** 2)
         return [f1]
 
 
 problem = SingleObjectiveProblem_NSGAII()
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 100
-algorithm.options['max_population_size'] = 100
+algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_size'] = 10
 
 algorithm.run()
 
 results = Results(problem)
 
 
-opt = results.find_optimum('f_1')
+opt = results.find_optimum()
 
-print('Optimal solution (NSGAII):', opt)
+print(opt)
 

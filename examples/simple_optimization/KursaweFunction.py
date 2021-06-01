@@ -1,6 +1,7 @@
 import numpy as np
 
 from artap.algorithm_swarm import SMPSO, OMOPSO
+from artap.algorithm_genetic import NSGAII
 from artap.problem import Problem
 from artap.results import Results
 from pylab import cos, sin, exp, plot, show, xlabel, ylabel
@@ -32,7 +33,7 @@ class KursaweFunctionProblem(Problem):
 
 
 problem = KursaweFunctionProblem(**{'dimension': 1})
-algorithm = SMPSO(problem)
+algorithm = NSGAII(problem)
 # algorithm = OMOPSO(problem)
 
 algorithm.options['max_population_number'] = 20
@@ -41,8 +42,19 @@ algorithm.run()
 
 results = Results(problem)
 solution = results.find_optimum()
-#print(solution)
+print(solution)
+s = results.population(10)
+print(s)
+ponindex = results.parameter_on_index(name='x', population_id=7)
+print(ponindex)
+
+csv = results.export_to_csv(filename='kursawe.csv')
+
+preto = results.pareto_front(population_id=10)  # It will get an error because the swarm algorithm does not have
+# 'front_number' feature
+print(preto)
 pareto = results.pareto_values()
+print(pareto)
 
 for f1, f2 in pareto:
     plot(f1, f2, marker="o", color="blue", markeredgecolor="black")

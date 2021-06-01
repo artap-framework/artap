@@ -3,6 +3,8 @@ import numpy as np
 
 from artap.problem import Problem
 from artap.algorithm_PSO import PSOAlgorithm
+from artap.algorithm_swarm import SMPSO
+from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
 
@@ -10,23 +12,23 @@ class Sphere(Problem):
     def set(self):
         self.name = 'Sphere'
 
-        self.parameters = [{'name': 'x1', 'bounds': [1, 1], 'parameter_type': 'integer'}]
+        self.parameters = [{'name': 'x1', 'bounds': [0, 1.0]}]
 
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 
     def evaluate(self, individual):
-        x = individual
-        f1 = np.sum(np.square(x))
+        x = individual.vector[0]
+        f1 = np.sum(x**2)
         return [f1]
 
 
 problem = Sphere()
-algorithm = PSOAlgorithm(problem)
-# algorithm.options['max_population_number'] = 100
-# algorithm.options['max_population_size'] = 100
+algorithm = NSGAII(problem)
+algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_size'] = 10
 # algorithm.options['init_position'] = [1, 1]
-s = algorithm.run()
+algorithm.run()
 results = Results(problem)
-print("Sphere function")
-print(f'x = {s[0]}')
-print(f'f = {s[1]}')
+
+ss = results.find_optimum()
+print(ss)

@@ -83,16 +83,21 @@ class Results:
         else:
             return out
 
+    # TODO : This method returns all the populations instead of the population in the given index
     def population(self, population_id=-1):
         # Returns population with given index
-        #if population_id >= len(self.problem.populations):
+        # if population_id >= len(self.problem.populations):
         #    raise ValueError('Index of population exceeds the number of populations.')
         if population_id == -1:
+            # TODO : last_population returns all the populations instead of last index population
             individuals = self.problem.last_population()
         else:
+            # TODO : population() must be modified to return the given index population
             individuals = self.problem.population(population_id)
         return individuals
 
+    # I assume this method must return the goal on the given index not to return all the population or the name must
+    # change
     def goal_on_index(self, name=None, population_id=-1):
         """ Returns a list of lists. The first list contains indexes of individuals in population,
             the other lists contains values of the goal function(s).
@@ -114,6 +119,8 @@ class Results:
 
         return table
 
+    # I assume this method must return the goal on the given index not to return all the population or the name must
+    # change
     def parameter_on_index(self, name=None, population_id=-1):
         """
         Returns a list of lists. The first list contains indexes of individuals in population,
@@ -221,8 +228,12 @@ class Results:
                         out.append(j)
 
                     writer.writerows([out])
-                population_id += 1
+                #population_id += 1
+                # increasing population_id does not work properly here, it must be written as below
+                    population_id += 1
 
+    # This method does not working properly for SWARM algorithms in algorithm_swarm.py, because in those algorithms
+    # the feature 'front_number' did not define in the individual_features
     def pareto_front(self, population_id=None):
         """
 
@@ -261,6 +272,7 @@ class Results:
 
         # get the index of the required parameter
         index = 0  # default - one parameter
+        min_l = []
         if name:
             for i in range(len(self.problem.costs)):
                 cost = self.problem.costs[i]
@@ -269,14 +281,14 @@ class Results:
         # if len(self.problem.data_store.individuals) is not 0:
         #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
         # else:
-        #if self.problem.archive:
+        # if self.problem.archive:
         #    min_l = [min(self.problem.archive, key=lambda x: x.costs[index])]
-        #else:
+        # else:
         if len(self.problem.individuals) > 0:
             min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
         # for population in self.problem.populations:
-        opt = min(min_l, key=lambda x: x.costs[index])
-        return opt
+        # opt = min(min_l, key=lambda x: x.costs[index])
+        return min_l
 
     # TODO: same function - David, could you check it and write test?
     def pareto_values(self, archive=None):
@@ -310,6 +322,7 @@ class Results:
         :return:
         """
 
+        result = 0
         computed = self.pareto_values()  # [[], [], .. ]
 
         if type == 'epsilon':

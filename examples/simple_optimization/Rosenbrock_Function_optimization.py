@@ -26,11 +26,15 @@ class RosenbrockFunctionProblem(Problem):
 
 problem = RosenbrockFunctionProblem()
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 100
-algorithm.options['max_population_size'] = 100
+algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_size'] = 10
 algorithm.run()
 
 results = Results(problem)
+
+optimum = results.find_optimum()
+print(optimum)
+
 solution = results.pareto_values()
 
 print(solution)

@@ -57,8 +57,8 @@ problem = BiObjectiveTestProblem()
 
 # Perform the optimization iterating over 100 times on 100 individuals.
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 100
-algorithm.options['max_population_size'] = 100
+algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_size'] = 20
 algorithm.run()
 
 # Post - processing the results
@@ -66,6 +66,23 @@ algorithm.run()
 results = Results(problem)
 results.pareto_values()
 results.pareto_plot()
+
+foptimum = results.find_optimum(name='x_2')
+print(foptimum)
+
+s = results.population(7)
+print(s)
+
+ponindex = results.parameter_on_index(name='x_1', population_id=7)
+print(ponindex)
+
+gop = results.goal_on_parameter(parameter_name='x_1', goal_name='f_1', population_id=3)
+print(gop)
+
+csv = results.export_to_csv(filename='results.csv')
+
+preto = results.pareto_front(population_id=10)
+print(preto)
 
 # Convergence plot on a selected goal function and parameter
 results.goal_on_parameter_plot('x_2', 'f_2')

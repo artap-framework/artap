@@ -157,8 +157,33 @@ class TestResults(unittest.TestCase):
         results = Results(problem)
         pareto_front = results.pareto_front()
         # print(pareto_front)
-        # self.assertEqual()
-        pass
+        self.assertNotEqual(pareto_front, [])
+        #pass
+
+    def test_pareto_value(self):
+        problem = TestProblem()
+        algorithm = NSGAII(problem)
+        algorithm.options['max_processes'] = 10
+        algorithm.options['max_population_number'] = 30
+        algorithm.options['max_population_size'] = 10
+        algorithm.run()
+
+        results = Results(problem)
+        pareto = results.pareto_values()
+        self.assertNotEqual(pareto[0], [0])
+
+    def test_performance_measure(self):
+        problem = TestProblem()
+        algorithm = NSGAII(problem)
+        algorithm.options['max_processes'] = 10
+        algorithm.options['max_population_number'] = 30
+        algorithm.options['max_population_size'] = 10
+        algorithm.run()
+
+        results = Results(problem)
+        reference = [-7.217422078425864]
+        performance_measure = results.performance_measure(reference)
+        self.assertNotEqual(reference, performance_measure)
 
     def test_export_to_csv(self):
         csv_filename = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".csv").name
