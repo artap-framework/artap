@@ -3,6 +3,7 @@ import os
 import tempfile
 import csv
 
+from matplotlib.pyplot import show
 
 from ..problem import Problem
 from ..algorithm_sweep import SweepAlgorithm
@@ -13,6 +14,7 @@ from ..results import Results
 
 class TestProblem(Problem):
     """ Describe simple one objective optimization problem. """
+
     def set(self):
         self.parameters = [{'name': 'x_1', 'initial_value': 10.0, 'bounds': [-10, 20]},
                            {'name': 'x_2', 'initial_value': 10.0, 'bounds': [-10, 20]}]
@@ -21,9 +23,30 @@ class TestProblem(Problem):
     def evaluate(self, individual):
         result = 0
         for i in individual.vector:
-            result += i*i
+            result += i * i
 
         return [result]
+
+    def evaluate_constraints(self, individual):
+        pass
+
+
+class TestGearDesignProblem(Problem):
+    def set(self):
+        self.name = 'Gear Design'
+
+        self.parameters = [{'name': 'x1', 'bounds': [12, 60], 'parameter_type': 'integer'},
+                           {'name': 'x2', 'bounds': [12, 60], 'parameter_type': 'integer'},
+                           {'name': 'x3', 'bounds': [12, 60], 'parameter_type': 'integer'},
+                           {'name': 'x4', 'bounds': [12, 60], 'parameter_type': 'integer'}]
+
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
+                      {'name': 'f_2', 'criteria': 'minimize'}]
+
+    def evaluate(self, x):
+        f1 = (1. / 6.931 - (x.vector[0] * x.vector[1]) / (x.vector[2] * x.vector[3])) ** 2.
+        f2 = max(x.vector)
+        return [f1, f2]
 
     def evaluate_constraints(self, individual):
         pass
@@ -158,7 +181,7 @@ class TestResults(unittest.TestCase):
         pareto_front = results.pareto_front()
         # print(pareto_front)
         self.assertNotEqual(pareto_front, [])
-        #pass
+        # pass
 
     def test_pareto_value(self):
         problem = TestProblem()
@@ -185,6 +208,17 @@ class TestResults(unittest.TestCase):
         performance_measure = results.performance_measure(reference)
         self.assertNotEqual(reference, performance_measure)
 
+    def test_pareto_plot_without_show_command_didnot_plot_figure(self):
+        problem = TestGearDesignProblem()
+        algorithm = NSGAII(problem)
+        algorithm.options['max_processes'] = 10
+        algorithm.options['max_population_number'] = 20
+        algorithm.options['max_population_size'] = 10
+        algorithm.run()
+        results = Results(problem)
+        results.pareto_plot()
+        # show()
+
     def test_export_to_csv(self):
         csv_filename = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".csv").name
         self.results.export_to_csv(csv_filename)
@@ -206,4 +240,3 @@ class TestResults(unittest.TestCase):
         individuals = self.results.population()
         self.assertEqual(len(individuals), 3)
         self.assertEqual(individuals[1].costs[0], 10.0)
-

@@ -123,6 +123,8 @@ class OMOPSO(SwarmAlgorithm):
         self.individual_features['velocity'] = dict()
         self.individual_features['best_cost'] = dict()
         self.individual_features['best_vector'] = dict()
+        # Add front_number feature
+        self.individual_features['front_number'] = 0
 
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
@@ -349,6 +351,8 @@ class SMPSO(SwarmAlgorithm):
         self.individual_features['velocity'] = dict()
         self.individual_features['best_cost'] = dict()
         self.individual_features['best_vector'] = dict()
+        # Add front_number feature
+        self.individual_features['front_number'] = 0
 
         self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()

@@ -33,7 +33,7 @@ class KursaweFunctionProblem(Problem):
 
 
 problem = KursaweFunctionProblem(**{'dimension': 1})
-algorithm = NSGAII(problem)
+algorithm = SMPSO(problem)
 # algorithm = OMOPSO(problem)
 
 algorithm.options['max_population_number'] = 20
@@ -56,8 +56,14 @@ print(preto)
 pareto = results.pareto_values()
 print(pareto)
 
-for f1, f2 in pareto:
-    plot(f1, f2, marker="o", color="blue", markeredgecolor="black")
-    xlabel('f1')
-    ylabel('f2')
+# Next lines without show() command, does not plot the objectives and goals 0n indexes
+results.objectives_plot()
+results.goal_on_index_plot(name='f_1', population_id=7)
 show()
+
+
+# for f1, f2 in pareto:
+#     plot(f1, f2, marker="o", color="blue", markeredgecolor="black")
+#     xlabel('f1')
+#     ylabel('f2')
+# show()

@@ -85,11 +85,16 @@ solution = b.pareto_values()
 
 print(solution)
 
-# Plotting out the resulting hyperbola with matplotlib
-plt.scatter([s[0] for s in solution],
-            [s[1] for s in solution])
-
-plt.xlabel("$f_1(x)$ - Error")
-plt.ylabel("$f_2(x)$ - Maximum size")
+b.objectives_plot()
+b.pareto_plot()
 
 plt.show()
+
+# Plotting out the resulting hyperbola with matplotlib
+# plt.scatter([s[0] for s in solution],
+#             [s[1] for s in solution])
+#
+# plt.xlabel("$f_1(x)$ - Error")
+# plt.ylabel("$f_2(x)$ - Maximum size")
+#
+# plt.show()

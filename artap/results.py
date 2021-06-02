@@ -228,12 +228,11 @@ class Results:
                         out.append(j)
 
                     writer.writerows([out])
-                #population_id += 1
-                # increasing population_id does not work properly here, it must be written as below
+                    # population_id += 1
+                    # increasing population_id does not work properly here, it must be written as below
                     population_id += 1
 
-    # This method does not working properly for SWARM algorithms in algorithm_swarm.py, because in those algorithms
-    # the feature 'front_number' did not define in the individual_features
+    # front_number feature is added to SWARM algorithms, so, this method works properly
     def pareto_front(self, population_id=None):
         """
 
@@ -361,6 +360,8 @@ class Results:
 
     def objectives_plot(self):
         fig, ax = self.get_objectives_plot()
+        # Next line is redundant because in the example files for example gear_design.py without using show() command,
+        # it does not plot any figures
         fig.show()
 
     def get_pareto_plot(self, cost_x=0, cost_y=1):
@@ -385,9 +386,10 @@ class Results:
         ax.set_ylabel('$' + y_name + '$', fontsize=self.label_size)
         return [fig, ax]
 
-
     def pareto_plot(self, cost_x=0, cost_y=1):
         fig, ax = self.get_pareto_plot(cost_x, cost_y)
+        # Next line is redundant because in the example files for example gear_design.py without using show() command,
+        # it does not plot any figures
         fig.show()
 
     def get_goal_on_index(self, name, population_id=-1):
@@ -446,9 +448,9 @@ class Results:
         fig, ax = self.set_figure()
         table = self.goal_on_index(name=name, population_id=population_id)
         n, bins, patches = ax.hist(x=table[1], bins='auto', color='#0504aa',
-                                    alpha=0.7, rwidth=0.85)
+                                   alpha=0.7, rwidth=0.85)
         fig.show()
 
     def get_mean_confidence_interval(self, name):
         index = self.goal_index(name)
-        return 
+        return

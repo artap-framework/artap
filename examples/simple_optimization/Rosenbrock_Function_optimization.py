@@ -40,3 +40,5 @@ solution = results.pareto_values()
 print(solution)
 plt.plot(solution)
 plt.show()
+
+results.objectives_plot()

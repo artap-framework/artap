@@ -1,3 +1,5 @@
+from pylab import show
+
 from artap.problem import Problem
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
@@ -98,3 +100,6 @@ results.goal_on_parameter_plot('x_2', 'f_2')
 reference = [(0.1 + x * 4.9 / 1000, 1. / (0.1 + x * 4.9 / 1000)) for x in range(0, 1000)]
 print('additive unary epsilon indicator:', results.performance_measure(reference))
 print('generational distance:', results.performance_measure(reference, type='gd'))
+
+results.objectives_plot()
+show()
