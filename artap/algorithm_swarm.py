@@ -1,4 +1,5 @@
 from random import randint, random, uniform, choice
+import numpy as np
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
@@ -439,7 +440,7 @@ class SMPSO(SwarmAlgorithm):
         # the length of the leaders archive cannot be longer than the number of the initial population
         self.leaders += swarm
         self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
-        #self.problem.archive += swarm
+        # self.problem.archive += swarm
 
         return
 
@@ -532,6 +533,147 @@ class SMPSO(SwarmAlgorithm):
         # sync changed individual informations
         self.problem.data_store.sync_all()
 
+
+class PSOGA(SwarmAlgorithm):
+    """
+    Implementation a hybrid of PSO-GA
+    """
+
+    def __init__(self, problem: Problem, name="PSOGA Algorithm"):
+        super().__init__(problem, name)
+        self.options.declare(name='prob_cross', default=1.0, lower=0,
+                             desc='prob_cross')
+        self.options.declare(name='prob_mutation', default=0.1, lower=0,
+                             desc='prob_mutation'),
+        self.n = self.options['max_population_size']
+
+        self.individual_features['velocity'] = dict()
+        self.individual_features['best_cost'] = dict()
+        self.individual_features['best_vector'] = dict()
+
+        self.individual_features['dominate'] = []
+        self.individual_features['crowding_distance'] = 0
+        self.individual_features['domination_counter'] = 0
+        # Add front_number feature
+        self.individual_features['front_number'] = 0
+
+        self.selector = CopySelector(self.problem.parameters)
+        self.dominance = ParetoDominance()
+        # set random generator
+        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+        self.leaders = Archive()
+        self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
+        # constants for the speed and the position calculation
+
+        self.c1_min = 1.5
+        self.c1_max = 2.5
+        self.c2_min = 1.5
+        self.c2_max = 2.5
+        self.r1_min = 0.0
+        self.r1_max = 1.0
+        self.r2_min = 0.0
+        self.r2_max = 1.0
+        self.min_weight = 0.1
+        self.max_weight = 0.1
+
+    def inertia_weight(self):
+        return uniform(self.min_weight, self.max_weight)
+
+    def init_pvelocity(self, individuals):
+        for individual in individuals:
+            individual.features['velocity'] = [0] * len(individual.vector)
+
+    def crossover(self, particles):
+        nVar = len(particles)
+        delta = 0.1
+
+        # j = range(nVar)
+        # particles[j].vector = (1 - alpha) * particles[j].vector
+        for i in range(len(particles) - 1):
+            alpha = int(uniform(-delta, 1 + delta))
+            # lb = self.parameters[i]['bounds'][0]
+            # ub = self.parameters[i]['bounds'][1]
+            particles[i].vector = alpha * particles[i].vector + (1 - alpha) * particles[i].vector
+            # c = max(particles[i].vector, lb)
+            # particles[i].vector = min(c, ub)
+
+    def turbulence(self, particles, current_step=0):
+        nVar = len(particles)
+        # i = int(uniform(1, nVar))
+        # lb = self.parameters[i]['bounds'][0]
+        # ub = self.parameters[i]['bounds'][1]
+        # sigma = (ub - lb) / 10
+        #
+        # y = particles
+        # y[i] = particles[i].vector + sigma * random()
+        for i in range(len(particles) - 1):
+            # lb = self.parameters[i]['bounds'][0]
+            # ub = self.parameters[i]['bounds'][1]
+            # sigma = (ub - lb) / 10
+            sigma = int(uniform(1, nVar)) / 10
+            y = particles
+            y[i] = np.asarray(particles[i].vector) * sigma
+
+        # evaluate to be in bounds
+        # y = min(max(y, lb), ub)
+
+    def update_velocity(self, individuals):
+        """
+        update velocity : w * v(i -1) + c1 * r1 * (best_vector - pos(i)) + c2 * r2 * (global_best - pos(i))
+        @param individuals:
+        @return: update individual.features['velocity']
+        """
+
+        for individual in individuals:
+            individual.features['velocity'] = [0] * len(individual.vector)
+            global_best = self.select_leader()
+
+            r1 = round(uniform(self.r1_min, self.r1_max), 1)
+            r2 = round(uniform(self.r1_min, self.r1_max), 1)
+            c1 = round(uniform(self.c1_min, self.c1_max), 1)
+            c2 = round(uniform(self.c1_min, self.c1_max), 1)
+
+            for i in range(0, len(individual.vector)):
+                lb = self.parameters[i]['bounds'][0]
+                ub = self.parameters[i]['bounds'][1]
+                w = self.khi(c1, c2)
+                momentum = w * individual.vector[i]
+                v_cog = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+                v_soc = c2 * r2 * (global_best.vector[i] - individual.vector[i])
+
+                v = momentum + v_cog + v_soc
+                individual.features['velocity'][i] = self.speed_constriction(v, ub, lb)
+
+    def select_leader(self):
+
+        if self.leaders.size() == 1:
+            return self.leaders.rand_choice()
+
+        candidates = self.leaders.rand_sample(2)
+
+        if candidates[1].features['crowding_distance'] > candidates[0].features['crowding_distance']:
+            best_global = candidates[1]
+        else:
+            best_global = candidates[0]
+        return best_global
+
+    def update_position(self, individuals):
+        for individual in individuals:
+            for parameter, i in zip(self.parameters, range(len(individual.vector))):
+                individual.vector[i] = individual.vector[i] + individual.features['velocity'][i]
+
+                if individual.vector[i] > parameter['bounds'][1]:
+                    individual.vector[i] = parameter['bounds'][1]
+
+                if individual.vector[i] < parameter['bounds'][0]:
+                    individual.vector[i] = parameter['bounds'][0]
+
+    def update_global_best(self, swarm):
+        crowding_distance(swarm)
+
+        self.leaders += swarm
+        self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
+        return
 # ........................
 #
 # ........................
@@ -543,8 +685,8 @@ class SMPSO(SwarmAlgorithm):
 #     Optimization. In Genetic and Evolutionary Computation - GECCO 2003, volume
 #     2723 of LNCS, pages 37–48, 2003.
 #
-#     This algorithm is a variant of the original PSO, published by Eberhart(2000), the origin of this modified algorithm,
-#     which constriction factor was introduced by Clercs in 1999.
+# This algorithm is a variant of the original PSO, published by Eberhart(2000), the origin of this modified
+# algorithm, which constriction factor was introduced by Clercs in 1999.
 #
 #     The code is based on SHI and EBERHARTS algorithm.
 #
