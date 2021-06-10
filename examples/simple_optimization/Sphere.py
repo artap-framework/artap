@@ -3,7 +3,7 @@ import numpy as np
 
 from artap.problem import Problem
 from artap.algorithm_PSO import PSOAlgorithm
-from artap.algorithm_swarm import SMPSO
+from artap.algorithm_swarm import SMPSO, PSOGA
 from artap.algorithm_genetic import NSGAII
 from artap.results import Results
 
@@ -23,7 +23,7 @@ class Sphere(Problem):
 
 
 problem = Sphere()
-algorithm = NSGAII(problem)
+algorithm = PSOGA(problem)
 algorithm.options['max_population_number'] = 10
 algorithm.options['max_population_size'] = 10
 # algorithm.options['init_position'] = [1, 1]

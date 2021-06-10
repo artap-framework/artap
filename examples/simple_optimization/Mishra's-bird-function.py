@@ -1,4 +1,4 @@
-from artap.algorithm_swarm import SMPSO, OMOPSO
+from artap.algorithm_swarm import SMPSO, OMOPSO, PSOGA
 from artap.problem import Problem
 from artap.results import Results
 from pylab import cos, sin, exp, plot, show, e
@@ -31,10 +31,11 @@ class MishrasBirdFunction(Problem):
 
 problem = MishrasBirdFunction()
 # algorithm = SMPSO(problem)
-algorithm = OMOPSO(problem)
+# algorithm = OMOPSO(problem)
+algorithm = PSOGA(problem)
 
-algorithm.options['max_population_number'] = 100
-algorithm.options['max_population_size'] = 100
+algorithm.options['max_population_number'] = 20
+algorithm.options['max_population_size'] = 20
 algorithm.run()
 
 results = Results(problem)

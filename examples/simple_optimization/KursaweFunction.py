@@ -1,6 +1,6 @@
 import numpy as np
 
-from artap.algorithm_swarm import SMPSO, OMOPSO
+from artap.algorithm_swarm import SMPSO, OMOPSO, PSOGA
 from artap.algorithm_genetic import NSGAII
 from artap.problem import Problem
 from artap.results import Results
@@ -33,8 +33,9 @@ class KursaweFunctionProblem(Problem):
 
 
 problem = KursaweFunctionProblem(**{'dimension': 1})
-algorithm = SMPSO(problem)
+# algorithm = SMPSO(problem)
 # algorithm = OMOPSO(problem)
+algorithm = PSOGA(problem)
 
 algorithm.options['max_population_number'] = 20
 algorithm.options['max_population_size'] = 100

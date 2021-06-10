@@ -584,38 +584,20 @@ class PSOGA(SwarmAlgorithm):
             individual.features['velocity'] = [0] * len(individual.vector)
 
     def crossover(self, particles):
-        nVar = len(particles)
+        # nVar = len(particles)
         delta = 0.1
 
-        # j = range(nVar)
-        # particles[j].vector = (1 - alpha) * particles[j].vector
-        for i in range(len(particles) - 1):
-            alpha = int(uniform(-delta, 1 + delta))
-            # lb = self.parameters[i]['bounds'][0]
-            # ub = self.parameters[i]['bounds'][1]
-            particles[i].vector = alpha * particles[i].vector + (1 - alpha) * particles[i].vector
-            # c = max(particles[i].vector, lb)
-            # particles[i].vector = min(c, ub)
+        for i in range(len(particles)):
+            alpha = uniform(-delta, 1 + delta)
 
-    def turbulence(self, particles, current_step=0):
+            particles[i].vector = alpha * np.asarray(particles[i].vector) + (1 - alpha) * np.asarray(particles[i].vector)
+
+    def mutation(self, particles, current_step=0):
         nVar = len(particles)
-        # i = int(uniform(1, nVar))
-        # lb = self.parameters[i]['bounds'][0]
-        # ub = self.parameters[i]['bounds'][1]
-        # sigma = (ub - lb) / 10
-        #
-        # y = particles
-        # y[i] = particles[i].vector + sigma * random()
         for i in range(len(particles) - 1):
-            # lb = self.parameters[i]['bounds'][0]
-            # ub = self.parameters[i]['bounds'][1]
-            # sigma = (ub - lb) / 10
             sigma = int(uniform(1, nVar)) / 10
             y = particles
-            y[i] = np.asarray(particles[i].vector) * sigma
-
-        # evaluate to be in bounds
-        # y = min(max(y, lb), ub)
+            y[i].vector = np.asarray(particles[i].vector) * sigma
 
     def update_velocity(self, individuals):
         """
@@ -674,6 +656,63 @@ class PSOGA(SwarmAlgorithm):
         self.leaders += swarm
         self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
         return
+
+    def run(self):
+        start = time.time()
+        self.problem.logger.info("PSOGA: {}/{}".format(self.options['max_population_number'],
+                                                       self.options['max_population_size']))
+        # initialization of swarm
+        self.generator.init(self.options['max_population_size'])
+        individuals = self.generator.generate()
+
+        for individual in individuals:
+            # append to problem
+            self.problem.individuals.append(individual)
+
+            # add to population
+            individual.population_id = 0
+
+        self.evaluate(individuals)
+        self.init_pvelocity(individuals)
+        self.init_pbest(individuals)
+        self.update_global_best(individuals)
+
+        for individual in individuals:
+            self.problem.data_store.sync_individual(individual)
+
+        it = 0
+        for it in range(self.options['max_population_number']):
+            offsprings = self.selector.select(individuals)
+
+            # PSO operators
+            self.update_velocity(offsprings)
+            self.update_position(offsprings)
+            self.evaluate(offsprings)
+
+            # GA operators
+            self.crossover(offsprings)
+            self.mutation(offsprings, it)
+
+            self.evaluate(offsprings)
+            self.update_particle_best(offsprings)
+            self.update_global_best(offsprings)
+
+            # update individuals
+            individuals = offsprings
+
+            for individual in individuals:
+                # add to population
+                individual.population_id = it + 1
+                # append to problem
+                self.problem.individuals.append(individual)
+                # sync to datastore
+                self.problem.data_store.sync_individual(individual)
+
+            # it += 1
+        t = time.time() - start
+        self.problem.logger.info("PSOGA: elapsed time: {} s".format(t))
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
 # ........................
 #
 # ........................
