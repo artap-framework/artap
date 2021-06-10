@@ -286,8 +286,8 @@ class Results:
         if len(self.problem.individuals) > 0:
             min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
         # for population in self.problem.populations:
-        # opt = min(min_l, key=lambda x: x.costs[index])
-        return min_l
+        opt = min(min_l, key=lambda x: x.costs[index])
+        return opt
 
     # TODO: same function - David, could you check it and write test?
     def pareto_values(self, archive=None):

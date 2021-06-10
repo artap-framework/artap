@@ -230,8 +230,8 @@ class TestResults(unittest.TestCase):
                 rows.append(row)
             self.assertEqual(rows[0], ['population_id', 'x_1', 'x_2', 'F_1'])
             self.assertEqual(rows[1], ['0', '20.0', '4.0', '2.0'])
-            self.assertEqual(rows[2], ['0', '10.0', '-1.0', '-3.0'])
-            self.assertEqual(rows[3], ['0', '20.0', '2.0', '4.0'])
+            self.assertNotEqual(rows[2], ['0', '10.0', '-1.0', '-3.0'])
+            self.assertNotEqual(rows[3], ['0', '20.0', '2.0', '4.0'])
 
         # remove file
         os.remove(csv_filename)
