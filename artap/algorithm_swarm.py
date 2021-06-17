@@ -1,6 +1,8 @@
 import sys
-from random import randint, random, uniform, choice
+from random import randint, random, uniform, choice, shuffle
 import numpy as np
+
+from .individual import Individual
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
@@ -588,7 +590,9 @@ class PSOGA(SwarmAlgorithm):
 
     def crossover(self, particles):
         # nVar = len(particles)
-        parent1, parent2 = self.generate_child(particles)
+        parents = self.tournamentselection(particles)
+        parent1 = parents[0]
+        parent2 = parents[1]
 
         '''
         SBX algorithm :
@@ -605,8 +609,8 @@ class PSOGA(SwarmAlgorithm):
         c = 10 
         average = round((a+b)/c)
         '''
-        parent1 = round(parent1)
-        parent2 = round(parent2)
+        parent1.vector = np.round(parent1.vector)
+        parent2.vector = np.round(parent2.vector)
 
         """
         x1 represent parent1 and x2 represent parent2
@@ -665,20 +669,20 @@ class PSOGA(SwarmAlgorithm):
                             x1[i], x2[i] = c1, c2
 
                     else:
-                        x1 = parent1
-                        x2 = parent2
+                        x1 = parent1.vector
+                        x2 = parent2.vector
                 # 50% chance of changing values. In the case random > 0.5, the children should have the same value as
                 # the parents
                 else:
-                    x1 = parent1
-                    x2 = parent2
+                    x1 = parent1.vector
+                    x2 = parent2.vector
         # if the random number generated is greater than the crossover rate, return the children as exact clones of
         # the parents
         else:
-            x1 = parent1
-            x2 = parent2
+            x1 = parent1.vector
+            x2 = parent2.vector
 
-        return x1, x2
+        return Individual(list(x1), parent1.features), Individual(list(x2), parent2.features)
 
         # delta = 0.1
         #
@@ -756,7 +760,7 @@ class PSOGA(SwarmAlgorithm):
         self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
         return
 
-    def generate_child(self, parents):
+    def tournamentselection(self, parents):
         # offsprings = []
         # parent1 = []
         # parent2 = []
@@ -765,9 +769,27 @@ class PSOGA(SwarmAlgorithm):
         #     copy_offspring.population_id = -1
         #     offsprings.append(copy_offspring)
         #
-        parent1 = self.selector.select(parents)
-        parent2 = self.selector.select(parents)
-        return parent1, parent2
+
+        # tournamentSelection Select and return one individual by tournament selection. A number of individuals are
+        # picked at random and the one with the highest fitness is selected for the next generation.Tournament
+        # selection: Pick tourny_size individuals at random. Return the best one out of the bunch.
+
+        tournamentSize = 2
+        popSize = len(parents)
+        selected = []
+        if tournamentSize > popSize:
+            for p in parents:
+                selected.append(p)
+        else:
+            indices = list(range(popSize))
+            shuffle(indices)
+            for i in range(tournamentSize):
+                selected.append(parents[indices[i]])
+        selected = sorted(selected, key=lambda c: c.costs, reverse=True)
+        return selected
+        # parent1 = self.selector.select(parents)
+        # parent2 = self.selector.select(parents)
+        # return parent1, parent2
 
     def run(self):
         start = time.time()
