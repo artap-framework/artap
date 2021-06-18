@@ -578,7 +578,7 @@ class PSOGA(SwarmAlgorithm):
         self.r2_max = 1.0
         self.min_weight = 0.1
         self.max_weight = 0.1
-        self.distribution_index = 10
+        self.distribution_index = 1
         self.probability = 1
 
     def inertia_weight(self):
@@ -590,9 +590,9 @@ class PSOGA(SwarmAlgorithm):
 
     def crossover(self, particles):
         # nVar = len(particles)
-        parents = self.tournamentselection(particles)
-        parent1 = parents[0]
-        parent2 = parents[1]
+        # parents = self.tournamentselection(particles)
+        parent1 = particles[0]
+        parent2 = particles[1]
 
         '''
         SBX algorithm :
@@ -691,14 +691,55 @@ class PSOGA(SwarmAlgorithm):
         #
         # particles[i].vector = alpha * np.asarray(particles[i].vector) + (1 - alpha) * np.asarray(particles[i].vector)
 
-    def mutation(self, particles, current_step=0):
+    def mutation(self, particle, current_step=0):
+        global deltal, deltar
         y = []
-        nVar = len(particles)
-        for i in range(len(particles) - 1):
-            sigma = int(uniform(1, nVar)) / 10
-            y = particles
-            y[i].vector = np.asarray(particles[i].vector) * sigma
-        return y
+        # nVar = len(particles)
+        # for i in range(len(particles) - 1):
+        # sigma = int(uniform(1, nVar)) / 10
+        # sigma = 0.1
+        # y = particles
+        # y.vector = np.asarray(particles.vector) * sigma
+        # return y
+        # Plynomial Mutation
+        # PDF = Analyzing Mutation Schemes for real-Parameter Genetic Algorithms
+        # Link = https://www.iitk.ac.in/kangal/papers/k2012016.pdf
+        # section 2
+        #
+        # u = uniform(0, 1)
+        # if u <= 0.5:
+        #     deltal = pow(2 * u, 1 / (self.distribution_index + 1)) - 1
+        # else:
+        #     deltar = 1 - pow(2 * (1 - u), 1 / (self.distribution_index + 1))
+        #
+        # if u <= 0.5:
+        #     x = x + deltal * (x - lb)
+        # else:
+        #     x = x + deltar * (ub - x)
+        for i, param in enumerate(self.parameters):
+            if uniform(0, 1) < self.probability:
+                lb = param['bounds'][0]
+                ub = param['bounds'][1]
+                x = particle.vector[i]
+                u = uniform(0, 1)
+                # delta = min((x - lb), (ub - x)) / (ub - lb)
+                # mut_probability = 1 / (self.distribution_index + 1)
+
+                if u <= 0.5:
+                    deltal = pow(2 * u, 1 / (self.distribution_index + 1)) - 1
+                else:
+                    deltar = 1 - pow(2 * (1 - u), 1 / (self.distribution_index + 1))
+
+                if u <= 0.5:
+                    x = x + deltal * (x - lb)
+                else:
+                    x = x + deltar * (ub - x)
+                # check child boundaries
+                x = max(lb, min(x, ub))
+                y.append(x)
+            else:
+                y.append(particle[i].vector)
+        return Individual(y, particle.features)
 
     def update_velocity(self, individuals):
         """
@@ -824,7 +865,8 @@ class PSOGA(SwarmAlgorithm):
             self.evaluate(offsprings)
 
             # GA operators
-            offspring1, offspring2 = self.crossover(offsprings)
+            selected = self.tournamentselection(offsprings)
+            offspring1, offspring2 = self.crossover(selected)
             offspring1 = self.mutation(offspring1, it)
             offspring2 = self.mutation(offspring2, it)
             offsprings.append(offspring1)
