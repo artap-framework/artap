@@ -6,7 +6,7 @@ from .individual import Individual
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
-    NonUniformMutation, UniformMutator, CopySelector
+    NonUniformMutation, UniformMutator, CopySelector, IntegerGenerator
 from .archive import Archive
 from copy import copy, deepcopy
 import time
@@ -563,7 +563,7 @@ class PSOGA(SwarmAlgorithm):
         self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = IntegerGenerator(self.problem.parameters, self.individual_features)
         self.leaders = Archive()
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # constants for the speed and the position calculation
@@ -837,7 +837,7 @@ class PSOGA(SwarmAlgorithm):
         self.problem.logger.info("PSOGA: {}/{}".format(self.options['max_population_number'],
                                                        self.options['max_population_size']))
         # initialization of swarm
-        self.generator.init(self.options['max_population_size'])
+        self.generator.init(self.options['max_population_size'], self.parameters)
         individuals = self.generator.generate()
 
         for individual in individuals:

@@ -231,7 +231,7 @@ class UniformGenerator(Generator):
             vectors.append([])
             delta = (parameter['bounds'][1] - parameter['bounds'][0]) / (self.number - 1)
             for i in range(self.number):
-                vectors[-1].append(parameter['bounds'][0] + i*delta)
+                vectors[-1].append(parameter['bounds'][0] + i * delta)
 
         for combination in itertools.product(*vectors):
             individuals.append(Individual(list(combination), self.features))
@@ -254,6 +254,29 @@ class RandomGenerator(Generator):
             individuals.append(Individual(vector, self.features))
         return individuals
 
+
+class IntegerGenerator(Generator):
+    """
+    Generate Integer vectors for problems with discrete values
+    """
+
+    def __init__(self, parameters, features=dict()):
+        super().__init__(parameters, features)
+        # self.parameters['parameter_type'] = 'integer'
+        self.number = 0
+
+    def init(self, number, parameters):
+        self.number = number
+        for parameter in parameters:
+            if not ('parameter_type' in parameter):
+                parameter['parameter_type'] = 'integer'
+
+    def generate(self):
+        individuals = []
+        for i in range(self.number):
+            vector = VectorAndNumbers.gen_vector(self.parameters)
+            individuals.append(Individual(vector, self.features))
+        return individuals
 
 class FullFactorGenerator(Generator):
     """
@@ -1355,7 +1378,7 @@ class FireflyStep(Operator):
               Engineering with computers, 29(2), 175-184.
     """
 
-    def __init__(self, parameters, alpha = 0.01, beta = 1.0, gamma = 0.5, damping = 0.9, dominance=ParetoDominance()):
+    def __init__(self, parameters, alpha=0.01, beta=1.0, gamma=0.5, damping=0.9, dominance=ParetoDominance()):
         super().__init__()
         self.parameters = parameters
         self.dominance = dominance
@@ -1374,9 +1397,9 @@ class FireflyStep(Operator):
                 lb = param['bounds'][0]
                 ub = param['bounds'][1]
 
-                L = (ub-lb)
-                Gamma = L*self.gamma
-                alpha = self.a*L*0.9**iteration_nr
+                L = (ub - lb)
+                Gamma = L * self.gamma
+                alpha = self.a * L * 0.9 ** iteration_nr
 
                 # elementary distance of the particle, random walk
                 e = random.random() * (ub - lb)
