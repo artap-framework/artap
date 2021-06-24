@@ -1,6 +1,6 @@
 import numpy as np
 
-from artap.algorithm_swarm import SMPSO, OMOPSO
+from artap.algorithm_swarm import SMPSO, OMOPSO, PSOGA
 from artap.problem import Problem
 from artap.results import Results
 from pylab import cos, sin, exp, plot, show, xlabel, ylabel, pi
@@ -25,20 +25,20 @@ class HolderTableProblem(Problem):
 
 
 problem = HolderTableProblem()
-algorithm = SMPSO(problem)
+algorithm = PSOGA(problem)
 # algorithm = OMOPSO(problem)
 
 algorithm.options['max_population_number'] = 20
-algorithm.options['max_population_size'] = 100
+algorithm.options['max_population_size'] = 5
 algorithm.run()
 
 results = Results(problem)
 solution = results.find_optimum()
 print(solution)
-pareto = results.pareto_values()
-print(pareto)
-
-print(f' f(x,y) : {pareto[0]}')
-
-plot(pareto, marker="o", color="blue", markeredgecolor="black")
-show()
+# pareto = results.pareto_values()
+# print(pareto)
+#
+# print(f' f(x,y) : {pareto[0]}')
+#
+# plot(pareto, marker="o", color="blue", markeredgecolor="black")
+# show()

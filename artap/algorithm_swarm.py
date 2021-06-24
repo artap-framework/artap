@@ -588,6 +588,11 @@ class PSOGA(SwarmAlgorithm):
         for individual in individuals:
             individual.features['velocity'] = [0] * len(individual.vector)
 
+    # A function for rounding to the nearest integer for all offsprings
+    def makeinteger(self, individual):
+        for i in range(len(individual)):
+            individual[i] = np.rint(individual[i]).astype(int)
+
     def crossover(self, particles):
         # nVar = len(particles)
         # parents = self.tournamentselection(particles)
@@ -609,8 +614,8 @@ class PSOGA(SwarmAlgorithm):
         c = 10 
         average = round((a+b)/c)
         '''
-        parent1.vector = np.round(parent1.vector)
-        parent2.vector = np.round(parent2.vector)
+        # parent1.vector = np.round(parent1.vector)
+        # parent2.vector = np.round(parent2.vector)
 
         """
         x1 represent parent1 and x2 represent parent2
@@ -681,6 +686,8 @@ class PSOGA(SwarmAlgorithm):
         else:
             x1 = parent1.vector
             x2 = parent2.vector
+        self.makeinteger(x1)
+        self.makeinteger(x2)
 
         return Individual(list(x1), parent1.features), Individual(list(x2), parent2.features)
 
@@ -739,6 +746,8 @@ class PSOGA(SwarmAlgorithm):
                 y.append(x)
             else:
                 y.append(particle[i].vector)
+
+        self.makeinteger(y)
         return Individual(y, particle.features)
 
     def update_velocity(self, individuals):
@@ -793,6 +802,8 @@ class PSOGA(SwarmAlgorithm):
                 if individual.vector[i] < parameter['bounds'][0]:
                     individual.vector[i] = parameter['bounds'][0]
                     individual.features['velocity'][i] *= -1
+
+            self.makeinteger(individual.vector)
 
     def update_global_best(self, swarm):
         crowding_distance(swarm)
