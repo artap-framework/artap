@@ -28,7 +28,7 @@ problem = HolderTableProblem()
 algorithm = PSOGA(problem)
 # algorithm = OMOPSO(problem)
 
-algorithm.options['max_population_number'] = 20
+algorithm.options['max_population_number'] = 5
 algorithm.options['max_population_size'] = 5
 algorithm.run()
 

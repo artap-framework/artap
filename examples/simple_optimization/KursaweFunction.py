@@ -37,30 +37,31 @@ problem = KursaweFunctionProblem(**{'dimension': 1})
 # algorithm = OMOPSO(problem)
 algorithm = PSOGA(problem)
 
-algorithm.options['max_population_number'] = 20
-algorithm.options['max_population_size'] = 100
+algorithm.options['max_population_number'] = 5
+algorithm.options['max_population_size'] = 5
 algorithm.run()
 
 results = Results(problem)
 solution = results.find_optimum()
-print(solution)
-s = results.population(10)
-print(s)
-ponindex = results.parameter_on_index(name='x', population_id=7)
-print(ponindex)
-
-csv = results.export_to_csv(filename='kursawe.csv')
-
-preto = results.pareto_front(population_id=10)  # It will get an error because the swarm algorithm does not have
-# 'front_number' feature
-print(preto)
-pareto = results.pareto_values()
-print(pareto)
-
-# Next lines without show() command, does not plot the objectives and goals 0n indexes
-results.objectives_plot()
-results.goal_on_index_plot(name='f_1', population_id=7)
-show()
+print(solution.vector)
+print(solution.costs)
+# s = results.population(10)
+# print(s)
+# ponindex = results.parameter_on_index(name='x', population_id=7)
+# print(ponindex)
+#
+# csv = results.export_to_csv(filename='kursawe.csv')
+#
+# preto = results.pareto_front(population_id=10)  # It will get an error because the swarm algorithm does not have
+# # 'front_number' feature
+# print(preto)
+# pareto = results.pareto_values()
+# print(pareto)
+#
+# # Next lines without show() command, does not plot the objectives and goals 0n indexes
+# results.objectives_plot()
+# results.goal_on_index_plot(name='f_1', population_id=7)
+# show()
 
 
 # for f1, f2 in pareto:
