@@ -1,21 +1,129 @@
-import sys
-from random import *
 import numpy as np
 import tensorflow as tf
-from keras import backend as K
-from keras.layers import InputSpec, Layer, Dense, Conv2D
-from keras import constraints
-from keras import initializers
+import tensorflow._api.v2.compat as tv
+from keras.models import Sequential
 
-from .individual import Individual
 from .problem import Problem
-from .archive import Archive
 
 '''
     paper: Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding.
     url : https://arxiv.org/abs/1510.00149
     The goal is to compress the neural network using weights quantization with no loss of accuracy.
 '''
+
+
+class LayerTrain(object):
+
+    def __init__(self, in_depth, out_depth, N_clusters, name):
+        self.name = name
+        if 'conv' in name:
+            self.w = tf.Variable(tf.random.normal([5, 5, in_depth, out_depth], stddev=0.1))
+
+        elif 'fc' in name:
+            self.w = tf.Variable(tf.random.normal([in_depth, out_depth], stddev=0.1))
+
+        self.w_PH = tv.v1.placeholder(tf.float32, self.w.shape)
+        self.assign_w = tv.v1.assign(self.w, self.w_PH)
+        self.num_total_weights = np.prod(self.w.shape)
+
+        # mask placeholder for pruning
+        # ones - valid weights, zero - pruned weights
+        self.pruning_mask_data = np.ones(self.w.shape, dtype=np.float32)
+        self.N_clusters = N_clusters  # for quantization
+
+    def forward(self, x):
+        if 'conv' in self.name:
+            return tf.nn.conv2d(x, self.w, strides=[1, 2, 2, 1], padding='SAME')
+
+        elif 'fc' in self.name:
+            return tf.matmul(x, self.w)
+
+    # def save_weights_histogram(self, sess, directory, iteration):
+    #     w_data = sess.run(self.w).reshape(-1)
+    #     valid_w_data = [x for x in w_data if x != 0.0]
+    #
+    #     plt.grid(True)
+    #     plt.hist(valid_w_data, 100, color='0.4')
+    #     plt.gca().set_xlim([-0.4, 0.4])
+    #     plt.savefig(directory + '/' + self.name + '-' + str(iteration), dpi=100)
+    #     plt.gcf().clear()
+
+    # def save_weights(self, sess, directory):
+    #
+    #     w_data = sess.run(self.w)
+    #     np.save(directory + '/' + self.name + '-weights', w_data)
+    #     np.save(directory + '/' + self.name + '-prune-mask', self.pruning_mask_data)
+
+    # quantization
+    def quantize_weights(self, sess):
+        w_data = sess.run(self.w)
+        # theoretically pruning mask should be taken into consideration to compute max and min data only among valid
+        # weights but in practice with normal ditribution init there is 100% chances that min and max vals will be
+        # among valid weights
+        max_val = np.max(w_data)
+        min_val = np.min(w_data)
+
+        # linearly initialize centroids between max and min
+        self.centroids = np.linspace(min_val, max_val, self.N_clusters)
+        w_data = np.expand_dims(w_data, 0)
+        centroids_prev = np.copy(self.centroids)
+        for i in range(20):
+            if 'conv' in self.name:
+                distances = np.abs(w_data - np.reshape(self.centroids, (-1, 1, 1, 1, 1)))
+                distances = np.transpose(distances, (1, 2, 3, 4, 0))
+
+            elif 'fc' in self.name:
+                distances = np.abs(w_data - np.reshape(self.centroids, (-1, 1, 1)))
+                distances = np.transpose(distances, (1, 2, 0))
+
+            classes = np.argmin(distances, axis=-1)
+            self.clusters_masks = []
+            for i in range(self.N_clusters):
+                cluster_mask = (classes == i).astype(np.float32) * self.pruning_mask_data
+                self.clusters_masks.append(cluster_mask)
+
+                num_weights_assigned = np.sum(cluster_mask)
+                if num_weights_assigned != 0:
+                    self.centroids[i] = np.sum(cluster_mask * w_data) / num_weights_assigned
+                else:  # do not modify
+                    pass
+            if np.array_equal(centroids_prev, self.centroids):
+                break
+
+            centroids_prev = np.copy(self.centroids)
+
+        self.quantize_weights_update(sess)
+
+    def group_and_reduce_gradient(self, grad):
+        grad_out = np.zeros(self.w.shape, dtype=np.float32)
+        for i in range(self.N_clusters):
+            cluster_mask = self.clusters_masks[i]
+            centroid_grad = np.sum(grad * cluster_mask)
+
+            grad_out = grad_out + cluster_mask * centroid_grad
+
+        return grad_out
+
+    # for numerical stability
+    def quantize_centroids_update(self, sess):
+        w_data = sess.run(self.w)
+        for i in range(self.N_clusters):
+            cluster_mask = self.clusters_masks[i]
+            cluster_count = np.sum(cluster_mask)
+            if cluster_count != 0:
+                self.centroids[i] = np.sum(cluster_mask * w_data) / cluster_count
+            else:  # do not modify
+                pass
+
+    # for numerical stability
+    def quantize_weights_update(self, sess):
+        w_data_updated = np.zeros(self.w.shape, dtype=np.float32)
+        for i in range(self.N_clusters):
+            cluster_mask = self.clusters_masks[i]
+            centroid = self.centroids[i]
+
+            w_data_updated = w_data_updated + cluster_mask * centroid
+        sess.run(self.assign_w, feed_dict={self.w_PH: self.pruning_mask_data * w_data_updated})
 
 
 class DenseLayer(object):
@@ -86,7 +194,9 @@ class ConvLayer(object):
         self.W_out = W_out
 
         if not self.dense:
-            indices, values, dense_shape = [], [], [H_in * W_in * D_in, H_out * W_out * D_out]  # sparse matrix
+            indices = []
+            values = []
+            dense_shape = [], [], [H_in * W_in * D_in, H_out * W_out * D_out]  # sparse matrix
         else:
             matrix = np.zeros((H_in * W_in * D_in, H_out * W_out * D_out), dtype=np.float32)  # dense matrix
 
@@ -148,3 +258,39 @@ class ConvLayer(object):
 
     def forward_conv(self, x):
         return tf.nn.conv2d(x, self.w_tensor, strides=[1, self.stride, self.stride, 1], padding='SAME')
+
+
+class NNModel:
+    def __init__(self, problem: Problem, name, weights, prune_mask):
+        self.problem = problem
+        self.name = name
+        self.weights = weights
+        self.prune_mask = prune_mask
+
+    def build_model(self, weights, prune_mask):
+        x_PH = tv.v1.placeholder(tf.float32, [None, 28, 28, 1])
+
+        model = Sequential()
+        layer1 = model.add(ConvLayer(weights, prune_mask, x_PH.shape[1], x_PH.shape[2], 2, 'conv1'))
+        x = model.add(layer1.forward_matmul_preprocess(x_PH))
+        x = model.add(tf.nn.relu(layer1.forward_matmul(x)))
+        x = model.add(layer1.forward_matmul_postprocess(x))
+
+        layer2 = model.add(ConvLayer(weights, prune_mask, x.shape[1], x.shape[2], 2, 'conv2'))
+        x = model.add(layer2.forward_matmul_preprocess(x))
+        x = model.add(tf.nn.relu(layer2.forward_matmul(x)))
+        x = model.add(layer2.forward_matmul_postprocess(x))
+
+        x = tf.reshape(x, [-1, 7 * 7 * 64])
+
+        layer3 = model.add(DenseLayer(weights, prune_mask, 'fc1'))
+        x = model.add(tf.nn.relu(layer3.forward(x)))
+
+        layer4 = model.add(DenseLayer(weights, prune_mask, 'fc2'))
+        logits = model.add(layer4.forward(x))
+
+        labels = tv.v1.placeholder(tf.float32, [None, 10])
+        correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+        return model, accuracy
