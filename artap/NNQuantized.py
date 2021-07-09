@@ -4,6 +4,7 @@ from scipy.sparse import csr_matrix
 import tensorflow._api.v2.compat as tv
 from keras.layers import InputSpec, Layer, Dense, Conv2D
 from keras import backend as K
+
 # tv.disable_v2_behavior()
 tv.v1.disable_v2_behavior()
 from keras.models import Sequential
@@ -289,6 +290,7 @@ class ConvLayer(object):
 
         return tf.nn.conv2d(x, self.w_tensor, strides=[1, self.stride, self.stride, 1], padding='SAME')
 
+
 # class ConvLayer(object):
 #     def __init__(self, tensor, prune_mask, H_in, W_in, stride, name, dense=False):
 #         assert tensor.shape == prune_mask.shape
@@ -428,3 +430,47 @@ class NNModel:
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
         return model, accuracy
+
+
+'''
+    class for quantization of Optimizers 
+'''
+
+
+class Quantized_optimizers:
+
+    def round_opt(self, x):
+        rounded = K.round(x)
+        rounded_opt = x + K.stop_gradient(rounded - x)
+
+        return rounded_opt
+
+    def hard_sigmoid(self, x):
+        result = K.clip((x + 1) / 2, 0, 1)
+        return result
+
+    def quantized_relu(self, W, nb=16):
+        nb_bits = nb
+        Wq = K.clip(2. * (self.round_opt(self.hard_sigmoid(W) * pow(2, nb_bits)) / pow(2, nb_bits)) - 1., 0,
+                    1 - 1.0 / pow(2, nb_bits - 1))
+        return Wq
+
+    def quantized_tanh(self, W, nb=16):
+        non_sign_bits = nb - 1
+        m = pow(2, non_sign_bits)
+        Wq = K.clip(self.round_opt(W * m), -m, m - 1) / m
+
+        return Wq
+
+    def quantized_leakyrelu(self, W, nb=16, alpha=0.1):
+        if alpha != 0:
+            negative_part = tf.nn.relu(-W)
+        W = tf.nn.relu(W)
+        if alpha != 0:
+            alpha = tf.cast(tf.convert_to_tensor(alpha), W.dtype.base_dtype)
+            W -= alpha * negative_part
+        non_sign_bits = nb - 1
+        m = pow(2, non_sign_bits)
+        Wq = K.clip(self.round_through(W * m), -m, m - 1) / m
+
+        return Wq
