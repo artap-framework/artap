@@ -433,7 +433,9 @@ class NNModel:
 
 
 '''
-    class for quantization of Optimizers 
+    class for quantization of Optimizers
+    url : https://arxiv.org/pdf/1602.02830.pdf
+    paper: Binarized Neural Networks: Training Neural Networks with Weights and Activations Constrained to +1 or −1
 '''
 
 
@@ -444,6 +446,10 @@ class Quantized_optimizers:
         rounded_opt = x + K.stop_gradient(rounded - x)
 
         return rounded_opt
+
+    def clip_opt(self, x, min, max):
+        clipped = K.clip(x, min, max)
+        return x + K.stop_gradient(clipped - x)
 
     def hard_sigmoid(self, x):
         result = K.clip((x + 1) / 2, 0, 1)
@@ -463,6 +469,7 @@ class Quantized_optimizers:
         return Wq
 
     def quantized_leakyrelu(self, W, nb=16, alpha=0.1):
+        global negative_part
         if alpha != 0:
             negative_part = tf.nn.relu(-W)
         W = tf.nn.relu(W)
@@ -471,6 +478,217 @@ class Quantized_optimizers:
             W -= alpha * negative_part
         non_sign_bits = nb - 1
         m = pow(2, non_sign_bits)
-        Wq = K.clip(self.round_through(W * m), -m, m - 1) / m
+        Wq = K.clip(self.round_opt(W * m), -m, m - 1) / m
 
         return Wq
+
+    def quantize(self, W, nb=16, clip_through=False):
+        non_sign_bits = nb - 1
+        m = pow(2, non_sign_bits)
+        if clip_through:
+            Wq = self.clip_opt(self.round_opt(W * m), -m, m - 1) / m
+        else:
+            Wq = K.clip(self.round_opt(W * m), -m, m - 1) / m
+
+        return Wq
+
+    def mean_abs(self, x, axis=None, keepdims=False):
+        return K.stop_gradient(K.mean(K.abs(x), axis=axis, keepdims=keepdims))
+
+    def Xnorize(self, W, H=1, axis=None, keepdims=False):
+        Wb = self.quantize(W, H)
+        Wa = self.mean_abs(W, axis, keepdims)
+
+
+class Clip(constraints.Constraint):
+    def __init__(self, min_value, max_value=None):
+        self.min = min
+        self.max = max
+        if not self.max:
+            self.max = -self.min
+        if self.min > self.max:
+            self.min = self.max
+            self.max = self.min
+
+    def __call__(self, p):
+        return K.clip(p, self.min_value, self.max_value)
+
+
+'''
+    class for quantization of Dense Layer
+    url : https://arxiv.org/pdf/1602.02830.pdf
+    paper: Binarized Neural Networks: Training Neural Networks with Weights and Activations Constrained to +1 or −1
+'''
+
+
+class DenseQuantized(Dense):
+    """
+        Layer weight initializers : 'glorot_uniform'
+        The neural network needs to start with some weights and then iteratively update them to better values.
+        The term kernel_initializer is a fancy term for which statistical distribution or function to use for
+        initialising the weights.
+    """
+
+    def __init__(self, units, H=1.0, nb=16, kernel_multiplier='glorot_uniform', bias_multiplier=None, **kwargs):
+        super(DenseQuantized, self).__init__(units, **kwargs)
+        self.H = H
+        self.nb = nb
+        self.kernel_multiplier = kernel_multiplier
+        self.bias_multiplier = bias_multiplier
+        super(DenseQuantized, self).__init__(units, **kwargs)
+
+    def build(self, input_shape):
+        input_dim = input_shape[1]
+        if self.H == 'glorot_unifrom':
+            self.H = np.float32(np.sqrt(1.5 / (input_dim + self.units)))
+        if self.kernel_multiplier == 'glorot_uniform':
+            self.kernel_multiplier = np.float32(1. / np.sqrt(1.5 / (input_dim + self.units)))
+
+        self.kernel_constraint = Clip(-self.H, self.H)
+        self.kernel_initializer = initializers.initializers_v1.RandomUniform(-self.H, self.H)
+        self.kernel = self.add_weight(shape=(input_dim, self.units),
+                                      initializer=self.kernel_initializer,
+                                      name='kernel',
+                                      regularizer=self.kernel_regularizer,
+                                      constraint=self.kernel_constraint)
+        if self.use_bias:
+            self.lr_multipliers = [self.kernel_lr_multiplier, self.bias_lr_multiplier]
+            self.bias = self.add_weight(shape=(self.units,),
+                                        initializer=self.bias_initializer,
+                                        name='bias',
+                                        regularizer=self.bias_regularizer,
+                                        constraint=self.bias_constraint)
+        else:
+            self.lr_multipliers = [self.kernel_multiplier]
+            self.bias = None
+
+        """
+        Specifies the rank, dtype and shape of every input to a layer.
+
+        Layers can expose (if appropriate) an `input_spec` attribute:
+        an instance of `InputSpec`, or a nested structure of `InputSpec` instances
+        (one per input tensor). These objects enable the layer to run input
+        compatibility checks for input structure, input rank, input shape, and
+        input dtype.
+
+        A None entry in a shape is compatible with any dimension,
+        a None shape is compatible with any shape.
+        """
+        self.input_spec = InputSpec(min_ndim=2, axes={-1: input_dim})
+        self.built = True
+
+    def call(self, inputs):
+        quantized_kernel = Quantized_optimizers.quantize(self, self.kernel, nb=self.nb)
+        output = K.dot(inputs, quantized_kernel)
+        if self.use_bias:
+            output = K.bias_add(output, self.bias)
+        if self.activation is not None:
+            output = self.activation(output)
+
+        return output
+
+
+'''
+    class for quantization of Convolution Layer
+    url : https://arxiv.org/pdf/1602.02830.pdf
+    paper: Binarized Neural Networks: Training Neural Networks with Weights and Activations Constrained to +1 or −1
+'''
+
+
+class ConvQuantized(Conv2D):
+    """
+        Layer weight initializers : 'glorot_uniform'
+        The neural network needs to start with some weights and then iteratively update them to better values.
+        The term kernel_initializer is a fancy term for which statistical distribution or function to use for
+        initialising the weights.
+    """
+
+    def __init__(self, filters, kernel_regularizer=None, activity_regularizer=None, kernel_multiplier='glorot_uniform',
+                 bias_multiplier=None, H=1.0, nb=16, **kwargs):
+        super(ConvQuantized, self).__init__(filters, **kwargs)
+        self.H = H
+        self.nb = nb
+        self.kernel_multiplier = kernel_multiplier
+        self.bias_multiplier = bias_multiplier
+        self.activity_regularizer = activity_regularizer
+        self.kernel_regularizer = kernel_regularizer
+
+    def build(self, input_shape):
+
+        input_dim = input_shape[1]
+        kernel_shape = self.kernel_size + (input_dim, self.filters)
+
+        base = self.kernel_size[0] * self.kernel_size[1]
+        if self.H == 'glorot_uniform':
+            nb_input = int(input_dim * base)
+            nb_output = int(self.filters * base)
+            self.H = np.float32(np.sqrt(1.5 / (nb_input + nb_output)))
+
+        if self.kernel_lr_multiplier == 'glorot_uniform':
+            nb_input = int(input_dim * base)
+            nb_output = int(self.filters * base)
+            self.kernel_multiplier = np.float32(1. / np.sqrt(1.5 / (nb_input + nb_output)))
+
+        self.kernel_constraint = Clip(-self.H, self.H)
+        self.kernel_initializer = initializers.initializers_v1.RandomUniform(-self.H, self.H)
+        self.kernel = self.add_weight(shape=kernel_shape,
+                                      initializer=self.kernel_initializer,
+                                      name='kernel',
+                                      regularizer=self.kernel_regularizer,
+                                      constraint=self.kernel_constraint)
+
+        if self.use_bias:
+            self.lr_multipliers = [self.kernel_multiplier, self.bias_multiplier]
+            self.bias = self.add_weight((self.filters,),
+                                        initializer=self.bias_initializer,
+                                        name='bias',
+                                        regularizer=self.bias_regularizer,
+                                        constraint=self.bias_constraint)
+
+        else:
+            self.lr_multipliers = [self.kernel_multiplier]
+            self.bias = None
+
+        """
+            Specifies the rank, dtype and shape of every input to a layer.
+
+            Layers can expose (if appropriate) an `input_spec` attribute:
+            an instance of `InputSpec`, or a nested structure of `InputSpec` instances
+            (one per input tensor). These objects enable the layer to run input
+            compatibility checks for input structure, input rank, input shape, and
+            input dtype.
+
+            A None entry in a shape is compatible with any dimension,
+            a None shape is compatible with any shape.
+        """
+        self.input_spec = InputSpec(ndim=4, axes={1: input_dim})
+        self.built = True
+
+    def call(self, inputs):
+        quantized_kernel = Quantized_optimizers.quantize(self, self.kernel, nb=self.nb)
+
+        inverse_kernel_multiplier = 1. / self.kernel_multiplier
+        inputs_qnn_gradient = (inputs - (1. - 1. / inverse_kernel_multiplier) * K.stop_gradient(inputs)) \
+                              * inverse_kernel_multiplier
+
+        outputs_qnn_gradient = K.conv2d(
+            inputs_qnn_gradient,
+            quantized_kernel,
+            strides=self.strides,
+            padding=self.padding,
+            data_format=self.data_format,
+            dilation_rate=self.dilation_rate)
+
+        outputs = (outputs_qnn_gradient - (1. - 1. / self.kernel_lr_multiplier) *
+                   K.stop_gradient(outputs_qnn_gradient)) * self.kernel_lr_multiplier
+
+        if self.use_bias:
+            outputs = K.bias_add(
+                outputs,
+                self.bias,
+                data_format=self.data_format)
+
+        if self.activation is not None:
+            return self.activation(outputs)
+
+        return outputs
