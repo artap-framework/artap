@@ -434,6 +434,10 @@ class NNModel:
 
 '''
     class for quantization of Optimizers
+    
+    url : https://arxiv.org/pdf/1711.00215.pdf
+    paper: Minimum Energy Quantized Neural Networks
+    
     url : https://arxiv.org/pdf/1602.02830.pdf
     paper: Binarized Neural Networks: Training Neural Networks with Weights and Activations Constrained to +1 or −1
 '''
@@ -516,6 +520,10 @@ class Clip(constraints.Constraint):
 
 '''
     class for quantization of Dense Layer
+    
+    url : https://arxiv.org/pdf/1711.00215.pdf
+    paper: Minimum Energy Quantized Neural Networks
+    
     url : https://arxiv.org/pdf/1602.02830.pdf
     paper: Binarized Neural Networks: Training Neural Networks with Weights and Activations Constrained to +1 or −1
 '''
@@ -590,8 +598,12 @@ class DenseQuantized(Dense):
 
 '''
     class for quantization of Convolution Layer
+    
+    url : https://arxiv.org/pdf/1711.00215.pdf
+    paper: Minimum Energy Quantized Neural Networks
+    
     url : https://arxiv.org/pdf/1602.02830.pdf
-    paper: Binarized Neural Networks: Training Neural Networks with Weights and Activations Constrained to +1 or −1
+    paper: Binarized Neural Networks: Training Neural Networks with Weights and Activations Constrained to +1 or −1.
 '''
 
 
