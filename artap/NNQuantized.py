@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from scipy.sparse import csr_matrix
 from keras.callbacks import EarlyStopping, LearningRateScheduler, TensorBoard, ModelCheckpoint
@@ -7,6 +8,7 @@ from keras.optimizer_v1 import Adam
 from keras.losses import squared_hinge
 from keras import backend as K
 import tensorflow._api.v2.compat as tv
+
 # tv.disable_v2_behavior()
 tv.v1.disable_v2_behavior()
 from keras.models import Sequential
@@ -653,7 +655,7 @@ class ConvQuantized(Conv2D):
 
         if self.use_bias:
             self.lr_multipliers = [self.kernel_multiplier, self.bias_multiplier]
-            self.bias = self.add_weight((self.filters,),
+            self.bias = self.add_weight(shape=(self.filters,),
                                         initializer=self.bias_initializer,
                                         name='bias',
                                         regularizer=self.bias_regularizer,
@@ -707,22 +709,51 @@ class ConvQuantized(Conv2D):
 
         return outputs
 
+
 # TODO: prepare the dataset and then implement this method
 def load_dataset(dataset):
-    pass
+    # TODO: Move it to the import section.
+    #  If you want to load your data, remove line below.
+    from keras.datasets import cifar10, mnist
+    from sklearn.model_selection import train_test_split
+    # x_train, y_train, x_test, y_test = cifar10.load_data()
+
+    # TODO : for your own data, uncomment the line below, and comment line above.
+    x_train, y_train, x_test, y_test = train_test_split(dataset)
+
+    return x_train, y_train, x_test, y_test
 
 
 class QNN_model:
     def __init__(self, problem: Problem, x):
         self.problem = problem
         self.x = x
+        self.epochs = 100
+        self.lr = 0.01  # Learning rate
+        self.decay = 2.5e-5
+        self.wbits = 4
+        self.abits = 4
+        self.nla, self.nlb, self.nlc = 1, 1, 1
+        self.nfa, self.nfb, self.nfc = 64, 64, 64
+        self.batch_size = 64
+        self.kernel_multiplier = 10
+        self.decay_at_epoch = [0, 25, 80]
+        self.factor_at_epoch = [1, 0.1, 1]
+        self.dim = 32
+        self.kernel_regulizer = 0.0
+        self.activity_regulizer = 0.0
+        self.channels = 3
+        self.progress_logging = 1
+        dataframe_path = '/Artap/examples/Antenna/dataframe.txt'
+        self.dataframe = pd.read_csv(dataframe_path)
+        self.dataset = self.dataframe.values
 
     def build_model(self, problem):
         H = 1
         model = Sequential()
-        model.add(ConvQuantized(3, problem.nfa, problem.dim, problem.channels))
+        model.add(ConvQuantized(3, self.nfa, self.dim, self.channels))
         model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-        model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+        model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
 
         """
         Each tested network contains 4 stages. 3 QNN-blocks, each followed by a max-pooling
@@ -733,24 +764,24 @@ class QNN_model:
         function.
         """
         # block A
-        for i in range(0, problem.nla - 1):
-            model.add(ConvQuantized(3, problem.nfa))
+        for i in range(0, self.nla - 1):
+            model.add(ConvQuantized(3, self.nfa))
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-            model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+            model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         # block B
-        for i in range(0, problem.nlb):
-            model.add(ConvQuantized(3, problem.nfb))
+        for i in range(0, self.nlb):
+            model.add(ConvQuantized(3, self.nfb))
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-            model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+            model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         # block C
-        for i in range(0, problem.nlc):
-            model.add(ConvQuantized(3, problem.nfc))
+        for i in range(0, self.nlc):
+            model.add(ConvQuantized(3, self.nfc))
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-            model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+            model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.summary()
 
@@ -758,14 +789,14 @@ class QNN_model:
 
     # learning rate schedule
     def scheduler(self, problem, model, epoch, x_train):
-        if epoch in problem.decay_at_epoch:
-            index = problem.decay_at_epoch.index(epoch)
-            factor = problem.factor_at_epoch[index]
+        if epoch in self.decay_at_epoch:
+            index = self.decay_at_epoch.index(epoch)
+            factor = self.factor_at_epoch[index]
             lr = K.get_value(model.optimizer.lr)
 
             # TODO: Add x_train to here.
-            IT = x_train.shape[0] / problem.batch_size
-            current_lr = lr * (1. / (1. + problem.decay * epoch * IT))
+            IT = x_train.shape[0] / self.batch_size
+            current_lr = lr * (1. / (1. + self.decay * epoch * IT))
             K.set_value(model.optimizer.lr, current_lr * factor)
 
         return K.get_value(model.optimizer.lr)
@@ -778,15 +809,15 @@ class QNN_model:
                                      mode='max', period=1)
 
         # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
-        train_data, val_data, test_data = load_dataset(problem.dataset)
+        x_train, y_train, x_test, y_test = load_dataset(self.dataset)
 
         lr_decay = LearningRateScheduler(self.scheduler)
-        adam = Adam(lr=problem.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=problem.decay)
+        adam = Adam(lr=problem.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
         model.compile(loss=squared_hinge, optimizer=adam, metrics=['accuracy'])
 
-        model.fit(train_data.X, train_data.y,
-                  batch_size=problem.batch_size,
-                  epochs=problem.epochs,
-                  verbose=problem.progress_logging,
-                  callbacks=[checkpoint, lr_decay],
-                  validation_data=(val_data.X, val_data.y))
+        model.fit(x_train, y_train,
+                  batch_size=self.batch_size,
+                  epochs=self.epochs,
+                  verbose=self.progress_logging,
+                  callbacks=[checkpoint, lr_decay])
+        # validation_data=(val_data.X, val_data.y))
