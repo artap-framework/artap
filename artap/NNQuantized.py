@@ -1,10 +1,12 @@
 import numpy as np
 import tensorflow as tf
 from scipy.sparse import csr_matrix
-import tensorflow._api.v2.compat as tv
-from keras.layers import InputSpec, Layer, Dense, Conv2D
+from keras.callbacks import EarlyStopping, LearningRateScheduler, TensorBoard, ModelCheckpoint
+from keras.layers import InputSpec, Layer, Dense, Conv2D, BatchNormalization, MaxPooling2D
+from keras.optimizer_v1 import Adam
+from keras.losses import squared_hinge
 from keras import backend as K
-
+import tensorflow._api.v2.compat as tv
 # tv.disable_v2_behavior()
 tv.v1.disable_v2_behavior()
 from keras.models import Sequential
@@ -704,3 +706,87 @@ class ConvQuantized(Conv2D):
             return self.activation(outputs)
 
         return outputs
+
+# TODO: prepare the dataset and then implement this method
+def load_dataset(dataset):
+    pass
+
+
+class QNN_model:
+    def __init__(self, problem: Problem, x):
+        self.problem = problem
+        self.x = x
+
+    def build_model(self, problem):
+        H = 1
+        model = Sequential()
+        model.add(ConvQuantized(3, problem.nfa, problem.dim, problem.channels))
+        model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+        model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+
+        """
+        Each tested network contains 4 stages. 3 QNN-blocks, each followed by a max-pooling
+        layer and 1 fully-connected classification stage. Each QNN-block is defined by 2 parameters: the
+        number of basic building blocks n and the layer width F.
+        Every QNN-sequence is a cascade of a QNN-layer, followed
+        by a batch-normalization layer and a quantized activation
+        function.
+        """
+        # block A
+        for i in range(0, problem.nla - 1):
+            model.add(ConvQuantized(3, problem.nfa))
+            model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+            model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        # block B
+        for i in range(0, problem.nlb):
+            model.add(ConvQuantized(3, problem.nfb))
+            model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+            model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        # block C
+        for i in range(0, problem.nlc):
+            model.add(ConvQuantized(3, problem.nfc))
+            model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+            model.add(Quantized_optimizers.quantized_relu(self.x, nb=problem.abits))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.summary()
+
+        return model
+
+    # learning rate schedule
+    def scheduler(self, problem, model, epoch, x_train):
+        if epoch in problem.decay_at_epoch:
+            index = problem.decay_at_epoch.index(epoch)
+            factor = problem.factor_at_epoch[index]
+            lr = K.get_value(model.optimizer.lr)
+
+            # TODO: Add x_train to here.
+            IT = x_train.shape[0] / problem.batch_size
+            current_lr = lr * (1. / (1. + problem.decay * epoch * IT))
+            K.set_value(model.optimizer.lr, current_lr * factor)
+
+        return K.get_value(model.optimizer.lr)
+
+    def train(self, problem):
+
+        model = self.build_model(problem)
+        early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
+        checkpoint = ModelCheckpoint(problem.out_wght_path, monitor='val_acc', verbose=1, save_best_only=True,
+                                     mode='max', period=1)
+
+        # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
+        train_data, val_data, test_data = load_dataset(problem.dataset)
+
+        lr_decay = LearningRateScheduler(self.scheduler)
+        adam = Adam(lr=problem.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=problem.decay)
+        model.compile(loss=squared_hinge, optimizer=adam, metrics=['accuracy'])
+
+        model.fit(train_data.X, train_data.y,
+                  batch_size=problem.batch_size,
+                  epochs=problem.epochs,
+                  verbose=problem.progress_logging,
+                  callbacks=[checkpoint, lr_decay],
+                  validation_data=(val_data.X, val_data.y))
