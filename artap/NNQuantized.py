@@ -3,7 +3,8 @@ import pandas as pd
 import tensorflow as tf
 from scipy.sparse import csr_matrix
 from keras.callbacks import EarlyStopping, LearningRateScheduler, TensorBoard, ModelCheckpoint
-from keras.layers import InputSpec, Layer, Dense, Conv2D, BatchNormalization, MaxPooling2D
+from keras.layers import InputSpec, Layer, Dense, Conv2D, BatchNormalization, MaxPooling2D, Activation
+from keras.regularizers import l2
 from keras.optimizer_v1 import Adam
 from keras.losses import squared_hinge
 from keras import backend as K
@@ -449,6 +450,9 @@ class NNModel:
 
 class Quantized_optimizers:
 
+    def __init__(self):
+        pass
+
     def round_opt(self, x):
         rounded = K.round(x)
         rounded_opt = x + K.stop_gradient(rounded - x)
@@ -465,14 +469,15 @@ class Quantized_optimizers:
 
     def quantized_relu(self, W, nb=16):
         nb_bits = nb
-        Wq = K.clip(2. * (self.round_opt(self.hard_sigmoid(W) * pow(2, nb_bits)) / pow(2, nb_bits)) - 1., 0,
+        Wq = K.clip(2. * (Quantized_optimizers.round_opt(self, Quantized_optimizers.hard_sigmoid(self, W) *
+                                                         pow(2, nb_bits)) / pow(2, nb_bits)) - 1., 0,
                     1 - 1.0 / pow(2, nb_bits - 1))
         return Wq
 
     def quantized_tanh(self, W, nb=16):
         non_sign_bits = nb - 1
         m = pow(2, non_sign_bits)
-        Wq = K.clip(self.round_opt(W * m), -m, m - 1) / m
+        Wq = K.clip(Quantized_optimizers.round_opt(self, W * m), -m, m - 1) / m
 
         return Wq
 
@@ -486,7 +491,7 @@ class Quantized_optimizers:
             W -= alpha * negative_part
         non_sign_bits = nb - 1
         m = pow(2, non_sign_bits)
-        Wq = K.clip(self.round_opt(W * m), -m, m - 1) / m
+        Wq = K.clip(Quantized_optimizers.round_opt(self, W * m), -m, m - 1) / m
 
         return Wq
 
@@ -494,9 +499,9 @@ class Quantized_optimizers:
         non_sign_bits = nb - 1
         m = pow(2, non_sign_bits)
         if clip_through:
-            Wq = self.clip_opt(self.round_opt(W * m), -m, m - 1) / m
+            Wq = self.clip_opt(Quantized_optimizers.round_opt(self ,W * m), -m, m - 1) / m
         else:
-            Wq = K.clip(self.round_opt(W * m), -m, m - 1) / m
+            Wq = K.clip(Quantized_optimizers.round_opt(self, W * m), -m, m - 1) / m
 
         return Wq
 
@@ -510,8 +515,8 @@ class Quantized_optimizers:
 
 class Clip(constraints.Constraint):
     def __init__(self, min_value, max_value=None):
-        self.min = min
-        self.max = max
+        self.min = min_value
+        self.max = max_value
         if not self.max:
             self.max = -self.min
         if self.min > self.max:
@@ -640,7 +645,7 @@ class ConvQuantized(Conv2D):
             nb_output = int(self.filters * base)
             self.H = np.float32(np.sqrt(1.5 / (nb_input + nb_output)))
 
-        if self.kernel_lr_multiplier == 'glorot_uniform':
+        if self.kernel_multiplier == 'glorot_uniform':
             nb_input = int(input_dim * base)
             nb_output = int(self.filters * base)
             self.kernel_multiplier = np.float32(1. / np.sqrt(1.5 / (nb_input + nb_output)))
@@ -716,44 +721,70 @@ def load_dataset(dataset):
     #  If you want to load your data, remove line below.
     from keras.datasets import cifar10, mnist
     from sklearn.model_selection import train_test_split
-    # x_train, y_train, x_test, y_test = cifar10.load_data()
+    x_train, y_train, x_test, y_test = cifar10.load_data()
 
     # TODO : for your own data, uncomment the line below, and comment line above.
-    x_train, y_train, x_test, y_test = train_test_split(dataset)
+    # x_train, y_train, x_test, y_test = train_test_split(dataset)
 
     return x_train, y_train, x_test, y_test
 
 
 class QNN_model:
-    def __init__(self, problem: Problem, x):
+    def __init__(self, problem: Problem):
         self.problem = problem
-        self.x = x
+        # self.x = x
         self.epochs = 100
-        self.lr = 0.01  # Learning rate
-        self.decay = 2.5e-5
+        self.lr = 0.001   # Learning Rate
+        self.decay = 0.000025
+
+        # bits can be None, 2, 4, 8 , whatever
+        self.bits = None
         self.wbits = 4
         self.abits = 4
+
+        # width and depth
         self.nla, self.nlb, self.nlc = 1, 1, 1
         self.nfa, self.nfb, self.nfc = 64, 64, 64
+
         self.batch_size = 64
+
+        # learning rate decay, factor => LR *= factor
         self.kernel_multiplier = 10
         self.decay_at_epoch = [0, 25, 80]
         self.factor_at_epoch = [1, 0.1, 1]
+
+        self.channels = 3
         self.dim = 32
-        self.kernel_regulizer = 0.0
-        self.activity_regulizer = 0.0
+        # regularization
+        self.kernel_regularizer = 0.0
+        self.activity_regularizer = 0.0
         self.channels = 3
         self.progress_logging = 1
-        dataframe_path = '/Artap/examples/Antenna/dataframe.txt'
-        self.dataframe = pd.read_csv(dataframe_path)
-        self.dataset = self.dataframe.values
+        # TODO: change dataset to my own data, and remove import line
+        # dataframe_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/dataframe.txt'
+        # self.dataframe = pd.read_csv(dataframe_path)
+        # self.dataset = self.dataframe.values
+        from keras.datasets import cifar10
+        self.dataset = cifar10
+        self.out_wght_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/weights.hdf5'
 
     def build_model(self, problem):
         H = 1
+
+        Conv_ = lambda s, f, i, c: ConvQuantized(kernel_size=(s, s), H=1, nb=self.wbits, filters=f, strides=(1, 1),
+                                                   padding='same', activation='linear',
+                                                   kernel_regularizer=l2(self.kernel_regularizer),
+                                                   kernel_multiplier=self.kernel_multiplier, input_shape=(i, i, c))
+        Conv = lambda s, f: ConvQuantized(kernel_size=(s, s), H=1, nb=self.wbits, filters=f, strides=(1, 1),
+                                            padding='same', activation='linear',
+                                            kernel_regularizer=l2(self.kernel_regularizer),
+                                            kernel_multiplier=self.kernel_multiplier)
+        Act = lambda: Activation(Quantized_optimizers.quantized_relu)
+
         model = Sequential()
-        model.add(ConvQuantized(3, self.nfa, self.dim, self.channels))
+        model.add(Conv_(3, self.nfa, self.dim, self.channels))
         model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-        model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
+        model.add(Act())
 
         """
         Each tested network contains 4 stages. 3 QNN-blocks, each followed by a max-pooling
@@ -765,23 +796,23 @@ class QNN_model:
         """
         # block A
         for i in range(0, self.nla - 1):
-            model.add(ConvQuantized(3, self.nfa))
+            model.add(Conv(3, self.nfa))
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-            model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
+            model.add(Act())
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         # block B
         for i in range(0, self.nlb):
-            model.add(ConvQuantized(3, self.nfb))
+            model.add(Conv(3, self.nfb))
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-            model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
+            model.add(Act())
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         # block C
         for i in range(0, self.nlc):
-            model.add(ConvQuantized(3, self.nfc))
+            model.add(Conv(3, self.nfc))
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-            model.add(Quantized_optimizers.quantized_relu(self, self.x, nb=self.abits))
+            model.add(Act())
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.summary()
 
@@ -805,7 +836,7 @@ class QNN_model:
 
         model = self.build_model(problem)
         early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
-        checkpoint = ModelCheckpoint(problem.out_wght_path, monitor='val_acc', verbose=1, save_best_only=True,
+        checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_acc', verbose=1, save_best_only=True,
                                      mode='max', period=1)
 
         # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
