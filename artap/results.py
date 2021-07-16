@@ -223,6 +223,23 @@ class Results:
                     writer.writerows([out])
                 population_id += 1
 
+    def pareto_individuals(self, population_id=None):
+        """
+
+        :return: pareto front
+        """
+        if population_id is not None:
+            individuals = self.population(population_id)
+        else:
+            individuals = self.population(-1)
+
+        pareto_individuals = []
+        for individual in individuals:
+            if individual.features['front_number'] == 1:
+                pareto_individuals.append(individual)
+
+        return pareto_individuals
+
     def pareto_front(self, population_id=None):
         """
 
@@ -231,7 +248,7 @@ class Results:
         if population_id is not None:
             individuals = self.population(population_id)
         else:
-            individuals = self.problem.individuals
+            individuals = self.population(-1)
 
         n = self.goal_number()
         pareto_front = []
