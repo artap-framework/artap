@@ -113,7 +113,6 @@ class SurrogateModelPredict(SurrogateModel):
 
                 # train model
                 self.train()
-
         return value
 
 

@@ -7,6 +7,7 @@ from ..archive import Archive
 
 
 class TestProblem(Problem):
+
     def set(self):
         self.name = 'Test Problem'
         self.parameters = [{'name': '1', 'bounds': [2., 10.]},

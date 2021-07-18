@@ -1,11 +1,13 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from artap.algorithm_genetic import NSGAII
-from artap.problem import Problem
-from artap.results import Results
 from matplotlib import cm
 from utils import *
+from artap.algorithm_genetic import NSGAII
+from artap.algorithm_nlopt import NLopt, LN_BOBYQA
+from artap.datastore import SqliteDataStore
+from artap.problem import Problem
+from artap.results import Results
 
 
 class AntennaArray:
@@ -93,6 +95,17 @@ class AntennaArray:
         array_factor = array_factor * 1 / self.n_x / self.n_y
         return array_factor
 
+    def plot_array_factor_2d(self, array_factor, phi=0):
+        phi_index = self.phi_index(phi)
+        plt.figure()
+        plt.plot([-90, 90], [-25, -25], 'r')
+        plt.plot(self.theta / np.pi * 180, 20 * np.log10(np.abs(array_factor[:, phi_index])),
+                 '--', label='exact solution')
+
+        plt.ylim([-60, 0])
+        plt.xlim([-90, 90])
+        plt.grid()
+        plt.show()
 
     def plot_array_factor_3d(self, array_factor, ax=None, logarithmic=True, log_range=-40):
         """ Plot 3D Array Factor
@@ -159,37 +172,6 @@ class AntennaArray:
 
 class AntennaArrayProblem(Problem):
 
-    def set(self, **kwargs):
-        # Not mandatory to give a name for the test problem
-        self.name = 'Antenna array'
-        # required direction of radiation and calculation of appropriate indices to array factor matrix
-        self.n_x = kwargs['n_x']
-        self.n_y = kwargs['n_y']
-        self.n_phi = kwargs['n_phi']
-        self.n_theta = kwargs['n_theta']
-
-        self.antenna = AntennaArray(self.n_x, self.n_y, self.n_phi, self.n_theta)
-        self.theta = self.antenna.theta
-        self.phi = self.antenna.phi
-        self.reference = np.zeros(len(self.theta))
-        self.indices = []
-        self.theta_r = 0
-        self.phi_r = 0
-        self.width = 20
-
-        # Dynamically prepare parameters for given number of patches
-        self.parameters = []
-        for i in range(self.n_x * self.n_y):
-            self.parameters.append(
-                {'name': 'I_{}'.format(i), 'bounds': [0, 1], 'parameter_type': 'float', 'initial_value': 0.5})
-            self.parameters.append(
-                {'name': 'alpha_{}'.format(i), 'bounds': [-np.pi / 2, np.pi / 2], 'parameter_type': 'float'})
-
-        # The two, separate optimization functions and the direction of the optimization
-        # is set to minimization. It is also possible to use the maximize keyword.
-        self.costs = [{'name': 'f_1', 'criteria': 'maximize'},
-                      {'name': 'f_2', 'criteria': 'minimize'}]
-
     def set_tolerance_scheme(self, theta_r: float, phi_r: float, width: float, attenuation: list):
         self.phi_r = phi_r
         self.theta_r = theta_r
@@ -238,7 +220,7 @@ class AntennaArrayProblem(Problem):
         array_factor = self.antenna.calculate_array_factor(b.pareto_individuals()[0].vector)
         plt.figure()
         plt.plot([-90, 90], [-25, -25], 'r')
-        plt.plot(self.theta / np.pi * 180, self.reference, 'k-')
+        plt.plot(self.theta / np.pi * 180, 20*np.log10(self.reference), 'k-')
         plt.plot(self.theta / np.pi * 180,
                  20 * np.log10(np.abs(array_factor[:, self.phi_index]) /
                                np.max(np.abs(array_factor))), '--', label='exact solution')
@@ -276,68 +258,87 @@ class AntennaArrayProblem(Problem):
         self.antenna.plot_array_factor_3d(array_factor)
 
     def evaluate(self, individual):
-        vector = individual.vector.copy()
-        array_factor = self.antenna.calculate_array_factor(vector)
+
+        array_factor = self.antenna.calculate_array_factor(individual.vector)
 
         # compute module of complex numbers in array factor
-        magnitude = 20 * np.log10(np.abs(array_factor))
+        magnitude = np.abs(array_factor)
         magnitude_norm = magnitude - np.max(magnitude)
+
         # magnitude on required position
         magnitude_r = magnitude[self.theta_index, self.phi_index]
 
         # maximum from the whole array factor
         # maximum = np.max(magnitude)
 
-        f_5 = np.sum((magnitude_norm[:, self.phi_index] > self.reference) *
-                     (magnitude_norm[:, self.phi_index] - self.reference) ** 2)
-
-        print('f_5 = {}'.format(f_5))
+        side_lobes_integral = np.sum((magnitude[:, self.phi_index] > self.reference) *
+                                     (magnitude[:, self.phi_index] - self.reference) ** 2)
 
         # integral within the pass band
-        # f_6 = max(magnitude[self.indices[0]:self.indices[1], self.phi_index])
+        main_lobe_integral = np.sum(magnitude[self.indices[0]:self.indices[1], self.phi_index])
 
         # added ends of the interval
-        lobe_maximum = [magnitude[0, self.phi_index], magnitude[self.n_theta - 1, self.phi_index]]
+        # lobe_maximum = [magnitude[0, self.phi_index], magnitude[self.n_theta - 1, self.phi_index]]
 
-        # # look for local maxims (lobes) in the left
+        # look for local maxims (lobes) in the left
         # for i in range(1, self.indices[0] - 1):
         #     if magnitude[i - 1, self.phi_index] < magnitude[i, self.phi_index] > magnitude[i + 1, self.phi_index]:
         #         lobe_maximum.append(magnitude[i, self.phi_index])
-        #
-        # # look for local maxims (lobes) in the right
+
+        # look for local maxims (lobes) in the right
         # for i in range(self.indices[1], self.n_theta - 1):
         #     if magnitude[i - 1, self.phi_index] < magnitude[i, self.phi_index] > magnitude[i + 1, self.phi_index]:
         #         lobe_maximum.append(magnitude[i, self.phi_index])
         #
-        # # maximal amplitude from both lobes
+        # maximal amplitude from both lobes
         # lobe_maximum = max(lobe_maximum)
 
         # f_7 = max(max(magnitude[:self.indices[0], self.phi_index]),
         #        max(magnitude[self.indices[1]:, self.phi_index]))
+        print(magnitude_r, side_lobes_integral)
+        return [magnitude_r, side_lobes_integral]
 
-        return [magnitude_r, f_5]
+    def set(self, **kwargs):
+        # Not mandatory to give a name for the test problem
+        self.name = 'Antenna array'
+        # required direction of radiation and calculation of appropriate indices to array factor matrix
+        self.n_x = kwargs['n_x']
+        self.n_y = kwargs['n_y']
+        self.n_phi = kwargs['n_phi']
+        self.n_theta = kwargs['n_theta']
 
-    def set_optimization(self):
+        self.antenna = AntennaArray(self.n_x, self.n_y, self.n_phi, self.n_theta)
+        self.theta = self.antenna.theta
+        self.phi = self.antenna.phi
+        self.reference = np.zeros(len(self.theta))
+        self.indices = []
+
+        # Dynamically prepare parameters for given number of patches
+        self.parameters = []
+        for i in range(self.n_x * self.n_y):
+            self.parameters.append(
+                {'name': 'I_{}'.format(i), 'bounds': [0, 1], 'parameter_type': 'float', 'initial_value': 0.5})
+            self.parameters.append(
+                {'name': 'alpha_{}'.format(i), 'bounds': [-np.pi / 2, np.pi / 2], 'parameter_type': 'float'})
+
+        # The two, separate optimization functions and the direction of the optimization
+        # is set to minimization. It is also possible to use the maximize keyword.
+        self.costs = [{'name': 'f_1', 'criteria': 'maximize'},
+                      {'name': 'f_2', 'criteria': 'minimize'}]
+
         """ Process the requirements on the beam shape. """
-
         theta_r = 0  # target elevation
         phi_r = 0  # target azimuth
         width = 30  # beam width
 
         # attenuation of left side lobe, main beam, right side lobe
-        attenuation = [-30, 0, -30]
-
+        attenuation = [0.01, 1, 0.01]
         self.set_tolerance_scheme(theta_r, phi_r, width, attenuation)
 
-        self.costs[0]['criteria'] = 'maximize'
-        self.costs[1]['criteria'] = 'minimize'
 
-        algorithm.options['max_population_number'] = 50
-        algorithm.options['max_population_size'] = 50
-
-
-problem = AntennaArrayProblem(n_x=8, n_y=8, n_phi=80, n_theta=80)
+problem = AntennaArrayProblem(n_x=10, n_y=10, n_phi=40, n_theta=40)
 algorithm = NSGAII(problem)
-problem.set_optimization()
+algorithm.options['max_population_number'] = 300
+algorithm.options['max_population_size'] = 50
 algorithm.run()
 problem.process_results()

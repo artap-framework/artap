@@ -85,7 +85,7 @@ class Results:
 
     def population(self, population_id=-1):
         # Returns population with given index
-        #if population_id >= len(self.problem.populations):
+        #   if population_id >= len(self.problem.populations):
         #    raise ValueError('Index of population exceeds the number of populations.')
         if population_id == -1:
             individuals = self.problem.last_population()
@@ -94,8 +94,10 @@ class Results:
         return individuals
 
     def goal_on_index(self, name=None, population_id=-1):
-        """ Returns a list of lists. The first list contains indexes of individuals in population,
-            the other lists contains values of the goal function(s).
+        """
+        Returns a list of lists. The first list contains indexes of individuals in population,
+        the other lists contains values of the goal function(s).
+
         """
         individuals = self.population(population_id)
         n = range(len(individuals))
@@ -279,21 +281,15 @@ class Results:
         # get the index of the required parameter
         index = 0  # default - one parameter
         if name:
-            for i in range(len(self.problem.costs)):
-                cost = self.problem.costs[i]
-                if cost['name'] == name:
-                    index = i
-        # if len(self.problem.data_store.individuals) is not 0:
-        #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
-        # else:
-        #if self.problem.archive:
-        #    min_l = [min(self.problem.archive, key=lambda x: x.costs[index])]
-        #else:
+            index = self.goal_index(name)
+
         if len(self.problem.individuals) > 0:
             min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
+
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
+
 
     # TODO: same function - David, could you check it and write test?
     def pareto_values(self, archive=None):
@@ -315,6 +311,7 @@ class Results:
                     l_sol.append(individual.costs)
 
         return l_sol
+
 
     # TODO: add test
     def performance_measure(self, reference: list, type='epsilon'):
