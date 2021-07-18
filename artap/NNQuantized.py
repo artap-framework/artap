@@ -2,20 +2,20 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from scipy.sparse import csr_matrix
-from keras.callbacks import EarlyStopping, LearningRateScheduler, TensorBoard, ModelCheckpoint
-from keras.layers import InputSpec, Layer, Dense, Conv2D, BatchNormalization, MaxPooling2D, Activation
-from keras.regularizers import l2
-from keras.optimizer_v1 import Adam
-from keras.losses import squared_hinge
-from keras import backend as K
+from tensorflow.keras.callbacks import EarlyStopping, LearningRateScheduler, TensorBoard, ModelCheckpoint
+from tensorflow.keras.layers import InputSpec, Layer, Dense, Conv2D, BatchNormalization, MaxPooling2D, Activation
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import squared_hinge
+from tensorflow.keras import backend as K
 import tensorflow._api.v2.compat as tv
 
 # tv.disable_v2_behavior()
 tv.v1.disable_v2_behavior()
-from keras.models import Sequential
+from tensorflow.keras.models import Sequential
 from matplotlib import pyplot as plt
-from keras import constraints
-from keras import initializers
+from tensorflow.keras import constraints
+from tensorflow.keras import initializers
 from artap.problem import Problem
 
 '''
@@ -651,7 +651,7 @@ class ConvQuantized(Conv2D):
             self.kernel_multiplier = np.float32(1. / np.sqrt(1.5 / (nb_input + nb_output)))
 
         self.kernel_constraint = Clip(-self.H, self.H)
-        self.kernel_initializer = initializers.initializers_v1.RandomUniform(-self.H, self.H)
+        self.kernel_initializer = initializers.RandomUniform(-self.H, self.H)
         self.kernel = self.add_weight(shape=kernel_shape,
                                       initializer=self.kernel_initializer,
                                       name='kernel',
@@ -719,7 +719,7 @@ class ConvQuantized(Conv2D):
 def load_dataset(dataset):
     # TODO: Move it to the import section.
     #  If you want to load your data, remove line below.
-    from keras.datasets import cifar10, mnist
+    from tensorflow.keras.datasets import cifar10, mnist
     from sklearn.model_selection import train_test_split
     x_train, y_train, x_test, y_test = cifar10.load_data()
 
@@ -764,7 +764,7 @@ class QNN_model:
         # dataframe_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/dataframe.txt'
         # self.dataframe = pd.read_csv(dataframe_path)
         # self.dataset = self.dataframe.values
-        from keras.datasets import cifar10
+        from tensorflow.keras.datasets import cifar10
         self.dataset = cifar10
         self.out_wght_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/weights.hdf5'
 

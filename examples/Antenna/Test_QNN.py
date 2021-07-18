@@ -5,6 +5,7 @@ import pandas as pd
 from artap.algorithm_swarm import PSOGA, SMPSO, OMOPSO
 from artap.problem import Problem
 from artap.NNQuantized import QNN_model
+from math import sin
 from artap.results import Results
 from scipy.signal import argrelextrema
 from artap.datastore import SqliteDataStore
@@ -13,14 +14,19 @@ from artap.datastore import SqliteDataStore
 class TestQNNProblem(Problem):
 
     def set(self):
-        self.parameters = [{'name': 'epochs', 'bounds': [1, 100], 'parameter_type':'int', 'initial_value': 100},
-                           {'name': 'lr', 'bounds': [0, 0.1], 'parameter_type': 'float', 'initial_value': 0.001}]
-        self.costs = []
+        self.parameters = [{'name': 'x_1', 'initial_value': 0.1, 'bounds': [0.0, 1.0]}]
+        self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, individual):
 
         # TODO: Ask about the goal function
-        pass
+        # obtained from the examples/surrogate/simple_surrogate.py
+        x = individual.vector
+
+        # the goal function
+        F1 = (6 * x[0] - 2) ** 2 * sin(12 * x[0] - 4)
+
+        return [F1]
 
 
 qnn = TestQNNProblem()
