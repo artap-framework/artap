@@ -2,7 +2,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
-from utils import *
 from artap.algorithm_genetic import NSGAII
 from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.datastore import SqliteDataStore
@@ -21,7 +20,7 @@ class AntennaArray:
     def __init__(self, nx, ny, n_phi, n_theta):
 
         # the resolution in phase an magnitudes
-        self.n_bits: int = 7
+        self.n_bits: int = 8
 
         self.c = 3e8  # speed of the light
         self.f = 3.6e9  # working frequency
@@ -95,17 +94,16 @@ class AntennaArray:
         array_factor = array_factor * 1 / self.n_x / self.n_y
         return array_factor
 
-    def plot_array_factor_2d(self, array_factor, phi=0):
+    def plot_array_factor_2d(self, array_factor, phi=0, axes=None):
         phi_index = self.phi_index(phi)
-        plt.figure()
-        plt.plot([-90, 90], [-25, -25], 'r')
-        plt.plot(self.theta / np.pi * 180, 20 * np.log10(np.abs(array_factor[:, phi_index])),
+        axes.plot([-90, 90], [-25, -25], 'r')
+        axes.plot(self.theta / np.pi * 180, 20 * np.log10(np.abs(array_factor[:, phi_index])),
                  '--', label='exact solution')
 
-        plt.ylim([-60, 0])
-        plt.xlim([-90, 90])
-        plt.grid()
-        plt.show()
+        # axes.ylim([-60, 0])
+        # axes.xlim([-90, 90])
+        axes.grid()
+
 
     def plot_array_factor_3d(self, array_factor, ax=None, logarithmic=True, log_range=-40):
         """ Plot 3D Array Factor
@@ -298,14 +296,14 @@ class AntennaArrayProblem(Problem):
         print(magnitude_r, side_lobes_integral)
         return [magnitude_r, side_lobes_integral]
 
-    def set(self, **kwargs):
+    def set(self):
         # Not mandatory to give a name for the test problem
         self.name = 'Antenna array'
         # required direction of radiation and calculation of appropriate indices to array factor matrix
-        self.n_x = kwargs['n_x']
-        self.n_y = kwargs['n_y']
-        self.n_phi = kwargs['n_phi']
-        self.n_theta = kwargs['n_theta']
+        self.n_x = 10
+        self.n_y = 10
+        self.n_phi = 80
+        self.n_theta = 80
 
         self.antenna = AntennaArray(self.n_x, self.n_y, self.n_phi, self.n_theta)
         self.theta = self.antenna.theta
@@ -327,25 +325,10 @@ class AntennaArrayProblem(Problem):
                       {'name': 'f_2', 'criteria': 'minimize'}]
 
         """ Process the requirements on the beam shape. """
-        theta_r = 0  # target elevation
+        theta_r = 50  # target elevation
         phi_r = 0  # target azimuth
         width = 30  # beam width
 
         # attenuation of left side lobe, main beam, right side lobe
         attenuation = [0.01, 1, 0.01]
         self.set_tolerance_scheme(theta_r, phi_r, width, attenuation)
-
-
-database_file = 'data.sqlite'
-problem = AntennaArrayProblem(n_x=10, n_y=10, n_phi=40, n_theta=40)
-datastore = SqliteDataStore(problem, database_name=database_file)
-algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 50
-algorithm.options['max_population_size'] = 50
-algorithm.run()
-problem.process_results()
-datastore.sync_all()
-
-results = Results(problem)
-print(results.get_population_ids())
-

@@ -312,7 +312,6 @@ class Results:
 
         return l_sol
 
-
     # TODO: add test
     def performance_measure(self, reference: list, type='epsilon'):
         """
@@ -386,7 +385,6 @@ class Results:
         ax.set_ylabel('$' + y_name + '$', fontsize=self.label_size)
         return [fig, ax]
 
-
     def pareto_plot(self, cost_x=0, cost_y=1):
         fig, ax = self.get_pareto_plot(cost_x, cost_y)
         fig.show()
@@ -453,3 +451,9 @@ class Results:
     def get_mean_confidence_interval(self, name):
         index = self.goal_index(name)
         return 
+
+    def get_population_ids(self):
+        ids = set()
+        for individual in self.problem.individuals:
+            ids.add(individual.population_id)
+        return ids
