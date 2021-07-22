@@ -499,7 +499,7 @@ class Quantized_optimizers:
         non_sign_bits = nb - 1
         m = pow(2, non_sign_bits)
         if clip_through:
-            Wq = self.clip_opt(Quantized_optimizers.round_opt(self ,W * m), -m, m - 1) / m
+            Wq = self.clip_opt(Quantized_optimizers.round_opt(self, W * m), -m, m - 1) / m
         else:
             Wq = K.clip(Quantized_optimizers.round_opt(self, W * m), -m, m - 1) / m
 
@@ -524,7 +524,7 @@ class Clip(constraints.Constraint):
             self.max = self.min
 
     def __call__(self, p):
-        return K.clip(p, self.min_value, self.max_value)
+        return K.clip(p, self.min, self.max)
 
 
 '''
@@ -636,7 +636,7 @@ class ConvQuantized(Conv2D):
 
     def build(self, input_shape):
 
-        input_dim = input_shape[1]
+        input_dim = input_shape[-1]
         kernel_shape = self.kernel_size + (input_dim, self.filters)
 
         base = self.kernel_size[0] * self.kernel_size[1]
@@ -682,7 +682,7 @@ class ConvQuantized(Conv2D):
             A None entry in a shape is compatible with any dimension,
             a None shape is compatible with any shape.
         """
-        self.input_spec = InputSpec(ndim=4, axes={1: input_dim})
+        self.input_spec = InputSpec(ndim=4, axes={-1: input_dim})
         self.built = True
 
     def call(self, inputs):
@@ -700,8 +700,8 @@ class ConvQuantized(Conv2D):
             data_format=self.data_format,
             dilation_rate=self.dilation_rate)
 
-        outputs = (outputs_qnn_gradient - (1. - 1. / self.kernel_lr_multiplier) *
-                   K.stop_gradient(outputs_qnn_gradient)) * self.kernel_lr_multiplier
+        outputs = (outputs_qnn_gradient - (1. - 1. / self.kernel_multiplier) *
+                   K.stop_gradient(outputs_qnn_gradient)) * self.kernel_multiplier
 
         if self.use_bias:
             outputs = K.bias_add(
@@ -721,10 +721,38 @@ def load_dataset(dataset):
     #  If you want to load your data, remove line below.
     from tensorflow.keras.datasets import cifar10, mnist
     from sklearn.model_selection import train_test_split
-    x_train, y_train, x_test, y_test = cifar10.load_data()
+    X, Y = cifar10.load_data()
+    # x_train, y_train, x_test, y_test = train_test_split(X, Y)
+    x_train, y_train, x_test, y_test = X[0], X[1], Y[0], Y[1]
 
     # TODO : for your own data, uncomment the line below, and comment line above.
     # x_train, y_train, x_test, y_test = train_test_split(dataset)
+
+    x_train = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_train), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
+    x_test = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_test), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
+
+    # flatten targets
+    y_train = np.hstack(y_train)
+    y_test = np.hstack(y_test)
+
+    # Onehot the targets
+    y_train = np.float32(np.eye(10)[y_train])
+    y_test = np.float32(np.eye(10)[y_test])
+
+    # for hinge loss
+    y_train = 2 * y_train - 1.
+    y_test = 2 * y_test - 1.
+
+    # enlarge train data set by mirrroring
+    x_train_flip = x_train[:, :, ::-1, :]
+    y_train_flip = y_train
+
+    x_train = np.concatenate((x_train, x_train_flip), axis=0)
+    y_train = np.concatenate((y_train, y_train_flip), axis=0)
+    x_train = np.array(x_train)
+    y_train = np.array(y_train)
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
 
     return x_train, y_train, x_test, y_test
 
@@ -734,7 +762,7 @@ class QNN_model:
         self.problem = problem
         # self.x = x
         self.epochs = 100
-        self.lr = 0.001   # Learning Rate
+        self.lr = 0.001  # Learning Rate
         self.decay = 0.000025
 
         # bits can be None, 2, 4, 8 , whatever
@@ -758,7 +786,6 @@ class QNN_model:
         # regularization
         self.kernel_regularizer = 0.0
         self.activity_regularizer = 0.0
-        self.channels = 3
         self.progress_logging = 1
         # TODO: change dataset to my own data, and remove import line
         # dataframe_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/dataframe.txt'
@@ -769,17 +796,20 @@ class QNN_model:
         self.out_wght_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/weights.hdf5'
 
     def build_model(self, problem):
+        def quantized_relu(x):
+            return Quantized_optimizers.quantized_relu(self, x, nb=self.abits)
+
         H = 1
 
         Conv_ = lambda s, f, i, c: ConvQuantized(kernel_size=(s, s), H=1, nb=self.wbits, filters=f, strides=(1, 1),
-                                                   padding='same', activation='linear',
-                                                   kernel_regularizer=l2(self.kernel_regularizer),
-                                                   kernel_multiplier=self.kernel_multiplier, input_shape=(i, i, c))
+                                                 padding='same', activation='linear',
+                                                 kernel_regularizer=l2(self.kernel_regularizer),
+                                                 kernel_multiplier=self.kernel_multiplier, input_shape=(i, i, c))
         Conv = lambda s, f: ConvQuantized(kernel_size=(s, s), H=1, nb=self.wbits, filters=f, strides=(1, 1),
-                                            padding='same', activation='linear',
-                                            kernel_regularizer=l2(self.kernel_regularizer),
-                                            kernel_multiplier=self.kernel_multiplier)
-        Act = lambda: Activation(Quantized_optimizers.quantized_relu)
+                                          padding='same', activation='linear',
+                                          kernel_regularizer=l2(self.kernel_regularizer),
+                                          kernel_multiplier=self.kernel_multiplier)
+        Act = lambda: Activation(quantized_relu)
 
         model = Sequential()
         model.add(Conv_(3, self.nfa, self.dim, self.channels))
@@ -814,36 +844,35 @@ class QNN_model:
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
             model.add(Act())
         model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.summary()
 
         return model
 
-    # learning rate schedule
-    def scheduler(self, problem, model, epoch, x_train):
-        if epoch in self.decay_at_epoch:
-            index = self.decay_at_epoch.index(epoch)
-            factor = self.factor_at_epoch[index]
-            lr = K.get_value(model.optimizer.lr)
-
-            # TODO: Add x_train to here.
-            IT = x_train.shape[0] / self.batch_size
-            current_lr = lr * (1. / (1. + self.decay * epoch * IT))
-            K.set_value(model.optimizer.lr, current_lr * factor)
-
-        return K.get_value(model.optimizer.lr)
-
     def train(self, problem):
 
+        # learning rate schedule
+        def scheduler(epoch):
+            if epoch in self.decay_at_epoch:
+                index = self.decay_at_epoch.index(epoch)
+                factor = self.factor_at_epoch[index]
+                lr = K.get_value(model.optimizer.lr)
+
+                # TODO: Add x_train to here.
+                IT = x_train.shape[0] / self.batch_size
+                current_lr = lr * (1. / (1. + self.decay * epoch * IT))
+                K.set_value(model.optimizer.lr, current_lr * factor)
+
+            return K.get_value(model.optimizer.lr)
+
         model = self.build_model(problem)
-        early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
+        # early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
         checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_acc', verbose=1, save_best_only=True,
                                      mode='max', period=1)
 
         # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
         x_train, y_train, x_test, y_test = load_dataset(self.dataset)
 
-        lr_decay = LearningRateScheduler(self.scheduler)
-        adam = Adam(lr=problem.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
+        lr_decay = LearningRateScheduler(scheduler)
+        adam = Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
         model.compile(loss=squared_hinge, optimizer=adam, metrics=['accuracy'])
 
         model.fit(x_train, y_train,
@@ -852,3 +881,5 @@ class QNN_model:
                   verbose=self.progress_logging,
                   callbacks=[checkpoint, lr_decay])
         # validation_data=(val_data.X, val_data.y))
+
+        model.summary()
