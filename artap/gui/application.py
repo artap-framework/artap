@@ -18,6 +18,7 @@ class ProblemData:
         self.problem_tree = None
         self.code = None
         self.problem_window = problem_window
+        self.plot_functions = []
 
     def read_problem_file(self, code_file_name) -> str:
         with open(code_file_name[0]) as code_file:
@@ -34,6 +35,9 @@ class ProblemData:
                 if name.find('Problem') != -1:
                     self.problem = obj()
                     break
+        for item in self.problem.__class__.__dict__.keys():
+            if item.startswith('plot'):
+                self.plot_functions.append(self.problem.__class__.__dict__[item])
         return self.code
 
     def parse_problem(self, problem_file=None):

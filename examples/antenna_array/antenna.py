@@ -327,7 +327,7 @@ class AntennaArrayProblem(Problem):
                       {'name': 'f_2', 'criteria': 'minimize'}]
 
         """ Process the requirements on the beam shape. """
-        theta_r = 0  # target elevation
+        theta_r = 40  # target elevation
         phi_r = 0  # target azimuth
         width = 30  # beam width
 
@@ -340,8 +340,8 @@ database_file = 'data.sqlite'
 problem = AntennaArrayProblem(n_x=10, n_y=10, n_phi=40, n_theta=40)
 datastore = SqliteDataStore(problem, database_name=database_file)
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 50
-algorithm.options['max_population_size'] = 50
+algorithm.options['max_population_number'] = 300
+algorithm.options['max_population_size'] = 300
 algorithm.run()
 problem.process_results()
 datastore.sync_all()

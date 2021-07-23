@@ -7,6 +7,7 @@ from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.datastore import SqliteDataStore
 from artap.problem import Problem
 from artap.results import Results
+# from .utils import *
 
 
 class AntennaArray:
@@ -82,7 +83,7 @@ class AntennaArray:
 
     def calculate_array_factor(self, vector=None):
         """ Calculates the array factor for given set of inputs """
-        array_factor: ndarray = np.zeros([self.n_theta, self.n_phi], dtype=complex)
+        array_factor: np.ndarray = np.zeros([self.n_theta, self.n_phi], dtype=complex)
         if vector is None:
             self.set_uniform_inputs()
         else:
@@ -93,73 +94,6 @@ class AntennaArray:
                                self.inputs[i, j]
         array_factor = array_factor * 1 / self.n_x / self.n_y
         return array_factor
-
-    def plot_array_factor_2d(self, array_factor, phi=0, axes=None):
-        phi_index = self.phi_index(phi)
-        axes.plot([-90, 90], [-25, -25], 'r')
-        axes.plot(self.theta / np.pi * 180, 20 * np.log10(np.abs(array_factor[:, phi_index])),
-                 '--', label='exact solution')
-
-        # axes.ylim([-60, 0])
-        # axes.xlim([-90, 90])
-        axes.grid()
-
-
-    def plot_array_factor_3d(self, array_factor, ax=None, logarithmic=True, log_range=-40):
-        """ Plot 3D Array Factor
-
-            Args:
-                ax: Axis object to plot into
-                logarithmic: Plot in dB
-
-            Return:
-                ax: Axes object
-                :param array_factor:
-                :param logarithmic:
-                :param ax:
-                :param log_range:
-        """
-
-        for t, theta in enumerate(self.theta):
-            for p, phi in enumerate(self.phi):
-                self.theta_mesh[t, p] = theta
-                self.phi_mesh[t, p] = phi
-
-        array_factor = np.abs(array_factor) / np.max(np.abs(array_factor))
-
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-
-        if logarithmic is True:
-            array_factor_db = lin2db(array_factor)
-            # array_factor_min = np.min(array_factor_db)
-            # array_factor_max = np.max(array_factor_db)
-
-            # AF = array_factor_db - (log_range + array_factor_max)
-            # AF[AF < 0.0] = 0.0
-        else:
-            pass
-            # array_factor_min = np.min(array_factor)
-            # array_factor_max = np.max(array_factor)
-
-        x, y, z = sph2cart(self.phi_mesh, self.theta_mesh, array_factor)
-
-        ax.plot_surface(x, y, z, facecolors=cm.jet(array_factor))
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        # lim_left, lim_right = ax.get_zlim()
-        ax.set_xlim(-1, 1)
-        ax.set_ylim(-1, 1)
-
-        mp = cm.ScalarMappable(cmap=plt.cm.jet)
-        if logarithmic is True:
-            mp.set_array(array_factor_db)
-        else:
-            mp.set_array(array_factor)
-        plt.colorbar(mp)
-        plt.show()
-        return ax
 
     @staticmethod
     def set_graphics():
@@ -194,6 +128,75 @@ class AntennaArrayProblem(Problem):
         self.reference[0:indices[0]] = attenuation[0]
         self.reference[indices[0]:indices[1]] = attenuation[1]
         self.reference[indices[1]:] = attenuation[2]
+
+    def plot_array_factor_2d(self, vector, phi=0, axes=None):
+        if axes is None:
+            fig, axes = plt.figure()
+        array_factor = self.antenna.calculate_array_factor()
+        phi_index = self.phi_index(phi)
+        axes.plot([-90, 90], [-25, -25], 'r')
+        axes.plot(self.theta / np.pi * 180, 20 * np.log10(np.abs(array_factor[:, phi_index])),
+                 '--', label='exact solution')
+
+        axes.ylim([-60, 0])
+        axes.xlim([-90, 90])
+        axes.grid()
+
+    # def plot_array_factor_3d(self, array_factor, ax=None, logarithmic=True, log_range=-40):
+    #     """ Plot 3D Array Factor
+    #
+    #         Args:
+    #             ax: Axis object to plot into
+    #             logarithmic: Plot in dB
+    #
+    #         Return:
+    #             ax: Axes object
+    #             :param array_factor:
+    #             :param logarithmic:
+    #             :param ax:
+    #             :param log_range:
+    #     """
+    #
+    #     for t, theta in enumerate(self.theta):
+    #         for p, phi in enumerate(self.phi):
+    #             self.theta_mesh[t, p] = theta
+    #             self.phi_mesh[t, p] = phi
+    #
+    #     array_factor = np.abs(array_factor) / np.max(np.abs(array_factor))
+    #
+    #     if ax is None:
+    #         fig = plt.figure()
+    #         ax = fig.add_subplot(111, projection='3d')
+    #
+    #     if logarithmic is True:
+    #         array_factor_db = utils.lin2db(array_factor)
+    #         # array_factor_min = np.min(array_factor_db)
+    #         # array_factor_max = np.max(array_factor_db)
+    #
+    #         # AF = array_factor_db - (log_range + array_factor_max)
+    #         # AF[AF < 0.0] = 0.0
+    #     else:
+    #         pass
+    #         # array_factor_min = np.min(array_factor)
+    #         # array_factor_max = np.max(array_factor)
+    #
+    #     x, y, z = utils.sph2cart(self.phi_mesh, self.theta_mesh, array_factor)
+    #
+    #     ax.plot_surface(x, y, z, facecolors=cm.jet(array_factor))
+    #     plt.xlabel('X')
+    #     plt.ylabel('Y')
+    #     # lim_left, lim_right = ax.get_zlim()
+    #     ax.set_xlim(-1, 1)
+    #     ax.set_ylim(-1, 1)
+    #
+    #     mp = cm.ScalarMappable(cmap=plt.cm.jet)
+    #     if logarithmic is True:
+    #         mp.set_array(array_factor_db)
+    #     else:
+    #         mp.set_array(array_factor)
+    #     plt.colorbar(mp)
+    #     plt.show()
+    #     return ax
 
     def process_results(self):
         # Post - processing the results

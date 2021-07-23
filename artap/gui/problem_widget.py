@@ -33,7 +33,10 @@ class ProblemWidget(QtWidgets.QWidget):
         self.layout.addWidget(self.sc, 1, 1)
         self.sc.show()
 
-    def load_problem(self, code: str):
+        self.problem = None
+
+    def load_problem(self, problem, code: str):
+        self.problem = problem
         self.editor.setText(code)
         self.editor.show()
 
@@ -51,9 +54,10 @@ class ProblemWidget(QtWidgets.QWidget):
     def plot_custom_plot(self, canvas, vector, clear=True):
         if clear:
             canvas.axes.cla()
-        antenna = AntennaArray(10, 10, 40, 40)
-        array_factor = antenna.calculate_array_factor(vector)
-        antenna.plot_array_factor_2d(array_factor, axes=canvas.axes)
+
+        for fun in self.problem.plot_functions:
+            fun(vector)
+
         canvas.draw()
 
     def onItemDoubleClicked(self, signal: QModelIndex):

@@ -107,7 +107,7 @@ class MainWindow(QtWidgets.QMainWindow):
         problem = ProblemData(problem_window)
         self.application.problems.append(problem)
         code = problem.read_problem_file(code_file_name)
-        problem_window.load_problem(code)
+        problem_window.load_problem(problem, code)
 
     def run_problem(self):
         active_window = self.qapp.focusWidget().parent()
