@@ -24,7 +24,7 @@ class Sphere(Problem):
 
 problem = Sphere()
 algorithm = PSOGA(problem)
-algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_number'] = 2
 algorithm.options['max_population_size'] = 10
 # algorithm.options['init_position'] = [1, 1]
 algorithm.run()

@@ -1,14 +1,18 @@
+import time
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from scipy.sparse import csr_matrix
 from tensorflow.keras.callbacks import EarlyStopping, LearningRateScheduler, TensorBoard, ModelCheckpoint
-from tensorflow.keras.layers import InputSpec, Layer, Dense, Conv2D, BatchNormalization, MaxPooling2D, Activation
+from tensorflow.keras.layers import InputSpec, Flatten, Dense, Conv2D, BatchNormalization, MaxPooling2D, Activation
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import squared_hinge
 from tensorflow.keras import backend as K
 import tensorflow._api.v2.compat as tv
+from keras.utils.vis_utils import plot_model
+from contextlib import redirect_stdout
 
 # tv.disable_v2_behavior()
 tv.v1.disable_v2_behavior()
@@ -505,12 +509,12 @@ class Quantized_optimizers:
 
         return Wq
 
-    def mean_abs(self, x, axis=None, keepdims=False):
-        return K.stop_gradient(K.mean(K.abs(x), axis=axis, keepdims=keepdims))
-
-    def Xnorize(self, W, H=1, axis=None, keepdims=False):
-        Wb = self.quantize(W, H)
-        Wa = self.mean_abs(W, axis, keepdims)
+    # def mean_abs(self, x, axis=None, keepdims=False):
+    #     return K.stop_gradient(K.mean(K.abs(x), axis=axis, keepdims=keepdims))
+    #
+    # def Xnorize(self, W, H=1, axis=None, keepdims=False):
+    #     Wb = self.quantize(W, H)
+    #     Wa = self.mean_abs(W, axis, keepdims)
 
 
 class Clip(constraints.Constraint):
@@ -728,31 +732,31 @@ def load_dataset(dataset):
     # TODO : for your own data, uncomment the line below, and comment line above.
     # x_train, y_train, x_test, y_test = train_test_split(dataset)
 
-    x_train = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_train), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
-    x_test = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_test), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
-
-    # flatten targets
-    y_train = np.hstack(y_train)
-    y_test = np.hstack(y_test)
-
-    # Onehot the targets
-    y_train = np.float32(np.eye(10)[y_train])
-    y_test = np.float32(np.eye(10)[y_test])
-
-    # for hinge loss
-    y_train = 2 * y_train - 1.
-    y_test = 2 * y_test - 1.
-
-    # enlarge train data set by mirrroring
-    x_train_flip = x_train[:, :, ::-1, :]
-    y_train_flip = y_train
-
-    x_train = np.concatenate((x_train, x_train_flip), axis=0)
-    y_train = np.concatenate((y_train, y_train_flip), axis=0)
-    x_train = np.array(x_train)
-    y_train = np.array(y_train)
-    x_test = np.array(x_test)
-    y_test = np.array(y_test)
+    # x_train = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_train), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
+    # x_test = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_test), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
+    #
+    # # flatten targets
+    # y_train = np.hstack(y_train)
+    # y_test = np.hstack(y_test)
+    #
+    # # Onehot the targets
+    # y_train = np.float32(np.eye(10)[y_train])
+    # y_test = np.float32(np.eye(10)[y_test])
+    #
+    # # for hinge loss
+    # y_train = 2 * y_train - 1.
+    # y_test = 2 * y_test - 1.
+    #
+    # # enlarge train data set by mirrroring
+    # x_train_flip = x_train[:, :, ::-1, :]
+    # y_train_flip = y_train
+    #
+    # x_train = np.concatenate((x_train, x_train_flip), axis=0)
+    # y_train = np.concatenate((y_train, y_train_flip), axis=0)
+    # x_train = np.array(x_train)
+    # y_train = np.array(y_train)
+    # x_test = np.array(x_test)
+    # y_test = np.array(y_test)
 
     return x_train, y_train, x_test, y_test
 
@@ -761,7 +765,7 @@ class QNN_model:
     def __init__(self, problem: Problem):
         self.problem = problem
         # self.x = x
-        self.epochs = 100
+        self.epochs = 10
         self.lr = 0.001  # Learning Rate
         self.decay = 0.000025
 
@@ -782,6 +786,7 @@ class QNN_model:
         self.factor_at_epoch = [1, 0.1, 1]
 
         self.channels = 3
+        self.classes = 10
         self.dim = 32
         # regularization
         self.kernel_regularizer = 0.0
@@ -845,7 +850,29 @@ class QNN_model:
             model.add(Act())
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
+        # Dense Layer
+        model.add(Flatten())
+        model.add(Dense(self.classes, use_bias=False))
+        model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+
         return model
+
+    def plot_QNNmodel(self, hist):
+        plt.plot(hist.history['acc'])
+        plt.title('Model Accuracy')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend(['Train'], loc='upper right')
+        plt.savefig('fig_accuracy_model.png')
+        plt.show()
+
+        plt.plot(hist.history['loss'])
+        plt.title('Model loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend(['Train'], loc='upper right')
+        plt.savefig('fig_loss_model.png')
+        plt.show()
 
     def train(self, problem):
 
@@ -874,12 +901,17 @@ class QNN_model:
         lr_decay = LearningRateScheduler(scheduler)
         adam = Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
         model.compile(loss=squared_hinge, optimizer=adam, metrics=['accuracy'])
+        start = time.time()
+        hist = model.fit(x_train, y_train,
+                         batch_size=self.batch_size,
+                         epochs=self.epochs,
+                         verbose=self.progress_logging,
+                         callbacks=[checkpoint, lr_decay])
 
-        model.fit(x_train, y_train,
-                  batch_size=self.batch_size,
-                  epochs=self.epochs,
-                  verbose=self.progress_logging,
-                  callbacks=[checkpoint, lr_decay])
-        # validation_data=(val_data.X, val_data.y))
-
-        model.summary()
+        print(f'Training time : {time.time() - start} s')
+        # plot_model(model, to_file='QNN_model.png', show_shapes=True, rankdir="LR")
+        with open('QNN_summary_model.txt', 'w') as file:
+            with redirect_stdout(file):
+                model.summary()
+        model.save('QNN_model.h5')
+        self.plot_QNNmodel(hist)
