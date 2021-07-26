@@ -44,16 +44,17 @@ class ProblemData:
         pass
 
     def process_results(self, database_file=None):
+        self.problem = ProblemData()
         if database_file is not None:
-            self.problem = Problem()
-            SqliteDataStore(self.problem, database_name=database_file[0])
-        self.results = Results(self.problem)
-        ids = self.results.get_population_ids()
-        self.problem_tree = dict()
+            self.problem.problem = Problem()
+            SqliteDataStore(self.problem.problem, database_name=database_file[0])
+        self.problem.results = Results(self.problem.problem)
+        ids = self.problem.results.get_population_ids()
+        self.problem.problem_tree = dict()
         populations = dict()
         for i, ide in enumerate(ids):
             population = dict()
-            for j, individual in enumerate(self.results.population(i)):
+            for j, individual in enumerate(self.problem.results.population(i)):
                 item = dict()
                 item['vector'] = individual.vector
                 item['costs'] = individual.costs
@@ -61,12 +62,12 @@ class ProblemData:
                 population['Individual {}'.format(j)] = item
 
             populations['Population {}'.format(i)] = population
-        self.problem_tree[self.problem.name] = populations
+        self.problem.problem_tree[self.problem.problem.name] = populations
 
         headers = ["Item", "Value"]
 
-        self.problem_window.show_results(self.results)
-        problem_model = TreeModel(headers, self.problem_tree)
+        self.problem_window.show_results(self.problem.results, self.problem.problem)
+        problem_model = TreeModel(headers, self.problem.problem_tree)
         self.problem_window.tree_view.setModel(problem_model)
         self.problem_window.tree_view.setModel(problem_model)
         self.problem_window.tree_view.setWindowTitle("Simple Tree Model")

@@ -84,6 +84,7 @@ class AntennaArray:
     def calculate_array_factor(self, vector=None):
         """ Calculates the array factor for given set of inputs """
         array_factor: np.ndarray = np.zeros([self.n_theta, self.n_phi], dtype=complex)
+
         if vector is None:
             self.set_uniform_inputs()
         else:
@@ -132,14 +133,14 @@ class AntennaArrayProblem(Problem):
     def plot_array_factor_2d(self, vector, phi=0, axes=None):
         if axes is None:
             fig, axes = plt.figure()
-        array_factor = self.antenna.calculate_array_factor()
-        phi_index = self.phi_index(phi)
+        array_factor = self.antenna.calculate_array_factor(vector)
+        phi_index = self.antenna.phi_index(phi)
         axes.plot([-90, 90], [-25, -25], 'r')
         axes.plot(self.theta / np.pi * 180, 20 * np.log10(np.abs(array_factor[:, phi_index])),
                  '--', label='exact solution')
 
-        axes.ylim([-60, 0])
-        axes.xlim([-90, 90])
+        # axes.ylim([-60, 0])
+        # axes.xlim([-90, 90])
         axes.grid()
 
     # def plot_array_factor_3d(self, array_factor, ax=None, logarithmic=True, log_range=-40):

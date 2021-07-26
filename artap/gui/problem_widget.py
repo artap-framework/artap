@@ -4,11 +4,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt5.QtCore import QModelIndex
 
-# TODO: this must be moved out
-# -----------------------------------------------------------------------------------------------------
-from .antenna import AntennaArray
-# -----------------------------------------------------------------------------------------------------
-
 from .editor import Editor
 
 
@@ -40,7 +35,8 @@ class ProblemWidget(QtWidgets.QWidget):
         self.editor.setText(code)
         self.editor.show()
 
-    def show_results(self, results):
+    def show_results(self, results, problem):
+        self.problem = problem
         self.results = results
         self.layout.addChildWidget(self.tree_view)
         self.tree_view.show()
@@ -54,9 +50,11 @@ class ProblemWidget(QtWidgets.QWidget):
     def plot_custom_plot(self, canvas, vector, clear=True):
         if clear:
             canvas.axes.cla()
-
-        for fun in self.problem.plot_functions:
-            fun(vector)
+        if len(self.problem.plot_functions) == 0:
+            pass
+        else:
+            for fun in self.problem.plot_functions:
+                fun(self.problem.problem, vector, axes=canvas.axes)
 
         canvas.draw()
 
