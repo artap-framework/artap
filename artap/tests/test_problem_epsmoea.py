@@ -21,7 +21,7 @@ class TestAckleyN222(unittest.TestCase):
             algorithm.run()
 
             b = Results(problem)
-            optimum = b.find_optimum('F_1')  # Takes last cost function
+            optimum = b.find_optimum('f_1')  # Takes last cost function
             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 0)
         except AssertionError:
             # stochastic
@@ -45,6 +45,7 @@ class TestZDT1(unittest.TestCase):
         vals = results.pareto_values(algorithm.archive)
         exact = problem.pareto_front(vals[0])
         self.assertLessEqual(epsilon_add(exact, vals), 0.2)
+
 
 if __name__ == '__main__':
     unittest.main()
