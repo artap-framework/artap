@@ -13,6 +13,9 @@ from tensorflow.keras import backend as K
 import tensorflow._api.v2.compat as tv
 from keras.utils.vis_utils import plot_model
 from contextlib import redirect_stdout
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing
 
 # tv.disable_v2_behavior()
 tv.v1.disable_v2_behavior()
@@ -616,16 +619,8 @@ class ConvQuantized(Conv2D):
 
 # TODO: prepare the dataset and then implement this method
 def load_dataset(dataset):
-    # TODO: Move it to the import section.
-    #  If you want to load your data, remove line below.
-    from tensorflow.keras.datasets import cifar10, mnist
-    from sklearn.model_selection import train_test_split
-    X, Y = cifar10.load_data()
-    # x_train, y_train, x_test, y_test = train_test_split(X, Y)
-    x_train, y_train, x_test, y_test = X[0], X[1], Y[0], Y[1]
-
     # TODO : for your own data, uncomment the line below, and comment line above.
-    # x_train, y_train, x_test, y_test = train_test_split(dataset)
+    x_train, y_train, x_test, y_test = train_test_split(dataset)
 
     # x_train = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_train), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
     # x_test = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_test), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
@@ -688,14 +683,14 @@ class QNN_model:
         self.activity_regularizer = 0.0
         self.progress_logging = 1
         # TODO: change dataset to my own data, and remove import line
-        # dataframe_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/dataframe.txt'
+        # dataframe_path = 'data.sqlite'
         # self.dataframe = pd.read_csv(dataframe_path)
         # self.dataset = self.dataframe.values
-        from tensorflow.keras.datasets import cifar10
-        self.dataset = cifar10
-        self.out_wght_path = '/home/hamid/PycharmProjects/Artap/examples/Antenna/weights.hdf5'
+        # from tensorflow.keras.datasets import cifar10
+        # self.dataset = cifar10
+        self.out_wght_path = 'weights.hdf5'
 
-    def build_model(self, problem):
+    def build_model(self):
         def quantized_relu(x):
             return Quantized_optimizers.quantized_relu(self, x, nb=self.abits)
 
@@ -752,7 +747,7 @@ class QNN_model:
 
         return model
 
-    def plot_QNNmodel(self, hist):
+    def plot_QNNmodel(self, hist, y_test, y_pred, y_fit, reg_label):
         plt.plot(hist.history['acc'])
         plt.title('Model Accuracy')
         plt.xlabel('Epoch')
@@ -767,6 +762,25 @@ class QNN_model:
         plt.ylabel('Loss')
         plt.legend(['Train'], loc='upper right')
         plt.savefig('fig_loss_model.png')
+        plt.show()
+
+        plt.plot(y_test, 'b-', label='$Q_{measured}, real output$ (%)')
+        plt.plot(y_pred, 'g-', label='$Q_{predicted}$ (%)')
+        plt.legend(fontsize=12, loc='lower right')
+        plt.xlabel('Time', size=14)
+        plt.ylabel('Value', size=14)
+        plt.xticks(size=12)
+        plt.yticks(size=12)
+        plt.savefig('predict.png')
+        plt.show()
+
+        plt.scatter(y_test, y_pred, color='blue', label='data')
+        plt.plot(y_pred, y_fit, color='red', linewidth=2, label='Linear regression\n' + reg_label)
+        plt.title('Linear Regression')
+        plt.legend()
+        plt.xlabel('observed')
+        plt.ylabel('predicted')
+        plt.savefig('linear_regression.png')
         plt.show()
 
     def train(self, problem):
@@ -785,13 +799,13 @@ class QNN_model:
 
             return K.get_value(model.optimizer.lr)
 
-        model = self.build_model(problem)
+        model = self.build_model()
         # early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
         checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_acc', verbose=1, save_best_only=True,
                                      mode='max', period=1)
 
         # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
-        x_train, y_train, x_test, y_test = load_dataset(self.dataset)
+        x_train, y_train, x_test, y_test = load_dataset(problem.costs)
 
         lr_decay = LearningRateScheduler(scheduler)
         adam = Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
@@ -809,4 +823,23 @@ class QNN_model:
             with redirect_stdout(file):
                 model.summary()
         model.save('QNN_model.h5')
-        self.plot_QNNmodel(hist)
+
+        y_pred = model.predict(x_test)
+        # Unscale data
+        min_max_scaler = preprocessing.MinMaxScaler()
+        # Xtest_us = min_max_scaler.inverse_transform(x_test[:, -1, :])
+        # ytest_us = min_max_scaler.inverse_transform(Y_test)
+        # yp = min_max_scaler.inverse_transform(y_pred)
+        # sp = Xtest_us[:,1]
+
+        # plt.plot(sp,'r-',label='$T_1$ $(^oC)$')
+
+        regressor = LinearRegression()
+        regressor.fit(y_test.reshape(-1, 1), y_pred)
+        y_fit = regressor.predict(y_pred)
+
+        reg_intercept = round(regressor.intercept_[0], 4)
+        reg_coef = round(regressor.coef_.flatten()[0], 4)
+        reg_label = "y = " + str(reg_intercept) + "*x +" + str(reg_coef)
+
+        self.plot_QNNmodel(hist, y_test, y_pred, y_fit, reg_label)
