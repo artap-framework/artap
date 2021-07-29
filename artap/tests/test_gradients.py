@@ -39,6 +39,7 @@ class TestGradients(unittest.TestCase):
 
         for individual in problem.individuals:
             gradient = individual.features['gradient']
+            print(gradient)
             ref_gradient = analytic_gradient(individual)
             for i in range(len(gradient)):
                 self.assertAlmostEqual(gradient[i], ref_gradient[i], 2)

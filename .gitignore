@@ -12,6 +12,7 @@ __pycache__
 *.db
 *.png
 *.txt
+*.sqlite
 docs/source/_build/
 build
 artap/lib/*

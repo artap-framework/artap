@@ -5,7 +5,6 @@
 from .datastore import SqliteDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
-
 from abc import abstractmethod
 
 import logging

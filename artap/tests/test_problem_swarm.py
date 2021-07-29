@@ -19,7 +19,7 @@ class TestAckleyOMOPSO(unittest.TestCase):
         algorithm.run()
 
         b = Results(problem)
-        optimum = b.find_optimum('F_1')  # Takes last cost function
+        optimum = b.find_optimum('f_1')  # Takes last cost function
         print(optimum.costs[0], problem.global_optimum)
         self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
 
@@ -54,7 +54,7 @@ class TestAckleySMPSO(unittest.TestCase):
         algorithm.run()
 
         b = Results(problem)
-        optimum = b.find_optimum('F_1')  # Takes last cost function
+        optimum = b.find_optimum('f_1')  # Takes last cost function
         print(optimum.costs[0], problem.global_optimum)
         self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
 

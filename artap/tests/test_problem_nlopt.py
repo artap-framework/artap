@@ -38,7 +38,7 @@ class TestNLoptOptimization(unittest.TestCase):
             algorithm.run()
 
             results = Results(problem)
-            optimum = results.find_optimum('F')
+            optimum = results.find_optimum('f_1')
             self.assertAlmostEqual(optimum.costs[0], 0, places=1)
         except AssertionError:
             # try again with more iterations - NLopt - 3rd party library

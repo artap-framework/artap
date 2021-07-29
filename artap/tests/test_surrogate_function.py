@@ -1,16 +1,13 @@
-import math
 import unittest
 
+from smt.surrogate_models import RBF, MGP
+
+from ..algorithm_genetic import NSGAII
+from ..algorithm_sweep import SweepAlgorithm
+from ..operators import LHSGenerator
 from ..problem import Problem
 from ..results import Results
 from ..surrogate_smt import SurrogateModelSMT
-from ..operators import LHSGenerator
-from ..algorithm_sweep import SweepAlgorithm
-from ..algorithm_nlopt import NLopt, LN_BOBYQA
-from ..algorithm_genetic import NSGAII
-
-import numpy as np
-from smt.surrogate_models import RBF, MGP
 
 
 class ProblemBranin(Problem):
@@ -22,7 +19,7 @@ class ProblemBranin(Problem):
     def set(self):
         self.parameters = [{'name': 'x_1', 'initial_value': 3, 'bounds': [-5, 10]},
                            {'name': 'x_2', 'initial_value': 10, 'bounds': [-5, 15]}]
-        self.costs = [{'name': 'F'}]
+        self.costs = [{'name': 'F_1'}]
 
     def evaluate(self, individual):
         x = individual.vector

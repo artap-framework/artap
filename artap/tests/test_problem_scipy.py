@@ -16,7 +16,7 @@ class TestSimpleOptimization(unittest.TestCase):
         algorithm.run()
 
         results = Results(problem)
-        optimum = results.find_optimum('F_1')
+        optimum = results.find_optimum('f_1')
         self.assertAlmostEqual(optimum.costs[0], 0)
 
 
@@ -31,7 +31,7 @@ class TestAckleyN2(unittest.TestCase):
         algorithm.run()
 
         results = Results(problem)
-        optimum = results.find_optimum('F_1')
+        optimum = results.find_optimum('f_1')
         self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 3)
 
 
