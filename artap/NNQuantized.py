@@ -8,7 +8,7 @@ from tensorflow.keras.callbacks import EarlyStopping, LearningRateScheduler, Ten
 from tensorflow.keras.layers import InputSpec, Flatten, Dense, Conv2D, BatchNormalization, MaxPooling2D, Activation
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import squared_hinge
+from tensorflow.keras.losses import squared_hinge, mean_squared_error
 from tensorflow.keras import backend as K
 import tensorflow._api.v2.compat as tv
 from keras.utils.vis_utils import plot_model
@@ -300,111 +300,6 @@ class ConvLayer(object):
         return tf.nn.conv2d(x, self.w_tensor, strides=[1, self.stride, self.stride, 1], padding='SAME')
 
 
-# class ConvLayer(object):
-#     def __init__(self, tensor, prune_mask, H_in, W_in, stride, name, dense=False):
-#         assert tensor.shape == prune_mask.shape
-#
-#         self.stride = stride
-#         self.dense = dense
-#
-#         if not self.dense:
-#             indices, values, dense_shape = self.tensor_to_matrix(tensor, prune_mask, H_in, W_in, stride)
-#             # for i in range(len(indices)):
-#             #     for j in range(0, 2):
-#             #         indices[i][j] = int(np.round(indices[i][j]))
-#             # for i in range(0, 2):
-#             dense_shape[1] = int(round(dense_shape[1]))
-#             #     dense_shape[i] = int(np.round(dense_shape[i]))
-#             self.w_matrix = tf.SparseTensor(indices, values, dense_shape)  # tf sparse matrix
-#         else:
-#             matrix = self.tensor_to_matrix(tensor, prune_mask, H_in, W_in, stride)
-#             self.w_matrix = tf.constant(matrix)  # tf dense matrix
-#
-#         self.w_tensor = tf.constant(tensor * prune_mask)
-#
-#     def get_linear_pos(self, i, j, W):  # row major
-#         return i * W + j
-#
-#     def tensor_to_matrix(self, tensor, prune_mask, H_in, W_in, stride):
-#         # assume padding type 'SAME' and padding value 0
-#
-#         global indices, values, matrix, dense_shape
-#         H_out = int(H_in + 1) / stride  # padding 'SAME'
-#         W_out = int(W_in + 1) / stride  # padding 'SAME'
-#         H_in = int(H_in)
-#         W_in = int(W_in)
-#
-#         kH, kW, D_in, D_out = tensor.shape
-#
-#         self.D_out = D_out
-#         self.H_out = H_out
-#         self.W_out = W_out
-#
-#         if not self.dense:
-#             indices, values, dense_shape = [], [], [H_in * W_in * D_in, H_out* W_out * D_out] # sparse matrix
-#         else:
-#             matrix = np.zeros((H_in * W_in * D_in, H_out * W_out * D_out), dtype=np.float32)  # dense matrix
-#
-#         for d_in in range(D_in):
-#             for d_out in range(D_out):
-#                 # tf.nn.conv2d implementation doesn't go from top-left spatial location but from bottom-right
-#                 for i_in_center in np.arange(H_in - 1, -1, -stride):  # kernel input center for first axis
-#                     for j_in_center in np.arange(W_in - 1, -1, -stride):  # kernel input center for second axis
-#                         i_out = int(i_in_center / stride)
-#                         j_out = int(j_in_center / stride)
-#                         for i in range(kH):
-#                             i_in = i_in_center + i - kH / 2
-#                             if i_in < 0 or i_in >= H_in:  # padding value 0
-#                                 continue
-#
-#                             for j in range(kW):
-#                                 j_in = j_in_center + j - kW / 2
-#                                 if j_in < 0 or j_in >= W_in:  # padding value 0
-#                                     continue
-#                                 # pruning mask: ones - valid weights, zero - pruned weights
-#                                 if prune_mask[i][j][d_in][d_out] == 0.0:
-#                                     continue
-#
-#                                 pos_in = int(self.get_linear_pos(i_in, j_in, W_in) + d_in * H_in * W_in)
-#                                 pos_out = int(self.get_linear_pos(i_out, j_out, W_out) + d_out * H_out * W_out)
-#
-#                                 if not self.dense:
-#                                     indices.append([pos_in, pos_out])
-#                                     values.append(tensor[i][j][d_in][d_out])
-#                                 else:
-#                                     matrix[pos_in][pos_out] = tensor[i][j][d_in][d_out]
-#         if not self.dense:
-#             return np.round(indices), values, dense_shape
-#         else:
-#             return matrix
-#
-#     def forward_matmul_preprocess(self, x):
-#         x = tf.transpose(x, (0, 3, 1, 2))
-#         x = tf.reshape(x, (-1, np.product(x.shape[1:])))
-#
-#         return x
-#
-#     def forward_matmul_postprocess(self, x):
-#         x = tf.reshape(x, [-1, self.D_out, int(self.H_out), int(self.W_out)])
-#         x = tf.transpose(x, (0, 2, 3, 1))
-#
-#         return x
-#
-#     def forward_matmul(self, x):
-#         if not self.dense:
-#             w = tf.sparse.transpose(self.w_matrix, (1, 0))
-#             x = tf.transpose(x, (1, 0))
-#             x = tf.sparse.sparse_dense_matmul(w, x)  # only left matrix can be sparse hence transpositions
-#             x = tf.transpose(x, (1, 0))
-#         else:
-#             x = tf.matmul(x, self.w_matrix)
-#
-#         return x
-#
-#     def forward_conv(self, x):
-#         return tf.nn.conv2d(x, self.w_tensor, strides=[1, self.stride, self.stride, 1], padding='SAME')
-
-
 class NNModel:
     def __init__(self, problem: Problem, name, weights, prune_mask):
         self.problem = problem
@@ -566,7 +461,7 @@ class DenseQuantized(Dense):
             self.kernel_multiplier = np.float32(1. / np.sqrt(1.5 / (input_dim + self.units)))
 
         self.kernel_constraint = Clip(-self.H, self.H)
-        self.kernel_initializer = initializers.initializers_v1.RandomUniform(-self.H, self.H)
+        self.kernel_initializer = initializers.RandomUniform(-self.H, self.H)
         self.kernel = self.add_weight(shape=(input_dim, self.units),
                                       initializer=self.kernel_initializer,
                                       name='kernel',
@@ -900,7 +795,7 @@ class QNN_model:
 
         lr_decay = LearningRateScheduler(scheduler)
         adam = Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
-        model.compile(loss=squared_hinge, optimizer=adam, metrics=['accuracy'])
+        model.compile(loss=mean_squared_error, optimizer=adam, metrics=['accuracy'])
         start = time.time()
         hist = model.fit(x_train, y_train,
                          batch_size=self.batch_size,
