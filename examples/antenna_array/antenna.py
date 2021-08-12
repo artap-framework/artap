@@ -8,6 +8,8 @@ from artap.algorithm_nlopt import NLopt, LN_BOBYQA
 from artap.datastore import SqliteDataStore
 from artap.problem import Problem
 from artap.results import Results
+from artap.NNQuantized import QNN_model
+import pandas as pd
 
 
 class AntennaArray:
@@ -21,7 +23,7 @@ class AntennaArray:
     def __init__(self, nx, ny, n_phi, n_theta):
 
         # the resolution in phase an magnitudes
-        self.n_bits: int = 7
+        self.n_bits: int = 6
 
         self.c = 3e8  # speed of the light
         self.f = 3.6e9  # working frequency
@@ -191,6 +193,8 @@ class AntennaArrayProblem(Problem):
                     break
 
         self.indices = indices
+        self.pattern_radiation = []
+        self.data = []
 
         # tolerance scheme which array factor should fit
         self.reference[0:indices[0]] = attenuation[0]
@@ -205,30 +209,37 @@ class AntennaArrayProblem(Problem):
         b = Results(self)
         pareto = []
 
-        plt.figure()
-        for individual in b.pareto_individuals():
-            plt.plot(individual.costs[0], individual.costs[1], 'ro', markersize=12)
-            pareto.append(individual)
-        for individual in b.population(-1):
-            plt.plot(individual.costs[0], individual.costs[1], 'o')
-        plt.grid()
-        plt.xlabel(r"$\mathcal{F}_1$", fontsize=16)
-        plt.ylabel(r"$\mathcal{F}_2$", fontsize=16)
-        plt.tight_layout()
-        plt.savefig('pareto_front.pdf')
-        plt.show()
+        # plt.figure()
+        # for individual in b.pareto_individuals():
+        #     plt.plot(individual.costs[0], individual.costs[1], 'ro', markersize=12)
+        #     pareto.append(individual)
+        # for individual in b.population(-1):
+        #     plt.plot(individual.costs[0], individual.costs[1], 'o')
+        # plt.grid()
+        # plt.xlabel(r"$\mathcal{F}_1$", fontsize=16)
+        # plt.ylabel(r"$\mathcal{F}_2$", fontsize=16)
+        # plt.tight_layout()
+        # plt.savefig('pareto_front.pdf')
+        # plt.show()
         array_factor = self.antenna.calculate_array_factor(b.pareto_individuals()[0].vector)
-        plt.figure()
-        plt.plot([-90, 90], [-25, -25], 'r')
-        plt.plot(self.theta / np.pi * 180, 20*np.log10(self.reference), 'k-')
-        plt.plot(self.theta / np.pi * 180,
-                 20 * np.log10(np.abs(array_factor[:, self.phi_index]) /
-                               np.max(np.abs(array_factor))), '--', label='exact solution')
-
-        plt.ylim([-60, 0])
-        plt.xlim([-90, 90])
-        plt.grid()
-        plt.show()
+        self.pattern_radiation = 20 * np.log10(np.abs(array_factor[:, self.phi_index]) /
+                      np.max(np.abs(array_factor)))
+        exact = array_factor[:, self.phi_index]
+        df0 = pd.DataFrame(exact)
+        df0.to_csv('exact.csv')
+        exact_solution = 20 * np.log10(np.abs(array_factor[:, self.phi_index]) /
+                      np.max(np.abs(array_factor)))
+        # plt.figure()
+        # plt.plot([-90, 90], [-25, -25], 'r')
+        # plt.plot(self.theta / np.pi * 180, 20*np.log10(self.reference), 'k-')
+        # plt.plot(self.theta / np.pi * 180, exact_solution, '--', label='exact solution')
+        #
+        # plt.ylim([-60, 0])
+        # plt.xlim([-90, 90])
+        # plt.legend()
+        # plt.grid()
+        # plt.savefig('1.pdf')
+        # plt.show()
         # for k in range(len(pareto)):
         #     saved_vector = b.pareto_individuals(-1)[k].vector.copy()
         #     plt.figure()
@@ -254,8 +265,12 @@ class AntennaArrayProblem(Problem):
         #     plt.tight_layout()
         #     plt.savefig('pareto_front_{}.pdf'.format(k))
         #     plt.show()
+        # plt.plot(self.antenna.inputs[0])
+        # plt.show()
+        # self.data = [np.abs(self.pattern_radiation[0:len(self.antenna.inputs)]), np.abs(self.antenna.inputs)]
+        self.data = [array_factor[0:len(self.antenna.inputs), :].real, self.antenna.inputs.real]
 
-        self.antenna.plot_array_factor_3d(array_factor)
+        # self.antenna.plot_array_factor_3d(array_factor)
 
     def evaluate(self, individual):
 
@@ -295,7 +310,13 @@ class AntennaArrayProblem(Problem):
 
         # f_7 = max(max(magnitude[:self.indices[0], self.phi_index]),
         #        max(magnitude[self.indices[1]:, self.phi_index]))
-        print(magnitude_r, side_lobes_integral)
+        # print(magnitude_r, side_lobes_integral)
+        self.mag.append(magnitude_r)
+        self.side.append(side_lobes_integral)
+        s = [self.mag, self.side, self.theta]
+        # s = np.transpose(s)
+        df = pd.DataFrame(s)
+        df.to_csv('magnitude.csv')
         return [magnitude_r, side_lobes_integral]
 
     def set(self, **kwargs):
@@ -312,6 +333,8 @@ class AntennaArrayProblem(Problem):
         self.phi = self.antenna.phi
         self.reference = np.zeros(len(self.theta))
         self.indices = []
+        self.mag = []
+        self.side = []
 
         # Dynamically prepare parameters for given number of patches
         self.parameters = []
@@ -337,15 +360,35 @@ class AntennaArrayProblem(Problem):
 
 
 database_file = 'data.sqlite'
-problem = AntennaArrayProblem(n_x=10, n_y=10, n_phi=40, n_theta=40)
+problem = AntennaArrayProblem(n_x=10, n_y=10, n_phi=100, n_theta=100)
 datastore = SqliteDataStore(problem, database_name=database_file)
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 300
-algorithm.options['max_population_size'] = 300
+algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_size'] = 10
 algorithm.run()
+# model = QNN_model(problem)
+# model.train(problem)
 problem.process_results()
-datastore.sync_all()
 
-results = Results(problem)
-print(results.get_population_ids())
+model = QNN_model(problem)
+model.train(problem)
+
+# plt.plot(problem.pattern_radiation)
+# plt.show()
+datastore.sync_all()
+# cost = []
+# vector = []
+# for individual in datastore.problem.individuals:
+#     cost.append(datastore.problem.individuals[0].costs)
+#     vector.append(datastore.problem.individuals[0].vector)
+# print(np.shape(cost))
+# results = Results(problem)
+# print(results.get_population_ids())
+
+# datass = pd.read_csv('magnitude.csv')
+# datass = datass.values
+# plt.plot(datass[:, 1])
+# plt.plot(datass[:, 2])
+# plt.show()
+
 

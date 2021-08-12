@@ -15,7 +15,7 @@ from keras.utils.vis_utils import plot_model
 from contextlib import redirect_stdout
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn import preprocessing
+from sklearn.preprocessing import MinMaxScaler
 
 # tv.disable_v2_behavior()
 tv.v1.disable_v2_behavior()
@@ -457,11 +457,12 @@ class DenseQuantized(Dense):
         super(DenseQuantized, self).__init__(units, **kwargs)
 
     def build(self, input_shape):
-        input_dim = input_shape[1]
+        input_dim = 100
         if self.H == 'glorot_unifrom':
             self.H = np.float32(np.sqrt(1.5 / (input_dim + self.units)))
         if self.kernel_multiplier == 'glorot_uniform':
             self.kernel_multiplier = np.float32(1. / np.sqrt(1.5 / (input_dim + self.units)))
+            # self.kernel_multiplier = np.float32(1. / np.sqrt(1.5 / (nb_input + nb_output)))
 
         self.kernel_constraint = Clip(-self.H, self.H)
         self.kernel_initializer = initializers.RandomUniform(-self.H, self.H)
@@ -471,7 +472,7 @@ class DenseQuantized(Dense):
                                       regularizer=self.kernel_regularizer,
                                       constraint=self.kernel_constraint)
         if self.use_bias:
-            self.lr_multipliers = [self.kernel_lr_multiplier, self.bias_lr_multiplier]
+            self.lr_multipliers = [self.kernel_multiplier, self.bias_multiplier]
             self.bias = self.add_weight(shape=(self.units,),
                                         initializer=self.bias_initializer,
                                         name='bias',
@@ -493,7 +494,7 @@ class DenseQuantized(Dense):
         A None entry in a shape is compatible with any dimension,
         a None shape is compatible with any shape.
         """
-        self.input_spec = InputSpec(min_ndim=2, axes={-1: input_dim})
+        self.input_spec = InputSpec(min_ndim=input_dim)
         self.built = True
 
     def call(self, inputs):
@@ -584,7 +585,7 @@ class ConvQuantized(Conv2D):
             A None entry in a shape is compatible with any dimension,
             a None shape is compatible with any shape.
         """
-        self.input_spec = InputSpec(ndim=4, axes={-1: input_dim})
+        self.input_spec = InputSpec(ndim=2, axes={-1: input_dim})
         self.built = True
 
     def call(self, inputs):
@@ -620,42 +621,30 @@ class ConvQuantized(Conv2D):
 # TODO: prepare the dataset and then implement this method
 def load_dataset(dataset):
     # TODO : for your own data, uncomment the line below, and comment line above.
-    x_train, y_train, x_test, y_test = train_test_split(dataset)
+    X = dataset[0]
+    Y = dataset[1]
+    # X = np.transpose(X)
+    # Y = np.transpose(Y)
+    # scale data
+    scale_data = MinMaxScaler()
+    X = scale_data.fit_transform(X)
+    # Y = scale_data.fit_transform(Y)
 
-    # x_train = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_train), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
-    # x_test = np.transpose(np.reshape(np.subtract(np.multiply(2. / 255., x_test), 1.), (-1, 3, 32, 32)), (0, 2, 3, 1))
-    #
-    # # flatten targets
-    # y_train = np.hstack(y_train)
-    # y_test = np.hstack(y_test)
-    #
-    # # Onehot the targets
-    # y_train = np.float32(np.eye(10)[y_train])
-    # y_test = np.float32(np.eye(10)[y_test])
-    #
-    # # for hinge loss
-    # y_train = 2 * y_train - 1.
-    # y_test = 2 * y_test - 1.
-    #
-    # # enlarge train data set by mirrroring
-    # x_train_flip = x_train[:, :, ::-1, :]
-    # y_train_flip = y_train
-    #
-    # x_train = np.concatenate((x_train, x_train_flip), axis=0)
-    # y_train = np.concatenate((y_train, y_train_flip), axis=0)
-    # x_train = np.array(x_train)
-    # y_train = np.array(y_train)
-    # x_test = np.array(x_test)
-    # y_test = np.array(y_test)
+    print(np.shape(X))
+    print(np.shape(Y))
+    # x_train, y_train, x_test, y_test = train_test_split(X, Y, test_size=0.3)
+    X_train, X_test, Y_train, Y_test = train_test_split(np.array(X), np.array(Y), test_size=0.2)
+    # X_val, X_test, Y_val, Y_test = train_test_split(X_val_and_test, Y_val_and_test, test_size=0.5)
 
-    return x_train, y_train, x_test, y_test
+    print(f'{X_train.shape}, {X_test.shape}, {Y_train.shape}, {Y_test.shape}')
+    return X_train, X_test, Y_train, Y_test
 
 
 class QNN_model:
     def __init__(self, problem: Problem):
         self.problem = problem
         # self.x = x
-        self.epochs = 10
+        self.epochs = 1000
         self.lr = 0.001  # Learning Rate
         self.decay = 0.000025
 
@@ -699,13 +688,17 @@ class QNN_model:
         Conv_ = lambda s, f, i, c: ConvQuantized(kernel_size=(s, s), H=1, nb=self.wbits, filters=f, strides=(1, 1),
                                                  padding='same', activation='linear',
                                                  kernel_regularizer=l2(self.kernel_regularizer),
-                                                 kernel_multiplier=self.kernel_multiplier, input_shape=(i, i, c))
+                                                 kernel_multiplier=self.kernel_multiplier, input_shape=(i, c))
         Conv = lambda s, f: ConvQuantized(kernel_size=(s, s), H=1, nb=self.wbits, filters=f, strides=(1, 1),
                                           padding='same', activation='linear',
                                           kernel_regularizer=l2(self.kernel_regularizer),
                                           kernel_multiplier=self.kernel_multiplier)
+
+        Dense_ = lambda f: DenseQuantized(units=f)
         Act = lambda: Activation(quantized_relu)
 
+        # model for image classifications
+        '''
         model = Sequential()
         model.add(Conv_(3, self.nfa, self.dim, self.channels))
         model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
@@ -745,18 +738,38 @@ class QNN_model:
         model.add(Dense(self.classes, use_bias=False))
         model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
 
+        '''
+
+        # model for prediction
+        model = Sequential()
+        model.add(Dense_(self.nfa))
+        model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+        model.add(Act())
+
+        for i in range(0, self.nla - 1):
+            model.add(Dense_(self.nfa))
+            model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+            model.add(Act())
+
+        # Dense Layer
+        model.add(Flatten())
+        model.add(Dense(10))
+        model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+
         return model
 
-    def plot_QNNmodel(self, hist, y_test, y_pred, y_fit, reg_label):
-        plt.plot(hist.history['acc'])
-        plt.title('Model Accuracy')
+    def plot_QNNmodel(self, hist, y_test, y_pred):
+        plt.plot(hist.history['mean_squared_error'])
+        # plt.plot(hist.history['val_acc'])
+        plt.title('Model MSE')
         plt.xlabel('Epoch')
-        plt.ylabel('Accuracy')
+        plt.ylabel('MSE')
         plt.legend(['Train'], loc='upper right')
-        plt.savefig('fig_accuracy_model.png')
+        plt.savefig('fig_mse_model.png')
         plt.show()
 
         plt.plot(hist.history['loss'])
+        # plt.plot(hist.history['val_loss'])
         plt.title('Model loss')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
@@ -764,8 +777,8 @@ class QNN_model:
         plt.savefig('fig_loss_model.png')
         plt.show()
 
-        plt.plot(y_test, 'b-', label='$Q_{measured}, real output$ (%)')
-        plt.plot(y_pred, 'g-', label='$Q_{predicted}$ (%)')
+        plt.plot(y_test[0], 'b-', label='$Q_{measured}, real output$ (%)')
+        plt.plot(y_pred[0], 'r-', label='$Q_{predicted}$ (%)')
         plt.legend(fontsize=12, loc='lower right')
         plt.xlabel('Time', size=14)
         plt.ylabel('Value', size=14)
@@ -774,14 +787,14 @@ class QNN_model:
         plt.savefig('predict.png')
         plt.show()
 
-        plt.scatter(y_test, y_pred, color='blue', label='data')
-        plt.plot(y_pred, y_fit, color='red', linewidth=2, label='Linear regression\n' + reg_label)
-        plt.title('Linear Regression')
-        plt.legend()
-        plt.xlabel('observed')
-        plt.ylabel('predicted')
-        plt.savefig('linear_regression.png')
-        plt.show()
+        # plt.scatter(y_test, y_pred, color='blue', label='data')
+        # plt.plot(y_pred, y_fit, color='red', linewidth=2, label='Linear regression\n' + reg_label)
+        # plt.title('Linear Regression')
+        # plt.legend()
+        # plt.xlabel('observed')
+        # plt.ylabel('predicted')
+        # plt.savefig('linear_regression.png')
+        # plt.show()
 
     def train(self, problem):
 
@@ -793,7 +806,7 @@ class QNN_model:
                 lr = K.get_value(model.optimizer.lr)
 
                 # TODO: Add x_train to here.
-                IT = x_train.shape[0] / self.batch_size
+                IT = X_train.shape[0] / self.batch_size
                 current_lr = lr * (1. / (1. + self.decay * epoch * IT))
                 K.set_value(model.optimizer.lr, current_lr * factor)
 
@@ -801,17 +814,17 @@ class QNN_model:
 
         model = self.build_model()
         # early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
-        checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_acc', verbose=1, save_best_only=True,
+        checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_mean_squared_error', verbose=1, save_best_only=True,
                                      mode='max', period=1)
 
         # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
-        x_train, y_train, x_test, y_test = load_dataset(problem.costs)
+        X_train, X_test, Y_train, Y_test = load_dataset(problem.data)
 
         lr_decay = LearningRateScheduler(scheduler)
         adam = Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
-        model.compile(loss=mean_squared_error, optimizer=adam, metrics=['accuracy'])
+        model.compile(loss=mean_squared_error, optimizer=adam, metrics=['mean_squared_error'])
         start = time.time()
-        hist = model.fit(x_train, y_train,
+        hist = model.fit(X_train, Y_train,
                          batch_size=self.batch_size,
                          epochs=self.epochs,
                          verbose=self.progress_logging,
@@ -824,22 +837,24 @@ class QNN_model:
                 model.summary()
         model.save('QNN_model.h5')
 
-        y_pred = model.predict(x_test)
+        y_pred = model.predict(X_test)
         # Unscale data
-        min_max_scaler = preprocessing.MinMaxScaler()
-        # Xtest_us = min_max_scaler.inverse_transform(x_test[:, -1, :])
+        # min_max_scaler = MinMaxScaler()
+        # Xtest_us = min_max_scaler.inverse_transform(X_test)
+        # Xtest_us = min_max_scaler.fit_transform(X_test)
         # ytest_us = min_max_scaler.inverse_transform(Y_test)
         # yp = min_max_scaler.inverse_transform(y_pred)
         # sp = Xtest_us[:,1]
-
         # plt.plot(sp,'r-',label='$T_1$ $(^oC)$')
 
-        regressor = LinearRegression()
-        regressor.fit(y_test.reshape(-1, 1), y_pred)
-        y_fit = regressor.predict(y_pred)
+        # regressor = LinearRegression()
+        # regressor.fit(Y_test.reshape(-1, 1), y_pred[:, 0])
+        # y_fit = regressor.predict(y_pred[:, 0].reshape(-1, 1))
+        #
+        # reg_intercept = round(regressor.intercept_, 4)
+        # reg_coef = round(regressor.coef_.flatten()[0], 4)
+        # reg_label = "y = " + str(reg_intercept) + "*x +" + str(reg_coef)
 
-        reg_intercept = round(regressor.intercept_[0], 4)
-        reg_coef = round(regressor.coef_.flatten()[0], 4)
-        reg_label = "y = " + str(reg_intercept) + "*x +" + str(reg_coef)
-
-        self.plot_QNNmodel(hist, y_test, y_pred, y_fit, reg_label)
+        print(f'Y_test : {Y_test}')
+        print(f'y_pred : {y_pred}')
+        self.plot_QNNmodel(hist, Y_test, y_pred)
