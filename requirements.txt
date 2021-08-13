@@ -14,6 +14,6 @@ pyDOE2
 numpydoc
 six>=1.10
 smt~=1.0.0
-tinydb
+tensorflow
 PyQt5~=5.15.4
 setuptools~=52.0.0
