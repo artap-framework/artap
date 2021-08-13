@@ -25,8 +25,9 @@ class TestGradientDescent(unittest.TestCase):
         problem = QuadraticProblem()
 
         algorithm = GradientDescent(problem)
-        algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 10
+        algorithm.options["x0"] = [2, 1]
+        algorithm.options["n_iterations"] = 8
+        algorithm.options["h"] = 0.1
         algorithm.run()
 
 
