@@ -35,10 +35,9 @@ class TestSALibSensitivity(unittest.TestCase):
 
         res = algorithm.analyze()
 
-        # TODO: Check and repair
-        # self.assertAlmostEqual(res["S1"][0], 0.30797525)
-        # self.assertAlmostEqual(res["S1"][1], 0.44776754)
-        # self.assertAlmostEqual(res["S1"][2], -0.00425456)
+        self.assertAlmostEqual(res["S1"][0], 0.30797525, 2)
+        self.assertAlmostEqual(res["S1"][1], 0.44776754, 2)
+        self.assertAlmostEqual(res["S1"][2], -0.00425456, 2)
 
 
 if __name__ == '__main__':
