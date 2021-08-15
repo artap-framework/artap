@@ -34,7 +34,6 @@ class TestGradients(unittest.TestCase):
 
     def test_local_problem(self):
         problem = ParabolicProblem()
-        # algorithm = GradientAlgorithm(problem)
 
         # DoE - Latin - Hypercube
         gen = LHSGenerator(parameters=problem.parameters)
