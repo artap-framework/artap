@@ -1,7 +1,8 @@
 import unittest
 
 from ..problem import Problem
-from ..algorithm_gradient import GradientAlgorithm
+from ..algorithm_sweep import SweepAlgorithm
+from ..operators import LHSGenerator, GradientEvaluator
 
 
 class ParabolicProblem(Problem):
@@ -33,17 +34,17 @@ class TestGradients(unittest.TestCase):
 
     def test_local_problem(self):
         problem = ParabolicProblem()
-        algorithm = GradientAlgorithm(problem)
-        algorithm.options['max_population_size'] = 10
+
+        # DoE - Latin - Hypercube
+        gen = LHSGenerator(parameters=problem.parameters)
+        gen.init(number=10)
+
+        algorithm = SweepAlgorithm(problem, generator=gen)
+        algorithm.evaluator = GradientEvaluator(algorithm)
         algorithm.run()
 
         for individual in problem.individuals:
             gradient = individual.features['gradient']
-            print(gradient)
             ref_gradient = analytic_gradient(individual)
             for i in range(len(gradient)):
                 self.assertAlmostEqual(gradient[i], ref_gradient[i], 2)
-
-
-if __name__ == '__main__':
-    unittest.main()

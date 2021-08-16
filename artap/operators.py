@@ -120,16 +120,17 @@ class GradientEvaluator(Evaluator):
                 gradient[i] = ((child.costs[0] - individual.costs[0]) / self.delta)
                 i += 1
             individual.features['gradient'] = gradient
-            if any(gradient < 0):
-                sensitivity = 1000
-            else:
-                sensitivity = sum(abs(gradient))
-            if len(individual.costs) > self.n:
-                individual.costs[-1] = sensitivity
-                individual.costs_signed[-2] = sensitivity
-            else:
-                individual.costs.append(sensitivity)
-                individual.costs_signed.insert(-1, sensitivity)
+
+            # if any(gradient < 0):
+            #     sensitivity = 1000
+            # else:
+            #     sensitivity = sum(abs(gradient))
+            # if len(individual.costs) > self.n:
+            #     individual.costs[-1] = sensitivity
+            #     individual.costs_signed[-2] = sensitivity
+            # else:
+            #     individual.costs.append(sensitivity)
+            #     individual.costs_signed.insert(-1, sensitivity)
 
         self.individuals = []
         self.to_evaluate = []
