@@ -363,8 +363,8 @@ database_file = 'data.sqlite'
 problem = AntennaArrayProblem(n_x=10, n_y=10, n_phi=100, n_theta=100)
 datastore = SqliteDataStore(problem, database_name=database_file)
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 10
-algorithm.options['max_population_size'] = 10
+algorithm.options['max_population_number'] = 50
+algorithm.options['max_population_size'] = 50
 algorithm.run()
 # model = QNN_model(problem)
 # model.train(problem)

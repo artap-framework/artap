@@ -644,7 +644,7 @@ class QNN_model:
     def __init__(self, problem: Problem):
         self.problem = problem
         # self.x = x
-        self.epochs = 1000
+        self.epochs = 3000
         self.lr = 0.001  # Learning Rate
         self.decay = 0.000025
 
@@ -657,7 +657,7 @@ class QNN_model:
         self.nla, self.nlb, self.nlc = 1, 1, 1
         self.nfa, self.nfb, self.nfc = 64, 64, 64
 
-        self.batch_size = 64
+        self.batch_size = 32
 
         # learning rate decay, factor => LR *= factor
         self.kernel_multiplier = 10
@@ -751,6 +751,18 @@ class QNN_model:
             model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
             model.add(Act())
 
+        # # block B
+        # for i in range(0, self.nlb):
+        #     model.add(Dense_(self.nfb))
+        #     model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+        #     model.add(Act())
+        #
+        # # block C
+        # for i in range(0, self.nlc):
+        #     model.add(Dense_(self.nfc))
+        #     model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+        #     model.add(Act())
+
         # Dense Layer
         model.add(Flatten())
         model.add(Dense(10))
@@ -777,13 +789,11 @@ class QNN_model:
         plt.savefig('fig_loss_model.png')
         plt.show()
 
-        plt.plot(y_test[0], 'b-', label='$Q_{measured}, real output$ (%)')
-        plt.plot(y_pred[0], 'r-', label='$Q_{predicted}$ (%)')
-        plt.legend(fontsize=12, loc='lower right')
+        plt.plot(y_test[0], 'b-')
+        plt.plot(y_pred[0], 'r-')
         plt.xlabel('Time', size=14)
         plt.ylabel('Value', size=14)
-        plt.xticks(size=12)
-        plt.yticks(size=12)
+        plt.legend(['measured output', 'predicted output'], loc='upper right')
         plt.savefig('predict.png')
         plt.show()
 
@@ -799,36 +809,36 @@ class QNN_model:
     def train(self, problem):
 
         # learning rate schedule
-        def scheduler(epoch):
-            if epoch in self.decay_at_epoch:
-                index = self.decay_at_epoch.index(epoch)
-                factor = self.factor_at_epoch[index]
-                lr = K.get_value(model.optimizer.lr)
-
-                # TODO: Add x_train to here.
-                IT = X_train.shape[0] / self.batch_size
-                current_lr = lr * (1. / (1. + self.decay * epoch * IT))
-                K.set_value(model.optimizer.lr, current_lr * factor)
-
-            return K.get_value(model.optimizer.lr)
+        # def scheduler(epoch):
+        #     if epoch in self.decay_at_epoch:
+        #         index = self.decay_at_epoch.index(epoch)
+        #         factor = self.factor_at_epoch[index]
+        #         lr = K.get_value(model.optimizer.lr)
+        #
+        #         # TODO: Add x_train to here.
+        #         IT = X_train.shape[0] / self.batch_size
+        #         current_lr = lr * (1. / (1. + self.decay * epoch * IT))
+        #         K.set_value(model.optimizer.lr, current_lr * factor)
+        #
+        #     return K.get_value(model.optimizer.lr)
 
         model = self.build_model()
         # early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
-        checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_mean_squared_error', verbose=1, save_best_only=True,
-                                     mode='max', period=1)
+        # checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_mean_squared_error', verbose=1, save_best_only=True,
+        #                              mode='max', period=1)
 
         # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
         X_train, X_test, Y_train, Y_test = load_dataset(problem.data)
 
-        lr_decay = LearningRateScheduler(scheduler)
-        adam = Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
-        model.compile(loss=mean_squared_error, optimizer=adam, metrics=['mean_squared_error'])
+        # lr_decay = LearningRateScheduler(scheduler)
+        # adam = Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=self.decay)
+        model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer='adam', metrics=['mean_squared_error'])
         start = time.time()
         hist = model.fit(X_train, Y_train,
                          batch_size=self.batch_size,
                          epochs=self.epochs,
-                         verbose=self.progress_logging,
-                         callbacks=[checkpoint, lr_decay])
+                         verbose=self.progress_logging)
+                         # callbacks=[checkpoint, lr_decay])
 
         print(f'Training time : {time.time() - start} s')
         # plot_model(model, to_file='QNN_model.png', show_shapes=True, rankdir="LR")
@@ -836,6 +846,9 @@ class QNN_model:
             with redirect_stdout(file):
                 model.summary()
         model.save('QNN_model.h5')
+
+        # min_max_scaler = MinMaxScaler()
+        # X_test = min_max_scaler.fit_transform(X_test)
 
         y_pred = model.predict(X_test)
         # Unscale data
@@ -854,6 +867,8 @@ class QNN_model:
         # reg_intercept = round(regressor.intercept_, 4)
         # reg_coef = round(regressor.coef_.flatten()[0], 4)
         # reg_label = "y = " + str(reg_intercept) + "*x +" + str(reg_coef)
+        loss, mse = model.evaluate(X_test, Y_test)
+        print(f'loss = {loss}, and mse = {mse}')
 
         print(f'Y_test : {Y_test}')
         print(f'y_pred : {y_pred}')
