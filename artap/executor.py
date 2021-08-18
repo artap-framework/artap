@@ -142,9 +142,10 @@ class LocalFEMMExecutor(Executor):
 
     def __init__(self, problem, script_file, output_files):
         super().__init__(problem)
-        self.script_file = ntpath.basename(script_file)
+        # self.script_file = ntpath.basename(script_file)
+        self.script_file = script_file
 
-        self.femm_command = 'wine ~/.wine/drive_c/femm42/bin/femm.exe'
+        self.femm_command = 'femm'
 
         self.output_files = output_files
 
@@ -164,13 +165,12 @@ class LocalFEMMExecutor(Executor):
 
         params = param_names_string.split(',')
         values = param_values_string.split(',')
-        #
+
         for i in range(len(params)):
             temp = str(params[i])+'='+str(values[i])
             cmd_string += ' -lua-var={}'.format(temp)
 
         try:
-
             out = subprocess.run(cmd_string, shell=True, stdout=subprocess.PIPE)
 
             if out.returncode != 0:
