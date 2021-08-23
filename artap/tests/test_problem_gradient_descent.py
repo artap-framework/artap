@@ -29,7 +29,7 @@ class TestGradientDescent(unittest.TestCase):
 
         algorithm = GradientDescent(problem, generator=gen)
         algorithm.options["n_iterations"] = 20
-        algorithm.options["h"] = 0.25
+        algorithm.options["step"] = 0.25
         algorithm.run()
 
         results = Results(problem)
@@ -44,7 +44,28 @@ class TestGradientDescent(unittest.TestCase):
 
         algorithm = GradientDescent(problem)
         algorithm.options["n_iterations"] = 20
-        algorithm.options["h"] = 0.25
+        algorithm.options["step"] = 0.25
+        algorithm.run()
+
+        results = Results(problem)
+        optimum = results.find_optimum('F_1')
+        print(optimum)
+        self.assertAlmostEqual(optimum.vector[0], 0, places=3)
+        self.assertAlmostEqual(optimum.vector[1], 0, places=3)
+        self.assertAlmostEqual(optimum.costs[0], 0, places=3)
+
+    def test_gradient_descent_adaptive_custom(self):
+        problem = QuadraticProblem()
+
+        gen = CustomGenerator(problem.parameters)
+        gen.init([[2.0, 1.0], [4.0, -1.0]])
+
+        algorithm = GradientDescent(problem, generator=gen)
+        algorithm.options["n_iterations"] = 20
+        algorithm.options["adaptive"] = True
+        algorithm.options["step"] = 5.0
+        algorithm.options["minimal_step"] = 1e-6
+        algorithm.options["c"] = 1e-4
         algorithm.run()
 
         results = Results(problem)

@@ -14,8 +14,15 @@ class GradientDescent(GeneticAlgorithm):
 
         self.options.declare(name='n_iterations', default=10,
                              desc='Maximum number of iterations')
-        self.options.declare(name='h', default=0.1,
-                             desc='step')
+        self.options.declare(name='step', default=0.1,
+                             desc='Step')
+        self.options.declare(name='minimal_step', default=1e-6,
+                             desc='Minimal step')
+        self.options.declare(name='adaptive', default=False,
+                             desc='Adaptive Armijo line search')
+        self.options.declare(name='c', default=1e-4,
+                             desc='Armijo coefficient')
+
 
         # compute gradients
         self.evaluator = GradientEvaluator(self)
@@ -28,12 +35,52 @@ class GradientDescent(GeneticAlgorithm):
         else:
             self.generator = generator
 
+    def step(self, individual):
+        x = []
+        for i in range(len(individual.vector)):
+            x.append(individual.vector[i] - self.options["step"] * individual.features['gradient'][i])
+
+        return x
+
+    def step_adaptive(self, individual):
+        # Armijo line search
+        h_t = self.options["step"]
+        c = self.options["c"]
+
+        grad_sqr = 0
+        for i in range(len(individual.vector)):
+            grad_sqr = grad_sqr + individual.features['gradient'][i] ** 2
+
+        x_static = []
+        for i in range(len(individual.vector)):
+            x_static.append(individual.vector[i])
+        individual_static = Individual(x_static, self.individual_features)
+        self.evaluate([individual_static])
+
+        while True:
+            x_armijo = []
+            for i in range(len(individual.vector)):
+                x_armijo.append(individual.vector[i] - h_t * individual.features['gradient'][i])
+            individual_armijo = Individual(x_armijo, self.individual_features)
+            self.evaluate([individual_armijo])
+
+            satisfied = True
+            for i in range(len(individual.costs)):
+                if individual_armijo.costs[i] > individual_static.costs[i] - c * h_t * grad_sqr:
+                    satisfied = False
+            if satisfied:
+                return x_armijo
+
+            # step too small
+            if h_t < self.options["minimal_step"]:
+                return x_armijo
+
+            h_t = h_t / 2.0
+
     def run(self):
         # optimization
         t_s = time.time()
         self.problem.logger.info("GradientDescent")
-
-        h_initial = self.options["h"]
 
         # generate initial point
         individuals = self.generator.generate()
@@ -47,13 +94,15 @@ class GradientDescent(GeneticAlgorithm):
 
         self.evaluate(individuals)
 
-        # TODO: add adaptive step size
         for j in range(self.options["n_iterations"]):
             new_individuals = []
             for individual in individuals:
-                x = []
-                for i in range(len(individual.vector)):
-                    x.append(individual.vector[i] - h_initial * individual.features['gradient'][i])
+                # get new position
+                if self.options["adaptive"]:
+                    x = self.step_adaptive(individual)
+                else:
+                    x = self.step(individual)
+                # create a new individual
                 individual = Individual(x, self.individual_features)
                 individual.population_id = j+1
                 new_individuals.append(individual)
