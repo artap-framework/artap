@@ -53,7 +53,6 @@ class AgrosProblem(Problem):
         # magnetic
         magnetic = problem.field("magnetic")
         magnetic.analysis_type = "steadystate"
-        magnetic.matrix_solver = "umfpack"
         magnetic.number_of_refinements = 2
         magnetic.polynomial_order = 2
         magnetic.adaptivity_type = "disabled"

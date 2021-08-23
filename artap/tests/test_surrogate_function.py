@@ -1,6 +1,6 @@
 import unittest
 
-from smt.surrogate_models import RBF, MGP
+from smt.surrogate_models import MGP
 
 from ..algorithm_genetic import NSGAII
 from ..algorithm_sweep import SweepAlgorithm
