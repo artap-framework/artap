@@ -34,7 +34,6 @@ class TestGradientDescent(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_optimum('F_1')
-        print(optimum)
         self.assertAlmostEqual(optimum.vector[0], 0, places=3)
         self.assertAlmostEqual(optimum.vector[1], 0, places=3)
         self.assertAlmostEqual(optimum.costs[0], 0, places=3)
@@ -49,7 +48,6 @@ class TestGradientDescent(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_optimum('F_1')
-        print(optimum)
         self.assertAlmostEqual(optimum.vector[0], 0, places=3)
         self.assertAlmostEqual(optimum.vector[1], 0, places=3)
         self.assertAlmostEqual(optimum.costs[0], 0, places=3)
@@ -63,14 +61,13 @@ class TestGradientDescent(unittest.TestCase):
         algorithm = GradientDescent(problem, generator=gen)
         algorithm.options["n_iterations"] = 20
         algorithm.options["adaptive"] = True
-        algorithm.options["step"] = 5.0
+        algorithm.options["step"] = 1.0
         algorithm.options["minimal_step"] = 1e-6
         algorithm.options["c"] = 1e-4
         algorithm.run()
 
         results = Results(problem)
         optimum = results.find_optimum('F_1')
-        print(optimum)
         self.assertAlmostEqual(optimum.vector[0], 0, places=3)
         self.assertAlmostEqual(optimum.vector[1], 0, places=3)
         self.assertAlmostEqual(optimum.costs[0], 0, places=3)
