@@ -457,7 +457,7 @@ class DenseQuantized(Dense):
         super(DenseQuantized, self).__init__(units, **kwargs)
 
     def build(self, input_shape):
-        input_dim = 100
+        input_dim = 2
         if self.H == 'glorot_unifrom':
             self.H = np.float32(np.sqrt(1.5 / (input_dim + self.units)))
         if self.kernel_multiplier == 'glorot_uniform':
@@ -621,13 +621,13 @@ class ConvQuantized(Conv2D):
 # TODO: prepare the dataset and then implement this method
 def load_dataset(dataset):
     # TODO : for your own data, uncomment the line below, and comment line above.
-    X = dataset[0]
-    Y = dataset[1]
+    X = dataset[['AF_real', 'AF_imag']].values
+    Y = dataset[['inp_real', 'inp_imag']].values
     # X = np.transpose(X)
     # Y = np.transpose(Y)
     # scale data
-    scale_data = MinMaxScaler()
-    X = scale_data.fit_transform(X)
+    # scale_data = MinMaxScaler()
+    # X = scale_data.fit_transform(X)
     # Y = scale_data.fit_transform(Y)
 
     print(np.shape(X))
@@ -644,7 +644,7 @@ class QNN_model:
     def __init__(self, problem: Problem):
         self.problem = problem
         # self.x = x
-        self.epochs = 3000
+        self.epochs = 2000
         self.lr = 0.001  # Learning Rate
         self.decay = 0.000025
 
@@ -765,7 +765,7 @@ class QNN_model:
 
         # Dense Layer
         model.add(Flatten())
-        model.add(Dense(10))
+        model.add(Dense(2))
         model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
 
         return model
@@ -824,8 +824,9 @@ class QNN_model:
 
         model = self.build_model()
         # early_stop = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='min', verbose=1)
-        # checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_mean_squared_error', verbose=1, save_best_only=True,
-        #                              mode='max', period=1)
+        # checkpoint = ModelCheckpoint(self.out_wght_path, monitor='val_mean_squared_error',
+        #                               verbose=1, save_best_only=True,
+        #                               mode='max', period=1)
 
         # TODO: The line bellow must be added, first specify the dataset, and then implement load_dataset
         X_train, X_test, Y_train, Y_test = load_dataset(problem.data)

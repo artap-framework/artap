@@ -225,8 +225,8 @@ class AntennaArrayProblem(Problem):
         self.pattern_radiation = 20 * np.log10(np.abs(array_factor[:, self.phi_index]) /
                       np.max(np.abs(array_factor)))
         exact = array_factor[:, self.phi_index]
-        df0 = pd.DataFrame(exact)
-        df0.to_csv('exact.csv')
+        # df0 = pd.DataFrame(exact)
+        # df0.to_csv('exact.csv')
         exact_solution = 20 * np.log10(np.abs(array_factor[:, self.phi_index]) /
                       np.max(np.abs(array_factor)))
         # plt.figure()
@@ -267,8 +267,24 @@ class AntennaArrayProblem(Problem):
         #     plt.show()
         # plt.plot(self.antenna.inputs[0])
         # plt.show()
-        # self.data = [np.abs(self.pattern_radiation[0:len(self.antenna.inputs)]), np.abs(self.antenna.inputs)]
-        self.data = [array_factor[0:len(self.antenna.inputs), :].real, self.antenna.inputs.real]
+        AF_real = array_factor[0, 0:len(self.antenna.inputs)].real
+        AF_imag = array_factor[0, 0:len(self.antenna.inputs)].imag
+        print(np.shape(AF_real))
+        print(np.shape(AF_imag))
+        inp_real = self.antenna.inputs[0, :].real
+        inp_imag = self.antenna.inputs[0, :].imag
+        print(np.shape(inp_real))
+        print(np.shape(inp_imag))
+        data = [AF_real, AF_imag, inp_real, inp_imag]
+
+        nparray = np.array(data)
+        transpose = nparray.transpose()
+        data = transpose.tolist()
+
+        df = pd.DataFrame(data, columns=('AF_real', 'AF_imag', 'inp_real', 'inp_imag'))
+        print(df)
+        print(df.shape)
+        self.data = df
 
         # self.antenna.plot_array_factor_3d(array_factor)
 
@@ -314,9 +330,6 @@ class AntennaArrayProblem(Problem):
         self.mag.append(magnitude_r)
         self.side.append(side_lobes_integral)
         s = [self.mag, self.side, self.theta]
-        # s = np.transpose(s)
-        df = pd.DataFrame(s)
-        df.to_csv('magnitude.csv')
         return [magnitude_r, side_lobes_integral]
 
     def set(self, **kwargs):
@@ -363,8 +376,8 @@ database_file = 'data.sqlite'
 problem = AntennaArrayProblem(n_x=10, n_y=10, n_phi=100, n_theta=100)
 datastore = SqliteDataStore(problem, database_name=database_file)
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 50
-algorithm.options['max_population_size'] = 50
+algorithm.options['max_population_number'] = 20
+algorithm.options['max_population_size'] = 20
 algorithm.run()
 # model = QNN_model(problem)
 # model.train(problem)
