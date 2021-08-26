@@ -457,7 +457,7 @@ class DenseQuantized(Dense):
         super(DenseQuantized, self).__init__(units, **kwargs)
 
     def build(self, input_shape):
-        input_dim = 2
+        input_dim = int(input_shape[1])
         if self.H == 'glorot_unifrom':
             self.H = np.float32(np.sqrt(1.5 / (input_dim + self.units)))
         if self.kernel_multiplier == 'glorot_uniform':
@@ -618,9 +618,8 @@ class ConvQuantized(Conv2D):
         return outputs
 
 
-# TODO: prepare the dataset and then implement this method
 def load_dataset(dataset):
-    # TODO : for your own data, uncomment the line below, and comment line above.
+    # Import Data, here data is a DataFrame.
     X = dataset[['AF_real', 'AF_imag']].values
     Y = dataset[['inp_real', 'inp_imag']].values
     # X = np.transpose(X)
@@ -654,7 +653,7 @@ class QNN_model:
         self.abits = 4
 
         # width and depth
-        self.nla, self.nlb, self.nlc = 1, 1, 1
+        self.nla, self.nlb, self.nlc = 2, 2, 2
         self.nfa, self.nfb, self.nfc = 64, 64, 64
 
         self.batch_size = 32
@@ -677,7 +676,7 @@ class QNN_model:
         # self.dataset = self.dataframe.values
         # from tensorflow.keras.datasets import cifar10
         # self.dataset = cifar10
-        self.out_wght_path = 'weights.hdf5'
+        # self.out_wght_path = 'weights.hdf5'
 
     def build_model(self):
         def quantized_relu(x):
@@ -746,22 +745,23 @@ class QNN_model:
         model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
         model.add(Act())
 
-        for i in range(0, self.nla - 1):
-            model.add(Dense_(self.nfa))
-            model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-            model.add(Act())
+        # for i in range(0, self.nla - 1):
+        model.add(Dense_(self.nfa))
+        model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+        model.add(Act())
+        # model.add(MaxPooling2D())
 
-        # # block B
+        # block B
         # for i in range(0, self.nlb):
-        #     model.add(Dense_(self.nfb))
-        #     model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-        #     model.add(Act())
-        #
+        model.add(Dense_(self.nfb))
+        model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+        model.add(Act())
+
         # # block C
         # for i in range(0, self.nlc):
-        #     model.add(Dense_(self.nfc))
-        #     model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
-        #     model.add(Act())
+        model.add(Dense_(self.nfc))
+        model.add(BatchNormalization(momentum=0.1, epsilon=0.0001))
+        model.add(Act())
 
         # Dense Layer
         model.add(Flatten())
