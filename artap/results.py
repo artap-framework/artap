@@ -83,19 +83,26 @@ class Results:
         else:
             return out
 
+    # TODO : This method returns all the populations instead of the population in the given index
     def population(self, population_id=-1):
         # Returns population with given index
-        #if population_id >= len(self.problem.populations):
+        #   if population_id >= len(self.problem.populations):
         #    raise ValueError('Index of population exceeds the number of populations.')
         if population_id == -1:
+            # TODO : last_population returns all the populations instead of last index population
             individuals = self.problem.last_population()
         else:
+            # TODO : population() must be modified to return the given index population
             individuals = self.problem.population(population_id)
         return individuals
 
+    # I assume this method must return the goal on the given index not to return all the population or the name must
+    # change
     def goal_on_index(self, name=None, population_id=-1):
-        """ Returns a list of lists. The first list contains indexes of individuals in population,
-            the other lists contains values of the goal function(s).
+        """
+        Returns a list of lists. The first list contains indexes of individuals in population,
+        the other lists contains values of the goal function(s).
+
         """
         individuals = self.population(population_id)
         n = range(len(individuals))
@@ -114,6 +121,8 @@ class Results:
 
         return table
 
+    # I assume this method must return the goal on the given index not to return all the population or the name must
+    # change
     def parameter_on_index(self, name=None, population_id=-1):
         """
         Returns a list of lists. The first list contains indexes of individuals in population,
@@ -221,7 +230,26 @@ class Results:
                         out.append(j)
 
                     writer.writerows([out])
-                population_id += 1
+                    # population_id += 1
+                    # increasing population_id does not work properly here, it must be written as below
+                    population_id += 1
+
+    def pareto_individuals(self, population_id=None):
+        """
+
+        :return: pareto front
+        """
+        if population_id is not None:
+            individuals = self.population(population_id)
+        else:
+            individuals = self.population(-1)
+
+        pareto_individuals = []
+        for individual in individuals:
+            if individual.features['front_number'] == 1:
+                pareto_individuals.append(individual)
+
+        return pareto_individuals
 
     def pareto_front(self, population_id=None):
         """
@@ -231,7 +259,7 @@ class Results:
         if population_id is not None:
             individuals = self.population(population_id)
         else:
-            individuals = self.problem.individuals
+            individuals = self.population(-1)
 
         n = self.goal_number()
         pareto_front = []
@@ -261,22 +289,17 @@ class Results:
 
         # get the index of the required parameter
         index = 0  # default - one parameter
+        min_l = []
         if name:
-            for i in range(len(self.problem.costs)):
-                cost = self.problem.costs[i]
-                if cost['name'] == name:
-                    index = i
-        # if len(self.problem.data_store.individuals) is not 0:
-        #    min_l = [min(self.problem.data_store.individuals, key=lambda x: x.costs[index])]
-        # else:
-        #if self.problem.archive:
-        #    min_l = [min(self.problem.archive, key=lambda x: x.costs[index])]
-        #else:
+            index = self.goal_index(name)
+
         if len(self.problem.individuals) > 0:
             min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
+
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
+
 
     # TODO: same function - David, could you check it and write test?
     def pareto_values(self, archive=None):
@@ -310,6 +333,7 @@ class Results:
         :return:
         """
 
+        result = 0
         computed = self.pareto_values()  # [[], [], .. ]
 
         if type == 'epsilon':
@@ -348,6 +372,8 @@ class Results:
 
     def objectives_plot(self):
         fig, ax = self.get_objectives_plot()
+        # Next line is redundant because in the example files for example gear_design.py without using show() command,
+        # it does not plot any figures
         fig.show()
 
     def get_pareto_plot(self, cost_x=0, cost_y=1):
@@ -372,9 +398,10 @@ class Results:
         ax.set_ylabel('$' + y_name + '$', fontsize=self.label_size)
         return [fig, ax]
 
-
     def pareto_plot(self, cost_x=0, cost_y=1):
         fig, ax = self.get_pareto_plot(cost_x, cost_y)
+        # Next line is redundant because in the example files for example gear_design.py without using show() command,
+        # it does not plot any figures
         fig.show()
 
     def get_goal_on_index(self, name, population_id=-1):
@@ -433,9 +460,15 @@ class Results:
         fig, ax = self.set_figure()
         table = self.goal_on_index(name=name, population_id=population_id)
         n, bins, patches = ax.hist(x=table[1], bins='auto', color='#0504aa',
-                                    alpha=0.7, rwidth=0.85)
+                                   alpha=0.7, rwidth=0.85)
         fig.show()
 
     def get_mean_confidence_interval(self, name):
         index = self.goal_index(name)
         return 
+
+    def get_population_ids(self):
+        ids = set()
+        for individual in self.problem.individuals:
+            ids.add(individual.population_id)
+        return ids

@@ -1,16 +1,20 @@
 from mpl_toolkits.mplot3d import Axes3D
 import sys
-
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 from numpy import linspace
-import artap.colormaps as cmaps
-from artap.problem import Problem
 from sklearn.model_selection import train_test_split
 from random import uniform
-from artap.individual import Individual
 from abc import abstractmethod
+
+# This is a hack how make relative imports possible if the file is run as script
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "artap"
+
+from .problem import Problem
+from .individual import Individual
+from .colormaps import cmaps
 
 
 class BenchmarkFunction(Problem):
@@ -115,7 +119,8 @@ class BenchmarkFunction(Problem):
         z = self.evaluate(Individual([x, y]))[f]
 
         # Plot the surface
-        surf = ax.plot_surface(x, y, z, cmap=cmaps.viridis,
+
+        surf = ax.plot_surface(x, y, z, cmap=cmaps['viridis'],
                                linewidth=0, antialiased=True)
 
         # Customize the z axis

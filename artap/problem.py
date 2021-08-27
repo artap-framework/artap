@@ -5,7 +5,6 @@
 from .datastore import SqliteDataStore, DummyDataStore
 from .utils import ConfigDictionary
 from .surrogate import SurrogateModelEval
-
 from abc import abstractmethod
 
 import logging
@@ -96,7 +95,6 @@ class Problem:
                      "python": platform.python_version(),
                      "hostname": platform.node()}
 
-
         # populations
         self.individuals = []
         self.data_store = None
@@ -143,8 +141,6 @@ class Problem:
         return individuals
 
     def last_population(self):
-        # TODO: temporary solution - faster implementation with TinyDB
-
         # find max index
         max_index = -1
         for individual in self.individuals:

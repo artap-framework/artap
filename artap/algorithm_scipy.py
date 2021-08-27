@@ -2,7 +2,6 @@ from .problem import Problem
 from .algorithm import Algorithm
 
 from scipy.optimize import minimize
-import numpy as np
 import time
 
 

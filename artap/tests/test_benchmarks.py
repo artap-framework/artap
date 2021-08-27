@@ -180,6 +180,5 @@ class TestAlpine(unittest.TestCase):
         test2d = AlpineFunction(**{'dimension': 10})
         self.assertAlmostEqual(test2d.evaluate(Individual(test2d.global_optimum_coords))[0], test2d.global_optimum, 3)
 
-
 if __name__ == '__main__':
     unittest.main()
