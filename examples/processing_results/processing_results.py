@@ -1,5 +1,5 @@
 from artap.problem import Problem
-from artap.algorithm_genetic import NSGAII
+from artap.algorithm_genetic import NSGAII, EpsMOEA
 from artap.results import Results
 
 
@@ -37,14 +37,15 @@ problem = BiObjectiveTestProblem()
 
 # Perform the optimization iterating over 100 times on 100 individuals.
 algorithm = NSGAII(problem)
-algorithm.options['max_population_number'] = 1
-algorithm.options['max_population_size'] = 1000
+algorithm.options['max_population_number'] = 10
+algorithm.options['max_population_size'] = 100
 algorithm.run()
 
 gr =Results(problem)
 
-# gr.objectives_plot()
-# gr.pareto_plot()
+#gr.objectives_plot()
+fig, ax = gr.get_pareto_plot()
+fig.show()
 # gr.goal_on_index_plot('F_1', population_id=20)
 # gr.goal_on_parameter_plot('x_1', 'F_1', population_id=-1)
 # gr.parameter_on_parameter_plot('x_1', 'x_2', population_id=0)

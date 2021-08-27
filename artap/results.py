@@ -383,7 +383,7 @@ class Results:
         """
         fig, ax = self.set_figure()
         pvalues = self.pareto_values()
-
+        print(pvalues)
         x = [i[cost_x] for i in pvalues]
         y = [i[cost_y] for i in pvalues]
 
@@ -403,6 +403,8 @@ class Results:
         # Next line is redundant because in the example files for example gear_design.py without using show() command,
         # it does not plot any figures
         fig.show()
+
+
 
     def get_goal_on_index(self, name, population_id=-1):
         fig, ax = self.set_figure()

@@ -191,7 +191,7 @@ class AgrosSimple(Problem):
                 # f3 = max(f2, Bp2)
 
         f2 = sum(x) * 1e3
-
+        del computation
         return [f1, f2]
         # return [f1, f2, f3]
 
@@ -222,8 +222,8 @@ def optim_single():
     problem = AgrosSimple()
     # optimization
     algorithm = NSGAII(problem)
-    algorithm.options['max_population_number'] = 3
-    algorithm.options['max_population_size'] = 3
+    algorithm.options['max_population_number'] = 10
+    algorithm.options['max_population_size'] = 10
     algorithm.run()
 
     b = Results(problem)
