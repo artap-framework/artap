@@ -1,3 +1,4 @@
+from _ast import operator
 from abc import abstractmethod, ABC
 import sys
 import random
@@ -278,6 +279,7 @@ class IntegerGenerator(Generator):
             vector = VectorAndNumbers.gen_vector(self.parameters)
             individuals.append(Individual(vector, self.features))
         return individuals
+
 
 class FullFactorGenerator(Generator):
     """
@@ -1527,3 +1529,99 @@ class SimulatedBinaryCrossover(Crossover):
                             x1[i], x2[i] = c1, c2
 
         return Individual(x1, p1.features), Individual(x2, p2.features)
+
+
+class Normalization(Operator):
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    @abstractmethod
+    def forward(self, X):
+        pass
+
+    @abstractmethod
+    def backward(self, X):
+        pass
+
+
+# ---- Useful if normalization is optional - can be simply disabled by using this object
+class NoNormalization(Normalization):
+
+    def forward(self, X):
+        return X
+
+    def backward(self, X):
+        return X
+
+
+class ZeroToOneNormalization(Normalization):
+
+    def __init__(self, xl=None, xu=None) -> None:
+        super().__init__()
+
+        # if both are None we are basically done because normalization is disabled
+        if xl is None and xu is None:
+            self.xl, self.xu = None, None
+            return
+
+        # if not set simply fall back no nan values
+        if xl is None:
+            xl = np.full_like(xu, np.nan)
+        if xu is None:
+            xu = np.full_like(xl, np.nan)
+
+        xl, xu = np.copy(xl).astype(float), np.copy(xu).astype(float)
+
+        # if both are equal then set the upper bound to none (always the 0 or lower bound will be returned then)
+        xu[xl == xu] = np.nan
+
+        # store the lower and upper bounds
+        self.xl, self.xu = xl, xu
+
+        # check out when the input values are nan
+        xl_nan, xu_nan = np.isnan(xl), np.isnan(xu)
+
+        # now create all the masks that are necessary
+        self.xl_only, self.xu_only = np.logical_and(~xl_nan, xu_nan), np.logical_and(xl_nan, ~xu_nan)
+        self.both_nan = np.logical_and(np.isnan(xl), np.isnan(xu))
+        self.neither_nan = ~self.both_nan
+
+        # if neither is nan than xu must be greater or equal than xl
+        any_nan = np.logical_or(np.isnan(xl), np.isnan(xu))
+        assert np.all(np.logical_or(xu >= xl, any_nan)), "xl must be less or equal than xu."
+
+    def forward(self, X):
+        if X is None or (self.xl is None and self.xu is None):
+            return X
+
+        xl, xu, xl_only, xu_only = self.xl, self.xu, self.xl_only, self.xu_only
+        both_nan, neither_nan = self.both_nan, self.neither_nan
+
+        # simple copy the input
+        N = np.copy(X)
+
+        # normalize between zero and one if neither of them is nan
+        N[..., neither_nan] = (X[..., neither_nan] - xl[neither_nan]) / (xu[neither_nan] - xl[neither_nan])
+
+        N[..., xl_only] = X[..., xl_only] - xl[xl_only]
+
+        N[..., xu_only] = 1.0 - (xu[xu_only] - X[..., xu_only])
+
+        return N
+
+    def backward(self, N):
+        if N is None or (self.xl is None and self.xu is None):
+            return N
+
+        xl, xu, xl_only, xu_only = self.xl, self.xu, self.xl_only, self.xu_only
+        both_nan, neither_nan = self.both_nan, self.neither_nan
+
+        X = N.copy()
+        X[..., neither_nan] = xl[neither_nan] + N[..., neither_nan] * (xu[neither_nan] - xl[neither_nan])
+
+        X[..., xl_only] = N[..., xl_only] + xl[xl_only]
+
+        X[..., xu_only] = xu[xu_only] - (1.0 - N[..., xu_only])
+
+        return X
