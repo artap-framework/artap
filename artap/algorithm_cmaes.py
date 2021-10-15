@@ -1,7 +1,5 @@
 
 import numpy as np
-import matplotlib.pyplot as plt
-from tqdm import tqdm
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .individual import Individual
@@ -90,10 +88,6 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
     def __init__(self, problem: Problem, name="Covariance Matrix Adaptation Evolutionary Strategy"):
 
         super().__init__(problem, name)
-        # Population Size
-        self.n_samples = self.options['max_population_size']
-        # Number of generation
-        self.t = self.options['max_population_number']
         self.individual_features['velocity'] = dict()
         self.individual_features['best_cost'] = dict()
         self.individual_features['best_vector'] = dict()
@@ -125,9 +119,9 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         self.runs = 1
         # Plot output frequency
         self.pause = 0.01
-        self.theta_mean = np.random.uniform(self.min_val, self.max_val, (self.dim_theta))
+        self.theta_mean = np.random.uniform(self.min_val, self.max_val, self.dim_theta)
 
-        theta_std = np.random.uniform(self.max_val - 1, self.max_val, (self.dim_theta))
+        theta_std = np.random.uniform(self.max_val - 1, self.max_val, self.dim_theta)
         self.theta_cov = np.diag(theta_std)
         self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
         self.fit_gaussian()
@@ -135,7 +129,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
     def fit_gaussian(self):
         self.theta = []
         # theta is actually the population sampled from the distribution
-        theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, (self.n_samples))
+        theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.options['max_population_size'])
         individuals = np.clip(theta, self.min_val, self.max_val)
         for individual in individuals:
             self.theta.append(Individual(individual, self.individual_features))
@@ -149,7 +143,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         best_fitness = []
         worst_fitness = []
 
-        for i in tqdm(range(0, self.t)):
+        for i in range(0, self.options['max_population_number']):
 
             self.evaluate(self.theta)
             fitness = self.problem.costs
@@ -204,7 +198,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # worst = []
         start = time.time()
         self.problem.logger.info("CMA_ES: {}/{}".format(self.options['max_population_number'],
-                                                       self.options['max_population_size']))
+                                                        self.options['max_population_size']))
         for individual in self.theta:
             self.problem.data_store.sync_individual(individual)
 
