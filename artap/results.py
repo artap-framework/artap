@@ -1,6 +1,5 @@
 import csv
 from .quality_indicator import gd, epsilon_add
-from matplotlib import pylab, rc, axis
 
 
 class Results:
@@ -8,24 +7,6 @@ class Results:
 
     def __init__(self, problem):
         self.problem = problem
-        self.use_latex = True
-        self.label_size = 16
-        self.tick_size = 14
-        self.title_size = 18
-        self.legend = True
-        self.width = 8
-        self.hight = 5
-
-        if self.use_latex:
-            # allows using Latex
-            rc('font', **{'family': ' DejaVu Sans', 'sans-serif': ['Helvetica']})
-            rc('text', usetex=True)
-
-        # sets the legend font size
-        params = {'legend.fontsize': 14,
-                  'legend.handlelength': 2}
-
-        pylab.rcParams.update(params)
 
     def parameter_names(self):
         parameter_names = []
@@ -343,131 +324,6 @@ class Results:
 
         return result
 
-    def set_figure(self):
-        # We change the fontsize of minor ticks label
-        fig, ax = pylab.subplots(figsize=(self.width, self.hight))
-        ax.tick_params(axis='both', which='major', labelsize=self.tick_size)
-        ax.tick_params(axis='both', which='minor', labelsize=self.tick_size)
-        ax.grid()
-        # ax.grid(color='grey', linestyle='-', linewidth=0.25, alpha=0.5)
-        # removing top and right borders
-        # ax.spines['top'].set_visible(False)
-        # ax.spines['right'].set_visible(False)  # adds major gridlines
-        return [fig, ax]
-
-    def get_objectives_plot(self):
-
-        fig, ax = self.set_figure()
-        all_individuals = self.costs()
-        for point in all_individuals:
-            ax.plot(point[0], point[1], '.')
-
-        pareto = self.pareto_front()
-        ax.plot(pareto[0], pareto[1], 'ro', label='Last Pareto front')
-
-        ax.set_xlabel(r'$F_1$', fontsize=self.label_size)
-        ax.set_ylabel(r'$F_2$', fontsize=self.label_size)
-        ax.legend()
-        return [fig, ax]
-
-    def objectives_plot(self):
-        fig, ax = self.get_objectives_plot()
-        # Next line is redundant because in the example files for example gear_design.py without using show() command,
-        # it does not plot any figures
-        fig.show()
-
-    def get_pareto_plot(self, cost_x=0, cost_y=1):
-        """
-        A simple 2d - pareto plot from the variable 1 and 2 by default.
-        :return:
-        """
-        fig, ax = self.set_figure()
-        pvalues = self.pareto_values()
-        print(pvalues)
-        x = [i[cost_x] for i in pvalues]
-        y = [i[cost_y] for i in pvalues]
-
-        ax.scatter(x, y, alpha=0.80)
-
-        # adds a title and axes labels
-        x_name = self.problem.costs[cost_x]['name']
-        y_name = self.problem.costs[cost_y]['name']
-
-        ax.set_title('Pareto values', fontsize=self.title_size)
-        ax.set_xlabel('$' + x_name + '$', fontsize=self.label_size)
-        ax.set_ylabel('$' + y_name + '$', fontsize=self.label_size)
-        return [fig, ax]
-
-    def pareto_plot(self, cost_x=0, cost_y=1):
-        fig, ax = self.get_pareto_plot(cost_x, cost_y)
-        # Next line is redundant because in the example files for example gear_design.py without using show() command,
-        # it does not plot any figures
-        fig.show()
-
-
-
-    def get_goal_on_index(self, name, population_id=-1):
-        fig, ax = self.set_figure()
-        table = self.goal_on_index(name=name, population_id=population_id)
-        ax.plot(table[0], table[1])
-
-        ax.set_xlabel(r'$k$', fontsize=self.label_size)
-        ax.set_ylabel(r'$' + name + '$', fontsize=self.label_size)
-        return [fig, ax]
-
-    def goal_on_index_plot(self, name, population_id=-1):
-        fig, ax = self.get_goal_on_index(name, population_id)
-        fig.show()
-
-    def get_parameter_on_index(self, name, population_id=-1):
-        fig, ax = self.set_figure()
-        table = self.parameter_on_index(name=name, population_id=population_id)
-        ax.plot(table[0], table[1])
-
-        ax.set_xlabel(r'$k$', fontsize=self.label_size)
-        ax.set_ylabel(r'$' + name + '$', fontsize=self.label_size)
-        return [fig, ax]
-
-    def parameter_on_index_plot(self, name, population_id=-1):
-        fig, ax = self.get_parameter_on_index(name, population_id)
-        fig.show()
-
-    def get_goal_on_parameter(self, parameter_name, goal_name, population_id=-1, sorted=False):
-        fig, ax = self.set_figure()
-        table = self.goal_on_parameter(parameter_name, goal_name, population_id, sorted)
-        ax.plot(table[0], table[1], 'o')
-
-        ax.set_xlabel(r'$' + parameter_name + '$', fontsize=self.label_size)
-        ax.set_ylabel(r'$' + goal_name + '$', fontsize=self.label_size)
-        return [fig, ax]
-
-    def goal_on_parameter_plot(self, parameter_name, goal_name, population_id=-1, sorted=False):
-        fig, ax = self.get_goal_on_parameter(parameter_name, goal_name, population_id, sorted)
-        fig.show()
-
-    def get_parameter_on_parameter(self, parameter_1, parameter_2, population_id=-1, sorted=False):
-        fig, ax = self.set_figure()
-        table = self.parameter_on_parameter(parameter_1, parameter_2, population_id, sorted)
-        ax.plot(table[0], table[1], 'o')
-
-        ax.set_xlabel(r'$' + parameter_1 + '$', fontsize=self.label_size)
-        ax.set_ylabel(r'$' + parameter_2 + '$', fontsize=self.label_size)
-        return [fig, ax]
-
-    def parameter_on_parameter_plot(self, parameter_1, parameter_2, population_id=-1, sorted=False):
-        fig, ax = self.get_parameter_on_parameter(parameter_1, parameter_2, population_id, sorted)
-        fig.show()
-
-    def goal_histogram_plot(self, name, population_id=-1):
-        fig, ax = self.set_figure()
-        table = self.goal_on_index(name=name, population_id=population_id)
-        n, bins, patches = ax.hist(x=table[1], bins='auto', color='#0504aa',
-                                   alpha=0.7, rwidth=0.85)
-        fig.show()
-
-    def get_mean_confidence_interval(self, name):
-        index = self.goal_index(name)
-        return 
 
     def get_population_ids(self):
         ids = set()

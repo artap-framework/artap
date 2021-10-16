@@ -208,17 +208,6 @@ class TestResults(unittest.TestCase):
         performance_measure = results.performance_measure(reference)
         self.assertNotEqual(reference, performance_measure)
 
-    def test_pareto_plot_without_show_command_didnot_plot_figure(self):
-        problem = TestGearDesignProblem()
-        algorithm = NSGAII(problem)
-        algorithm.options['max_processes'] = 10
-        algorithm.options['max_population_number'] = 20
-        algorithm.options['max_population_size'] = 10
-        algorithm.run()
-        results = Results(problem)
-        results.pareto_plot()
-        # show()
-
     def test_export_to_csv(self):
         csv_filename = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".csv").name
         self.results.export_to_csv(csv_filename)
