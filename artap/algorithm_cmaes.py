@@ -1,5 +1,5 @@
-
 import numpy as np
+import matplotlib.pyplot as plt
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .individual import Individual
@@ -88,6 +88,10 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
     def __init__(self, problem: Problem, name="Covariance Matrix Adaptation Evolutionary Strategy"):
 
         super().__init__(problem, name)
+        # Population Size
+        self.n_samples = self.options['max_population_size']
+        # Number of generation
+        self.t = self.options['max_population_number']
         self.individual_features['velocity'] = dict()
         self.individual_features['best_cost'] = dict()
         self.individual_features['best_vector'] = dict()
@@ -96,7 +100,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         self.individual_features['crowding_distance'] = 0
         self.individual_features['domination_counter'] = 0
         # Add front_number feature
-        self.individual_features['front_number'] = 0
+        self.individual_features['front_number'] = 1
 
         # self.selector = CopySelector(self.problem.parameters)
         # self.dominance = ParetoDominance()
@@ -106,7 +110,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # # constants for the speed and the position calculation
 
-        self.dim_theta = 10
+        self.dim_theta = 200
 
         # Elite ratio percentage
         self.top_p = 20
@@ -120,56 +124,52 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # Plot output frequency
         self.pause = 0.01
         self.theta_mean = np.random.uniform(self.min_val, self.max_val, self.dim_theta)
-
+        self.theta = []
         theta_std = np.random.uniform(self.max_val - 1, self.max_val, self.dim_theta)
         self.theta_cov = np.diag(theta_std)
         self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
         self.fit_gaussian()
 
     def fit_gaussian(self):
-        self.theta = []
         # theta is actually the population sampled from the distribution
-        theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.options['max_population_size'])
+        theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.n_samples)
         individuals = np.clip(theta, self.min_val, self.max_val)
         for individual in individuals:
             self.theta.append(Individual(individual, self.individual_features))
-        # self.generator.init(self.options['max_population_size'])
-        # individual = self.generator.generate()
-        # self.theta = individual
 
     def generation(self, problem):
         # Sample n_sample candidates from N(theta)
         mean_fitness = []
         best_fitness = []
         worst_fitness = []
+        fitness = []
 
-        for i in range(0, self.options['max_population_number']):
-
+        # for individual in self.theta:
+        #     self.problem.data_store.sync_individual(individual)
+        for it in range(self.options['max_population_number']):
             self.evaluate(self.theta)
-            fitness = self.problem.costs
-            mean_fitness.append(np.mean(fitness))
-            best_fitness.append(np.min(fitness))
-            worst_fitness.append(np.max(fitness))
 
-            couple = list(zip(self.theta, np.transpose(fitness)))
-            sorted_fitness = sorted(couple, key=lambda tup: tup[1])
-            elite = self.take_elite(sorted_fitness)
+            lists = []
+            for individual in self.theta:
+                # fitness.append(individual.costs)
+                lists.append(individual.costs)
+            lists = np.array(lists)
 
-            e_candidates = [i[0] for i in elite]
+            mean_fitness.append(np.mean(lists))
+            best_fitness.append(np.min(lists))
+            worst_fitness.append(np.max(lists))
+            fitness.append(lists)
+            # couple = list(zip(self.theta, fitness.T))
+            # sorted_fitness = []
+            # for individual in self.theta:
+            #     sorted_fitness.append(sorted(individual))
+            elite = self.take_elite(self.theta)
+
+            e_candidates = [i.vector for i in elite]
 
             self.theta_cov = self.compute_new_cov(e_candidates)
             self.theta_mean = self.compute_new_mean(e_candidates)
             self.fit_gaussian()
-
-        # mean_fitness.append(np.mean(self.evaluate(self.theta)))
-        # best_fitness.append(np.min(fitness))
-        # worst_fitness.append(np.max(fitness))
-
-        # couple = list(zip(self.theta, np.transpose(fitness)))
-        # sorted_fitness = sorted(couple, key=lambda tup: tup[1])
-        # elite = self.take_elite(sorted_fitness)
-
-        # return mean_fitness, best_fitness, worst_fitness
 
     def take_elite(self, candidates):
         n_top = int((self.n_samples * self.top_p) / 100)
@@ -199,19 +199,22 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         start = time.time()
         self.problem.logger.info("CMA_ES: {}/{}".format(self.options['max_population_number'],
                                                         self.options['max_population_size']))
+
         for individual in self.theta:
             self.problem.data_store.sync_individual(individual)
 
-        for it in range(self.options['max_population_number']):
-            self.generation(self.problem)
+        self.problem.individuals = self.theta
 
-            for individual in individuals:
-                # add to population
-                individual.population_id = it + 1
-                # append to problem
-                self.problem.individuals.append(individual)
-                # sync to datastore
-                self.problem.data_store.sync_individual(individual)
+        # for it in range(self.options['max_population_number']):
+        self.generation(self.problem)
+
+        # for individual in self.theta:
+        #     # # add to population
+        #     # individual.population_id = it + 1
+        #     # append to problem
+        #     self.problem.individuals.append(individual)
+        #     # sync to datastore
+        #     self.problem.data_store.sync_individual(individual)
 
         t = time.time() - start
         self.problem.logger.info("CMA_ES: elapsed time: {} s".format(t))
