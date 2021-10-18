@@ -71,7 +71,7 @@ class Evaluator(Operator):
         self.algorithm.problem.individuals.append(individual)
 
         self.job.evaluate(individual)
-        return individual.costs[0]
+        return individual.costs_signed[0]
 
 
 class GradientEvaluator(Evaluator):

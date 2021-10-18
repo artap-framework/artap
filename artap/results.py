@@ -32,12 +32,14 @@ class Results:
         except ValueError as e:
             raise ValueError('There is not a parameter with given name: {}'.format(name))
 
+    # ToDo: Replace exception raise by warning?
     def goal_index(self, name):
-        try:
-            return next((index for (index, d) in enumerate(self.problem.costs) if d["name"] == name), None)
-            # return list(self.problem.costs).index(name)
-        except ValueError as e:
+        index = next((index for (index, d) in enumerate(self.problem.costs) if d["name"] == name), None)
+        if index is not None:
+            return index
+        else:
             raise ValueError('There is not a cost function with given name: {}'.format(name))
+
 
     def parameters(self):
         out = []
@@ -97,6 +99,7 @@ class Results:
         else:
             table.append([])
             index = self.goal_index(name)
+
             for i in n:
                 table[1].append(individuals[i].costs[index])
 
@@ -268,14 +271,23 @@ class Results:
         :return:
         """
 
+
         # get the index of the required parameter
         index = 0  # default - one parameter
         min_l = []
         if name:
             index = self.goal_index(name)
 
-        if len(self.problem.individuals) > 0:
-            min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
+        criteria = None
+        if 'criteria' in self.problem.costs[index]:
+            criteria = self.problem.costs[index]['criteria']
+
+        if criteria == 'minimize' or criteria is None:
+            if len(self.problem.individuals) > 0:
+                min_l = [min(self.problem.individuals, key=lambda x: x.costs[index])]
+        else:
+            if len(self.problem.individuals) > 0:
+                min_l = [max(self.problem.individuals, key=lambda x: x.costs[index])]
 
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
