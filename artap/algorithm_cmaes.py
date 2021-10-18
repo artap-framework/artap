@@ -189,9 +189,6 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         return 1 / e_candidates.shape[0] * cov + I * 1e-3
 
     def run(self):
-        # mean = []
-        # best = []
-        # worst = []
         mean_fitness = []
         best_fitness = []
         worst_fitness = []
