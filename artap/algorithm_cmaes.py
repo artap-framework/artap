@@ -1,9 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .individual import Individual
-from artap.operators import UniformGenerator, IntegerGenerator
+from artap.operators import CustomGenerator
 import time
 
 
@@ -110,66 +109,63 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # # constants for the speed and the position calculation
 
-        self.dim_theta = 200
+        self.dim_theta = 1
 
         # Elite ratio percentage
         self.top_p = 20
         # Range of values
         self.min_val = 0
         self.max_val = 1
-        # Plot or not (0 = False, 1 = True)
-        self.plot = 1
         # Number of Runs
         self.runs = 1
-        # Plot output frequency
-        self.pause = 0.01
         self.theta_mean = np.random.uniform(self.min_val, self.max_val, self.dim_theta)
-        self.theta = []
+        self.individuals = []
         theta_std = np.random.uniform(self.max_val - 1, self.max_val, self.dim_theta)
         self.theta_cov = np.diag(theta_std)
-        self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
+        self.generator = CustomGenerator(self.problem.parameters, self.individual_features)
         self.fit_gaussian()
 
     def fit_gaussian(self):
         # theta is actually the population sampled from the distribution
         theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.n_samples)
         individuals = np.clip(theta, self.min_val, self.max_val)
-        for individual in individuals:
-            self.theta.append(Individual(individual, self.individual_features))
+        self.generator.init(individuals)
+        self.individuals = self.generator.generate()
+        # for individual in individuals:
+        #     self.individuals.append(Individual(individual, self.individual_features))
 
     def generation(self, problem):
+        pass
         # Sample n_sample candidates from N(theta)
-        mean_fitness = []
-        best_fitness = []
-        worst_fitness = []
-        fitness = []
+        # mean_fitness = []
+        # best_fitness = []
+        # worst_fitness = []
+        # fitness = []
 
-        # for individual in self.theta:
-        #     self.problem.data_store.sync_individual(individual)
-        for it in range(self.options['max_population_number']):
-            self.evaluate(self.theta)
-
-            lists = []
-            for individual in self.theta:
-                # fitness.append(individual.costs)
-                lists.append(individual.costs)
-            lists = np.array(lists)
-
-            mean_fitness.append(np.mean(lists))
-            best_fitness.append(np.min(lists))
-            worst_fitness.append(np.max(lists))
-            fitness.append(lists)
-            # couple = list(zip(self.theta, fitness.T))
-            # sorted_fitness = []
-            # for individual in self.theta:
-            #     sorted_fitness.append(sorted(individual))
-            elite = self.take_elite(self.theta)
-
-            e_candidates = [i.vector for i in elite]
-
-            self.theta_cov = self.compute_new_cov(e_candidates)
-            self.theta_mean = self.compute_new_mean(e_candidates)
-            self.fit_gaussian()
+        # for it in range(self.options['max_population_number']):
+        #     self.evaluate(self.individuals)
+        #
+        #     lists = []
+        #     for individual in self.individuals:
+        #         # fitness.append(individual.costs)
+        #         lists.append(individual.costs)
+        #     lists = np.array(lists)
+        #
+        #     mean_fitness.append(np.mean(lists))
+        #     best_fitness.append(np.min(lists))
+        #     worst_fitness.append(np.max(lists))
+        #     fitness.append(lists)
+        #     # couple = list(zip(self.theta, fitness.T))
+        #     # sorted_fitness = []
+        #     # for individual in self.theta:
+        #     #     sorted_fitness.append(sorted(individual))
+        #     elite = self.take_elite(self.individuals)
+        #
+        #     e_candidates = [i.vector for i in elite]
+        #
+        #     self.theta_cov = self.compute_new_cov(e_candidates)
+        #     self.theta_mean = self.compute_new_mean(e_candidates)
+        #     self.fit_gaussian()
 
     def take_elite(self, candidates):
         n_top = int((self.n_samples * self.top_p) / 100)
@@ -196,25 +192,50 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # mean = []
         # best = []
         # worst = []
+        mean_fitness = []
+        best_fitness = []
+        worst_fitness = []
+        fitness = []
         start = time.time()
         self.problem.logger.info("CMA_ES: {}/{}".format(self.options['max_population_number'],
                                                         self.options['max_population_size']))
-
-        for individual in self.theta:
+        for individual in self.individuals:
             self.problem.data_store.sync_individual(individual)
 
-        self.problem.individuals = self.theta
+        self.problem.individuals = self.individuals
 
-        # for it in range(self.options['max_population_number']):
-        self.generation(self.problem)
+        for it in range(self.options['max_population_number']):
+            self.evaluate(self.individuals)
 
-        # for individual in self.theta:
-        #     # # add to population
-        #     # individual.population_id = it + 1
-        #     # append to problem
-        #     self.problem.individuals.append(individual)
-        #     # sync to datastore
-        #     self.problem.data_store.sync_individual(individual)
+            lists = []
+            for individual in self.individuals:
+                # fitness.append(individual.costs)
+                lists.append(individual.costs)
+            lists = np.array(lists)
+
+            mean_fitness.append(np.mean(lists))
+            best_fitness.append(np.min(lists))
+            worst_fitness.append(np.max(lists))
+            fitness.append(lists)
+            # couple = list(zip(self.theta, fitness.T))
+            # sorted_fitness = []
+            # for individual in self.theta:
+            #     sorted_fitness.append(sorted(individual))
+            elite = self.take_elite(self.individuals)
+
+            e_candidates = [i.vector for i in elite]
+
+            self.theta_cov = self.compute_new_cov(e_candidates)
+            self.theta_mean = self.compute_new_mean(e_candidates)
+            self.fit_gaussian()
+
+            for individual in self.individuals:
+                # add to population
+                individual.population_id = it + 1
+                # append to problem
+                self.problem.individuals.append(individual)
+                # sync to datastore
+                self.problem.data_store.sync_individual(individual)
 
         t = time.time() - start
         self.problem.logger.info("CMA_ES: elapsed time: {} s".format(t))
