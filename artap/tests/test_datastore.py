@@ -43,8 +43,8 @@ class TestDataStoreSqlite(unittest.TestCase):
     def test_read_write_database(self):
         problem = MyProblem()
         # set data store
-        # database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        database_name = "database.sqlite"
+        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        # database_name = "database.sqlite"
         problem.data_store = SqliteDataStore(problem, database_name=database_name)
 
         algorithm = NSGAII(problem)
@@ -80,7 +80,7 @@ class TestDataStoreSqlite(unittest.TestCase):
             self.assertEqual(value, individual.features[key])
 
         # remove file
-        # os.remove(database_name)
+        os.remove(database_name)
 
     def test_read_datastore(self):
         # Path to this script file location
@@ -142,7 +142,7 @@ class TestDataStoreBenchmark(unittest.TestCase):
 
         # remove file
         # print(database_name)
-        # os.remove(database_name)
+        os.remove(database_name)
 
         t = time.time() - t_s
         problem.logger.info("read elapsed time: {} s".format(t))

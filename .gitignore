@@ -1,5 +1,6 @@
 .vscode
 .idea
+.pytest_cache
 max.txt
 output.txt
 problem.db
@@ -28,7 +29,7 @@ _build
 artap/examples/simple_optimization/pokus/
 artap/examples/simple_optimization/problem.json
 venv
+env
 .gitignore
 3rdparty/env/
-
-
+dist
