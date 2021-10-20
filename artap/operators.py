@@ -1625,3 +1625,76 @@ class ZeroToOneNormalization(Normalization):
         X[..., xu_only] = xu[xu_only] - (1.0 - N[..., xu_only])
 
         return X
+
+
+class Termination:
+
+    def __init__(self) -> None:
+        """
+        Base class for the implementation of a termination criterion for an algorithm.
+        """
+        super().__init__()
+
+        # the algorithm can be forced to terminate by setting this attribute to true
+        self.force_termination = False
+
+    def do_continue(self, algorithm):
+        """
+        Whenever the algorithm objects wants to know whether it should continue or not it simply
+        asks the termination criterion for it.
+        Parameters
+        ----------
+        algorithm : class
+            The algorithm object that is asking if it has terminated or not.
+        Returns
+        -------
+        do_continue : bool
+            Whether the algorithm has terminated or not.
+        """
+
+        if self.force_termination:
+            return False
+        else:
+            return self._do_continue(algorithm)
+
+    # the concrete implementation of the algorithm
+    def _do_continue(self, algorithm, **kwargs):
+        pass
+
+    def has_terminated(self, algorithm):
+        """
+        Instead of asking if the algorithm should continue it can also ask if it has terminated.
+        (just negates the continue method.)
+        """
+        return not self.do_continue(algorithm)
+
+
+class NoTermination(Termination):
+    def _do_continue(self, algorithm, **kwargs):
+        return True
+
+
+class MaximumGenerationTermination(Termination):
+
+    def __init__(self, n_max_gen) -> None:
+        super().__init__()
+        self.n_max_gen = n_max_gen
+
+        if self.n_max_gen is None:
+            self.n_max_gen = float("inf")
+
+    def _do_continue(self, algorithm, **kwargs):
+        return algorithm.n_gen < self.n_max_gen
+
+
+class MaximumFunctionCallTermination(Termination):
+
+    def __init__(self, n_max_evals) -> None:
+        super().__init__()
+        self.n_max_evals = n_max_evals
+
+        if self.n_max_evals is None:
+            self.n_max_evals = float("inf")
+
+    def _do_continue(self, algorithm, **kwargs):
+        return algorithm.evaluator.n_eval < self.n_max_evals

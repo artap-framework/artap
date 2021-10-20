@@ -6,79 +6,6 @@ from artap.operators import CustomGenerator
 import time
 
 
-class Termination:
-
-    def __init__(self) -> None:
-        """
-        Base class for the implementation of a termination criterion for an algorithm.
-        """
-        super().__init__()
-
-        # the algorithm can be forced to terminate by setting this attribute to true
-        self.force_termination = False
-
-    def do_continue(self, algorithm):
-        """
-        Whenever the algorithm objects wants to know whether it should continue or not it simply
-        asks the termination criterion for it.
-        Parameters
-        ----------
-        algorithm : class
-            The algorithm object that is asking if it has terminated or not.
-        Returns
-        -------
-        do_continue : bool
-            Whether the algorithm has terminated or not.
-        """
-
-        if self.force_termination:
-            return False
-        else:
-            return self._do_continue(algorithm)
-
-    # the concrete implementation of the algorithm
-    def _do_continue(self, algorithm, **kwargs):
-        pass
-
-    def has_terminated(self, algorithm):
-        """
-        Instead of asking if the algorithm should continue it can also ask if it has terminated.
-        (just negates the continue method.)
-        """
-        return not self.do_continue(algorithm)
-
-
-class NoTermination(Termination):
-    def _do_continue(self, algorithm, **kwargs):
-        return True
-
-
-class MaximumGenerationTermination(Termination):
-
-    def __init__(self, n_max_gen) -> None:
-        super().__init__()
-        self.n_max_gen = n_max_gen
-
-        if self.n_max_gen is None:
-            self.n_max_gen = float("inf")
-
-    def _do_continue(self, algorithm, **kwargs):
-        return algorithm.n_gen < self.n_max_gen
-
-
-class MaximumFunctionCallTermination(Termination):
-
-    def __init__(self, n_max_evals) -> None:
-        super().__init__()
-        self.n_max_evals = n_max_evals
-
-        if self.n_max_evals is None:
-            self.n_max_evals = float("inf")
-
-    def _do_continue(self, algorithm, **kwargs):
-        return algorithm.evaluator.n_eval < self.n_max_evals
-
-
 class CMA_ES(GeneralEvolutionaryAlgorithm):
     """
     Implementation a hybrid of CMAES
@@ -99,15 +26,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         self.individual_features['crowding_distance'] = 0
         self.individual_features['domination_counter'] = 0
         # Add front_number feature
-        self.individual_features['front_number'] = 1
-
-        # self.selector = CopySelector(self.problem.parameters)
-        # self.dominance = ParetoDominance()
-        # # set random generator
-        # self.generator = IntegerGenerator(self.problem.parameters, self.individual_features)
-        # self.leaders = Archive()
-        # self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
-        # # constants for the speed and the position calculation
+        self.individual_features['front_number'] = 0
 
         self.dim_theta = 1
 
@@ -119,53 +38,20 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # Number of Runs
         self.runs = 1
         self.theta_mean = np.random.uniform(self.min_val, self.max_val, self.dim_theta)
-        self.individuals = []
+        # self.individuals = []
         theta_std = np.random.uniform(self.max_val - 1, self.max_val, self.dim_theta)
         self.theta_cov = np.diag(theta_std)
         self.generator = CustomGenerator(self.problem.parameters, self.individual_features)
-        self.fit_gaussian()
+        # self.fit_gaussian()
 
     def fit_gaussian(self):
         # theta is actually the population sampled from the distribution
         theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.n_samples)
         individuals = np.clip(theta, self.min_val, self.max_val)
         self.generator.init(individuals)
-        self.individuals = self.generator.generate()
-        # for individual in individuals:
-        #     self.individuals.append(Individual(individual, self.individual_features))
+        individuals = self.generator.generate()
 
-    def generation(self, problem):
-        pass
-        # Sample n_sample candidates from N(theta)
-        # mean_fitness = []
-        # best_fitness = []
-        # worst_fitness = []
-        # fitness = []
-
-        # for it in range(self.options['max_population_number']):
-        #     self.evaluate(self.individuals)
-        #
-        #     lists = []
-        #     for individual in self.individuals:
-        #         # fitness.append(individual.costs)
-        #         lists.append(individual.costs)
-        #     lists = np.array(lists)
-        #
-        #     mean_fitness.append(np.mean(lists))
-        #     best_fitness.append(np.min(lists))
-        #     worst_fitness.append(np.max(lists))
-        #     fitness.append(lists)
-        #     # couple = list(zip(self.theta, fitness.T))
-        #     # sorted_fitness = []
-        #     # for individual in self.theta:
-        #     #     sorted_fitness.append(sorted(individual))
-        #     elite = self.take_elite(self.individuals)
-        #
-        #     e_candidates = [i.vector for i in elite]
-        #
-        #     self.theta_cov = self.compute_new_cov(e_candidates)
-        #     self.theta_mean = self.compute_new_mean(e_candidates)
-        #     self.fit_gaussian()
+        return individuals
 
     def take_elite(self, candidates):
         n_top = int((self.n_samples * self.top_p) / 100)
@@ -193,19 +79,23 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         best_fitness = []
         worst_fitness = []
         fitness = []
+        individuals = self.fit_gaussian()
+        for individual in individuals:
+            # append to problem
+            self.problem.individuals.append(individual)
+            # add to population
+            individual.population_id = 0
+
+            self.problem.data_store.sync_individual(individual)
+
         start = time.time()
         self.problem.logger.info("CMA_ES: {}/{}".format(self.options['max_population_number'],
                                                         self.options['max_population_size']))
-        for individual in self.individuals:
-            self.problem.data_store.sync_individual(individual)
-
-        self.problem.individuals = self.individuals
-
         for it in range(self.options['max_population_number']):
-            self.evaluate(self.individuals)
+            self.evaluate(individuals)
 
             lists = []
-            for individual in self.individuals:
+            for individual in individuals:
                 # fitness.append(individual.costs)
                 lists.append(individual.costs)
             lists = np.array(lists)
@@ -214,11 +104,8 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
             best_fitness.append(np.min(lists))
             worst_fitness.append(np.max(lists))
             fitness.append(lists)
-            # couple = list(zip(self.theta, fitness.T))
-            # sorted_fitness = []
-            # for individual in self.theta:
-            #     sorted_fitness.append(sorted(individual))
-            elite = self.take_elite(self.individuals)
+
+            elite = self.take_elite(individuals)
 
             e_candidates = [i.vector for i in elite]
 
@@ -226,7 +113,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
             self.theta_mean = self.compute_new_mean(e_candidates)
             self.fit_gaussian()
 
-            for individual in self.individuals:
+            for individual in individuals:
                 # add to population
                 individual.population_id = it + 1
                 # append to problem
