@@ -1,5 +1,5 @@
 import unittest
-from ..algorithm_swarm import OMOPSO, SMPSO
+from ..algorithm_swarm import OMOPSO, SMPSO, PSOGA
 from ..results import Results
 from ..benchmark_functions import BinhAndKorn, AlpineFunction, Ackley, Rosenbrock, Rastrigin, Griewank
 from ..benchmark_pareto import ZDT1
@@ -170,6 +170,61 @@ class TestGriewankFunctionSMPSO(unittest.TestCase):
         result = Results(problem)
         optimum = result.find_optimum('f_1')
         self.assertEqual(optimum.costs, [0.0])
+
+
+'''
+Adding tests for PSO_GA
+'''
+
+
+class TestAckleyPSOGA(unittest.TestCase):
+    """ Tests that the PSOGA can find the global optimum. """
+
+    def test_local_problem(self, population_number=50):
+        problem = Ackley(**{'dimension': 1})
+        algorithm = PSOGA(problem)
+        algorithm.options['max_population_number'] = population_number
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 10
+        algorithm.run()
+
+        b = Results(problem)
+        optimum = b.find_optimum('f_1')  # Takes last cost function
+        print(optimum.costs[0], problem.global_optimum)
+        self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
+
+
+class TestRosenbrockPSOGA(unittest.TestCase):
+    # unit-test  benchmarck : Rosenbrock, algorithm : PSOGA
+    def test_local_problem(self):
+        problem = Rosenbrock(**{'dimension': 1})
+        algorithm = PSOGA(problem)
+        algorithm.options['max_population_number'] = 200
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 10
+        algorithm.run()
+
+        result = Results(problem)
+        optimum = result.find_optimum('f_1')
+        print(optimum.costs[0])
+        print(problem.global_optimum)
+        self.assertEqual(optimum.costs[0], problem.global_optimum)
+
+
+class TestAlpineFunctionPSOGA(unittest.TestCase):
+    # unit-test   benchmark : AlpineFunction, algorithm : PSOGA
+    def test_local_problem(self):
+        problem = AlpineFunction(**{'dimension': 1})
+        algorithm = PSOGA(problem)
+        algorithm.options['max_population_number'] = 200
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 1
+        algorithm.run()
+
+        result = Results(problem)
+        optimum = result.find_optimum('f_1')
+        # print(optimum)
+        self.assertEqual(optimum.costs[0], 0.0)
 
 
 if __name__ == '__main__':
