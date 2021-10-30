@@ -19,7 +19,7 @@ class JobProblem(Problem):
         return [result]
 
     def evaluate_inequality_constraints(self, x):
-        pass
+        return []
 
 
 class TestJob(unittest.TestCase):

@@ -27,8 +27,8 @@ class TestProblem(Problem):
 
         return [result]
 
-    def evaluate_inequality_constraints(self, individual):
-        pass
+    def evaluate_inequality_constraints(self, x):
+        return []
 
 
 class TestGearDesignProblem(Problem):
