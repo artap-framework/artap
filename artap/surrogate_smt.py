@@ -2,7 +2,7 @@ from .surrogate import SurrogateModelPredict
 
 import numpy as np
 
-from smt.surrogate_models import RBF
+from smt.surrogate_models import KRG
 
 
 class SurrogateModelSMT(SurrogateModelPredict):
@@ -15,8 +15,8 @@ class SurrogateModelSMT(SurrogateModelPredict):
 
     def init_default_regressor(self):
         # default regressor
-        self.regressor = RBF(d0=5, print_prediction=False)
-        self.has_epsilon = False
+        self.regressor = KRG(theta0=[1e-2])
+        self.has_epsilon = True
 
     def predict(self, x, *args):
         if self.trained:
