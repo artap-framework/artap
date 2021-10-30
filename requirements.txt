@@ -15,3 +15,6 @@ six
 smt
 tensorflow
 setuptools
+pymoo
+# hyperopt
+# deap

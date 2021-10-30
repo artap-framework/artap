@@ -49,7 +49,7 @@ LD_CCSAQ = nlopt.LD_CCSAQ
 GN_ESCH = nlopt.GN_ESCH
 GN_AGS = nlopt.GN_AGS
 
-_algorithm = [nlopt.GN_DIRECT_L, GN_DIRECT_L_RAND, GN_MLSL, GN_CRS2_LM, GN_ISRES, GN_ESCH, LN_BOBYQA, LN_COBYLA, LN_NELDERMEAD, LN_SBPLX,  LN_PRAXIS, LN_AUGLAG_EQ]
+_algorithm = [GN_DIRECT_L, GN_DIRECT_L_RAND, GN_MLSL, GN_CRS2_LM, GN_ISRES, GN_ESCH, LN_BOBYQA, LN_COBYLA, LN_NELDERMEAD, LN_SBPLX,  LN_PRAXIS, LN_AUGLAG_EQ, LD_MMA]
 
 
 class NLopt(Algorithm):
@@ -74,12 +74,10 @@ class NLopt(Algorithm):
     def _function(self, x, grad):
         return self.evaluator.evaluate_scalar(x)
 
-    def _constraint(x, grad, a, b):
-        # if grad.size > 0:
-        #     grad[0] = 3 * a * (a * x[0] + b) ** 2
-        #     grad[1] = -1.0
-        # return (a * x[0] + b) ** 3 - x[1]
-        return 0
+    def _inequality_constraint(self, result, x, grad):
+        result = self.problem.evaluate_inequality_constraints(x)
+        # print(result)
+        # return result
 
     def run(self):
         # Figure out bounds vectors.
@@ -100,10 +98,8 @@ class NLopt(Algorithm):
         op.set_ftol_rel(self.options['ftol_rel'])
         op.set_ftol_abs(self.options['ftol_abs'])
         op.set_maxeval(self.options['n_iterations'])
-
         # constraint
-        # op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, 2, 0), 1e-8)
-        # op.add_inequality_constraint(lambda x, grad: myconstraint(x, grad, -1, 1), 1e-8)
+        # op.add_inequality_mconstraint(self._inequality_constraint, [1e-8, 1e-8])
 
         try:
             t_s = time.time()

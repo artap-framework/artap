@@ -27,7 +27,7 @@ class TestProblem(Problem):
 
         return [result]
 
-    def evaluate_constraints(self, individual):
+    def evaluate_inequality_constraints(self, individual):
         pass
 
 
@@ -43,12 +43,12 @@ class TestGearDesignProblem(Problem):
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
                       {'name': 'f_2', 'criteria': 'minimize'}]
 
-    def evaluate(self, x):
-        f1 = (1. / 6.931 - (x.vector[0] * x.vector[1]) / (x.vector[2] * x.vector[3])) ** 2.
-        f2 = max(x.vector)
+    def evaluate(self, individual):
+        f1 = (1. / 6.931 - (individual.vector[0] * individual.vector[1]) / (individual.vector[2] * individual.vector[3])) ** 2.
+        f2 = max(individual.vector)
         return [f1, f2]
 
-    def evaluate_constraints(self, individual):
+    def evaluate_inequality_constraints(self, individual):
         pass
 
 

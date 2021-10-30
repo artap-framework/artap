@@ -12,13 +12,53 @@ try:
     from ..algorithm_nlopt import LN_SBPLX
     from ..algorithm_nlopt import LN_PRAXIS
     from ..algorithm_nlopt import LN_AUGLAG_EQ
+    from ..algorithm_nlopt import LD_MMA
 
     __nlopt__ = True
 except ImportError:
     __nlopt__ = False
 
 from ..results import Results
+from ..problem import Problem
 from ..benchmark_functions import Booth
+
+
+# class ProblemConstraint(Problem):
+#     def set(self):
+#         self.name = 'ProblemConstraint'
+#
+#         self.parameters = [{'name': 'x', 'initial_value': -1.0, 'bounds': [-10., 5.]},
+#                            {'name': 'y', 'initial_value': -4.0, 'bounds': [-10., 5.]}]
+#
+#         # single objective problem
+#         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+#
+#     def evaluate(self, individual):
+#         x = individual.vector
+#         return [x[0]**2 + x[1]**2]
+#
+#     def evaluate_inequality_constraints(self, x):
+#         return [x[0] - 1.0, x[1] + 2]
+#
+#
+# class TestNLoptOptimizationConstraint(unittest.TestCase):
+#     @unittest.skipIf(__nlopt__ is False, "requires NLopt")
+#     def test_local_problem_nlopt_LD_MMA(self):
+#         problem = ProblemConstraint()
+#         algorithm = NLopt(problem)
+#         algorithm.options['verbose_level'] = 1
+#         algorithm.options['algorithm'] = LN_COBYLA
+#         algorithm.options['xtol_abs'] = 1e-6
+#         algorithm.options['xtol_rel'] = 1e-3
+#         algorithm.options['ftol_rel'] = 1e-3
+#         algorithm.options['ftol_abs'] = 1e-6
+#         algorithm.options['n_iterations'] = 100
+#         algorithm.run()
+#
+#         results = Results(problem)
+#         optimum = results.find_optimum('f_1')
+#         print(optimum)
+#         self.assertAlmostEqual(optimum.costs[0], 0.0, places=1)
 
 
 class TestNLoptOptimization(unittest.TestCase):

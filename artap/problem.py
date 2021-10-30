@@ -207,9 +207,10 @@ class Problem:
         """ :param individual: Individual """
         pass
 
-    def evaluate_constraints(self, individual):
-        """ :param individual: Individual """
-        pass
+    @abstractmethod
+    def evaluate_inequality_constraints(self, x):
+        """ :param x: vector """
+        return []
 
     def __setattr__(self, key, value):
         # if self.__is_frozen and not hasattr(self, key):

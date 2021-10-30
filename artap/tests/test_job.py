@@ -18,7 +18,7 @@ class JobProblem(Problem):
 
         return [result]
 
-    def evaluate_constraints(self, individual):
+    def evaluate_inequality_constraints(self, x):
         pass
 
 
