@@ -52,12 +52,16 @@ try:
             self.algorithm.evaluator.evaluate([individual])
 
             # append to problem
-            self.problem.individuals.append(individual)
-            # add to population
-            individual.population_id = self.moo_algorithm.n_gen
+            inequality_constraints = self.problem.evaluate_inequality_constraints(x)
+            inequality_constraints_positive = all(v < 0 for (v) in inequality_constraints)
+
+            if inequality_constraints_positive:
+                self.problem.individuals.append(individual)
+                # add to population
+                individual.population_id = self.moo_algorithm.n_gen
 
             out["F"] = individual.costs
-            out["G"] = self.problem.evaluate_inequality_constraints(x)
+            out["G"] = inequality_constraints
 
 
     class Pymoo(Algorithm):

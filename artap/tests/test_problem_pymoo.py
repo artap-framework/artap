@@ -74,6 +74,10 @@ class TestpymooMultiConstraintOptimization(unittest.TestCase):
             f_1.append(individual.costs[0])
             f_2.append(individual.costs[1])
 
+        # print(len(problem.individuals))
+        # for individual in problem.individuals:
+        #    print(individual)
+
         self.assertLess(min(f_1), 1.5)
         self.assertGreater(max(f_1), 74)
         self.assertLess(max(f_2), 1.5)
