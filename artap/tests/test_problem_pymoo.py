@@ -29,9 +29,13 @@ class ProblemConstraint(Problem):
         self.parameters = [{'name': 'x', 'initial_value': 1.0, 'bounds': [-2, 2]},
                            {'name': 'y', 'initial_value': -1.0, 'bounds': [-2, 2]}]
 
-        # single objective problem
+        # multi objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'},
                       {'name': 'f_2', 'criteria': 'minimize'}]
+
+        # constraints
+        self.constraints = [{'name': 'c_1'},
+                            {'name': 'c_2'}]
 
     def evaluate(self, individual):
         x = individual.vector

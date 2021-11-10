@@ -41,7 +41,7 @@ try:
             else:
                 super().__init__(n_var=len(problem.parameters),
                                  n_obj=len(problem.costs),
-                                 n_constr=2,
+                                 n_constr=len(problem.constraints),
                                  xl=np.array(lb),
                                  xu=np.array(ub))
 

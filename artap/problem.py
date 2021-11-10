@@ -88,6 +88,7 @@ class Problem:
         self.description: str = str()
         self.parameters: list = list()
         self.costs: list = list()
+        self.constraints: list = list()
         self.signs = []
 
         self.info = {"processor": platform.processor(),
