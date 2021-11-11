@@ -6,7 +6,7 @@ from ..results import Results
 
 
 class TestAckley(unittest.TestCase):
-    """ Tests that the nsga - ii can find the global optimum. """
+    """ Tests that the CMA_ES can find the global optimum. """
 
     def test_local_problem(self, population_number=5):
         try:
@@ -27,7 +27,7 @@ class TestAckley(unittest.TestCase):
 
 
 class TestAlpine(unittest.TestCase):
-    """ Tests that the nsga - ii can find the global optimum. """
+    """ Tests that the CMA_ES can find the global optimum. """
 
     def test_local_problem(self, population_number=50):
         try:
@@ -48,7 +48,7 @@ class TestAlpine(unittest.TestCase):
 
 
 class TestRosenbrock(unittest.TestCase):
-    # unit-test  benchmarck : Rosenbrock, algorithm : SMPSO
+    # unit-test  benchmarck : Rosenbrock, algorithm : CMA_ES
     def test_local_problem(self):
         problem = Rosenbrock(**{'dimension': 1})
         algorithm = CMA_ES(problem)

@@ -8,7 +8,22 @@ import time
 
 class CMA_ES(GeneralEvolutionaryAlgorithm):
     """
-    Implementation a hybrid of CMAES
+    Implementation of CMA_ES, Covariance Matrix Adaptation Evolutionary strategy (CMA_ES).
+    The Covariance Matrix Adaptation Evolution Strategy (CMA-ES) [1] is one of the most effective approaches
+    for black-box optimization, in which objective functions cannot be specified explicitly in general.
+    CMA-ES outperformed over 100 black-box optimization approaches for a variety of benchmark problems [2].
+
+    The CMA-ES algorithm selects solutions from a multivariate gaussian distribution. Following the evaluation of
+    all solutions, the solutions are sorted by evaluation values, and the distribution parameters
+    (i.e., the mean vector and the covariance matrix) are updated depending on the ranking of evaluation values.
+
+    [1] Nikolaus Hansen and Andreas Ostermeier. Completely derandomized self-adaptation in evolution strategies.
+        Evol. Comput., 9(2):159–195, June 2001.
+        DOI: http://dx.doi.org/10.1162/106365601750190398.
+    [2] Nikolaus Hansen. The CMA Evolution Strategy: A Comparing Review, pages 75–102. Springer Berlin Heidelberg,
+        Berlin, Heidelberg, 2006.
+        DOI: https://doi.org/10.1007/3-540-32494-1_4.
+
     """
 
     def __init__(self, problem: Problem, name="Covariance Matrix Adaptation Evolutionary Strategy"):
@@ -45,7 +60,11 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # self.fit_gaussian()
 
     def fit_gaussian(self):
-        # theta is actually the population sampled from the distribution
+        """
+        generates individuals from a multivariate gaussian distribution
+        :param
+        :return population: list of individuals
+        """
         theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.n_samples)
         individuals = np.clip(theta, self.min_val, self.max_val)
         self.generator.init(individuals)
@@ -54,16 +73,32 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         return individuals
 
     def take_elite(self, candidates):
+        """
+        Based on the fitness, it will take top individuals
+        :param candidates
+        :return elite: list of top individuals
+        """
         n_top = int((self.n_samples * self.top_p) / 100)
         elite = candidates[:n_top]
         return elite
 
     def compute_new_mean(self, e_candidates):
-
+        """
+        Update distribution parameters. Here, the mean vector will be updated depending on the ranking of
+        evaluation values.
+        :param e_candidates
+        :return new_means vector
+        """
         new_means = np.mean(e_candidates, axis=0)
         return new_means
 
     def compute_new_cov(self, e_candidates):
+        """
+        Update distribution parameters. Here, the covariance matrix will be updated depending on the ranking of
+        evaluation values
+        :param e_candidates
+        :return new_covariance matrix
+        """
         e_candidates = np.array(e_candidates)
         I = np.identity(self.dim_theta)
         cov = np.zeros((self.dim_theta, self.dim_theta))
