@@ -448,7 +448,6 @@ class HaltonGenerator(Generator):
             dict_vars[name] = [l_b, u_b]
 
         df = build_halton(dict_vars, num_samples=self.number)
-        print(df)
 
         individuals = []
         for vector in df:

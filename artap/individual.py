@@ -56,7 +56,7 @@ class Individual(metaclass=ABCMeta):
         :return:
         """
         self.costs_signed = list(map(lambda x, y: x * round(y, ndigits=self.features["precision"]), p_signs, self.costs))
-        self.costs_signed.append(self.features["feasible"])
+        self.costs_signed.append(not self.features["feasible"])
 
     def __repr__(self):
         """ :return: [vector[p1, p2, ... pn]; costs[c1, c2, ... cn]] """

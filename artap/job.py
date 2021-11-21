@@ -30,7 +30,9 @@ class Job(metaclass=ABCMeta):
             constraints = self.problem.evaluate_inequality_constraints(individual.vector)
 
             if len(constraints) > 0:
-                individual.features["feasible"] = sum(map(abs, constraints))
+                # sum(map(abs, constraints)) - original version
+                eps = 0.0
+                individual.features["feasible"] = all(v < eps for (v) in constraints)
 
             # problem cost function evaluate only in that case when the problem fits the constraints
             try:
@@ -50,8 +52,7 @@ class Job(metaclass=ABCMeta):
                 print("Job: error:", e)
                 failed_individual = Individual(individual.vector)
                 failed_individual.state = individual.State.FAILED
-                if individual.features["feasible"] == 0.0:
-                    individual.features["feasible"] = inf  # TODO: genetic algorithms uses this information, i dont know the correct solution
+                individual.features["feasible"] = False  # TODO: genetic algorithms uses this information, i dont know the correct solution
                 self.problem.failed.append(failed_individual)
                 # in the case of failure generate new random individual
                 # TODO: create different strategies
