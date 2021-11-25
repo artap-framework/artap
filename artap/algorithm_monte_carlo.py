@@ -2,14 +2,36 @@ import numpy as np
 from .algorithm import Algorithm
 from .problem import Problem
 import sys
+import random
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .individual import Individual
-from artap.operators import RandomGenerator
+from artap.operators import RandomGenerator, Generator
 from artap.benchmark_functions import BenchmarkFunction as bm
 import time
 
+"""Extra"""
 
-class Monte_Carlo(Algorithm):
+
+class CustomUniformGenerator(Generator):
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
+        self.number = 0
+        self.vector = dict()
+
+    def init(self, number, lb, ub):
+        self.number = number
+        for i in range(self.number):
+            z = random.uniform(lb, ub)
+            self.vector[i] = ([z])
+
+    def generate(self):
+        individuals = []
+        for i in range(len(self.vector)):
+            individuals.append(Individual(self.vector[i], self.features))
+        return individuals
+
+
+class Monte_Carlo(GeneralEvolutionaryAlgorithm):
     """
     Monte Carlo simulation
         1) make a list of random values of x
@@ -17,84 +39,62 @@ class Monte_Carlo(Algorithm):
         3) evaluate the objective function
         4) pick the lowest
     """
-    def __init__(self, problem: Problem, n):
-        super().__init__(problem)
+
+    def __init__(self, problem: Problem, name="Monte Carlo"):
+        super().__init__(problem, name)
         self.evaluation = 0
         self.z_min, self.z_max = 0, 1
-        self.dimension = 1
-        self.n = n  # number of divisions
-        self.sampling_size = 10  # 1000 sampling points in each division
+        self.sampling_size = self.options['max_population_size']
         self.problem = problem
-        self.problem.parameters = bm.generate_paramlist(self, dimension=self.dimension, lb=0.0, ub=1.0)
-        self.intervals = np.linspace(self.z_min, self.z_max, self.n)
+        # self.problem.parameters = bm.generate_paramlist(self, dimension=self.dimension, lb=0.0, ub=1.0)
+        self.intervals = np.linspace(self.z_min, self.z_max, self.sampling_size)
         self.generator = RandomGenerator(self.problem.parameters)
 
     def generate(self):
-        costs = []
-        best_vector = []
-        for _ in range(self.sampling_size):
-            self.generator.init(self.n)
-            self.individuals = self.generator.generate()
-            self.evaluate(self.individuals)
-            for individual in self.individuals:
-                costs.append(individual.costs)
-                best_vector.append(individual.vector)
-                # for individual in self.individuals:
-                # append to problem
-                self.problem.individuals.append(individual)
-                # add to population
-                individual.population_id = 0
+        self.generator.init(self.options['max_population_size'])
+        individuals = self.generator.generate()
 
-                self.problem.data_store.sync_individual(individual)
-        costs = np.array(costs).reshape(-1, 1)
-        best_vector = np.array(best_vector).reshape(-1, 1)
-        return costs, best_vector
-
-    def simulate(self):
-        var_array = []
-        I_array = []
-        for i in range(self.n - 1):
-            # random sampling in each of the interval
-            costs, vectors = self.generate()
-            I_array.append(min(costs))  # add up the integral value
-            index = np.argmin(costs)
-            var_array.append(vectors[index])
-
-        return I_array, var_array
+        return individuals
 
     def run(self):
-        I_array, var_array = self.simulate()
-        self.evaluation += (len(self.intervals) - 1) * self.sampling_size
-        new_I = min(I_array)
-        index = np.argmin(I_array)
-        new_var = var_array[index]
-        relative_accuracy = 1  # assign a non-zero value of initial relative accuracy
-        while relative_accuracy >= 1e-2:
-            old_I = new_I
-            I_array, var_array = self.simulate()
-            new_I = min(I_array)
-            index = np.argmin(I_array)
-            new_var = var_array[index]
-            # calculate relative accuracy
-            relative_accuracy = abs((new_I - old_I) / old_I)
 
-        for i in range(self.n - 1):
-            for individual in self.individuals:
+        individuals = self.generate()
+        for individual in individuals:
+            # append to problem
+            self.problem.individuals.append(individual)
+            # add to population
+            individual.population_id = 0
+
+            self.problem.data_store.sync_individual(individual)
+
+        start = time.time()
+        self.problem.logger.info("Monte_Carlo: {}/{}".format(self.options['max_population_number'],
+                                                             self.options['max_population_size']))
+        for it in range(self.options['max_population_number']):
+
+            self.evaluate(individuals)
+
+            for individual in individuals:
                 # add to population
-                individual.population_id = i + 1
+                individual.population_id = it + 1
                 # append to problem
                 self.problem.individuals.append(individual)
                 # sync to datastore
                 self.problem.data_store.sync_individual(individual)
 
-        return new_I, new_var
+        t = time.time() - start
+        self.problem.logger.info("Monte_Carlo: elapsed time: {} s".format(t))
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
 
 
+# ToDo: Modify this method to follow the convention
 class Integral_Monte_Carlo(Algorithm):
     """
     Adaptive Monte Carlo Integral Approximation.
     Summation is used to estimate the expected value of a function under a distribution, instead of integration.
     """
+
     def __init__(self, problem: Problem, n):
         super().__init__(problem)
         self.evaluation = 0

@@ -26,11 +26,12 @@ class Integral_Problem(BenchmarkFunction):
 class TestAckley(unittest.TestCase):
     """ Tests that the Monte_Carlo can find the global optimum. """
 
-    def test_local_problem(self, population_number=5):
+    def test_local_problem(self, population_number=50):
         try:
             problem = Ackley(**{'dimension': 1})
-            n = 10
-            algorithm = Monte_Carlo(problem, n)
+            algorithm = Monte_Carlo(problem)
+            algorithm.options['max_population_number'] = population_number
+            algorithm.options['max_population_size'] = 100
             algorithm.run()
 
             b = Results(problem)
@@ -46,17 +47,18 @@ class TestAckley(unittest.TestCase):
 
 class TestSphere(unittest.TestCase):
     # unit-test  benchmarck : Sphere, algorithm : Monte_Carlo
-    def test_local_problem(self):
+    def test_local_problem(self, population_number=50):
         problem = Sphere(**{'dimension': 1})
-        n = 10
-        algorithm = Monte_Carlo(problem, n)
+        algorithm = Monte_Carlo(problem)
+        algorithm.options['max_population_number'] = population_number
+        algorithm.options['max_population_size'] = 100
         algorithm.run()
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
         print(optimum.costs[0])
         print(problem.global_optimum)
-        self.assertAlmostEqual(optimum.costs[0], problem.global_optimum)
+        self.assertAlmostEqual(int(optimum.costs[0]), problem.global_optimum)
 
 
 class TestIntegral_MonteCarlo(unittest.TestCase):

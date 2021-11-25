@@ -43,7 +43,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # Add front_number feature
         self.individual_features['front_number'] = 0
 
-        self.dim_theta = 1
+        self.dim_theta = self.n_samples
 
         # Elite ratio percentage
         self.top_p = 20
@@ -65,7 +65,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         :param
         :return population: list of individuals
         """
-        theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.n_samples)
+        theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.options['max_population_size'])
         individuals = np.clip(theta, self.min_val, self.max_val)
         self.generator.init(individuals)
         individuals = self.generator.generate()
