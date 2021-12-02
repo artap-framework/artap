@@ -1,5 +1,5 @@
 import unittest
-from artap.algorithm_monte_carlo import Monte_Carlo, Integral_Monte_Carlo
+from artap.algorithm_monte_carlo import Monte_Carlo, Numerical_Integrator
 from artap.results import Results
 from artap.benchmark_functions import Sphere, Ackley, BenchmarkFunction
 import numpy as np
@@ -62,18 +62,17 @@ class TestSphere(unittest.TestCase):
 
 
 class TestIntegral_MonteCarlo(unittest.TestCase):
-    # unit-test  benchmarck : Sphere, algorithm : Monte_Carlo
+    # unit-test  benchmarck : Sphere, algorithm : Integral_Monte_Carlo
     def test_local_problem(self):
         problem = Integral_Problem(**{'dimension': 1})
-        n = 10
-        algorithm = Integral_Monte_Carlo(problem, n)
+        algorithm = Numerical_Integrator(problem)
         algorithm.run()
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
         print(optimum.costs[0])
         print(problem.global_optimum)
-        self.assertAlmostEqual(int(optimum.costs[0]), problem.global_optimum)
+        self.assertAlmostEqual(optimum.costs[0], problem.global_optimum)
 
 
 if __name__ == '__main__':
