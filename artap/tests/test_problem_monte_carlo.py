@@ -1,7 +1,7 @@
 import unittest
 from artap.algorithm_monte_carlo import Monte_Carlo, Numerical_Integrator
 from artap.results import Results
-from artap.benchmark_functions import Sphere, Ackley, BenchmarkFunction
+from artap.benchmark_functions import Sphere, Ackley, BenchmarkFunction, Schwefel
 import numpy as np
 
 
@@ -11,7 +11,7 @@ class Integral_Problem(BenchmarkFunction):
         self.set_dimension(**kwargs)
         self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
 
-        self.global_optimum = 0.0
+        self.global_optimum = 0.50
         self.global_optimum_coords = [0.0 for x in range(self.dimension)]
 
         # single objective problem
@@ -23,26 +23,26 @@ class Integral_Problem(BenchmarkFunction):
         return [output]
 
 
-class TestAckley(unittest.TestCase):
-    """ Tests that the Monte_Carlo can find the global optimum. """
-
-    def test_local_problem(self, population_number=50):
-        try:
-            problem = Ackley(**{'dimension': 1})
-            algorithm = Monte_Carlo(problem)
-            algorithm.options['max_population_number'] = population_number
-            algorithm.options['max_population_size'] = 100
-            algorithm.run()
-
-            b = Results(problem)
-            optimum = b.find_optimum('f_1')  # Takes last cost function
-            print(optimum.costs[0])
-            print(problem.global_optimum)
-            self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-        except AssertionError:
-            # stochastic
-            print("TestAckleyN222::test_local_problem", population_number)
-            self.test_local_problem(int(1.5 * population_number))
+# class TestAckley(unittest.TestCase):
+#     """ Tests that the Monte_Carlo can find the global optimum. """
+#
+#     def test_local_problem(self, population_number=50):
+#         try:
+#             problem = Ackley(**{'dimension': 1})
+#             algorithm = Monte_Carlo(problem)
+#             algorithm.options['max_population_number'] = population_number
+#             algorithm.options['max_population_size'] = 100
+#             algorithm.run()
+#
+#             b = Results(problem)
+#             optimum = b.find_optimum('f_1')  # Takes last cost function
+#             print(optimum.costs[0])
+#             print(problem.global_optimum)
+#             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
+#         except AssertionError:
+#             # stochastic
+#             print("TestAckleyN222::test_local_problem", population_number)
+#             self.test_local_problem(int(1.5 * population_number))
 
 
 class TestSphere(unittest.TestCase):
