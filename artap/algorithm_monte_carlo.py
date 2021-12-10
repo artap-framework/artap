@@ -4,6 +4,7 @@ from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from artap.operators import Generator, CustomGenerator, RandomGenerator
 import time
 from scipy.stats import norm
+from .individual import Individual
 
 
 class Monte_Carlo(GeneralEvolutionaryAlgorithm):
@@ -123,7 +124,6 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
         self.problem.data_store.sync_all()
 
 
-# ToDo : run the unittests for these two methods.
 class ImportanceSampling(Monte_Carlo):
     """
     In statistics, importance sampling is a general technique for estimating properties of a particular distribution,
@@ -150,12 +150,16 @@ class ImportanceSampling(Monte_Carlo):
         self.cov = np.diag(self.std)
 
     def generate(self):
+        individuals = []
         q = np.random.uniform(self.min_val, self.max_val, self.size)
         q_x = norm(self.mean, self.std).pdf(q)
         p_x = norm(self.min_val, self.max_val).pdf(q)
 
         weights = p_x / q_x
-        return weights * q_x
+        samples = weights * q_x
+        for i in range(len(samples)):
+            individuals.append(Individual([samples[i]], self.individual_features))
+        return individuals
 
     def run(self):
         individuals = self.generate()
@@ -223,6 +227,7 @@ class Rejection_Sampling(Monte_Carlo):
 
     def generate(self):
         i, samples = 0, []
+        individuals = []
         while i < self.size:
             x_i = np.random.normal(self.min_val, self.max_val)
             if self._p_x(x_i) <= self.C * self._q_x(x_i):
@@ -232,7 +237,9 @@ class Rejection_Sampling(Monte_Carlo):
                     i = i + 1
                 else:
                     i = i + 1
-        return samples
+        for i in range(len(samples)):
+            individuals.append(Individual([samples[i]], self.individual_features))
+        return individuals
 
     def run(self):
         individuals = self.generate()

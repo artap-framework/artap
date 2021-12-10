@@ -1,5 +1,5 @@
 import unittest
-from artap.algorithm_monte_carlo import Monte_Carlo, Numerical_Integrator
+from artap.algorithm_monte_carlo import Monte_Carlo, Numerical_Integrator, ImportanceSampling, Rejection_Sampling
 from artap.results import Results
 from artap.benchmark_functions import Sphere, Ackley, BenchmarkFunction, Schwefel
 import numpy as np
@@ -71,8 +71,40 @@ class TestIntegral_MonteCarlo(unittest.TestCase):
         result = Results(problem)
         optimum = result.find_optimum('f_1')
         print(optimum.costs[0])
+        x = "{:0.1f}".format(optimum.costs[0])
+        print(x)
         print(problem.global_optimum)
-        self.assertAlmostEqual(optimum.costs[0], problem.global_optimum)
+        self.assertAlmostEqual(float(x), problem.global_optimum)
+
+
+class TestImpotance_Sampling(unittest.TestCase):
+    # unit-test  benchmarck : Sphere, algorithm : ImportanceSampling
+    def test_local_problem(self):
+        problem = Integral_Problem(**{'dimension': 1})
+        algorithm = ImportanceSampling(problem)
+        algorithm.run()
+
+        result = Results(problem)
+        optimum = result.find_optimum('f_1')
+        print(optimum.costs[0])
+        x = "{:0.1f}".format(optimum.costs[0])
+        print(x)
+        print(problem.global_optimum)
+        self.assertAlmostEqual(float(x), problem.global_optimum)
+
+
+class TestRejection_Sampling(unittest.TestCase):
+    # unit-test  benchmarck : Sphere, algorithm : Rejection_Sampling
+    def test_local_problem(self):
+        problem = Sphere(**{'dimension': 1})
+        algorithm = Rejection_Sampling(problem)
+        algorithm.run()
+
+        result = Results(problem)
+        optimum = result.find_optimum('f_1')
+        print(optimum.costs[0])
+        print(problem.global_optimum)
+        self.assertAlmostEquals(optimum.costs[0], problem.global_optimum)
 
 
 if __name__ == '__main__':
