@@ -99,7 +99,6 @@ class TestRejection_Sampling(unittest.TestCase):
         problem = Sphere(**{'dimension': 1})
         algorithm = Rejection_Sampling(problem)
         algorithm.run()
-
         result = Results(problem)
         optimum = result.find_optimum('f_1')
         print(optimum.costs[0])
