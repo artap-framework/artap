@@ -104,7 +104,7 @@ class TestRejection_Sampling(unittest.TestCase):
         optimum = result.find_optimum('f_1')
         print(optimum.costs[0])
         print(problem.global_optimum)
-        self.assertAlmostEquals(optimum.costs[0], problem.global_optimum)
+        self.assertAlmostEquals(int(optimum.costs[0]), problem.global_optimum)
 
 
 if __name__ == '__main__':

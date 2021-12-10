@@ -1,7 +1,7 @@
 import numpy as np
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
-from artap.operators import Generator, CustomGenerator, RandomGenerator
+from artap.operators import CustomGenerator, RandomGenerator, UniformGenerator
 import time
 from scipy.stats import norm
 from .individual import Individual
@@ -80,14 +80,17 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
         self.problem = problem
         # self.problem.parameters = bm.generate_paramlist(self, dimension=self.dimension, lb=0.0, ub=1.0)
         self.intervals = np.linspace(self.z_min, self.z_max, self.sampling_size)
-        self.generator = CustomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
 
     def generate(self):
         sampling = ImportanceSampling(self.problem)
-        weights = sampling.generate()
-        samples = [weights]
-        self.generator.init(samples)
-        individuals = self.generator.generate()
+        samples = sampling.generate()
+        individuals = samples
+        # samples = weights
+        # self.generator.init(samples)
+        # individuals = self.generator.generate()
+        # self.generator.init(self.options['max_population_size'])
+        # individuals = self.generator.generate()
 
         return individuals
 
