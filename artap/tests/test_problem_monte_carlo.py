@@ -1,7 +1,7 @@
 import unittest
-from artap.algorithm_monte_carlo import Monte_Carlo, Numerical_Integrator, ImportanceSampling, Rejection_Sampling
-from artap.results import Results
-from artap.benchmark_functions import Sphere, Ackley, BenchmarkFunction, Schwefel
+from ..algorithm_monte_carlo import Monte_Carlo, Numerical_Integrator, ImportanceSampling, Rejection_Sampling
+from ..results import Results
+from ..benchmark_functions import Sphere, Ackley, BenchmarkFunction, Schwefel
 import numpy as np
 
 
@@ -56,8 +56,8 @@ class TestSphere(unittest.TestCase):
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        print(optimum.costs[0])
-        print(problem.global_optimum)
+        #print(optimum.costs[0])
+        #print(problem.global_optimum)
         self.assertAlmostEqual(int(optimum.costs[0]), problem.global_optimum)
 
 
@@ -70,10 +70,10 @@ class TestIntegral_MonteCarlo(unittest.TestCase):
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        print(optimum.costs[0])
+        #print(optimum.costs[0])
         x = "{:0.1f}".format(optimum.costs[0])
-        print(x)
-        print(problem.global_optimum)
+        #print(x)
+        #print(problem.global_optimum)
         self.assertAlmostEqual(float(x), problem.global_optimum)
 
 
@@ -86,10 +86,10 @@ class TestImpotance_Sampling(unittest.TestCase):
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        print(optimum.costs[0])
+        #print(optimum.costs[0])
         x = "{:0.1f}".format(optimum.costs[0])
-        print(x)
-        print(problem.global_optimum)
+        #print(x)
+        #print(problem.global_optimum)
         self.assertAlmostEqual(float(x), problem.global_optimum)
 
 
@@ -101,8 +101,8 @@ class TestRejection_Sampling(unittest.TestCase):
         algorithm.run()
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        print(optimum.costs[0])
-        print(problem.global_optimum)
+        #print(optimum.costs[0])
+        #print(problem.global_optimum)
         self.assertAlmostEquals(int(optimum.costs[0]), problem.global_optimum)
 
 
