@@ -19,4 +19,4 @@ class Test_FORM(unittest.TestCase):
         algorithm = FORM(problem)
         x, beta, iteration = algorithm.run()
 
-        self.assertAlmostEqual(("{:0.4f}".format(x[0])), str(problem.converged_point[0]))
+        self.assertAlmostEqual(int(x[0]), int(problem.converged_point[0]))
