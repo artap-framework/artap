@@ -23,28 +23,6 @@ class Integral_Problem(BenchmarkFunction):
         return [output]
 
 
-# class TestAckley(unittest.TestCase):
-#     """ Tests that the Monte_Carlo can find the global optimum. """
-#
-#     def test_local_problem(self, population_number=50):
-#         try:
-#             problem = Ackley(**{'dimension': 1})
-#             algorithm = Monte_Carlo(problem)
-#             algorithm.options['max_population_number'] = population_number
-#             algorithm.options['max_population_size'] = 100
-#             algorithm.run()
-#
-#             b = Results(problem)
-#             optimum = b.find_optimum('f_1')  # Takes last cost function
-#             print(optimum.costs[0])
-#             print(problem.global_optimum)
-#             self.assertAlmostEqual(optimum.costs[0], problem.global_optimum, 1)
-#         except AssertionError:
-#             # stochastic
-#             print("TestAckleyN222::test_local_problem", population_number)
-#             self.test_local_problem(int(1.5 * population_number))
-
-
 class TestSphere(unittest.TestCase):
     # unit-test  benchmarck : Sphere, algorithm : Monte_Carlo
     def test_local_problem(self, population_number=50):
@@ -56,8 +34,6 @@ class TestSphere(unittest.TestCase):
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        #print(optimum.costs[0])
-        #print(problem.global_optimum)
         self.assertAlmostEqual(int(optimum.costs[0]), problem.global_optimum)
 
 
@@ -70,10 +46,7 @@ class TestIntegral_MonteCarlo(unittest.TestCase):
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        #print(optimum.costs[0])
         x = "{:0.1f}".format(optimum.costs[0])
-        #print(x)
-        #print(problem.global_optimum)
         self.assertAlmostEqual(float(x), problem.global_optimum)
 
 
@@ -86,10 +59,7 @@ class TestImpotance_Sampling(unittest.TestCase):
 
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        #print(optimum.costs[0])
         x = "{:0.1f}".format(optimum.costs[0])
-        #print(x)
-        #print(problem.global_optimum)
         self.assertAlmostEqual(float(x), problem.global_optimum)
 
 
@@ -101,8 +71,6 @@ class TestRejection_Sampling(unittest.TestCase):
         algorithm.run()
         result = Results(problem)
         optimum = result.find_optimum('f_1')
-        #print(optimum.costs[0])
-        #print(problem.global_optimum)
         self.assertAlmostEquals(int(optimum.costs[0]), problem.global_optimum)
 
 
