@@ -3,6 +3,7 @@ from .algorithm_genetic import GeneticAlgorithm
 from .operators import GradientEvaluator, RandomGenerator
 from .individual import Individual
 import time
+import math
 
 
 class GradientDescent(GeneticAlgorithm):
@@ -18,11 +19,16 @@ class GradientDescent(GeneticAlgorithm):
                              desc='Step')
         self.options.declare(name='minimal_step', default=1e-6,
                              desc='Minimal step')
-        self.options.declare(name='adaptive', default=False,
-                             desc='Adaptive Armijo line search')
+        self.options.declare(name='algorithm', default="fixed",
+                             desc='Type of algorithm: fixed, adaptive, adagrad, rmsprop, adam')
         self.options.declare(name='c', default=1e-4,
-                             desc='Armijo coefficient')
-
+                             desc='Armijo coefficient (Adaptive)')
+        self.options.declare(name='beta1', default=1e-4,
+                             desc='Coefficient beta 1 (Adam)')
+        self.options.declare(name='beta2', default=1e-4,
+                             desc='Coefficient beta 2 (Adam)')
+        self.options.declare(name='decay_rate', default=1e-4,
+                             desc='Decay Rate (RMSprop)')
 
         # compute gradients
         self.evaluator = GradientEvaluator(self)
@@ -35,7 +41,7 @@ class GradientDescent(GeneticAlgorithm):
         else:
             self.generator = generator
 
-    def step(self, individual):
+    def step_fixed(self, individual):
         x = []
         for i in range(len(individual.vector)):
             x.append(individual.vector[i] - self.options["step"] * individual.features['gradient'][i])
@@ -77,10 +83,54 @@ class GradientDescent(GeneticAlgorithm):
 
             h_t = h_t / 2.0
 
+    def step_adagrad(self, individual):
+        x = []
+        for i in range(len(individual.vector)):
+            self.cache_grad_sqr[i] += individual.features['gradient'][i] ** 2
+
+            x.append(individual.vector[i] - self.options["step"] * individual.features['gradient'][i] /
+                     (math.sqrt(self.cache_grad_sqr[i] + 1e-6)))
+
+        return x
+
+    def step_rmsprop(self, individual):
+        x = []
+        for i in range(len(individual.vector)):
+            self.cache_grad_sqr[i] += self.options["decay_rate"] * self.cache_grad_sqr[i] \
+                                      + (1.0 - self.options["decay_rate"]) * individual.features['gradient'][i] ** 2
+
+            x.append(individual.vector[i] - self.options["step"] * individual.features['gradient'][i] /
+                     (math.sqrt(self.cache_grad_sqr[i] + 1e-6)))
+
+        return x
+
+    def step_adam(self, individual):
+        x = []
+        for i in range(len(individual.vector)):
+            self.adam_t += 1
+
+            self.cache_grad[i] += self.options["beta1"] * self.cache_grad[i] \
+                                  + (1.0 - self.options["beta1"]) * individual.features['gradient'][i]
+            self.cache_grad_sqr[i] += self.options["beta2"] * self.cache_grad_sqr[i] \
+                                      + (1.0 - self.options["beta2"]) * individual.features['gradient'][i] ** 2
+
+            # calculates the bias-corrected estimates
+            m_corrected = self.cache_grad[i] / (1.0 - self.options["beta1"] ** self.adam_t)
+            v_corrected = self.cache_grad_sqr[i] / (1.0 - self.options["beta2"] ** self.adam_t)
+
+            x.append(individual.vector[i] - self.options["step"] * m_corrected / (math.sqrt(v_corrected + 1e-8)))
+
+        return x
+
     def run(self):
         # optimization
         t_s = time.time()
         self.problem.logger.info("GradientDescent")
+
+        # cache
+        self.adam_t = 0
+        self.cache_grad = [0] * len(self.problem.parameters)
+        self.cache_grad_sqr = [0] * len(self.problem.parameters)
 
         # generate initial point
         individuals = self.generator.generate()
@@ -98,13 +148,22 @@ class GradientDescent(GeneticAlgorithm):
             new_individuals = []
             for individual in individuals:
                 # get new position
-                if self.options["adaptive"]:
+                if self.options["algorithm"] == "fixed":
+                    x = self.step_fixed(individual)
+                elif self.options["algorithm"] == "adaptive":
                     x = self.step_adaptive(individual)
+                elif self.options["algorithm"] == "adagrad":
+                    x = self.step_adagrad(individual)
+                elif self.options["algorithm"] == "rmsprop":
+                    x = self.step_rmsprop(individual)
+                elif self.options["algorithm"] == "adam":
+                    x = self.step_adam(individual)
                 else:
-                    x = self.step(individual)
+                    raise "Algorithm '{}' is defined.".format(self.options["algorithm"])
+
                 # create a new individual
                 individual = Individual(x, self.individual_features)
-                individual.population_id = j+1
+                individual.population_id = j + 1
                 new_individuals.append(individual)
 
                 # append to problem
