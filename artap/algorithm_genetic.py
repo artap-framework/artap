@@ -117,8 +117,9 @@ class NSGAII(GeneticAlgorithm):
         self.individual_features['front_number'] = 0
 
     def run(self):
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
-        self.generator.init(self.options['max_population_size'])
+        if self.generator is None:
+            self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+            self.generator.init(self.options['max_population_size'])
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         self.selector = TournamentSelector(self.problem.parameters)

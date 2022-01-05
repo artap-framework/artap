@@ -217,6 +217,26 @@ class CustomGenerator(Generator):
             individuals.append(Individual(vector, self.features))
         return individuals
 
+class PartiallyCustomGenerator(Generator):
+    def __init__(self, parameters=None, features=dict()):
+        super().__init__(parameters, features)
+        self.vectors = []
+        self.number = None
+
+    def init(self, vectors, number):
+        self.vectors = vectors
+        self.number = number
+
+    def generate(self):
+        individuals = []
+        for vector in self.vectors:
+            individuals.append(Individual(vector, self.features))
+        req = self. number - len(individuals)
+        for i in range(req + 1):
+            vector = VectorAndNumbers.gen_vector(self.parameters)
+            individuals.append(Individual(vector, self.features))
+        return individuals
+
 
 class UniformGenerator(Generator):
     def __init__(self, parameters=None, features=dict()):
