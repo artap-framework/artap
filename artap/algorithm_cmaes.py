@@ -43,7 +43,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # Add front_number feature
         self.individual_features['front_number'] = 0
 
-        self.dim_theta = 1
+        self.dim_theta = len(self.problem.parameters)
 
         # Elite ratio percentage
         self.top_p = 20
