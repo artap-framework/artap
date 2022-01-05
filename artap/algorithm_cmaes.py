@@ -2,7 +2,7 @@ import numpy as np
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .individual import Individual
-from artap.operators import CustomGenerator
+from .operators import CustomGenerator, nondominated_truncate
 import time
 
 
@@ -123,12 +123,12 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
 
             self.problem.data_store.sync_individual(individual)
 
+        self.evaluate(individuals)
+
         start = time.time()
         self.problem.logger.info("CMA_ES: {}/{}".format(self.options['max_population_number'],
                                                         self.options['max_population_size']))
         for it in range(self.options['max_population_number']):
-            self.evaluate(individuals)
-
             lists = []
             for individual in individuals:
                 # fitness.append(individual.costs)
@@ -146,7 +146,10 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
 
             self.theta_cov = self.compute_new_cov(e_candidates)
             self.theta_mean = self.compute_new_mean(e_candidates)
-            self.fit_gaussian()
+            individuals = self.fit_gaussian()
+            # individuals = nondominated_truncate(new_individuals, self.options['max_population_size'])
+
+            self.evaluate(individuals)
 
             for individual in individuals:
                 # add to population
