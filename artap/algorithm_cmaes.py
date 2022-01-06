@@ -2,7 +2,7 @@ import numpy as np
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .individual import Individual
-from .operators import CustomGenerator, nondominated_truncate
+from .operators import CustomGenerator, nondominated_truncate, RandomGenerator, UniformGenerator
 import time
 
 
@@ -46,7 +46,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         self.dim_theta = len(self.problem.parameters)
 
         # Elite ratio percentage
-        self.top_p = 20
+        self.top_p = 30
         # Range of values
         self.min_val = 0
         self.max_val = 1

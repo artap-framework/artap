@@ -563,7 +563,7 @@ class PSOGA(SwarmAlgorithm):
         self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
         # set random generator
-        self.generator = IntegerGenerator(self.problem.parameters, self.individual_features)
+        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
         self.leaders = Archive()
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # constants for the speed and the position calculation
@@ -589,9 +589,9 @@ class PSOGA(SwarmAlgorithm):
             individual.features['velocity'] = [0] * len(individual.vector)
 
     # A function for rounding to the nearest integer for all offsprings
-    def makeinteger(self, individual):
-        for i in range(len(individual)):
-            individual[i] = np.rint(individual[i]).astype(int)
+    # def makeinteger(self, individual):
+    #     for i in range(len(individual)):
+    #         individual[i] = np.rint(individual[i]).astype(int)
 
     def crossover(self, particles):
         # nVar = len(particles)
@@ -686,8 +686,8 @@ class PSOGA(SwarmAlgorithm):
         else:
             x1 = parent1.vector
             x2 = parent2.vector
-        self.makeinteger(x1)
-        self.makeinteger(x2)
+        # self.makeinteger(x1)
+        # self.makeinteger(x2)
 
         return Individual(list(x1), parent1.features), Individual(list(x2), parent2.features)
 
@@ -747,7 +747,7 @@ class PSOGA(SwarmAlgorithm):
             else:
                 y.append(particle[i].vector)
 
-        self.makeinteger(y)
+        # self.makeinteger(y)
         return Individual(y, particle.features)
 
     def update_velocity(self, individuals):
@@ -803,7 +803,7 @@ class PSOGA(SwarmAlgorithm):
                     individual.vector[i] = parameter['bounds'][0]
                     individual.features['velocity'][i] *= -1
 
-            self.makeinteger(individual.vector)
+            # self.makeinteger(individual.vector)
 
     def update_global_best(self, swarm):
         crowding_distance(swarm)
@@ -848,7 +848,7 @@ class PSOGA(SwarmAlgorithm):
         self.problem.logger.info("PSOGA: {}/{}".format(self.options['max_population_number'],
                                                        self.options['max_population_size']))
         # initialization of swarm
-        self.generator.init(self.options['max_population_size'], self.parameters)
+        self.generator.init(self.options['max_population_size'])
         individuals = self.generator.generate()
 
         for individual in individuals:
@@ -858,16 +858,18 @@ class PSOGA(SwarmAlgorithm):
             # add to population
             individual.population_id = 0
 
+            self.problem.data_store.sync_individual(individual)
+
         self.evaluate(individuals)
         self.init_pvelocity(individuals)
         self.init_pbest(individuals)
         self.update_global_best(individuals)
 
-        for individual in individuals:
-            self.problem.data_store.sync_individual(individual)
+        # for individual in individuals:
+        #     self.problem.data_store.sync_individual(individual)
 
         it = 0
-        for it in range(self.options['max_population_number']):
+        while it < self.options['max_population_number']:
             offsprings = self.selector.select(individuals)
 
             # PSO operators
@@ -898,7 +900,7 @@ class PSOGA(SwarmAlgorithm):
                 # sync to datastore
                 self.problem.data_store.sync_individual(individual)
 
-            # it += 1
+            it += 1
         t = time.time() - start
         self.problem.logger.info("PSOGA: elapsed time: {} s".format(t))
         # sync changed individual informations
