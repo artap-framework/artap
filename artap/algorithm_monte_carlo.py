@@ -27,8 +27,6 @@ class Monte_Carlo(GeneralEvolutionaryAlgorithm):
         self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
 
     def generate(self):
-        # imsampling = ImportanceSampling()
-        # samples = imsampling.generate()
         self.generator.init(self.options['max_population_size'])
         individuals = self.generator.generate()
 
@@ -45,11 +43,14 @@ class Monte_Carlo(GeneralEvolutionaryAlgorithm):
 
             self.problem.data_store.sync_individual(individual)
 
+        self.evaluate(individuals)
+
         start = time.time()
         self.problem.logger.info("Monte_Carlo: {}/{}".format(self.options['max_population_number'],
                                                              self.options['max_population_size']))
         for it in range(self.options['max_population_number']):
 
+            individuals = self.generate()
             self.evaluate(individuals)
 
             for individual in individuals:
@@ -77,25 +78,19 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
         self.evaluation = 0
         self.z_min, self.z_max = 0, 1
         self.sampling_size = self.options['max_population_size']
+        self.a = 0
+        self.b = (3*np.pi)/2
         self.problem = problem
-        # self.problem.parameters = bm.generate_paramlist(self, dimension=self.dimension, lb=0.0, ub=1.0)
-        self.intervals = np.linspace(self.z_min, self.z_max, self.sampling_size)
+        self.num_of_intervals = 10
         self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
 
     def generate(self):
-        sampling = ImportanceSampling(self.problem)
-        samples = sampling.generate()
-        individuals = samples
-        # samples = weights
-        # self.generator.init(samples)
-        # individuals = self.generator.generate()
-        # self.generator.init(self.options['max_population_size'])
-        # individuals = self.generator.generate()
+        self.generator.init(self.options['max_population_size'])
+        individuals = self.generator.generate()
 
         return individuals
 
     def run(self):
-
         individuals = self.generate()
         for individual in individuals:
             # append to problem
@@ -103,24 +98,29 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
             # add to population
             individual.population_id = 0
 
-            self.problem.data_store.sync_individual(individual)
-
-        start = time.time()
-        self.problem.logger.info("Monte_Carlo: {}/{}".format(self.options['max_population_number'],
-                                                             self.options['max_population_size']))
-        # for it in range(self.options['max_population_number']):
+            individual.vector[0] = individual.vector[0] * (self.a + (self.b - self.a))
 
         self.evaluate(individuals)
 
+        Integration = 0
         for individual in individuals:
-            # individual.costs[0] = individual.costs[0] / self.options['max_population_size']
-            # add to population
-            # individual.population_id = it + 1
-            # append to problem
-            self.problem.individuals.append(individual)
-            # sync to datastore
-            self.problem.data_store.sync_individual(individual)
+            Integration += individual.costs[0]
+        result = ((self.b - self.a) / self.sampling_size) * Integration
+        start = time.time()
+        self.problem.logger.info("Monte_Carlo: {}/{}".format(self.options['max_population_number'],
+                                                             self.options['max_population_size']))
+        for it in range(self.options['max_population_number']):
 
+            for individual in individuals:
+                individual.costs[0] = result
+                # add to population
+                individual.population_id = it + 1
+                # append to problem
+                self.problem.individuals.append(individual)
+                # sync to datastore
+                self.problem.data_store.sync_individual(individual)
+
+            # self.calculate_integral()
         t = time.time() - start
         self.problem.logger.info("Monte_Carlo: elapsed time: {} s".format(t))
         # sync changed individual informations
@@ -253,12 +253,12 @@ class Rejection_Sampling(Monte_Carlo):
             individual.population_id = 0
 
             self.problem.data_store.sync_individual(individual)
-
+        self.evaluate(individuals)
         start = time.time()
         self.problem.logger.info("Rejection_Sampling: {}/{}".format(self.options['max_population_number'],
                                                                     self.options['max_population_size']))
         for it in range(self.options['max_population_number']):
-
+            individuals = self.generate()
             self.evaluate(individuals)
 
             for individual in individuals:
