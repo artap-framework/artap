@@ -108,11 +108,11 @@ class StochasticModel(object):
 
         for dist, mu, sig in args:
 
-            if dist == 'normal':
-                self.dist_func.append(Normal(dist, mu, sig))
+            if dist == 'norm':
+                self.dist_func.append(getattr(stats, dist)(loc=mean, scale=sig))
 
             elif dist == 'uniform':
-                self.dist_func.append(Uniform(dist, mu, sig))
+                self.dist_func.append(getattr(stats, dist)(loc=mean, scale=sig))
 
             self.dist_name.append(dist)
             mean.append(mu)
@@ -129,9 +129,40 @@ Reliability Analysis Methods
 """
 
 
+# ToDo: Convert this class to the optimization class.
 class FORM(Algorithm):
-    """Performs the FORM algorithm
+    """Performs the FORM-HLRF algorithm
         The goal is to find the reliability index for a nonlinear limit state function g(Xi).
+
+        HL_RF algorithm steps:
+        1) Define the limit state function (𝑔) and the convergence criterion (tol = 1e-3), statistical characteristics
+         of basic random variables (mean, standard deviation, and distribution function for each random variable).
+        2) Transfer the random variables from 𝑋-space to 𝑈-space according to
+            .. math::
+                U = (X - \mu_X^{e}) / \sigma_X^{e}
+        3) Compute the gradient vector and limit state function at point U𝑘.
+        4) Compute the cost function using
+            .. math::
+                U^{k+1} = [(G(U^{k}) - \grad G(U^{k})U^{k}) / \norm{\grad G(U^{k})}] \alpha^{k}
+
+            where \alpha^{k} is sensivity factor that can be calculated by:
+            ..math::
+                \alpha^{k} = -(\grad G(U^{k})) / \norm{\grad G(U^{k})}
+
+        5) Transfer the basic random variables from 𝑈-space to 𝑋-space.
+        6) Control the convergence conditions as below; if true then the method is converged, stop and go to step (7);
+        else, 𝑘 = 𝑘+1 and go to step (2).
+        7) Estimate the failure probability by
+            ..math::
+                P_f ~~ \phi(-\beta)
+            where \phi is the CDF of the standard normal distribution and \beta = \norm{U^{*}} is the reliability index.
+
+        ..Reference::
+
+        [1] A Novel Algorithm for Structural Reliability Analysis Based on Finite Step Length and Armijo Line Search
+         https://www.mdpi.com/2076-3417/9/12/2546
+        [2] A Comparative Study of First-Order Reliability Method-Based Steepest Descent Search Directions for
+         Reliability Analysis of Steel Structures, https://www.hindawi.com/journals/ace/2017/8643801/
     """
 
     def __init__(self, limit_state: Problem, name="First Order Reliability Method"):
@@ -145,8 +176,8 @@ class FORM(Algorithm):
         self.tol = 1e-3
 
     def generate(self):
-        X = StochasticModel(['normal', int(self.mean), int(self.std)],
-                            ['normal', int(self.mean), int(self.std)])
+        X = StochasticModel(['norm', int(self.mean), int(self.std)],
+                            ['norm', int(self.mean), int(self.std)])
         return X
 
     def derivative(self, limit_state, points):
