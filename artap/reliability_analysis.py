@@ -1,4 +1,9 @@
+import time
+
 from .algorithm import Algorithm
+from .algorithm_genetic import GeneralEvolutionaryAlgorithm
+from .individual import Individual
+from .operators import CustomGenerator
 from .problem import Problem
 import numpy as np
 import scipy.special as sp
@@ -130,7 +135,7 @@ Reliability Analysis Methods
 
 
 # ToDo: Convert this class to the optimization class.
-class FORM(Algorithm):
+class FORM(GeneralEvolutionaryAlgorithm):
     """Performs the FORM-HLRF algorithm
         The goal is to find the reliability index for a nonlinear limit state function g(Xi).
 
@@ -160,33 +165,44 @@ class FORM(Algorithm):
         ..Reference::
 
         [1] A Novel Algorithm for Structural Reliability Analysis Based on Finite Step Length and Armijo Line Search
-         https://www.mdpi.com/2076-3417/9/12/2546
+            https://www.mdpi.com/2076-3417/9/12/2546
         [2] A Comparative Study of First-Order Reliability Method-Based Steepest Descent Search Directions for
          Reliability Analysis of Steel Structures, https://www.hindawi.com/journals/ace/2017/8643801/
+        [3] Reliability analysis and optimal design under uncertainty - Focus on adaptive surrogate-based approaches
+            https://tel.archives-ouvertes.fr/tel-01737299/document
     """
 
-    def __init__(self, limit_state: Problem, name="First Order Reliability Method"):
-        super().__init__(limit_state, name)
+    def __init__(self, problem: Problem, name="First Order Reliability Method"):
+        super().__init__(problem, name)
         self.min_val, self.max_val = 1, 10
         # self.size = self.options['max_population_size']
-        self.dimension = 1
-        self.limit_state = limit_state
+        self.dimension = len(self.problem.parameters)
+        self.problem = problem
         self.mean = np.random.uniform(self.min_val, self.max_val, self.dimension)
         self.std = np.random.uniform(self.max_val - 1, self.max_val, self.dimension)
+        self.cov = np.diag(self.std)
         self.tol = 1e-3
+        self.generator = CustomGenerator(self.problem.parameters, self.individual_features)
 
     def generate(self):
-        X = StochasticModel(['norm', int(self.mean), int(self.std)],
-                            ['norm', int(self.mean), int(self.std)])
-        return X
+        # X = StochasticModel(['norm', int(self.mean), int(self.std)],
+        #                     ['norm', int(self.mean), int(self.std)])
+        new_individuals = np.random.multivariate_normal(self.mean, self.cov, self.options['max_population_size'])
+        self.generator.init(new_individuals)
+        individuals = self.generator.generate()
+        return individuals
 
-    def derivative(self, limit_state, points):
+    def make_individual(self):
+        self.mean = Individual(self.mean, self.individual_features)
+        self.std = Individual(self.std, self.individual_features)
+
+    def derivative(self, problem, points):
         """Compute derivative of func at points using finite differences
 
            ddx = \\frac{func(points + eps) - func(points - eps)}{2 * eps}
 
         Args:
-            limit_state (function): function with N parameters
+            problem (function): function with N parameters
             points (array): array with N-dimension
         Returns:
             derivative: list with derivative
@@ -196,13 +212,13 @@ class FORM(Algorithm):
         """
         d = []
         eps = 1e-8
-        for i, p in enumerate(points):
-            step_up, step_down = list(points), list(points)  # copy list
+        for i, p in enumerate(points.vector):
+            step_up, step_down = points, points  # copy list
 
             # approximate derivative by tangent line with eps distance at
-            step_up[i] = p + eps
-            step_down[i] = p - eps
-            d.append((limit_state.evaluate(*step_up) - limit_state.evaluate(*step_down)) / (2 * eps))
+            step_up.vector[i] = p + eps
+            step_down.vector[i] = p - eps
+            d.append((problem.evaluate(step_up)[0] - problem.evaluate(step_down)[0]) / (2 * eps))
 
         return np.array(d)
 
@@ -225,50 +241,84 @@ class FORM(Algorithm):
     def run(self):
         iteration = 1
         convergence = False
-        X = self.generate()
-        # initial beta
-        mu_g = self.limit_state.evaluate(*X.mean)
-        grad_g_x = self.derivative(self.limit_state, X.mean)
-        sig_g = self.std_linear(grad_g_x, X.std)
+        mean = []
+        individuals = self.generate()
+        for individual in individuals:
+            # append to problem
+            self.problem.individuals.append(individual)
+            # add to population
+            individual.population_id = 0
+
+            self.problem.data_store.sync_individual(individual)
+            mean.append(np.mean(individual.vector))
+        # X = self.generate()
+        # initialize beta and alpha
+        grad_g_x = self.derivative(self.problem, self.mean)
+        self.evaluate(individuals)
+        self.make_individual()
+        mu_g = self.problem.evaluate(self.mean)
+        grad_g_x = self.derivative(self.problem, self.mean)
+        sig_g = self.std_linear(grad_g_x, self.std)
         beta = mu_g / sig_g
-        alpha = - grad_g_x * X.std / sig_g
+        alpha = - grad_g_x * self.std / sig_g
 
         # Initialize design points
-        x = X.mean + beta * X.std * alpha
-
+        individuals = self.mean + beta * self.std * alpha
+        start = time.time()
+        self.problem.logger.info("CMA_ES: {}/{}".format(self.options['max_population_number'],
+                                                        self.options['max_population_size']))
         while not convergence:
 
-            for i, dist in enumerate(X.dist_name):
-                if dist != 'norm':
-                    # equivalent values
-                    X.std[i] = (1 / (X.dist_func[i].pdf(x[i]))
-                                * stats.norm.pdf(
-                                stats.norm.ppf(
-                                    X.dist_func[i].cdf(x[i]))))
-                    X.mean[i] = x[i] - X.std[i] * (stats.norm.ppf(
-                        X.dist_func[i].cdf(x[i])))
+            for it in range(self.options['max_population_number']):
+                # for i, dist in enumerate(X.dist_name):
+                #     if dist != 'norm':
+                #         # equivalent values
+                #         X.std[i] = (1 / (X.dist_func[i].pdf(x[i]))
+                #                     * stats.norm.pdf(
+                #                     stats.norm.ppf(
+                #                         X.dist_func[i].cdf(x[i]))))
+                #         X.mean[i] = x[i] - X.std[i] * (stats.norm.ppf(
+                #             X.dist_func[i].cdf(x[i])))
 
-            # transform to standard space
-            z = (x - X.mean) / X.std
+                # transform to standard space
+                transform_individuals = (individuals - self.mean) / self.std
 
-            # compute gradient of g with respect to z
-            grad_g_x = self.derivative(self.limit_state, x)
-            grad_g_z = grad_g_x * X.std
+                # compute gradient of g with respect to z
+                grad_g_x = self.derivative(self.problem, individuals)
+                grad_g_z = grad_g_x * self.std
 
-            beta_previous = beta
-            beta = (self.limit_state.evaluate(*x) - grad_g_z @ z) / np.linalg.norm(grad_g_z)
-            alpha = - grad_g_z / np.linalg.norm(grad_g_z)
+                beta_previous = beta
+                beta = (self.problem.evaluate(*individuals) - grad_g_z @ transform_individuals) \
+                       / np.linalg.norm(grad_g_z)
+                alpha = - grad_g_z / np.linalg.norm(grad_g_z)
 
-            # update design points in standard space
-            z = alpha * beta
-            # transform to physical space
-            x_updt = X.mean + z * X.std
+                # update design points in standard space
+                transform_individuals = alpha * beta
+                # transform to physical space
+                physical_transform = self.mean + transform_individuals * self.std
 
-            condition1 = np.linalg.norm(x_updt - x) / np.linalg.norm(x_updt) < self.tol
-            condition2 = abs(np.round(beta, 3) - np.round(beta_previous, 3)) < self.tol
-            if condition2 or condition1:
-                convergence = True
-            if not convergence:
-                x = x_updt
-                iteration += 1
-        return x, beta, iteration
+                condition1 = np.linalg.norm(physical_transform - individuals)\
+                             / np.linalg.norm(physical_transform) < self.tol
+                condition2 = abs(np.round(beta, 3) - np.round(beta_previous, 3)) < self.tol
+                if condition2 or condition1:
+                    convergence = True
+                if not convergence:
+                    individuals = physical_transform
+                    # iteration += 1
+                    for individual in individuals:
+                        # add to population
+                        individual.population_id = it + 1
+                        # append to problem
+                        self.problem.individuals.append(individual)
+                        # sync to datastore
+                        self.problem.data_store.sync_individual(individual)
+
+                # for individual in individuals:
+                #     # add to population
+                #     individual.population_id = it + 1
+                #     # append to problem
+                #     self.problem.individuals.append(individual)
+                #     # sync to datastore
+                #     self.problem.data_store.sync_individual(individual)
+
+        return individuals, beta, iteration
