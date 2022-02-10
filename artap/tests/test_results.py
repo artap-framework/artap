@@ -2,9 +2,11 @@ import unittest
 import os
 import tempfile
 import csv
+import numpy as np
 
 from matplotlib.pyplot import show
 
+from ..algorithm_monte_carlo import Numerical_Integrator
 from ..problem import Problem
 from ..algorithm_sweep import SweepAlgorithm
 from ..algorithm_genetic import NSGAII
@@ -44,12 +46,37 @@ class TestGearDesignProblem(Problem):
                       {'name': 'f_2', 'criteria': 'minimize'}]
 
     def evaluate(self, individual):
-        f1 = (1. / 6.931 - (individual.vector[0] * individual.vector[1]) / (individual.vector[2] * individual.vector[3])) ** 2.
+        f1 = (1. / 6.931 - (individual.vector[0] * individual.vector[1]) / (
+                    individual.vector[2] * individual.vector[3])) ** 2.
         f2 = max(individual.vector)
         return [f1, f2]
 
     def evaluate_inequality_constraints(self, individual):
         pass
+
+
+class Integral_Problem(Problem):
+
+    def set(self, **kwargs):
+        """Time-dependent 1D QM wave function of a single particle - squared."""
+        # self.set_dimension(**kwargs)
+        # self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
+        self.parameters = [{'name': 'x1', 'bounds': [0, 1], 'parameter_type': 'integer'}]
+
+        self.u_b = 3*np.pi/2
+        self.l_b = 0
+        self.sampling_size = 100
+        self.integral_global = 1.0
+
+        # single objective problem
+        self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
+
+    def evaluate(self, z):
+        x = z.vector
+        # output = 0
+        # for c in x:
+        f_1 = np.sin(x[0])
+        return [f_1]
 
 
 class TestResults(unittest.TestCase):
@@ -229,3 +256,16 @@ class TestResults(unittest.TestCase):
         individuals = self.results.population()
         self.assertEqual(len(individuals), 3)
         self.assertEqual(individuals[1].costs[0], 10.0)
+
+
+    def test_integration_measure(self):
+        problem = Integral_Problem(**{'dimension': 1})
+        algorithm = Numerical_Integrator(problem)
+        algorithm.options['max_population_number'] = 50
+        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_processes'] = 10
+        algorithm.run()
+
+        result = Results(problem)
+        integral = result.integration_measure()
+        self.assertAlmostEqual(integral, problem.integral_global, places=1)

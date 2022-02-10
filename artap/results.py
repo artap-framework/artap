@@ -342,3 +342,15 @@ class Results:
         for individual in self.problem.individuals:
             ids.add(individual.population_id)
         return ids
+
+    def integration_measure(self):
+        Integration = 0
+        opt = self.find_optimum('f_1')
+        for individual in self.problem.individuals:
+            Integration += individual.costs[0]
+        ub = self.problem.u_b
+        lb = self.problem.l_b
+        sampling_size = self.problem.sampling_size
+        result = ((ub - lb) / len(self.problem.individuals)) * Integration
+
+        return result

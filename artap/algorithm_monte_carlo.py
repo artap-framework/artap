@@ -77,7 +77,6 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
         super().__init__(problem, name)
         self.evaluation = 0
         self.z_min, self.z_max = 0, 1
-        self.sampling_size = self.options['max_population_size']
         self.a = 0
         self.b = (3*np.pi)/2
         self.problem = problem
@@ -102,17 +101,19 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
 
         self.evaluate(individuals)
 
-        Integration = 0
-        for individual in individuals:
-            Integration += individual.costs[0]
-        result = ((self.b - self.a) / self.sampling_size) * Integration
         start = time.time()
         self.problem.logger.info("Monte_Carlo: {}/{}".format(self.options['max_population_number'],
                                                              self.options['max_population_size']))
         for it in range(self.options['max_population_number']):
 
+            individuals = self.generate()
             for individual in individuals:
-                individual.costs[0] = result
+                individual.vector[0] = individual.vector[0] * (self.a + (self.b - self.a))
+
+            self.evaluate(individuals)
+
+            for individual in individuals:
+                # individual.costs[0] = result
                 # add to population
                 individual.population_id = it + 1
                 # append to problem

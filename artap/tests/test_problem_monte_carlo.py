@@ -1,17 +1,22 @@
 import unittest
+
+from artap.problem import Problem
 from ..algorithm_monte_carlo import Monte_Carlo, Numerical_Integrator, ImportanceSampling, Rejection_Sampling
 from ..results import Results
 from ..benchmark_functions import Sphere, Ackley, BenchmarkFunction, Schwefel
 import numpy as np
 
 
-class Integral_Problem(BenchmarkFunction):
+class Integral_Problem(Problem):
     def set(self, **kwargs):
         """Time-dependent 1D QM wave function of a single particle - squared."""
-        self.set_dimension(**kwargs)
-        self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
-
-        self.global_optimum = 1.0
+        # self.set_dimension(**kwargs)
+        # self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
+        self.parameters = [{'name': 'x1', 'bounds': [0, 1], 'parameter_type': 'integer'}]
+        self.u_b = 3 * np.pi / 2
+        self.l_b = 0
+        self.sampling_size = 100
+        self.global_optimum = -1.0
 
         # single objective problem
         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
