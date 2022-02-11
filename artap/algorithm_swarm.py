@@ -6,7 +6,7 @@ from .individual import Individual
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
-    NonUniformMutation, UniformMutator, CopySelector, IntegerGenerator
+    NonUniformMutation, UniformMutator, CopySelector, IntegerGenerator, SimulatedBinaryCrossover, TournamentSelector
 from .archive import Archive
 from copy import copy, deepcopy
 import time
@@ -560,11 +560,13 @@ class PSOGA(SwarmAlgorithm):
         # Add front_number feature
         self.individual_features['front_number'] = 0
 
-        self.selector = CopySelector(self.problem.parameters)
+        self.offspring_selector = CopySelector(self.problem.parameters)
+        self.selector = TournamentSelector(self.problem.parameters)
         self.dominance = ParetoDominance()
         # set random generator
         self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
         self.leaders = Archive()
+        self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # constants for the speed and the position calculation
 
@@ -587,168 +589,6 @@ class PSOGA(SwarmAlgorithm):
     def init_pvelocity(self, individuals):
         for individual in individuals:
             individual.features['velocity'] = [0] * len(individual.vector)
-
-    # A function for rounding to the nearest integer for all offsprings
-    # def makeinteger(self, individual):
-    #     for i in range(len(individual)):
-    #         individual[i] = np.rint(individual[i]).astype(int)
-
-    def crossover(self, particles):
-        # nVar = len(particles)
-        # parents = self.tournamentselection(particles)
-        parent1 = particles[0]
-        parent2 = particles[1]
-
-        '''
-        SBX algorithm :
-            Paper describing the algorithm: 
-            Title: An Efficient Constraint Handling Method for Genetic Algorithms
-            Author: Kalyanmoy Deb
-            More info: Appendix A. Page 30.
-            URL: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.33.7291&rep=rep1&type=pdf
-            
-        discretization using round() command, make the parents to have real value(discrete value)
-        example:
-        a = 7
-        b = 8
-        c = 10 
-        average = round((a+b)/c)
-        '''
-        # parent1.vector = np.round(parent1.vector)
-        # parent2.vector = np.round(parent2.vector)
-
-        """
-        x1 represent parent1 and x2 represent parent2
-        """
-        x1 = deepcopy(parent1.vector)
-        x2 = deepcopy(parent2.vector)
-
-        u = random()
-        if u <= self.probability:
-            for i, param in enumerate(self.parameters):
-                lb = param['bounds'][0]
-                ub = param['bounds'][1]
-
-                # each variable in a solution has a 50% chance of changing its value. This should be removed when
-                # dealing with one-dimensional solutions.
-                if u <= 0.5:
-                    if x1[i] > x2[i]:
-                        y1, y2 = x2[i], x1[i]
-                    else:
-                        y1, y2 = x1[i], x2[i]
-                    # if the value in parent1 is not the same of parent2
-                    if abs(x2[i] - x1[i]) > sys.float_info.epsilon:
-                        # we use different beta for each child.
-                        rand = random()
-                        beta = 1.0 + (2.0 * (y1 - lb) / (y2 - y1))
-                        alpha = 2.0 - pow(beta, -(self.distribution_index + 1.0))
-                        # calculation of betaq
-                        if u <= (1.0 / alpha):
-                            betaq = pow(rand * alpha, (1.0 / (self.distribution_index + 1.0)))
-                        else:
-                            betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0))
-
-                        # calculation of the first child
-                        c1 = 0.5 * ((1 + betaq) * y1 + (1 - betaq) * y2)
-
-                        # The second value of beta uses the upper limit (ul) and the maximum between parent1 and parent2
-                        # (y2)
-                        beta = 1.0 + (2.0 * (ub - y2) / (y2 - y1))
-                        alpha = 2.0 - pow(beta, -(self.distribution_index + 1.0))
-                        # calculation of betaq
-                        if u <= (1.0 / alpha):
-                            betaq = pow(rand * alpha, (1.0 / (self.distribution_index + 1.0)))
-                        else:
-                            betaq = pow(1.0 / (2.0 - rand * alpha), 1.0 / (self.distribution_index + 1.0))
-
-                        # calculation of the second child
-                        c2 = 0.5 * ((1 - betaq) * y1 + (1 + betaq) * y2)
-
-                        # check the boundaries
-                        c1 = max(lb, min(c1, ub))
-                        c2 = max(lb, min(c2, ub))
-
-                        if random() <= 0.5:
-                            x1[i], x2[i] = c2, c1
-                        else:
-                            x1[i], x2[i] = c1, c2
-
-                    else:
-                        x1 = parent1.vector
-                        x2 = parent2.vector
-                # 50% chance of changing values. In the case random > 0.5, the children should have the same value as
-                # the parents
-                else:
-                    x1 = parent1.vector
-                    x2 = parent2.vector
-        # if the random number generated is greater than the crossover rate, return the children as exact clones of
-        # the parents
-        else:
-            x1 = parent1.vector
-            x2 = parent2.vector
-        # self.makeinteger(x1)
-        # self.makeinteger(x2)
-
-        return Individual(list(x1), parent1.features), Individual(list(x2), parent2.features)
-
-        # delta = 0.1
-        #
-        # for i in range(len(particles)):
-        #     alpha = uniform(-delta, 1 + delta)
-        #
-        # particles[i].vector = alpha * np.asarray(particles[i].vector) + (1 - alpha) * np.asarray(particles[i].vector)
-
-    def mutation(self, particle, current_step=0):
-        global deltal, deltar
-        y = []
-        # nVar = len(particles)
-        # for i in range(len(particles) - 1):
-        # sigma = int(uniform(1, nVar)) / 10
-        # sigma = 0.1
-        # y = particles
-        # y.vector = np.asarray(particles.vector) * sigma
-        # return y
-        # Plynomial Mutation
-        # PDF = Analyzing Mutation Schemes for real-Parameter Genetic Algorithms
-        # Link = https://www.iitk.ac.in/kangal/papers/k2012016.pdf
-        # section 2
-        #
-        # u = uniform(0, 1)
-        # if u <= 0.5:
-        #     deltal = pow(2 * u, 1 / (self.distribution_index + 1)) - 1
-        # else:
-        #     deltar = 1 - pow(2 * (1 - u), 1 / (self.distribution_index + 1))
-        #
-        # if u <= 0.5:
-        #     x = x + deltal * (x - lb)
-        # else:
-        #     x = x + deltar * (ub - x)
-        for i, param in enumerate(self.parameters):
-            if uniform(0, 1) < self.probability:
-                lb = param['bounds'][0]
-                ub = param['bounds'][1]
-                x = particle.vector[i]
-                u = uniform(0, 1)
-                # delta = min((x - lb), (ub - x)) / (ub - lb)
-                # mut_probability = 1 / (self.distribution_index + 1)
-
-                if u <= 0.5:
-                    deltal = pow(2 * u, 1 / (self.distribution_index + 1)) - 1
-                else:
-                    deltar = 1 - pow(2 * (1 - u), 1 / (self.distribution_index + 1))
-
-                if u <= 0.5:
-                    x = x + deltal * (x - lb)
-                else:
-                    x = x + deltar * (ub - x)
-                # check child boundaries
-                x = max(lb, min(x, ub))
-                y.append(x)
-            else:
-                y.append(particle[i].vector)
-
-        # self.makeinteger(y)
-        return Individual(y, particle.features)
 
     def update_velocity(self, individuals):
         """
@@ -812,37 +652,6 @@ class PSOGA(SwarmAlgorithm):
         self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
         return
 
-    def tournamentselection(self, parents):
-        # offsprings = []
-        # parent1 = []
-        # parent2 = []
-        # for offspring in parents:
-        #     copy_offspring = deepcopy(offspring)
-        #     copy_offspring.population_id = -1
-        #     offsprings.append(copy_offspring)
-        #
-
-        # tournamentSelection Select and return one individual by tournament selection. A number of individuals are
-        # picked at random and the one with the highest fitness is selected for the next generation.Tournament
-        # selection: Pick tourny_size individuals at random. Return the best one out of the bunch.
-
-        tournamentSize = 2
-        popSize = len(parents)
-        selected = []
-        if tournamentSize > popSize:
-            for p in parents:
-                selected.append(p)
-        else:
-            indices = list(range(popSize))
-            shuffle(indices)
-            for i in range(tournamentSize):
-                selected.append(parents[indices[i]])
-        selected = sorted(selected, key=lambda c: c.costs, reverse=True)
-        return selected
-        # parent1 = self.selector.select(parents)
-        # parent2 = self.selector.select(parents)
-        # return parent1, parent2
-
     def run(self):
         start = time.time()
         self.problem.logger.info("PSOGA: {}/{}".format(self.options['max_population_number'],
@@ -865,12 +674,9 @@ class PSOGA(SwarmAlgorithm):
         self.init_pbest(individuals)
         self.update_global_best(individuals)
 
-        # for individual in individuals:
-        #     self.problem.data_store.sync_individual(individual)
-
         it = 0
         while it < self.options['max_population_number']:
-            offsprings = self.selector.select(individuals)
+            offsprings = self.offspring_selector.select(individuals)
 
             # PSO operators
             self.update_velocity(offsprings)
@@ -878,10 +684,11 @@ class PSOGA(SwarmAlgorithm):
             self.evaluate(offsprings)
 
             # GA operators
-            selected = self.tournamentselection(offsprings)
-            offspring1, offspring2 = self.crossover(selected)
-            offspring1 = self.mutation(offspring1, it)
-            offspring2 = self.mutation(offspring2, it)
+            first_selected = self.selector.select(offsprings)
+            second_selected = self.selector.select(offsprings)
+            offspring1, offspring2 = self.crossover.cross(first_selected, second_selected)
+            offspring1 = self.mutator.mutate(offspring1)
+            offspring2 = self.mutator.mutate(offspring2)
             offsprings.append(offspring1)
             offsprings.append(offspring2)
 
