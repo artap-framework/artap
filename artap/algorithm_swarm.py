@@ -569,7 +569,6 @@ class PSOGA(SwarmAlgorithm):
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # constants for the speed and the position calculation
-
         self.c1_min = 1.5
         self.c1_max = 2.5
         self.c2_min = 1.5
