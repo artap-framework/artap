@@ -208,7 +208,6 @@ class Problem:
         """ :param individual: Individual """
         pass
 
-    @abstractmethod
     def evaluate_inequality_constraints(self, x):
         """ :param x: vector """
         return []

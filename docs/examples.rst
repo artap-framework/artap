@@ -6,9 +6,7 @@ Examples should demonstrate the main features and ways of the Artap usage.
 .. toctree::
    :maxdepth: 2
 
-   simple
-   spyder
-   capacitor
-   gear_design
-   two_bar
-   team_benchmark_agros
+   jupyter-notebooks/Artap/1_1 Single Objective
+   jupyter-notebooks/Artap/1_2 Bi Objective
+   jupyter-notebooks/Artap/1_3 Surrogate Model
+   
