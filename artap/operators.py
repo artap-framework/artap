@@ -1037,9 +1037,11 @@ class EpsilonDominance(Dominance):
         for i, (p_costs, q_costs) in enumerate(zip(p[:-1], q[:-1])):
 
             epsilon = float(self.epsilons[i % len(self.epsilons)])
+            if epsilon == 0:
+                epsilon = 1e-3
 
-            p_eps = math.floor(p_costs / epsilon)
-            q_eps = math.floor(q_costs / epsilon)
+            p_eps = p_costs / epsilon
+            q_eps = q_costs / epsilon
 
             if p_eps > q_eps:
                 dominate_q = True
@@ -1057,8 +1059,8 @@ class EpsilonDominance(Dominance):
             for i, (p_costs, q_costs) in enumerate(zip(p[:-1], q[:-1])):
                 epsilon = float(self.epsilons[i % len(self.epsilons)])
 
-                i1 = math.floor(p_costs / epsilon)
-                i2 = math.floor(q_costs / epsilon)
+                i1 = p_costs / epsilon
+                i2 = q_costs / epsilon
 
                 dist1 += math.pow(p_costs - i1 * epsilon, 2.0)
                 dist2 += math.pow(q_costs - i2 * epsilon, 2.0)
