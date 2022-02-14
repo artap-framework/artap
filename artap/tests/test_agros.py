@@ -1,5 +1,6 @@
 import unittest
 import math
+import pytest
 
 from ..problem import Problem
 from ..individual import Individual
@@ -23,6 +24,7 @@ except ImportError:
     __agros__ = False
 
 
+@pytest.mark.agros
 class AgrosProblem(Problem):
 
     def set(self):

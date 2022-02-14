@@ -5,16 +5,13 @@ matplotlib
 joblib
 rpyc
 cython
-SALib
+SALib==1.4.5
 appdirs
 nlopt
 scikit-learn
-pyDOE2
-numpydoc
 six
+pyDOE2
 smt
 tensorflow
 setuptools
 pymoo
-# hyperopt
-# deap
