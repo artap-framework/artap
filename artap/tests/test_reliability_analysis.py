@@ -1,22 +1,35 @@
 import unittest
-from ..problem import Problem
-from artap.reliability_analysis import FORM
+from ..algorithm_genetic import NSGAII
+from ..benchmark_functions import Sphere
+from ..results import Results
 
-# ToDo: Check and repaire
+# ToDo: Ask for another goal function
 # class Limit_State(Problem):
-#     def set(self):
-#         self.parameters = [{'name': 'x', 'bounds': [0, 1], 'parameter_type': 'float'}]
-#         self.converged_point = [2.0801, 2.0801]
 #
-#     def evaluate(self, x1, x2):
-#         return x1 ** 3 + x2 ** 3 - 18
+#     def set(self, **kwargs):
+#         """Time-dependent 1D QM wave function of a single particle - squared."""
+#         self.parameters = [{'name': 'x_1', 'bounds': [0, 100], 'parameter_type': 'float'},
+#                            {'name': 'x_2', 'bounds': [0, 100], 'parameter_type': 'float'}]
+#         self.costs = [{'name': 'f_1', 'criteria': 'minimize'}]
 #
-#
-# class Test_FORM(unittest.TestCase):
-#     # unit-test  benchmarck : Sphere, algorithm : Integral_Monte_Carlo
-#     def test_local_problem(self):
-#         problem = Limit_State()
-#         algorithm = FORM(problem)
-#         x, beta, iteration = algorithm.run()
-#
-#         self.assertAlmostEqual(int(x[0]), int(problem.converged_point[0]))
+#     def evaluate(self, individual):
+#         X = individual.vector
+#         x1 = X[0]
+#         x2 = X[1]
+#         res = x1 ** 3 + x2 ** 3 - 18
+#         return [res]
+
+
+class Test_FORM(unittest.TestCase):
+    def test_local_problem(self):
+        problem = Sphere(**{'dimension': 1})
+        algorithm = NSGAII(problem)
+        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_size'] = 10
+        algorithm.run()
+
+        result = Results(problem)
+        optimal = result.find_optimum('f_1')
+        x, reliability_index = result.form_reliability(problem, optimal)
+        print(reliability_index)
+        self.assertAlmostEqual(x[0], 0.0, places=1)

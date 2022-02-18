@@ -1,5 +1,8 @@
 import csv
+import numpy as np
 from .quality_indicator import gd, epsilon_add
+from .operators import derivative, std_linear
+from .individual import Individual
 
 
 class Results:
@@ -39,7 +42,6 @@ class Results:
             return index
         else:
             raise ValueError('There is not a cost function with given name: {}'.format(name))
-
 
     def parameters(self):
         out = []
@@ -271,7 +273,6 @@ class Results:
         :return:
         """
 
-
         # get the index of the required parameter
         index = 0  # default - one parameter
         min_l = []
@@ -292,7 +293,6 @@ class Results:
         # for population in self.problem.populations:
         opt = min(min_l, key=lambda x: x.costs[index])
         return opt
-
 
     # TODO: same function - David, could you check it and write test?
     def pareto_values(self, archive=None):
@@ -336,7 +336,6 @@ class Results:
 
         return result
 
-
     def get_population_ids(self):
         ids = set()
         for individual in self.problem.individuals:
@@ -354,3 +353,89 @@ class Results:
         result = ((ub - lb) / len(self.problem.individuals)) * Integration
 
         return result
+
+    def form_reliability(self, problem, individual):
+        """
+            Performs the FORM-HLRF algorithm
+                The goal is to find the reliability index for a nonlinear function g(Xi).
+
+                HL_RF algorithm steps:
+                1) Define the limit state function (𝑔) and the convergence criterion (tol = 1e-3), statistical characteristics
+                 of basic random variables (mean, standard deviation, and distribution function for each random variable).
+                2) Transfer the random variables from 𝑋-space to 𝑈-space according to
+                    .. math::
+                        U = (X - \mu_X^{e}) / \sigma_X^{e}
+                3) Compute the gradient vector and limit state function at point U𝑘.
+                4) Compute the cost function using
+                    .. math::
+                        U^{k+1} = [(G(U^{k}) - \grad G(U^{k})U^{k}) / \norm{\grad G(U^{k})}] \alpha^{k}
+
+                    where \alpha^{k} is sensivity factor that can be calculated by:
+                    ..math::
+                        \alpha^{k} = -(\grad G(U^{k})) / \norm{\grad G(U^{k})}
+
+                5) Transfer the basic random variables from 𝑈-space to 𝑋-space.
+                6) Control the convergence conditions as below; if true then the method is converged, stop and go to step (7);
+                else, 𝑘 = 𝑘+1 and go to step (2).
+                7) Estimate the failure probability by
+                    ..math::
+                        P_f ~~ \phi(-\beta)
+                    where \phi is the CDF of the standard normal distribution and \beta = \norm{U^{*}} is the reliability index.
+
+                ..Reference::
+
+                [1] A Novel Algorithm for Structural Reliability Analysis Based on Finite Step Length and Armijo Line Search
+                    https://www.mdpi.com/2076-3417/9/12/2546
+                [2] A Comparative Study of First-Order Reliability Method-Based Steepest Descent Search Directions for
+                 Reliability Analysis of Steel Structures, https://www.hindawi.com/journals/ace/2017/8643801/
+                [3] Reliability analysis and optimal design under uncertainty - Focus on adaptive surrogate-based approaches
+                    https://tel.archives-ouvertes.fr/tel-01737299/document
+
+            Args:
+                problem
+                individual which is optimal
+            Return:
+                vector: converged design point
+                reliability_index
+        """
+        convergence = False
+        tol = 1e-3
+        mean = np.random.uniform(0, 10, len(problem.parameters))
+        std = np.random.uniform(0, 10, len(problem.parameters))
+
+        mu_g = problem.evaluate(individual)
+        grad_g_x = np.array(derivative(problem, mean))
+        sig_g = std_linear(grad_g_x, std)
+        # reliability_index
+        reliability_index = mu_g / sig_g
+        alpha = - grad_g_x * std / sig_g
+
+        # Initialize design points
+        vector = mean + reliability_index * std * alpha
+
+        while not convergence:
+            transform_individuals = (vector - mean) / std
+
+            # compute gradient of g with respect to z
+            grad_g_x = derivative(problem, vector)
+            grad_g_z = grad_g_x * std
+
+            beta_previous = reliability_index
+            reliability_index = (problem.evaluate(Individual(vector)) - grad_g_z @ transform_individuals) \
+                                / np.linalg.norm(grad_g_z)
+            alpha = - grad_g_z / np.linalg.norm(grad_g_z)
+
+            # update design points in standard space
+            transform_individuals = alpha * reliability_index
+            # transform to physical space
+            physical_transform = mean + transform_individuals * std
+
+            condition1 = np.linalg.norm(physical_transform - vector) \
+                         / np.linalg.norm(physical_transform) < tol
+            condition2 = abs(np.round(reliability_index, 3) - np.round(beta_previous, 3)) < tol
+            if condition2 or condition1:
+                convergence = True
+            if not convergence:
+                vector = physical_transform
+
+        return vector, reliability_index

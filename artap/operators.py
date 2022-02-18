@@ -217,6 +217,7 @@ class CustomGenerator(Generator):
             individuals.append(Individual(vector, self.features))
         return individuals
 
+
 class PartiallyCustomGenerator(Generator):
     def __init__(self, parameters=None, features=dict()):
         super().__init__(parameters, features)
@@ -231,7 +232,7 @@ class PartiallyCustomGenerator(Generator):
         individuals = []
         for vector in self.vectors:
             individuals.append(Individual(vector, self.features))
-        req = self. number - len(individuals)
+        req = self.number - len(individuals)
         for i in range(req + 1):
             vector = VectorAndNumbers.gen_vector(self.parameters)
             individuals.append(Individual(vector, self.features))
@@ -1719,3 +1720,54 @@ class MaximumFunctionCallTermination(Termination):
 
     def _do_continue(self, algorithm, **kwargs):
         return algorithm.evaluator.n_eval < self.n_max_evals
+
+
+def derivative(problem, points):
+    """
+        Compute derivative of func at points using finite differences
+
+               ddx = \\frac{func(points + eps) - func(points - eps)}{2 * eps}
+
+            Args:
+                problem (function): function with N parameters
+                points (array): array with N-dimension
+            Returns:
+                derivative: list with derivative
+                for instance:
+                    derivative[0] = d/d X1 func evaluated at points[0]
+                    derivative[1] = d/d X2 func evaluated at points[1]
+        """
+
+    d = []
+    eps = 1e-4
+    for i, p in enumerate(points):
+        step_up, step_down = list(points), list(points)  # copy list
+
+        # approximate derivative by tangent line with eps distance at
+        step_up[i] = p + eps
+        step_down[i] = p - eps
+        step_up = Individual(step_up)
+        step_down = Individual(step_down)
+        d.append((problem.evaluate(step_up)[0] - problem.evaluate(step_down)[0]) / (2 * eps))
+        # d.append((res1 - res2) / (2 * eps))
+
+    return d
+
+
+def std_linear(grad_g_x, sig):
+    """
+        Compute the standard deviation of g(Xi) using linear approximation
+                . math::
+                    sig_g = (sum_i^n (grad_g_xi * sig_Xi)^2)^(1/2)
+            Args:
+                grad_g_x (array): partial derivative of g with respect xi
+                sig (array): standard deviation of variables
+            Returns:
+                std_g (float): standard deviation of g(Xi)
+        """
+
+    std_g = 0
+    for dg_dx, s in zip(grad_g_x, sig):
+        std_g += (dg_dx ** 2 * s ** 2)
+    std_g = std_g ** (1 / 2)
+    return std_g
