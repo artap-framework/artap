@@ -1,7 +1,10 @@
-Algorithms
-==========
+.. _chap_algorithms:
 
-==========
+************
+Algorithms
+************
+
+
 CMA_ES
 ==========
 The Covariance Matrix Adaptation Evolution Strategy (CMA-ES) [1] is one of the most effective approaches
@@ -12,9 +15,9 @@ The CMA-ES algorithm selects solutions from a multivariate gaussian distribution
 all solutions, the solutions are sorted by evaluation values, and the distribution parameters
 (i.e., the mean vector and the covariance matrix) are updated depending on the ranking of evaluation values.
 
-==========
+
 EXAMPLE:
-==========
+----------
 1) Importing the necessary packages:
 
     .. code-block::
@@ -102,11 +105,11 @@ the evaluate method should give back a list of the calculated objective values.
         [418.96548485783677], [418.89343306616746], [418.7900723531225],\
         [418.81299238260914], [418.98285850693867], [418.8729931463588], [418.9361634600147]]
 
-        .. figures:: ../figures/schwefel.png
+        .. figures:: figures/schwefel.png
 
-==========
+
 References:
-==========
+----------
 [1] Nikolaus Hansen and Andreas Ostermeier. Completely derandomized self-adaptation in evolution strategies.
 Evol. Comput., 9(2):159–195, June 2001. DOI: http://dx.doi.org/10.1162/106365601750190398.
 
