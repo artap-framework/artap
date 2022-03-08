@@ -22,6 +22,7 @@ Contents:
    examples
    api
    copyright
+   references
 
 
 Indices and tables
