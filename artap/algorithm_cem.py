@@ -34,24 +34,20 @@ class CEM(GeneralEvolutionaryAlgorithm):
         self.dim_theta = len(self.problem.parameters)
 
         # Elite ratio percentage
-        self.top_p = 20
+        self.top_p = 30
 
         # Range of values
         self.min_val = 0
         self.max_val = 1
         self.theta_mean = np.random.uniform(self.min_val, self.max_val, (self.n_samples, self.dim_theta))
         self.theta_std = np.random.uniform(self.min_val, self.max_val, (self.n_samples, self.dim_theta))
-        self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
+        self.generator = CustomGenerator(self.problem.parameters, self.individual_features)
 
     def fit_gaussian(self):
-        # theta is actualy the population sampled from the distribution
-        theta = np.random.normal(self.theta_mean, self.theta_std)
-        # theta = np.random.normal(mean, std)
-        # individuals = np.clip(theta, self.min_val, self.max_val)
-        self.generator.init(self.options['max_population_size'])
+        generation = np.random.normal(self.theta_mean, self.theta_std)
+        individuals = np.clip(generation, self.min_val, self.max_val)
+        self.generator.init(individuals)
         individuals = self.generator.generate()
-        # for individual in individuals:
-        #     individuals = np.clip(individual.vector, self.min_val, self.max_val)
 
         return individuals
 
@@ -68,10 +64,8 @@ class CEM(GeneralEvolutionaryAlgorithm):
     def compute_new_std(self, e_candidates):
         eps = 1e-3
         new_std = np.std(e_candidates, ddof=1, axis=0) + eps
-        new_means = np.tile(new_std, (self.n_samples, 1))
         return new_std
 
-    # TODO: run the tests
     def run(self):
         mean_fitness = []
         best_fitness = []
@@ -92,11 +86,9 @@ class CEM(GeneralEvolutionaryAlgorithm):
         self.problem.logger.info("CEM: {}/{}".format(self.options['max_population_number'],
                                                      self.options['max_population_size']))
         for it in range(self.options['max_population_number']):
-            # TODO: do the optimization
-            # fitness = self.evaluate_fitness(self.theta)
+
             lists = []
             for individual in individuals:
-                # fitness.append(individual.costs)
                 lists.append(individual.costs)
             lists = np.array(lists)
 
