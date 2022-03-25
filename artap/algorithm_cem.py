@@ -43,5 +43,86 @@ class CEM(GeneralEvolutionaryAlgorithm):
         self.theta_std = np.random.uniform(self.min_val, self.max_val, (self.n_samples, self.dim_theta))
         self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
 
+    def fit_gaussian(self):
+        # theta is actualy the population sampled from the distribution
+        theta = np.random.normal(self.theta_mean, self.theta_std)
+        # theta = np.random.normal(mean, std)
+        # individuals = np.clip(theta, self.min_val, self.max_val)
+        self.generator.init(self.options['max_population_size'])
+        individuals = self.generator.generate()
+        # for individual in individuals:
+        #     individuals = np.clip(individual.vector, self.min_val, self.max_val)
+
+        return individuals
+
+    def take_elite(self, candidates):
+        n_top = int((self.n_samples * self.top_p) / 100)
+        elite = candidates[:n_top]
+        return elite
+
+    def compute_new_mean(self, e_candidates):
+        new_means = np.mean(e_candidates, axis=0)
+        new_means = np.tile(new_means, (self.n_samples, 1))
+        return new_means
+
+    def compute_new_std(self, e_candidates):
+        eps = 1e-3
+        new_std = np.std(e_candidates, ddof=1, axis=0) + eps
+        new_means = np.tile(new_std, (self.n_samples, 1))
+        return new_std
+
+    # TODO: run the tests
     def run(self):
-        pass
+        mean_fitness = []
+        best_fitness = []
+        worst_fitness = []
+        fitness = []
+        individuals = self.fit_gaussian()
+        for individual in individuals:
+            # append to problem
+            self.problem.individuals.append(individual)
+            # add to population
+            individual.population_id = 0
+
+            self.problem.data_store.sync_individual(individual)
+
+        self.evaluate(individuals)
+
+        start = time.time()
+        self.problem.logger.info("CEM: {}/{}".format(self.options['max_population_number'],
+                                                     self.options['max_population_size']))
+        for it in range(self.options['max_population_number']):
+            # TODO: do the optimization
+            # fitness = self.evaluate_fitness(self.theta)
+            lists = []
+            for individual in individuals:
+                # fitness.append(individual.costs)
+                lists.append(individual.costs)
+            lists = np.array(lists)
+
+            mean_fitness.append(np.mean(lists))
+            best_fitness.append(np.min(lists))
+            worst_fitness.append(np.max(lists))
+            fitness.append(lists)
+
+            elite = self.take_elite(individuals)
+
+            e_candidates = [i.vector for i in elite]
+
+            self.theta_mean = self.compute_new_mean(e_candidates)
+            self.theta_std = self.compute_new_std(e_candidates)
+            individuals = self.fit_gaussian()
+
+            self.evaluate(individuals)
+            for individual in individuals:
+                # add to population
+                individual.population_id = it + 1
+                # append to problem
+                self.problem.individuals.append(individual)
+                # sync to datastore
+                self.problem.data_store.sync_individual(individual)
+
+        t = time.time() - start
+        self.problem.logger.info("CEM: elapsed time: {} s".format(t))
+        # sync changed individual informations
+        self.problem.data_store.sync_all()
