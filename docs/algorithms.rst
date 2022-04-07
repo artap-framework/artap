@@ -108,3 +108,54 @@ the evaluate method should give back a list of the calculated objective values.
 
         # Convergence plot on a selected goal function and parameter
         slice = results.goal_on_parameter('x_1', 'f_1')
+
+First-Order Reliability Method (FORM)
+==========
+Structural reliability analysis (SRA) is an important part to handle structural engineering applications,
+and one of it's popular method is called FORM [Huang2019]. Because of its simplicity and good balance of accuracy
+and efficiency, the FORM is most commonly employed in engineering researches.
+
+If :math:`Z` is a collection of uncorrelated and standardized normally distributed random variables :math:`( Z_1 ,\dots, Z_n )`
+in normalized z-space that corresponds to any set of random variables :math:`{X} = ( X_1 , \dots , X_n )`
+in physical x-space, then the corresponding limit state surface in z-space is also mapped.
+
+
+   .. math::
+              \beta_{HL}:=\beta={\vec\alpha}^T{z}^*
+
+The reliability index :math:`\beta` is the minimum distance from the z-origin to the failure surface. This distance
+:math:`\beta` can directly be mapped to a probability of failure
+
+.. math::
+           p_f \approx p_{f1} = \Phi(-\beta)
+
+This relates to the failure surface being linearized. The design point :math:`{z}^*` is the linearization point. The First Order
+Reliability Method (FORM) and :math:`\beta` are the terms used to describe this process.
+The random variables :math:`{X}` are now uncorrelated and standardized normally distributed after transformation in normalized
+space, and the failure surface is converted into :math:`g({X}) = 0`.
+
+The linearization of the failure surface :math:`g({Z}) =0` corresponds to FORM. The design point :math:`{z}^*` and the
+reliability index :math:`\beta` may be calculated using this technique.
+
+
+EXAMPLE:
+----------
+    .. code-block::
+            import unittest
+            from ..algorithm_genetic import NSGAII
+            from ..benchmark_functions import Sphere
+            from ..results import Results
+
+
+            def test_local_problem(self):
+                problem = Sphere(**{'dimension': 1})
+                algorithm = NSGAII(problem)
+                algorithm.options['max_population_number'] = 10
+                algorithm.options['max_population_size'] = 10
+                algorithm.run()
+
+                result = Results(problem)
+                optimal = result.find_optimum('f_1')
+                x, reliability_index = result.form_reliability(problem, optimal)
+                print(reliability_index)
+                self.assertAlmostEqual(x[0], 0.0, places=1)
