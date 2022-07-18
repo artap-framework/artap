@@ -676,6 +676,16 @@ class CondorComsolJobExecutor(CondorJobExecutor):
                                desc=desc)
 
 
+class LocalCSTExecutor(Executor):
+    def __init__(self, problem, model_file):
+        cst_file = "./cst/patch_circular_polarization.cst"
+        cst_path = '"C:/Program Files (x86)/CST Studio Suite 2020/CST DESIGN ENVIRONMENT" --hide -m -r {}'.format(
+            cst_file)
+
+    def eval(self, individual):
+        pass
+
+
 class CondorCSTJobExecutor(CondorJobExecutor):
     def __init__(self, problem, model_file, files_from_condor=None,
                  cst_path="\"C:\Program Files (x86)\CST Studio Suite 2020\CST DESIGN ENVIRONMENT.exe\""):
