@@ -105,7 +105,8 @@ class Problem:
         self.output_files = None
 
         self.working_dir = tempfile.gettempdir() + os.sep + "artap-{}".format(ts) + os.sep
-        os.mkdir(self.working_dir)
+        if not os.path.exists(self.working_dir):
+            os.mkdir(self.working_dir)
 
         # surrogate model (default - only simple eval)
         self.surrogate = SurrogateModelEval(self)
@@ -123,6 +124,9 @@ class Problem:
 
         # clean up
         atexit.register(self.cleanup)
+
+    def __del__(self):
+        print(os.path.exists(self.working_dir))
 
     def populations(self):
         individuals = {}

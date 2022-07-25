@@ -15,6 +15,7 @@ try:
     from ..algorithm_nlopt import LD_MMA
 
     __nlopt__ = True
+
 except ImportError:
     __nlopt__ = False
 

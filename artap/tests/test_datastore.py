@@ -80,6 +80,7 @@ class TestDataStoreSqlite(unittest.TestCase):
             self.assertEqual(value, individual.features[key])
 
         # remove file
+        conn.close()
         os.remove(database_name)
 
     def test_read_datastore(self):
@@ -142,6 +143,7 @@ class TestDataStoreBenchmark(unittest.TestCase):
 
         # remove file
         # print(database_name)
+        conn.close()
         os.remove(database_name)
 
         t = time.time() - t_s

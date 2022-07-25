@@ -1,9 +1,7 @@
 import numpy as np
-from tqdm import tqdm
 
 from .problem import Problem
 from .algorithm_genetic import GeneralEvolutionaryAlgorithm
-from .individual import Individual
 from artap.operators import CustomGenerator, RandomGenerator, UniformGenerator
 import time
 
