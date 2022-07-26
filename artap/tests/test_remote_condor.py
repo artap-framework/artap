@@ -6,7 +6,7 @@ import zipfile
 from unittest import TestCase, main
 
 from ..algorithm import DummyAlgorithm
-from ..algorithm_genetic import NSGAII
+from ..algorithm_NSGAII import NSGAII
 from ..config import config
 from ..executor import CondorComsolJobExecutor, CondorMatlabJobExecutor, CondorPythonJobExecutor, CondorCSTJobExecutor
 from ..individual import Individual

@@ -9,7 +9,7 @@ from matplotlib.pyplot import show
 from ..algorithm_monte_carlo import Numerical_Integrator
 from ..problem import Problem
 from ..algorithm_sweep import SweepAlgorithm
-from ..algorithm_genetic import NSGAII
+from ..algorithm_NSGAII import NSGAII
 from ..operators import CustomGenerator
 from ..results import Results
 

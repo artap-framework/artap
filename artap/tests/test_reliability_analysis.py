@@ -1,5 +1,5 @@
 import unittest
-from ..algorithm_genetic import NSGAII
+from ..algorithm_NSGAII import NSGAII
 from ..benchmark_functions import Sphere
 from ..results import Results
 

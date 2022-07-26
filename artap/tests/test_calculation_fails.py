@@ -1,7 +1,7 @@
 import unittest
 
 from ..problem import Problem
-from ..algorithm_genetic import NSGAII
+from ..algorithm_NSGAII import NSGAII
 from ..results import Results
 from random import random
 

@@ -25,11 +25,15 @@ class Individual(metaclass=ABCMeta):
 
     counter: int = 0
 
-    def __init__(self, vector: list = [], features=dict()):
+    def __init__(self, vector: list = None):
         self.id = Individual.counter
         Individual.counter += 1
 
-        self.vector = vector.copy()
+        if vector is None:
+            self.vector = []
+        else:
+            self.vector = vector.copy()
+
         self.costs = []
         self.costs_signed = []
         self.state = self.State.EMPTY
@@ -42,12 +46,9 @@ class Individual(metaclass=ABCMeta):
         self.features = dict()
         self.features["start_time"] = 0.0
         self.features["finish_time"] = 0.0
-        self.features["feasible"] = 0.0   # the distance from the feasibility region in min norm, its an index, not a
-        self.features["precision"] = 7   # the default value of the considered decimals
-        for key, value in features.items():
-            if not key in self.features:
-                self.features[key] = value
-
+        self.features["feasible"] = 0.0  # the distance from the feasibility region in min norm, its an index, not a
+        self.features["precision"] = 7  # the default value of the considered decimals
+        self.add_features()
         self.custom = {}
 
     def calc_signed_costs(self, p_signs):
@@ -98,16 +99,18 @@ class Individual(metaclass=ABCMeta):
         return string
 
     def __eq__(self, other):
-        if self.costs_signed == []:
+        if not self.costs_signed:
             diff = set(self.vector) - set(other.vector)
             return diff == set()
         else:
             diff = set(self.costs_signed) - set(other.costs_signed)
-            return  diff == set()
+            return diff == set()
 
     def __hash__(self):
-        #return id(self)
         return hash(tuple(self.vector))
+
+    def add_features(self):
+        pass
 
     def sync(self, individual):
         self.vector = individual.vector
@@ -123,6 +126,17 @@ class Individual(metaclass=ABCMeta):
         self.features = individual.features
 
         self.custom = individual.custom
+
+    def _replace_individual_id(self, value):
+        if isinstance(value, Iterable):
+            val = []
+            for item in value:
+                val.append(self._replace_individual_id(item))
+            return val
+        elif isinstance(value, Individual):
+            return value.id
+        else:
+            return value
 
     def to_dict(self):
         output = {'id': self.id,
@@ -151,17 +165,6 @@ class Individual(metaclass=ABCMeta):
         output['features'] = features
 
         return output
-
-    def _replace_individual_id(self, value):
-        if isinstance(value, Iterable):
-            val = []
-            for item in value:
-                val.append(self._replace_individual_id(item))
-            return val
-        elif isinstance(value, Individual):
-            return value.id
-        else:
-            return value
 
     @staticmethod
     def from_dict(dictionary):

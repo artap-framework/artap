@@ -1,19 +1,29 @@
-import sys
-from random import randint, random, uniform, choice, shuffle
-import numpy as np
-
+from random import uniform
 from .individual import Individual
 from .problem import Problem
-from .algorithm_genetic import GeneralEvolutionaryAlgorithm
+from .algorithm_genetic import GeneticAlgorithm
 from .operators import RandomGenerator, PmMutator, ParetoDominance, EpsilonDominance, crowding_distance, \
-    NonUniformMutation, UniformMutator, CopySelector, IntegerGenerator, SimulatedBinaryCrossover, TournamentSelector
+    NonUniformMutation, UniformMutator, CopySelector, SimulatedBinaryCrossover, TournamentSelector
 from .archive import Archive
-from copy import copy, deepcopy
+from copy import copy
 import time
-import math
 
 
-class SwarmAlgorithm(GeneralEvolutionaryAlgorithm):
+class IndividualSwarm(Individual):
+
+    def __init__(self, vector: list):
+        super().__init__(vector)
+        self.features['dominate'] = []
+        self.features['crowding_distance'] = 0
+        self.features['domination_counter'] = 0
+        self.features['front_number'] = -1
+        self.features['velocity'] = [0] * len(self.vector)
+        self.features['best_cost'] = dict()
+        self.features['best_vector'] = dict()
+        self.population_id = -1
+
+
+class SwarmAlgorithm(GeneticAlgorithm):
     def __init__(self, problem: Problem, name="General Swarm-based Algorithm"):
         super().__init__(problem, name)
         # self.options.declare(name='v_max', default=, lower=0., desc='maximum_allowed_speed')
@@ -124,14 +134,8 @@ class OMOPSO(SwarmAlgorithm):
         self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
 
-        self.individual_features['velocity'] = dict()
-        self.individual_features['best_cost'] = dict()
-        self.individual_features['best_vector'] = dict()
-        # Add front_number feature
-        self.individual_features['front_number'] = 0
-
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.leaders = Archive()
         self.archive = Archive(dominance=EpsilonDominance(epsilons=self.options['epsilons']))
 
@@ -153,18 +157,6 @@ class OMOPSO(SwarmAlgorithm):
 
     def inertia_weight(self):
         return uniform(self.min_weight, self.max_weight)
-
-    def init_pvelocity(self, population):
-        """
-        Inits the particle velocity and its allowed maximum speed.
-        :param population: list of individuals
-        :return
-        """
-        for individual in population:
-            # the initial speed is set to zero
-            individual.features['velocity'] = [0] * len(individual.vector)
-
-        return
 
     def turbulence(self, particles, current_step=0):
         """
@@ -272,7 +264,10 @@ class OMOPSO(SwarmAlgorithm):
                                               self.options['max_population_number'])
         # initialize the swarm
         self.generator.init(self.options['max_population_size'])
-        individuals = self.generator.generate()
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(IndividualSwarm(vector))
 
         for individual in individuals:
             # append to problem
@@ -281,8 +276,6 @@ class OMOPSO(SwarmAlgorithm):
             individual.population_id = 0
 
         self.evaluate(individuals)
-
-        self.init_pvelocity(individuals)
         self.init_pbest(individuals)
         self.update_global_best(individuals)
 
@@ -361,7 +354,7 @@ class SMPSO(SwarmAlgorithm):
         self.selector = CopySelector(self.problem.parameters)
         self.dominance = ParetoDominance()
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.leaders = Archive()
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
         # constants for the speed and the position calculation
@@ -397,8 +390,8 @@ class SMPSO(SwarmAlgorithm):
 
         for i in range(len(particles)):
             if i % 6 == 0:
-                mutated = self.mutator.mutate(particles[i])
-                particles[i].vector = copy(mutated.vector)
+                mutated = self.mutator.mutate(particles[i].vector)
+                particles[i].vector = mutated
 
     def update_velocity(self, individuals):
         for individual in individuals:
@@ -564,7 +557,7 @@ class PSOGA(SwarmAlgorithm):
         self.selector = TournamentSelector(self.problem.parameters)
         self.dominance = ParetoDominance()
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.leaders = Archive()
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
         self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
@@ -657,7 +650,10 @@ class PSOGA(SwarmAlgorithm):
                                                        self.options['max_population_size']))
         # initialization of swarm
         self.generator.init(self.options['max_population_size'])
-        individuals = self.generator.generate()
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(IndividualSwarm(vector))
 
         for individual in individuals:
             # append to problem
@@ -688,8 +684,8 @@ class PSOGA(SwarmAlgorithm):
             offspring1, offspring2 = self.crossover.cross(first_selected, second_selected)
             offspring1 = self.mutator.mutate(offspring1)
             offspring2 = self.mutator.mutate(offspring2)
-            offsprings.append(offspring1)
-            offsprings.append(offspring2)
+            offsprings.append(IndividualSwarm(offspring1))
+            offsprings.append(IndividualSwarm(offspring2))
 
             self.evaluate(offsprings)
             self.update_particle_best(offsprings)
@@ -711,79 +707,3 @@ class PSOGA(SwarmAlgorithm):
         self.problem.logger.info("PSOGA: elapsed time: {} s".format(t))
         # sync changed individual informations
         self.problem.data_store.sync_all()
-# ........................
-#
-# ........................
-
-# class PSO_V1(SwarmAlgorithm):
-#     """
-#
-#     X. Li. A Non-dominated Sorting Particle Swarm Optimizer for Multiobjective
-#     Optimization. In Genetic and Evolutionary Computation - GECCO 2003, volume
-#     2723 of LNCS, pages 37–48, 2003.
-#
-# This algorithm is a variant of the original PSO, published by Eberhart(2000), the origin of this modified
-# algorithm, which constriction factor was introduced by Clercs in 1999.
-#
-#     The code is based on SHI and EBERHARTS algorithm.
-#
-#     Empirical study of particle swarm optimization,” in Proc. IEEE Int. Congr. Evolutionary Computation, vol. 3,
-#     1999, pp. 101–106.
-#     """
-#
-#     def __init__(self, problem: Problem, name="Particle Swarm Algorithm - with time varieting inertia weight"):
-#         super().__init__(problem, name)
-#         self.n = self.options['max_population_size']
-#         self.mutator = SwarmStepTVIW(self.problem.parameters, self.options['max_population_number'])
-#         self.selector = DummySelector(self.problem.parameters, self.problem.signs)
-#
-#     def run(self):
-#         # set random generator
-#         self.generator = RandomGenerator(self.problem.parameters)
-#         self.generator.init(self.options['max_population_size'])
-#
-#         population = self.gen_initial_population()
-#         self.evaluate(population.individuals)
-#         self.add_features(population.individuals)
-#
-#         for individual in population.individuals:
-#             self.mutator.evaluate_best_individual(
-#                 individual)  # TODO: all evaluating should be derived from Evaluator class
-#
-#         self.selector.fast_nondominated_sorting(population.individuals)
-#         self.populations.append(population)
-#
-#         t_s = time.time()
-#         self.problem.logger.info("PSO: {}/{}".format(self.options['max_population_number'],
-#                                                      self.options['max_population_size']))
-#
-#         i = 0
-#         while i < self.options['max_population_number']:
-#             offsprings = self.selector.select(population.individuals)
-#
-#             pareto_front = []
-#             for individual in offsprings:
-#                 if individual.features['front_number'] == 1:
-#                     pareto_front.append(individual)
-#
-#             for individual in offsprings:
-#                 index = randint(0, len(pareto_front) - 1)  # takes random individual from Pareto front
-#                 best_individual = pareto_front[index]
-#                 if best_individual is not individual:
-#                     self.mutator.update(best_individual)
-#                     self.mutator.mutate(individual)
-#
-#             self.evaluate(offsprings)
-#             self.add_features(offsprings)
-#
-#             for individual in offsprings:
-#                 self.mutator.evaluate_best_individual(individual)
-#
-#             self.selector.fast_nondominated_sorting(offsprings)
-#             population = Population(offsprings)
-#             self.populations.append(population)
-#
-#             i += 1
-#
-#         t = time.time() - t_s
-#         self.problem.logger.info("PSO: elapsed time: {} s".format(t))

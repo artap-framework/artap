@@ -1,17 +1,16 @@
 import time
 from copy import deepcopy
-
 from .algorithm import Algorithm
 from .operators import RandomGenerator, SimulatedBinaryCrossover, \
     PmMutator, TournamentSelector, EpsilonDominance, nondominated_truncate, crowding_distance
 from .problem import Problem
 from .archive import Archive
+from .individual import Individual
 
 
-class GeneralEvolutionaryAlgorithm(Algorithm):
-    """ Basis Class for evolutionary algorithms """
+class GeneticAlgorithm(Algorithm):
+    def __init__(self, problem: Problem, name="General Genetic-based Algorithm", evaluator_type=None):
 
-    def __init__(self, problem: Problem, name="General Evolutionary Algorithm", evaluator_type=None):
         super().__init__(problem, name, evaluator_type)
 
         self.parameters_length = len(self.problem.parameters)
@@ -25,21 +24,9 @@ class GeneralEvolutionaryAlgorithm(Algorithm):
 
         self.problem = problem
         self.__only_single_objective = False
+
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
-
-    def update_particles(self, individuals, offsprings):
-        for individual in individuals:
-            individual.features = self.features.copy()
-
-    def run(self):
-        pass
-
-
-class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
-    def __init__(self, problem: Problem, name="General Genetic-based Algorithm", evaluator_type=None):
-        super().__init__(problem, name, evaluator_type)
-
+        self.generator = RandomGenerator(self.problem.parameters)
         self.generator = None
         self.selector = None
         self.mutator = None
@@ -47,11 +34,10 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
 
     def generate(self, parents, archive=None):
         offsprings = []
+
         # deepcopy of parents
-        for offspring in parents:
-            offspring_copy = deepcopy(offspring)
-            offspring_copy.population_id = -1
-            offsprings.append(offspring_copy)
+        for parent in parents:
+            offsprings.append(deepcopy(parent.vector))
 
         while len(offsprings) < 2 * self.options['max_population_size']:
             parent1 = self.selector.select(parents)
@@ -77,13 +63,14 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
             child2 = self.mutator.mutate(child2)
 
             # always create new individual
-            if not any(child1 == item for item in offsprings) and len(offsprings) < 2 * self.options['max_population_size']:
+            if not any(child1 == item for item in offsprings) and len(offsprings) < 2 * self.options[
+                'max_population_size']:
                 child_copy = deepcopy(child1)
-                child_copy.population_id = -1
                 offsprings.append(child_copy)
-            if not any(child2 == item for item in offsprings) and len(offsprings) < 2 * self.options['max_population_size']:
+
+            if not any(child2 == item for item in offsprings) and len(offsprings) < 2 * self.options[
+                'max_population_size']:
                 child_copy = deepcopy(child2)
-                child_copy.population_id = -1
                 offsprings.append(child_copy)
 
         return offsprings
@@ -92,89 +79,15 @@ class GeneticAlgorithm(GeneralEvolutionaryAlgorithm):
         pass
 
 
-class NSGAII(GeneticAlgorithm):
+class IndividualEpsMOEA(Individual):
 
-    def __init__(self, problem: Problem, name="NSGA_II Evolutionary Algorithm", evaluator_type=None):
-        """
-         NSGA-II implementation as described in
-
-         [1] K. Deb, A. Pratap, S. Agarwal and T. Meyarivan, "A fast and elitist
-             multiobjective genetic algorithm: NSGA-II," in IEEE Transactions on Evolutionary Computation,
-             vol. 6, no. 2, pp. 182-197, Apr 2002. doi: 10.1109/4235.996017
-        """
-        super().__init__(problem, name, evaluator_type)
-
-        self.options.declare(name='prob_cross', default=1.0, lower=0,
-                             desc='prob_cross')
-
-        self.options.declare(name='prob_mutation', default=1.0 / (len(problem.parameters)), lower=0,
-                             desc='prob_mutation')
-
-        # set random generator
-        self.individual_features['dominate'] = []
-        self.individual_features['crowding_distance'] = 0
-        self.individual_features['domination_counter'] = 0
-        self.individual_features['front_number'] = 0
-
-    def run(self):
-        if self.generator is None:
-            self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
-            self.generator.init(self.options['max_population_size'])
-        self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
-        self.mutator = PmMutator(self.problem.parameters, self.options['prob_mutation'])
-        self.selector = TournamentSelector(self.problem.parameters)
-
-        # create initial population
-        individuals = self.generator.generate()
-
-        for individual in individuals:
-            # append to problem
-            self.problem.individuals.append(individual)
-            # add to population
-            individual.population_id = 0
-
-        # evaluate
-        self.evaluate(individuals)
-
-        # non-dominated sort of individuals
-        self.selector.fast_nondominated_sorting(individuals)
-
-        # sync to datastore
-        for individual in individuals:
-            self.problem.data_store.sync_individual(individual)
-
-        t_s = time.time()
-        self.problem.logger.info(
-            "NSGA_II: {}/{}".format(self.options['max_population_number'],
-                                    self.options['max_population_number'] * self.options['max_population_size']))
-
-        # optimization
-        for it in range(self.options['max_population_number']):
-            # generate new offsprings
-            offsprings = self.generate(individuals)
-
-            # evaluate the offsprings
-            self.evaluate(offsprings)
-
-            # make the pareto dominance calculation and calculating the crowding distance
-            self.selector.fast_nondominated_sorting(offsprings)
-
-            # truncate
-            individuals = nondominated_truncate(offsprings, self.options['max_population_size'])
-
-            for individual in individuals:
-                # add to population
-                individual.population_id = it + 1
-                # append to problem
-                self.problem.individuals.append(individual)
-                # sync to datastore
-                self.problem.data_store.sync_individual(individual)
-
-        t = time.time() - t_s
-        self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
-
-        # sync changed individual informations
-        self.problem.data_store.sync_all()
+    def __init__(self, vector: list):
+        super().__init__(vector)
+        self.features['dominate'] = []
+        self.features['crowding_distance'] = 0
+        self.features['domination_counter'] = 0
+        self.features['front_number'] = 0
+        self.population_id = 0
 
 
 class EpsMOEA(GeneticAlgorithm):
@@ -204,15 +117,9 @@ class EpsMOEA(GeneticAlgorithm):
 
         self.archive = None
 
-        # set random generator
-        self.individual_features['dominate'] = []
-        self.individual_features['crowding_distance'] = 0
-        self.individual_features['domination_counter'] = 0
-        self.individual_features['front_number'] = 0
-
     def run(self):
         # set random generator
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = RandomGenerator(self.problem.parameters)
         self.generator.init(self.options['max_population_size'])
         # set crossover
         self.crossover = SimulatedBinaryCrossover(self.problem.parameters, self.options['prob_cross'])
@@ -221,7 +128,10 @@ class EpsMOEA(GeneticAlgorithm):
         self.selector = TournamentSelector(self.problem.parameters)
 
         # create initial population
-        individuals = self.generator.generate()
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(IndividualEpsMOEA(vector))
 
         for individual in individuals:
             # append to problem
@@ -249,8 +159,10 @@ class EpsMOEA(GeneticAlgorithm):
 
         for it in range(self.options['max_population_number']):
             # generate and evaluate the next generation
-            offsprings = self.generate(individuals, archive=self.archive)
-
+            vectors = self.generate(individuals, archive=self.archive)
+            offsprings = []
+            for vector in vectors:
+                offsprings.append(IndividualEpsMOEA(vector))
             self.evaluator.evaluate(offsprings)
 
             # pop-acceptance procedure, the dominating offsprings will be preserved in the population and  in the archive
@@ -275,4 +187,3 @@ class EpsMOEA(GeneticAlgorithm):
 
         # sync changed individual informations
         self.problem.data_store.sync_all()
-

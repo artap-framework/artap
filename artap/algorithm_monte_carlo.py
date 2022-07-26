@@ -1,13 +1,13 @@
 import numpy as np
 from .problem import Problem
-from .algorithm_genetic import GeneralEvolutionaryAlgorithm
+from .algorithm_genetic import GeneticAlgorithm
 from artap.operators import CustomGenerator, RandomGenerator, UniformGenerator
 import time
 from scipy.stats import norm
 from .individual import Individual
 
 
-class Monte_Carlo(GeneralEvolutionaryAlgorithm):
+class Monte_Carlo(GeneticAlgorithm):
     """
     Monte Carlo simulation
         1) make a list of random values of x
@@ -24,23 +24,25 @@ class Monte_Carlo(GeneralEvolutionaryAlgorithm):
         self.problem = problem
         # self.problem.parameters = bm.generate_paramlist(self, dimension=self.dimension, lb=0.0, ub=1.0)
         self.intervals = np.linspace(self.z_min, self.z_max, self.sampling_size)
-        self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = RandomGenerator(self.problem.parameters)
 
     def generate(self):
         self.generator.init(self.options['max_population_size'])
-        individuals = self.generator.generate()
-
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(Individual(vector))
         return individuals
 
     def run(self):
 
         individuals = self.generate()
+
         for individual in individuals:
             # append to problem
             self.problem.individuals.append(individual)
             # add to population
             individual.population_id = 0
-
             self.problem.data_store.sync_individual(individual)
 
         self.evaluate(individuals)
@@ -67,7 +69,7 @@ class Monte_Carlo(GeneralEvolutionaryAlgorithm):
         self.problem.data_store.sync_all()
 
 
-class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
+class Numerical_Integrator(GeneticAlgorithm):
     """
     Adaptive Monte Carlo Integral Approximation.
     Summation is used to estimate the expected value of a function under a distribution, instead of integration.
@@ -81,12 +83,14 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
         self.b = (3*np.pi)/2
         self.problem = problem
         self.num_of_intervals = 10
-        self.generator = UniformGenerator(self.problem.parameters, self.individual_features)
+        self.generator = UniformGenerator(self.problem.parameters)
 
     def generate(self):
         self.generator.init(self.options['max_population_size'])
-        individuals = self.generator.generate()
-
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(Individual(vector))
         return individuals
 
     def run(self):
@@ -106,7 +110,9 @@ class Numerical_Integrator(GeneralEvolutionaryAlgorithm):
                                                              self.options['max_population_size']))
         for it in range(self.options['max_population_number']):
 
+            individuals = []
             individuals = self.generate()
+
             for individual in individuals:
                 individual.vector[0] = individual.vector[0] * (self.a + (self.b - self.a))
 

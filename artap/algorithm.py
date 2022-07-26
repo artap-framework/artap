@@ -8,6 +8,7 @@ from .problem import Problem
 from .utils import ConfigDictionary
 from .operators import Evaluator, GradientEvaluator, WorstCaseEvaluator
 
+
 from abc import ABCMeta
 from enum import Enum
 from uuid import uuid1

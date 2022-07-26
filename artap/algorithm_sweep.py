@@ -1,9 +1,10 @@
-from .algorithm_genetic import GeneralEvolutionaryAlgorithm
+from .algorithm_genetic import GeneticAlgorithm
+from .individual import Individual
 import time
 import random
 
 
-class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
+class SweepAlgorithm(GeneticAlgorithm):
     """
     Sweep Analysis
     """
@@ -16,8 +17,10 @@ class SweepAlgorithm(GeneralEvolutionaryAlgorithm):
         t_s = time.time()
 
         # create initial population
-        individuals = self.generator.generate()
-
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(Individual(vector))
         # append to problem
         for individual in individuals:
             self.problem.individuals.append(individual)

@@ -1,5 +1,6 @@
 from _ast import operator
 from abc import abstractmethod, ABC
+import copy
 import sys
 import random
 import math
@@ -8,12 +9,11 @@ import numpy as np
 import functools
 import itertools
 
-from .individual import Individual
 from .utils import VectorAndNumbers
 from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman, build_gsd, build_halton
 from .job import Job
 from joblib import Parallel, delayed
-from copy import deepcopy
+from .individual import Individual
 
 EPSILON = sys.float_info.epsilon
 
@@ -193,10 +193,9 @@ class WorstCaseEvaluator(Evaluator):
 
 
 class Generator(Operator):
-    def __init__(self, parameters=None, features=dict()):
+    def __init__(self, parameters=None):
         super().__init__()
         self.parameters = parameters
-        self.features = features
 
     @abstractmethod
     def generate(self):
@@ -204,23 +203,23 @@ class Generator(Operator):
 
 
 class CustomGenerator(Generator):
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.vectors = []
 
     def init(self, vectors):
         self.vectors = vectors
 
     def generate(self):
-        individuals = []
+        vectors = []
         for vector in self.vectors:
-            individuals.append(Individual(vector, self.features))
-        return individuals
+            vectors.append(vector)
+        return vectors
 
 
 class PartiallyCustomGenerator(Generator):
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.vectors = []
         self.number = None
 
@@ -231,17 +230,18 @@ class PartiallyCustomGenerator(Generator):
     def generate(self):
         individuals = []
         for vector in self.vectors:
-            individuals.append(Individual(vector, self.features))
+            individuals.append(Individual(vector))
         req = self.number - len(individuals)
+        vectors = []
         for i in range(req + 1):
             vector = VectorAndNumbers.gen_vector(self.parameters)
-            individuals.append(Individual(vector, self.features))
-        return individuals
+            vectors.append(Individual(vector))
+        return vectors
 
 
 class UniformGenerator(Generator):
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.number = 0
 
     def init(self, number):
@@ -256,26 +256,27 @@ class UniformGenerator(Generator):
             for i in range(self.number):
                 vectors[-1].append(parameter['bounds'][0] + i * delta)
 
+        result = []
         for combination in itertools.product(*vectors):
-            individuals.append(Individual(list(combination), self.features))
+            result.append(list(combination))
 
-        return individuals
+        return result
 
 
 class RandomGenerator(Generator):
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.number = 0
 
     def init(self, number):
         self.number = number
 
     def generate(self):
-        individuals = []
+        vectors = []
         for i in range(self.number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
-            individuals.append(Individual(vector, self.features))
-        return individuals
+            vectors.append(vector)
+        return vectors
 
 
 class IntegerGenerator(Generator):
@@ -283,8 +284,8 @@ class IntegerGenerator(Generator):
     Generate Integer vectors for problems with discrete values
     """
 
-    def __init__(self, parameters, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters):
+        super().__init__(parameters)
         # self.parameters['parameter_type'] = 'integer'
         self.number = 0
 
@@ -295,11 +296,11 @@ class IntegerGenerator(Generator):
                 parameter['parameter_type'] = 'integer'
 
     def generate(self):
-        individuals = []
+        vectors = []
         for i in range(self.number):
             vector = VectorAndNumbers.gen_vector(self.parameters)
-            individuals.append(Individual(vector, self.features))
-        return individuals
+            vectors.append(vector)
+        return vectors
 
 
 class FullFactorGenerator(Generator):
@@ -308,8 +309,8 @@ class FullFactorGenerator(Generator):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.center = False
 
     def init(self, center):
@@ -328,11 +329,7 @@ class FullFactorGenerator(Generator):
                 dict_vars[name] = [l_b, u_b]
 
         df = build_full_fact(dict_vars)
-
-        individuals = []
-        for vector in df:
-            individuals.append(Individual(vector, self.features))
-        return individuals
+        return df
 
 
 class FullFactorLevelsGenerator(Generator):
@@ -341,8 +338,8 @@ class FullFactorLevelsGenerator(Generator):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.values = []
 
     def init(self, values):
@@ -354,11 +351,7 @@ class FullFactorLevelsGenerator(Generator):
             dict_vars[parameter['name']] = value
 
         df = build_full_fact(dict_vars)
-
-        individuals = []
-        for vector in df:
-            individuals.append(Individual(vector, self.features))
-        return individuals
+        return df
 
 
 class PlackettBurmanGenerator(Generator):
@@ -367,8 +360,8 @@ class PlackettBurmanGenerator(Generator):
     Number of experiments (2 ** len(parameters) - without center, 3 ** len(parameters - with center)
     """
 
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
 
     def generate(self):
         dict_vars = {}
@@ -379,12 +372,7 @@ class PlackettBurmanGenerator(Generator):
             dict_vars[name] = [l_b, u_b]
 
         df = build_plackett_burman(dict_vars)
-        # print(df)
-
-        individuals = []
-        for vector in df:
-            individuals.append(Individual(vector, self.features))
-        return individuals
+        return df
 
 
 class BoxBehnkenGenerator(Generator):
@@ -399,8 +387,8 @@ class BoxBehnkenGenerator(Generator):
     https://en.wikipedia.org/wiki/Box%E2%80%93Behnken_design
     """
 
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
 
     def generate(self):
         dict_vars = {}
@@ -412,11 +400,7 @@ class BoxBehnkenGenerator(Generator):
 
         df = build_box_behnken(dict_vars)
         # print(df)
-
-        individuals = []
-        for vector in df:
-            individuals.append(Individual(vector, self.features))
-        return individuals
+        return df
 
 
 class LHSGenerator(Generator):
@@ -424,8 +408,8 @@ class LHSGenerator(Generator):
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
 
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.number = 0
 
     def init(self, number):
@@ -441,11 +425,7 @@ class LHSGenerator(Generator):
 
         df = build_lhs(dict_vars, num_samples=self.number)
         # print(df)
-
-        individuals = []
-        for vector in df:
-            individuals.append(Individual(vector, self.features))
-        return individuals
+        return df
 
 
 class HaltonGenerator(Generator):
@@ -453,8 +433,8 @@ class HaltonGenerator(Generator):
     Builds a Halton sequence.
     """
 
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.number = 0
 
     def init(self, number):
@@ -469,11 +449,7 @@ class HaltonGenerator(Generator):
             dict_vars[name] = [l_b, u_b]
 
         df = build_halton(dict_vars, num_samples=self.number)
-
-        individuals = []
-        for vector in df:
-            individuals.append(Individual(vector, self.features))
-        return individuals
+        return df
 
 
 class GSDGenerator(Generator):
@@ -481,8 +457,8 @@ class GSDGenerator(Generator):
     Builds a Latin Hypercube design dataframe from a dictionary of factor/level ranges.
     """
 
-    def __init__(self, parameters=None, features=dict()):
-        super().__init__(parameters, features)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
         self.values = []
         self.reduction = 1
         self.n = 1
@@ -500,13 +476,13 @@ class GSDGenerator(Generator):
         df = build_gsd(levels, self.reduction, self.n)
         # print(df)
 
-        individuals = []
+        vectors = []
         for vector in df:
             vals = []
             for i in range(len(vector)):
                 vals.append(self.values[i][vector[i]])
-            individuals.append(Individual(vals, self.features))
-        return individuals
+            vectors.append(vals)
+        return vectors
 
 
 class Mutator(Operator):
@@ -541,7 +517,7 @@ class SimpleMutator(Mutator):
             else:
                 vector.append(p.vector[i])
 
-        p_new = Individual(vector, p.features)
+        p_new = Individual(vector)
         return p_new
 
 
@@ -564,11 +540,11 @@ class PmMutator(Mutator):
             if random.uniform(0, 1) < self.probability:
                 l_b = parameter['bounds'][0]
                 u_b = parameter['bounds'][1]
-                vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
+                vector.append(self.pm_mutation(parent[i], l_b, u_b))
             else:
-                vector.append(parent.vector[i])
+                vector.append(parent[i])
 
-        return Individual(vector, parent.features)
+        return vector
 
     def pm_mutation(self, x, lb, ub):
         """
@@ -627,7 +603,7 @@ class UniformMutator(Mutator):
             else:
                 vector.append(parent.vector[i])
 
-        return Individual(vector, parent.features)
+        return Individual(vector)
 
     def uniform_mutation(self, x, lb, ub):
 
@@ -659,7 +635,7 @@ class NonUniformMutation(Mutator):
             else:
                 vector.append(parent.vector[i])
 
-        return Individual(vector, parent.features)
+        return Individual(vector)
 
     def non_uniform_mutation(self, x, lb, ub, current_iteration):
 
@@ -1329,9 +1305,7 @@ class CopySelector(Selector):
     def select(self, individuals):
         selection = []
         for individual in individuals:
-            candidate = Individual(individual.vector)
-            candidate.costs = deepcopy(individual.costs)
-            candidate.features = deepcopy(individual.features)
+            candidate = copy.deepcopy(individual)
             candidate.population_id = -1
             selection.append(candidate)
         return selection
@@ -1476,8 +1450,8 @@ class SimpleCrossover(Crossover):
             parent_a = parameter1
             parent_b = parameter2
 
-        offspring_a = Individual(parent_a, p1.features)
-        offspring_b = Individual(parent_b, p2.features)
+        offspring_a = Individual(parent_a)
+        offspring_b = Individual(parent_b)
 
         return offspring_a, offspring_b
 
@@ -1502,8 +1476,8 @@ class SimulatedBinaryCrossover(Crossover):
         a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        x1 = deepcopy(p1.vector)
-        x2 = deepcopy(p2.vector)
+        x1 = p1.vector.copy()
+        x2 = p2.vector.copy()
 
         if random.random() <= self.probability:
             for i, param in enumerate(self.parameters):
@@ -1550,7 +1524,7 @@ class SimulatedBinaryCrossover(Crossover):
                         else:
                             x1[i], x2[i] = c1, c2
 
-        return Individual(x1, p1.features), Individual(x2, p2.features)
+        return x1, x2
 
 
 class Normalization(Operator):

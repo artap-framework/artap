@@ -2,7 +2,7 @@ import unittest
 
 from smt.surrogate_models import MGP
 
-from ..algorithm_genetic import NSGAII
+from ..algorithm_NSGAII import NSGAII
 from ..algorithm_sweep import SweepAlgorithm
 from ..operators import LHSGenerator
 from ..problem import Problem

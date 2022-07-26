@@ -1,12 +1,12 @@
 import numpy as np
 from .problem import Problem
-from .algorithm_genetic import GeneralEvolutionaryAlgorithm
+from .algorithm_genetic import GeneticAlgorithm
 from .individual import Individual
 from .operators import CustomGenerator, nondominated_truncate, RandomGenerator, UniformGenerator
 import time
 
 
-class CMA_ES(GeneralEvolutionaryAlgorithm):
+class CMA_ES(GeneticAlgorithm):
     """
     Implementation of CMA_ES, Covariance Matrix Adaptation Evolutionary strategy (CMA_ES).
     The Covariance Matrix Adaptation Evolution Strategy (CMA-ES) [1] is one of the most effective approaches
@@ -56,7 +56,7 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         # self.individuals = []
         theta_std = np.random.uniform(self.max_val - 1, self.max_val, self.dim_theta)
         self.theta_cov = np.diag(theta_std)
-        self.generator = CustomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = CustomGenerator(self.problem.parameters)
         # self.fit_gaussian()
 
     def fit_gaussian(self):
@@ -68,8 +68,10 @@ class CMA_ES(GeneralEvolutionaryAlgorithm):
         theta = np.random.multivariate_normal(self.theta_mean, self.theta_cov, self.options['max_population_size'])
         individuals = np.clip(theta, self.min_val, self.max_val)
         self.generator.init(individuals)
-        individuals = self.generator.generate()
-
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(Individual(vector))
         return individuals
 
     def take_elite(self, candidates):

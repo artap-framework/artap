@@ -2,7 +2,7 @@ import unittest
 
 from ..benchmark_functions import AlpineFunction, Ackley
 from ..benchmark_pareto import ZDT1
-from ..algorithm_genetic import NSGAII
+from ..algorithm_NSGAII import NSGAII
 from ..results import Results
 from ..problem import Problem
 from ..quality_indicator import epsilon_add
@@ -19,7 +19,7 @@ class TestNSGA2(unittest.TestCase):
 
         populations = problem.populations()
 
-        self.assertEqual(len(populations), algorithm.options['max_population_number'] + 1)
+        self.assertEqual(len(populations), algorithm.options['max_population_number'])
         for individuals in populations.values():
             self.assertEqual(len(individuals), algorithm.options['max_population_size'])
 

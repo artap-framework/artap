@@ -10,7 +10,7 @@ from ..problem import Problem, ProblemViewDataStore
 from ..individual import Individual
 from ..datastore import SqliteDataStore
 from ..algorithm_sweep import SweepAlgorithm
-from ..algorithm_genetic import NSGAII
+from ..algorithm_NSGAII import NSGAII
 
 from ..operators import RandomGenerator
 
@@ -43,8 +43,8 @@ class TestDataStoreSqlite(unittest.TestCase):
     def test_read_write_database(self):
         problem = MyProblem()
         # set data store
-        database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
-        # database_name = "database.sqlite"
+        # database_name = tempfile.NamedTemporaryFile(mode="w", delete=False, dir=None, suffix=".sqlite").name
+        database_name = "database_1.sqlite"
         problem.data_store = SqliteDataStore(problem, database_name=database_name)
 
         algorithm = NSGAII(problem)

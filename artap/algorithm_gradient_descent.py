@@ -36,7 +36,7 @@ class GradientDescent(GeneticAlgorithm):
 
         # set default generator
         if generator is None:
-            self.generator = RandomGenerator(self.problem.parameters, self.individual_features)
+            self.generator = RandomGenerator(self.problem.parameters)
             self.generator.init(1)
         else:
             self.generator = generator
@@ -60,14 +60,14 @@ class GradientDescent(GeneticAlgorithm):
         x_static = []
         for i in range(len(individual.vector)):
             x_static.append(individual.vector[i])
-        individual_static = Individual(x_static, self.individual_features)
+        individual_static = Individual(x_static)
         self.evaluate([individual_static])
 
         while True:
             x_armijo = []
             for i in range(len(individual.vector)):
                 x_armijo.append(individual.vector[i] - h_t * individual.features['gradient'][i])
-            individual_armijo = Individual(x_armijo, self.individual_features)
+            individual_armijo = Individual(x_armijo)
             self.evaluate([individual_armijo])
 
             satisfied = True
@@ -122,6 +122,13 @@ class GradientDescent(GeneticAlgorithm):
 
         return x
 
+    def generate(self):
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(Individual(vector))
+        return individuals
+
     def run(self):
         # optimization
         t_s = time.time()
@@ -133,7 +140,7 @@ class GradientDescent(GeneticAlgorithm):
         self.cache_grad_sqr = [0] * len(self.problem.parameters)
 
         # generate initial point
-        individuals = self.generator.generate()
+        individuals = self.generate()
 
         # append to problem
         for individual in individuals:
@@ -162,7 +169,7 @@ class GradientDescent(GeneticAlgorithm):
                     raise "Algorithm '{}' is defined.".format(self.options["algorithm"])
 
                 # create a new individual
-                individual = Individual(x, self.individual_features)
+                individual = Individual(x)
                 individual.population_id = j + 1
                 new_individuals.append(individual)
 

@@ -13,7 +13,7 @@ tests_root = os.path.abspath(path + os.sep + "tests" + os.sep)
 
 # config
 config = {}
-config["condor_host"] = "edison.fel.zcu.cz"
+config["condor_host"] = None
 # get system user name
 config["condor_login"] = getpass.getuser()
 

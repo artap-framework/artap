@@ -1,12 +1,12 @@
 import numpy as np
-
+from .individual import Individual
 from .problem import Problem
-from .algorithm_genetic import GeneralEvolutionaryAlgorithm
+from .algorithm_genetic import GeneticAlgorithm
 from artap.operators import CustomGenerator, RandomGenerator, UniformGenerator
 import time
 
 
-class CEM(GeneralEvolutionaryAlgorithm):
+class CEM(GeneticAlgorithm):
     """Cross-Entropy Method
     https://link.springer.com/content/pdf/10.1007/s10479-005-5724-z.pdf
     """
@@ -39,14 +39,16 @@ class CEM(GeneralEvolutionaryAlgorithm):
         self.max_val = 1
         self.theta_mean = np.random.uniform(self.min_val, self.max_val, (self.n_samples, self.dim_theta))
         self.theta_std = np.random.uniform(self.min_val, self.max_val, (self.n_samples, self.dim_theta))
-        self.generator = CustomGenerator(self.problem.parameters, self.individual_features)
+        self.generator = CustomGenerator(self.problem.parameters)
 
     def fit_gaussian(self):
         generation = np.random.normal(self.theta_mean, self.theta_std)
         individuals = np.clip(generation, self.min_val, self.max_val)
         self.generator.init(individuals)
-        individuals = self.generator.generate()
-
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(Individual(vector))
         return individuals
 
     def take_elite(self, candidates):
