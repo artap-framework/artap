@@ -51,13 +51,9 @@ class Individual(metaclass=ABCMeta):
         self.add_features()
         self.custom = {}
 
-    @classmethod
-    def from_individual(cls, individual):
+    def copy(self):
         """Create a new Individual instance from a single individual"""
-        if isinstance(individual, Individual):
-            new_individual = cls(individual.vector)
-        else:
-            new_individual = None
+        new_individual = self.__class__(self.vector)
         return new_individual
 
     def calc_signed_costs(self, p_signs):

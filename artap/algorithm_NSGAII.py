@@ -1,4 +1,6 @@
 import time
+from abc import abstractmethod
+
 from .individual import Individual
 from .operators import RandomGenerator, SimulatedBinaryCrossover, \
     PmMutator, TournamentSelector, EpsilonDominance, nondominated_truncate, crowding_distance
@@ -16,9 +18,8 @@ class IndividualNSGAII(Individual):
         self.features['front_number'] = 0
         self.population_id = 0
 
-    @classmethod
-    def from_individual(cls, individual: Individual):
-        new_individual = cls(individual.vector)
+    def copy(self):
+        new_individual = self.__class__(self.vector)
         return new_individual
 
 

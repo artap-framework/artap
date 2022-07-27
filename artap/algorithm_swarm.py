@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from random import uniform
 from .individual import Individual
 from .problem import Problem
@@ -22,11 +23,10 @@ class IndividualSwarm(Individual):
         self.features['best_vector'] = None
         self.population_id = -1
 
-    @classmethod
-    def from_individual(cls, individual):
-        new_individual = cls(individual.vector)
-        new_individual.features['best_cost'] = individual.features['best_cost']
-        new_individual.features['best_vector'] = individual.features['best_vector']
+    def copy(self):
+        new_individual = self.__class__(self.vector)
+        new_individual.features['best_cost'] = self.features['best_cost']
+        new_individual.features['best_vector'] = self.features['best_vector']
         return new_individual
 
 

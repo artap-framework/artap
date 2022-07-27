@@ -1305,7 +1305,7 @@ class CopySelector(Selector):
     def select(self, individuals):
         selection = []
         for individual in individuals:
-            candidate = individual.from_individual(individual)
+            candidate = individual.copy()
             candidate.features = deepcopy(individual.features)
             selection.append(candidate)
         return selection
@@ -1477,8 +1477,9 @@ class SimulatedBinaryCrossover(Crossover):
         """
 
         # Make new instance of class derived from Individual
-        x1 = p1.from_individual(p1)
-        x2 = p2.from_individual(p2)
+
+        x1 = p1.copy()
+        x2 = p2.copy()
 
         if random.random() <= self.probability:
             for i, param in enumerate(self.parameters):
