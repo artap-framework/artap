@@ -7,10 +7,9 @@ from ..results import Results
 from ..algorithm_sweep import SweepAlgorithm
 from ..operators import CustomGenerator
 
-__femm__ = False
-# result = os.system('femm')
-# if result != 0:
-#     __femm__ = False
+from distutils.spawn import find_executable
+path = find_executable('femm')
+__femm__ = path is not None
 
 
 class FEMMProblem(Problem):
