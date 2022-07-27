@@ -542,9 +542,9 @@ class PmMutator(Mutator):
             if random.uniform(0, 1) < self.probability:
                 l_b = parameter['bounds'][0]
                 u_b = parameter['bounds'][1]
-                vector.append(self.pm_mutation(parent[i], l_b, u_b))
+                vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
             else:
-                vector.append(parent[i])
+                vector.append(parent.vector[i])
 
         return vector
 
@@ -1305,7 +1305,7 @@ class CopySelector(Selector):
     def select(self, individuals):
         selection = []
         for individual in individuals:
-            candidate = Individual(individual.vector)
+            candidate = individual.from_individual(individual)
             candidate.features = deepcopy(individual.features)
             selection.append(candidate)
         return selection
@@ -1476,19 +1476,20 @@ class SimulatedBinaryCrossover(Crossover):
         a list with 2 offsprings each with the genotype of an  offspring after recombination and mutation.
         """
 
-        x1 = p1.vector.copy()
-        x2 = p2.vector.copy()
+        # Make new instance of class derived from Individual
+        x1 = p1.from_individual(p1)
+        x2 = p2.from_individual(p2)
 
         if random.random() <= self.probability:
             for i, param in enumerate(self.parameters):
 
                 if random.random() <= 0.5:
 
-                    if abs(x2[i] - x1[i]) > EPSILON:
-                        if x2[i] > x1[i]:
-                            y1, y2 = x1[i], x2[i]
+                    if abs(x2.vector[i] - x1.vector[i]) > EPSILON:
+                        if x2.vector[i] > x1.vector[i]:
+                            y1, y2 = x1.vector[i], x2.vector[i]
                         else:
-                            y1, y2 = x2[i], x1[i]
+                            y1, y2 = x2.vector[i], x1.vector[i]
 
                         lb, ub = param['bounds'][0], param['bounds'][1]
 
@@ -1520,9 +1521,9 @@ class SimulatedBinaryCrossover(Crossover):
                         c2 = self.clip(c2, lb, ub)
 
                         if random.random() <= 0.5:
-                            x1[i], x2[i] = c2, c1
+                            x1.vector[i], x2.vector[i] = c2, c1
                         else:
-                            x1[i], x2[i] = c1, c2
+                            x1.vector[i], x2.vector[i] = c1, c2
 
         return x1, x2
 

@@ -16,6 +16,11 @@ class IndividualNSGAII(Individual):
         self.features['front_number'] = 0
         self.population_id = 0
 
+    @classmethod
+    def from_individual(cls, individual: Individual):
+        new_individual = cls(individual.vector)
+        return new_individual
+
 
 class NSGAII(GeneticAlgorithm):
 

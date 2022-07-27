@@ -531,12 +531,12 @@ class TestUniformMutator(unittest.TestCase):
         self.um = PmMutator(problem.parameters, 0)
 
     def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
-        x = [3, 2]
+        x = Individual([3, 2])
         y = self.um.mutate(x)
         self.assertEqual(y, [3, 2])
 
     def test_should_change_if_the_probability_is_one(self):
-        x = [3, 2]
+        x = Individual([3, 2])
         self.um.probability = 1.0
         y = self.um.mutate(x)
         self.assertNotEqual(y, [3, 2])

@@ -51,6 +51,15 @@ class Individual(metaclass=ABCMeta):
         self.add_features()
         self.custom = {}
 
+    @classmethod
+    def from_individual(cls, individual):
+        """Create a new Individual instance from a single individual"""
+        if isinstance(individual, Individual):
+            new_individual = cls(individual.vector)
+        else:
+            new_individual = None
+        return new_individual
+
     def calc_signed_costs(self, p_signs):
         """
         This function calculates the signed costs for every vector and insert the feasibility after

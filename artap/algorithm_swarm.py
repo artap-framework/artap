@@ -11,7 +11,7 @@ import time
 
 class IndividualSwarm(Individual):
 
-    def __init__(self, vector: list):
+    def __init__(self, vector: list = None):
         super().__init__(vector)
         self.features['dominate'] = []
         self.features['crowding_distance'] = 0
@@ -21,6 +21,13 @@ class IndividualSwarm(Individual):
         self.features['best_cost'] = None
         self.features['best_vector'] = None
         self.population_id = -1
+
+    @classmethod
+    def from_individual(cls, individual):
+        new_individual = cls(individual.vector)
+        new_individual.features['best_cost'] = individual.features['best_cost']
+        new_individual.features['best_vector'] = individual.features['best_vector']
+        return new_individual
 
 
 class SwarmAlgorithm(GeneticAlgorithm):
@@ -33,12 +40,14 @@ class SwarmAlgorithm(GeneticAlgorithm):
     def init_pvelocity(self, population):
         pass
 
-    def init_pbest(self, population):
+    @staticmethod
+    def init_pbest(population):
         for individual in population:
             individual.features['best_cost'] = individual.costs_signed
             individual.features['best_vector'] = individual.vector
 
-    def khi(self, c1: float, c2: float) -> float:
+    @staticmethod
+    def khi(c1: float, c2: float) -> float:
         """
         Constriction coefficient [1].
         [1] Ebarhart and Kennedym Empirical study of particle swarm optimization,” in Proc. IEEE Int. Congr.
@@ -56,7 +65,8 @@ class SwarmAlgorithm(GeneticAlgorithm):
 
         return result
 
-    def speed_constriction(self, velocity, u_bound, l_bound) -> float:
+    @staticmethod
+    def speed_constriction(velocity, u_bound, l_bound) -> float:
         """
         Velocity constriction factor [1].
 
@@ -65,8 +75,8 @@ class SwarmAlgorithm(GeneticAlgorithm):
             2009 IEEE Symposium on Computational Intelligence in Multi-Criteria Decision-Making (MCDM). IEEE, 2009.
 
         :param velocity: parameter velocity for the i^th component
-        :param ub: upper bound
-        :param lb: lower bound
+        :param u_bound: upper bound
+        :param l_bound: lower bound
         :return:
         """
 
@@ -168,7 +178,7 @@ class OMOPSO(SwarmAlgorithm):
         for i in range(len(particles)):
             if i % 3 == 0:
                 mutated = self.uniform_mutator.mutate(particles[i])
-            elif i % 3 == 1:
+            else:
                 mutated = self.non_uniform_mutator.mutate(particles[i], current_step)
             particles[i].vector = copy(mutated.vector)
         return
@@ -397,7 +407,7 @@ class SMPSO(SwarmAlgorithm):
 
         for i in range(len(particles)):
             if i % 6 == 0:
-                mutated = self.mutator.mutate(particles[i].vector)
+                mutated = self.mutator.mutate(particles[i])
                 particles[i].vector = mutated
 
     def update_velocity(self, individuals):
@@ -553,9 +563,9 @@ class PSOGA(SwarmAlgorithm):
                              desc='prob_mutation'),
         self.n = self.options['max_population_size']
 
-        self.individual_features['velocity'] = dict()
-        self.individual_features['best_cost'] = dict()
-        self.individual_features['best_vector'] = dict()
+        self.individual_features['velocity'] = None
+        self.individual_features['best_cost'] = None
+        self.individual_features['best_vector'] = None
 
         self.individual_features['dominate'] = []
         self.individual_features['crowding_distance'] = 0
@@ -695,6 +705,7 @@ class PSOGA(SwarmAlgorithm):
             vector1 = self.mutator.mutate(vector1)
             vector2 = self.mutator.mutate(vector2)
 
+            # ToDo: Make it clean
             offspring1 = IndividualSwarm(vector1)
             offspring2 = IndividualSwarm(vector2)
             offspring1.features = first_selected.features
