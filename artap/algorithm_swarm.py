@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from random import uniform
 from .individual import Individual
 from .problem import Problem
@@ -36,6 +35,17 @@ class SwarmAlgorithm(GeneticAlgorithm):
         # self.options.declare(name='v_max', default=, lower=0., desc='maximum_allowed_speed')
         self.global_best = None  # swarm algorithms share the information, who is the leader
         self.dominance = ParetoDominance()  # some dominance should be defined for every kind of multi-opbjective swarm
+        # constants for the speed and the position calculation
+        self.c1_min = 1.5
+        self.c1_max = 2.0
+        self.c2_min = 1.5
+        self.c2_max = 2.0
+        self.r1_min = 0.0
+        self.r1_max = 1.0
+        self.r2_min = 0.0
+        self.r2_max = 1.0
+        self.min_weight = 0.1
+        self.max_weight = 0.5
 
     def init_pvelocity(self, population):
         pass
@@ -96,8 +106,24 @@ class SwarmAlgorithm(GeneticAlgorithm):
     def update_global_best(self, offsprings):
         pass
 
-    def update_velocity(self, population):
-        pass
+    def update_velocity(self, individuals):
+        for individual in individuals:
+            individual.features['velocity'] = [0] * len(individual.vector)
+            global_best = self.select_leader()
+
+            r1 = round(uniform(self.r1_min, self.r1_max), 1)
+            r2 = round(uniform(self.r2_min, self.r2_max), 1)
+            c1 = round(uniform(self.c1_min, self.c1_max), 1)
+            c2 = round(uniform(self.c2_min, self.c2_max), 1)
+
+            for i in range(0, len(individual.vector)):
+                momentum = self.inertia_weight() * individual.vector[i]
+                v_cog = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
+                v_soc = c2 * r2 * (global_best.vector[i] - individual.vector[i])
+
+                v = self.khi(c1, c2) * (momentum + v_cog + v_soc)
+                individual.features['velocity'][i] = self.speed_constriction(v, self.parameters[i]['bounds'][1],
+                                                                             self.parameters[i]['bounds'][0])
 
     def update_position(self, population):
         pass
@@ -153,17 +179,7 @@ class OMOPSO(SwarmAlgorithm):
                                                       self.options['max_population_number'])
         self.uniform_mutator = UniformMutator(self.problem.parameters, self.options['prob_mutation'],
                                               self.options['max_population_number'])
-        # constants for the speed and the position calculation
-        self.c1_min = 1.5
-        self.c1_max = 2.0
-        self.c2_min = 1.5
-        self.c2_max = 2.0
-        self.r1_min = 0.0
-        self.r1_max = 1.0
-        self.r2_min = 0.0
-        self.r2_max = 1.0
-        self.min_weight = 0.1
-        self.max_weight = 0.5
+
 
     def inertia_weight(self):
         return uniform(self.min_weight, self.max_weight)
@@ -182,25 +198,6 @@ class OMOPSO(SwarmAlgorithm):
                 mutated = self.non_uniform_mutator.mutate(particles[i], current_step)
             particles[i].vector = copy(mutated.vector)
         return
-
-    def update_velocity(self, individuals):
-        for individual in individuals:
-            individual.features['velocity'] = [0] * len(individual.vector)
-            global_best = self.select_leader()
-
-            r1 = round(uniform(self.r1_min, self.r1_max), 1)
-            r2 = round(uniform(self.r2_min, self.r2_max), 1)
-            c1 = round(uniform(self.c1_min, self.c1_max), 1)
-            c2 = round(uniform(self.c2_min, self.c2_max), 1)
-
-            for i in range(0, len(individual.vector)):
-                momentum = self.inertia_weight() * individual.vector[i]
-                v_cog = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-                v_soc = c2 * r2 * (global_best.vector[i] - individual.vector[i])
-
-                v = self.khi(c1, c2) * (momentum + v_cog + v_soc)
-                individual.features['velocity'][i] = self.speed_constriction(v, self.parameters[i]['bounds'][1],
-                                                                             self.parameters[i]['bounds'][0])
 
     def update_position(self, individuals):
         for individual in individuals:
@@ -409,25 +406,6 @@ class SMPSO(SwarmAlgorithm):
             if i % 6 == 0:
                 mutated = self.mutator.mutate(particles[i])
                 particles[i].vector = mutated
-
-    def update_velocity(self, individuals):
-        for individual in individuals:
-            individual.features['velocity'] = [0] * len(individual.vector)
-            global_best = self.select_leader()
-
-            r1 = round(uniform(self.r1_min, self.r1_max), 1)
-            r2 = round(uniform(self.r2_min, self.r2_max), 1)
-            c1 = round(uniform(self.c1_min, self.c1_max), 1)
-            c2 = round(uniform(self.c2_min, self.c2_max), 1)
-
-            for i in range(0, len(individual.vector)):
-                momentum = self.inertia_weight() * individual.vector[i]
-                v_cog = c1 * r1 * (individual.features['best_vector'][i] - individual.vector[i])
-                v_soc = c2 * r2 * (global_best.vector[i] - individual.vector[i])
-
-                v = self.khi(c1, c2) * (momentum + v_cog + v_soc)
-                individual.features['velocity'][i] = self.speed_constriction(v, self.parameters[i]['bounds'][1],
-                                                                             self.parameters[i]['bounds'][0])
 
     def update_position(self, individuals):
         for individual in individuals:
