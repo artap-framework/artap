@@ -63,9 +63,9 @@ class TestZDT1SMPSP(unittest.TestCase):
     # integration test -- tests the total functionality of SMPSO
 
     def test_local_problem(self):
-        problem = problem = ZDT1()
+        problem = ZDT1()
         algorithm = OMOPSO(problem)
-        algorithm.options['max_population_number'] = 500
+        algorithm.options['max_population_number'] = 200
         algorithm.options['max_population_size'] = 200  # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.run()
