@@ -130,7 +130,6 @@ class TestGradientDescent(unittest.TestCase):
 
         results = Results(problem)
         optimum = results.find_optimum('F_1')
-        print(optimum)
         self.assertLessEqual(abs(optimum.vector[0]), 1e-6)
         self.assertLessEqual(abs(optimum.vector[1]), 1.0)
         self.assertLessEqual(abs(optimum.costs[0]), 1.0)
