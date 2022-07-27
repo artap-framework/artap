@@ -9,11 +9,11 @@ from ..quality_indicator import epsilon_add
 class TestAckleyOMOPSO(unittest.TestCase):
     """ Tests that the OMOPSO can find the global optimum. """
 
-    def test_local_problem(self, population_number=5):
+    def test_local_problem(self, population_number=50):
         problem = Ackley(**{'dimension': 1})
         algorithm = OMOPSO(problem)
         algorithm.options['max_population_number'] = population_number
-        algorithm.options['max_population_size'] = 4
+        algorithm.options['max_population_size'] = 40
         algorithm.options['max_processes'] = 10
         algorithm.options['epsilons'] = 0.1
         algorithm.run()
@@ -30,8 +30,8 @@ class TestZDT1OMOPSO(unittest.TestCase):
     def test_local_problem(self):
         problem = ZDT1()
         algorithm = OMOPSO(problem)
-        algorithm.options['max_population_number'] = 500
-        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_population_number'] = 100
+        algorithm.options['max_population_size'] = 200  # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.options['epsilons'] = 0.05
         algorithm.run()
@@ -66,7 +66,7 @@ class TestZDT1SMPSP(unittest.TestCase):
         problem = problem = ZDT1()
         algorithm = OMOPSO(problem)
         algorithm.options['max_population_number'] = 500
-        algorithm.options['max_population_size'] = 100  # according to the literature
+        algorithm.options['max_population_size'] = 200  # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.run()
 
@@ -184,7 +184,7 @@ class TestAckleyPSOGA(unittest.TestCase):
         problem = Ackley(**{'dimension': 1})
         algorithm = PSOGA(problem)
         algorithm.options['max_population_number'] = population_number
-        algorithm.options['max_population_size'] = 100
+        algorithm.options['max_population_size'] = 50
         algorithm.options['max_processes'] = 10
         algorithm.run()
 

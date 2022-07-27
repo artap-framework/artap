@@ -8,12 +8,14 @@ from math import exp
 import numpy as np
 import functools
 import itertools
+from copy import deepcopy
 
 from .utils import VectorAndNumbers
 from .doe import build_box_behnken, build_lhs, build_full_fact, build_plackett_burman, build_gsd, build_halton
 from .job import Job
 from joblib import Parallel, delayed
 from .individual import Individual
+
 
 EPSILON = sys.float_info.epsilon
 
@@ -1163,19 +1165,19 @@ class Selector(Operator):
 
         return None
 
-    def fast_nondominated_sorting(self, population):
+    def fast_nondominated_sorting(self, individuals):
         pareto_front = [[]]
         front_number = 1
 
         # reset elements
-        for p in population:
-            p.features['domination_counter'] = 0
-            p.features['front_number'] = None
-            p.features['dominate'] = []
+        for individual in individuals:
+            individual.features['domination_counter'] = 0
+            individual.features['front_number'] = None
+            individual.features['dominate'] = []
 
-        for i, p in enumerate(population):
-            for j in range(i + 1, len(population)):
-                q = population[j]
+        for i, p in enumerate(individuals):
+            for j in range(i + 1, len(individuals)):
+                q = individuals[j]
                 dom = self.comparator.compare(p.costs_signed, q.costs_signed)
                 if dom == 1:
                     p.features['dominate'].append(q.id)
@@ -1194,7 +1196,7 @@ class Selector(Operator):
             pareto_front.append([])
             for p in pareto_front[front_number - 2]:
                 for individual_id in p.features['dominate']:
-                    q = self.individual(population, individual_id)
+                    q = self.individual(individuals, individual_id)
                     q.features['domination_counter'] -= 1
                     if q.features['domination_counter'] == 0 and q.features['front_number'] is None:
                         q.features['front_number'] = front_number
@@ -1204,8 +1206,6 @@ class Selector(Operator):
             pareto_front.pop()
         for sub_front in pareto_front:
             crowding_distance(sub_front)
-
-        return
 
 
 def crowding_distance(front):
@@ -1305,8 +1305,8 @@ class CopySelector(Selector):
     def select(self, individuals):
         selection = []
         for individual in individuals:
-            candidate = copy.deepcopy(individual)
-            candidate.population_id = -1
+            candidate = Individual(individual.vector)
+            candidate.features = deepcopy(individual.features)
             selection.append(candidate)
         return selection
 

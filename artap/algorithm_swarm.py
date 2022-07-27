@@ -18,8 +18,8 @@ class IndividualSwarm(Individual):
         self.features['domination_counter'] = 0
         self.features['front_number'] = -1
         self.features['velocity'] = [0] * len(self.vector)
-        self.features['best_cost'] = dict()
-        self.features['best_vector'] = dict()
+        self.features['best_cost'] = None
+        self.features['best_vector'] = None
         self.population_id = -1
 
 
@@ -162,7 +162,7 @@ class OMOPSO(SwarmAlgorithm):
         """
         OMOPSO applies a combination of uniform and nonuniform
         mutation to the particle swarm(uniform mutation to the first 30 % of
-        the swarm, non - uniform to the next 30 %, and no mutation on the particles)
+        the swarm, non-uniform to the next 30 %, and no mutation on the particles)
         """
 
         for i in range(len(particles)):
@@ -211,10 +211,17 @@ class OMOPSO(SwarmAlgorithm):
         """ Manages the leader class in OMOPSO. """
 
         # the fitness of the particles are calculated by their crowding distance
-        crowding_distance(swarm)
 
+        # crowding_distance(swarm)
+
+        self.selector.fast_nondominated_sorting(swarm)
         # the length of the leaders archive cannot be longer than the number of the initial population
-        self.leaders += swarm
+        pareto = []
+        for particle in swarm:
+            if particle.features['front_number'] == 1:
+                pareto += swarm
+        for item in pareto:
+            self.leaders.append(item)
         self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
         self.archive += swarm
 
@@ -479,7 +486,10 @@ class SMPSO(SwarmAlgorithm):
                                                      self.options['max_population_size']))
         # initialize the swarm
         self.generator.init(self.options['max_population_size'])
-        individuals = self.generator.generate()
+        vectors = self.generator.generate()
+        individuals = []
+        for vector in vectors:
+            individuals.append(Individual(vector))
 
         for individual in individuals:
             # append to problem
@@ -681,11 +691,16 @@ class PSOGA(SwarmAlgorithm):
             # GA operators
             first_selected = self.selector.select(offsprings)
             second_selected = self.selector.select(offsprings)
-            offspring1, offspring2 = self.crossover.cross(first_selected, second_selected)
-            offspring1 = self.mutator.mutate(offspring1)
-            offspring2 = self.mutator.mutate(offspring2)
-            offsprings.append(IndividualSwarm(offspring1))
-            offsprings.append(IndividualSwarm(offspring2))
+            vector1, vector2 = self.crossover.cross(first_selected, second_selected)
+            vector1 = self.mutator.mutate(vector1)
+            vector2 = self.mutator.mutate(vector2)
+
+            offspring1 = IndividualSwarm(vector1)
+            offspring2 = IndividualSwarm(vector2)
+            offspring1.features = first_selected.features
+            offspring2.features = second_selected.features
+            offsprings.append(offspring1)
+            offsprings.append(offspring2)
 
             self.evaluate(offsprings)
             self.update_particle_best(offsprings)

@@ -1,6 +1,6 @@
 import unittest
 from ..benchmark_functions import Ackley
-from ..algorithm_swarm import SwarmAlgorithm, OMOPSO, SMPSO
+from ..algorithm_swarm import SwarmAlgorithm, OMOPSO, SMPSO, IndividualSwarm
 from ..problem import Problem
 from ..individual import Individual
 from ..archive import Archive
@@ -46,7 +46,7 @@ class TestSwarm(unittest.TestCase):
         self.assertEqual(self.Swarm.speed_constriction(0.1, 0., -1.), 0.1)
 
     def test_particle_best_should_initialized_correctly(self):
-        z = Individual([1, 2])
+        z = IndividualSwarm([1, 2])
         z.costs = [0.5, 1.5]
         z.costs_signed = [0.5, 1.5, 0]
 
@@ -110,17 +110,6 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         # it should preserve the features
         self.assertEqual(population[0].features, z.features)
 
-    def test_init_velocity(self):
-        z = Individual([1, 2])
-        z.costs = [0.5, 1.5]
-        z.costs_signed = [0.5, 1.5, 0]
-
-        z.features = {'velocity': [], 'best_cost': [0., 0., 0.], 'best_vector': [1, 2]}
-
-        population = [z]
-
-        self.omopso.init_pvelocity(population)
-        self.assertEqual(z.features['velocity'], [0, 0])
 
     def test_global_best(self):
         x = Individual([1, 2])
