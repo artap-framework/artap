@@ -110,7 +110,6 @@ class TestOMOPSOTOOLS(unittest.TestCase):
         # it should preserve the features
         self.assertEqual(population[0].features, z.features)
 
-
     def test_global_best(self):
         x = Individual([1, 2])
         x.costs = [2.0, 1.0]

@@ -48,6 +48,8 @@ class ComsolProblem(Problem):
         file_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), "data/elstat.mph")
         self.executor = CondorComsolJobExecutor(self, model_file=file_path,
                                                 files_from_condor=["out.txt", "elstat.mph"])
+        self.executor.request_cpus = 1
+        self.executor.request_memory = 3
 
     def evaluate(self, individual):
         return self.executor.eval(individual)
@@ -231,14 +233,14 @@ class TestCondor(TestCase):
         problem = PythonExecProblemNSGAII()
 
         algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 5
+        algorithm.options['max_population_number'] = 2
         algorithm.options['max_population_size'] = 3
-        algorithm.options['max_processes'] = 3
+        algorithm.options['max_processes'] = 2
         algorithm.run()
 
         populations = problem.populations()
 
-        self.assertEqual(len(populations), algorithm.options['max_population_number'] + 1)
+        self.assertEqual(len(populations), algorithm.options['max_population_number'])
         for individuals in populations.values():
             self.assertEqual(len(individuals), algorithm.options['max_population_size'])
 
