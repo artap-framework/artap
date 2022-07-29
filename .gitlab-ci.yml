@@ -1,6 +1,6 @@
 build:
   tags:
-    - linux
+    - artap
   script:
     # build deps
     - cd 3rdparty
