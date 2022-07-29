@@ -2,7 +2,7 @@
 
 DIR=$PWD
 
-git submodule add git@edison.fel.zcu.cz:agros/RDOLab/3rdparty/bayesopt.git 3rdparty/bayesopt
+git submodule add git@gitlab.fel.zcu.cz:agros/RDOLab/3rdparty/bayesopt.git 3rdparty/bayesopt
 
 # update
 git submodule update --init --recursive
