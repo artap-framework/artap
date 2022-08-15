@@ -1,3 +1,4 @@
+import string
 import textwrap
 import re
 import tempfile
@@ -77,12 +78,13 @@ class Executor(metaclass=ABCMeta):
 
     @staticmethod
     def _remove_dir(local_dir):
-        files = os.listdir(path=local_dir)
-        for f in files:
-            filepath = os.path.join(local_dir, f)
-            os.remove(filepath)
+        if os.path.exists(local_dir):
+            files = os.listdir(path=local_dir)
+            for f in files:
+                filepath = os.path.join(local_dir, f)
+                os.remove(filepath)
 
-        os.rmdir(local_dir)
+            os.rmdir(local_dir)
 
 
 class LocalComsolExecutor(Executor):
@@ -487,8 +489,12 @@ class CondorJobExecutor(RemoteExecutor):
                         output_files = []
                         d = datetime.datetime.now()
                         ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
-                        path = self.problem.working_dir + 'artap' + ts
-                        os.mkdir(path)
+                        path = self.problem.working_dir + 'artap' + ts + str(individual.id)
+
+                        if os.path.exists(path):
+                            pass
+                        else:
+                            os.mkdir(path)
 
                         for file in self.output_files:
                             self._transfer_file_from_remote(source_file=file,
@@ -498,7 +504,9 @@ class CondorJobExecutor(RemoteExecutor):
                         success = True
                         result = self.parse_results(output_files, individual)
                         # update cost on remote server
-                        client.root.log_update_cost(remote_dir, individual, result)
+
+                        # ToDo: resolve this, database is sometimes locked under Windows
+                        # client.root.log_update_cost(remote_dir, individual, result)
 
                     # remove job dir
                     if result is not None:
