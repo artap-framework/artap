@@ -169,7 +169,7 @@ class LocalFEMMExecutor(Executor):
         values = param_values_string.split(',')
 
         for i in range(len(params)):
-            temp = str(params[i])+'='+str(values[i])
+            temp = str(params[i]) + '=' + str(values[i])
             cmd_string += ' -lua-var={}'.format(temp)
 
         try:
@@ -192,7 +192,6 @@ class LocalFEMMExecutor(Executor):
             raise RuntimeError(err)
 
 
-
 class LocalAnsysExecutor(Executor):
     """
     runs an ansys executable python script
@@ -203,7 +202,7 @@ class LocalAnsysExecutor(Executor):
         self.script_file = ntpath.basename(script_file)
 
         self.ansys_path = r'C:\Program Files\AnsysEM\AnsysEM20.2\Win64\ansysedt.exe'
-        #"D:\tmp\Example_Conductor.py"
+        # "D:\tmp\Example_Conductor.py"
         self.output_files = output_files
 
     def eval(self, individual):
@@ -212,8 +211,8 @@ class LocalAnsysExecutor(Executor):
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
         param_values_string = Executor._join_parameters_values(individual.vector)
 
-        #lua_path = os.path.abspath(self.script_file)
-        #if os.path.isfile(lua_path) and platform == 'linux':
+        # lua_path = os.path.abspath(self.script_file)
+        # if os.path.isfile(lua_path) and platform == 'linux':
         #    arg = '"' + os.popen('winepath -w "' + lua_path + '"').read().strip() + '"'
 
         cmd_string = self.ansys_path + ' - runscript'.format(self.script_file)
@@ -686,12 +685,14 @@ class CondorComsolJobExecutor(CondorJobExecutor):
 
 class LocalCSTExecutor(Executor):
     def __init__(self, problem, model_file):
-        cst_file = "./cst/patch_circular_polarization.cst"
-        cst_path = '"C:/Program Files (x86)/CST Studio Suite 2020/CST DESIGN ENVIRONMENT" --hide -m -r {}'.format(
-            cst_file)
+        parametr_file = r"C:\Users\panek\Documents\git\software\Artap\artap\tests\data\cst\parameters.txt"
+        self.cst_file = "./cst/patch_circular_polarization.cst"
+        self.cst_path = '"C:/Program Files (x86)/CST Studio Suite 2020/CST DESIGN ENVIRONMENT"  -r --rebuild --hide ' \
+                        '-par {} -project-file {}'.format(parametr_file, self.cst_file)
 
     def eval(self, individual):
-        pass
+        os.system(self.cst_path)
+        return [0]
 
 
 class CondorCSTJobExecutor(CondorJobExecutor):
