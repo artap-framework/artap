@@ -11,7 +11,6 @@ from .tests_root import tests_root_path
 # Note: cst must be in system path
 __cst__ = True
 result = os.system('"CST DESIGN ENVIRONMENT_AMD64.exe" /version')
-print(result)
 if result != 0:
     __cst__ = False
 
@@ -25,41 +24,41 @@ class CstProblem(Problem):
         self.costs = [{'name': 'F1', 'criteria': 'minimize'}]
         self.output_files = ["patch_circular_polarization\\Export\\Farfield\\farfield_source_broadband_[1].ffs"]
         problem_file = os.path.join(tests_root_path, 'data\\cst\\patch_circular_polarization.cst')
-        self.executor = LocalCSTExecutor(self, problem_file=problem_file, output_files=self.output_files)
+        self.executor = LocalCSTExecutor(self, model_file=problem_file)
 
     #
     def evaluate(self, individual):
         individual.dep_param = 0
         return self.executor.eval(individual)
 
-    def parse_results(self, output_files, individual):
-        output_file = output_files[0]
-        path = output_file
+    def parse_results(self, individual, output_files=None):
+        # output_file = output_files[0]
+        # path = output_file
+        #
+        # content = ""
+        # if os.path.exists(path):
+        #     with open(path) as file:
+        #         content = file.read()
+        # else:
+        #     self.logger.error(
+        #         "Output file '{}' doesn't exists.".format(path))
+        # far_field = np.zeros([361, 181])
+        # with open(output_file) as file:
+        #     lines = file.readlines()
+        #
+        # for line in lines[31:]:
+        #     data = line.split()
+        #     numbers = []
+        #     for item in data:
+        #         numbers.append(float(item))
+        #
+        #     phi = int(numbers[0])
+        #     theta = int(numbers[1])
+        #     x = np.abs(numbers[2] + 1j * numbers[3])
+        #     y = np.abs(numbers[4] + 1j * numbers[5])
+        #     far_field[phi, theta] = np.sqrt(x ** 2 + y ** 2)
 
-        content = ""
-        if os.path.exists(path):
-            with open(path) as file:
-                content = file.read()
-        else:
-            self.logger.error(
-                "Output file '{}' doesn't exists.".format(path))
-        far_field = np.zeros([361, 181])
-        with open(output_file) as file:
-            lines = file.readlines()
-
-        for line in lines[31:]:
-            data = line.split()
-            numbers = []
-            for item in data:
-                numbers.append(float(item))
-
-            phi = int(numbers[0])
-            theta = int(numbers[1])
-            x = np.abs(numbers[2] + 1j * numbers[3])
-            y = np.abs(numbers[4] + 1j * numbers[5])
-            far_field[phi, theta] = np.sqrt(x ** 2 + y ** 2)
-
-        return [result]
+        return 10
 
 
 class TestLocalComsol(unittest.TestCase):

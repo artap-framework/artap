@@ -33,12 +33,12 @@ class TestCrossover(unittest.TestCase):
         sm = SimpleMutator(self.parameters, 0.7)
         individual = sm.mutate(self.i1)
         self.assertTrue(
-            self.parameters[0]['bounds'][0] <= individual.vector[0] <= self.parameters[0]['bounds'][1] and
-            self.parameters[1]['bounds'][0] <= individual.vector[1] <= self.parameters[1]['bounds'][1])
+            self.parameters[0]['bounds'][0] <= individual[0] <= self.parameters[0]['bounds'][1] and
+            self.parameters[1]['bounds'][0] <= individual[1] <= self.parameters[1]['bounds'][1])
 
     def test_sbx(self):
         sbx = SimulatedBinaryCrossover(self.parameters, 1.0)
-        offsprings = sbx.cross(self.i1, self.i2)
+        offsprings = sbx.cross(self.i1.vector, self.i2.vector)
         self.assertEqual(len(offsprings), 2)
 
     def test_simple_crossover(self):
@@ -531,12 +531,12 @@ class TestUniformMutator(unittest.TestCase):
         self.um = PmMutator(problem.parameters, 0)
 
     def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
-        x = Individual([3, 2])
+        x = [3, 2]
         y = self.um.mutate(x)
         self.assertEqual(y, [3, 2])
 
     def test_should_change_if_the_probability_is_one(self):
-        x = Individual([3, 2])
+        x = [3, 2]
         self.um.probability = 1.0
         y = self.um.mutate(x)
         self.assertNotEqual(y, [3, 2])
@@ -549,21 +549,15 @@ class TestNonUniformMutator(unittest.TestCase):
         self.um = NonUniformMutation(problem.parameters, 0, 100, 1)
 
     def test_should_the_solution_remain_unchanged_if_the_probability_is_zero(self):
-        x = Individual([3, 2])
-        x.costs = [2.0, 3.0]
-        x.costs_signed = [2.0, 3.0, 0.0]
-
+        x = [3, 2]
         y = self.um.mutate(x)
-        self.assertEqual(y.vector, [3, 2])
+        self.assertEqual(y, [3, 2])
 
     def test_should_change_if_the_probability_is_one(self):
-        x = Individual([3, 2])
-        x.costs = [2.0, 3.0]
-        x.costs_signed = [2.0, 3.0, 0.0]
-
+        x = [3, 2]
         self.um.probability = 1.0
         y = self.um.mutate(x, 2)
-        self.assertNotEqual(y.vector, [3, 2])
+        self.assertNotEqual(y, [3, 2])
 
 
 class TestFireflystep(unittest.TestCase):

@@ -685,14 +685,24 @@ class CondorComsolJobExecutor(CondorJobExecutor):
 
 class LocalCSTExecutor(Executor):
     def __init__(self, problem, model_file):
-        parametr_file = r"C:\Users\panek\Documents\git\software\Artap\artap\tests\data\cst\parameters.txt"
-        self.cst_file = "./cst/patch_circular_polarization.cst"
-        self.cst_path = '"C:/Program Files (x86)/CST Studio Suite 2020/CST DESIGN ENVIRONMENT"  -r --rebuild --hide ' \
-                        '-par {} -project-file {}'.format(parametr_file, self.cst_file)
+        self.problem = problem
+        directory = os.path.dirname(model_file)
+        self.parameter_file = os.path.join(directory, 'parameters.txt')
+        self.cst_file = model_file
+        self.executable = r'"C:/Program Files (x86)/CST Studio Suite 2020/CST DESIGN ENVIRONMENT"'
+        self.parameters = r'  -r --rebuild --hide -par {} -project-file {}'.format(self.parameter_file, self.cst_file)
+        self.command = self.executable + self.parameters
 
     def eval(self, individual):
-        os.system(self.cst_path)
-        return [0]
+        parameters = ""
+        for parameter, value in zip(self.problem.parameters, individual.vector):
+            parameters += "{}={}\n".format(parameter['name'], value)
+        parameter_file = open(self.parameter_file, "w")
+        parameter_file.write(parameters)
+        parameter_file.close()
+        os.system(self.command)
+        result = self.problem.parse_results(individual)
+        return [result]
 
 
 class CondorCSTJobExecutor(CondorJobExecutor):

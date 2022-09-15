@@ -12,8 +12,8 @@ class TestNSGA2(unittest.TestCase):
     def test_local_problem(self):
         problem = ZDT1()
         algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 5
-        algorithm.options['max_population_size'] = 3
+        algorithm.options['max_population_number'] = 10
+        algorithm.options['max_population_size'] = 10
         algorithm.options['max_processes'] = 1
         algorithm.run()
 
@@ -22,7 +22,8 @@ class TestNSGA2(unittest.TestCase):
         self.assertEqual(len(populations), algorithm.options['max_population_number'])
         for individuals in populations.values():
             self.assertEqual(len(individuals), algorithm.options['max_population_size'])
-
+        self.assertEqual(len(problem.individuals),
+                         algorithm.options['max_population_number'] * algorithm.options['max_population_size'])
 
 class TestZDT1(unittest.TestCase):
     # integration test -- tests the total functionality of nsga2
@@ -30,7 +31,7 @@ class TestZDT1(unittest.TestCase):
     def test_local_problem(self):
         problem = ZDT1()
         algorithm = NSGAII(problem)
-        algorithm.options['max_population_number'] = 250
+        algorithm.options['max_population_number'] = 100
         algorithm.options['max_population_size'] = 100    # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.run()

@@ -1,3 +1,4 @@
+import copy
 import time
 from abc import abstractmethod
 
@@ -65,6 +66,8 @@ class NSGAII(GeneticAlgorithm):
 
         # sync to datastore
         for individual in individuals:
+            self.problem.individuals.append(individual)
+            individual.population_id = 1
             self.problem.data_store.sync_individual(individual)
 
         t_s = time.time()
@@ -73,14 +76,17 @@ class NSGAII(GeneticAlgorithm):
                                     self.options['max_population_number'] * self.options['max_population_size']))
 
         # optimization
-        for it in range(self.options['max_population_number']):
+        for it in range(self.options['max_population_number']-1):
+
             # generate new offsprings
-            vectors = self.generate(individuals)
-            offsprings = []
-            for vector in vectors:
-                offsprings.append(IndividualNSGAII(vector))
+            offsprings = self.generate(individuals)
+
+            # Todo: this lead to too many calculations of the goal function
             # evaluate the offsprings
             self.evaluate(offsprings)
+
+            for individual in individuals:
+                offsprings.append(copy.deepcopy(individual))
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
@@ -90,7 +96,7 @@ class NSGAII(GeneticAlgorithm):
 
             for individual in individuals:
                 # add to population
-                individual.population_id = it + 1
+                individual.population_id = it + 2
                 # append to problem
                 self.problem.individuals.append(individual)
                 # sync to datastore

@@ -193,10 +193,10 @@ class OMOPSO(SwarmAlgorithm):
 
         for i in range(len(particles)):
             if i % 3 == 0:
-                mutated = self.uniform_mutator.mutate(particles[i])
+                mutated = self.uniform_mutator.mutate(particles[i].vector)
             else:
-                mutated = self.non_uniform_mutator.mutate(particles[i], current_step)
-            particles[i].vector = copy(mutated.vector)
+                mutated = self.non_uniform_mutator.mutate(particles[i].vector, current_step)
+            particles[i].vector = mutated.copy()
         return
 
     def update_position(self, individuals):
@@ -226,7 +226,7 @@ class OMOPSO(SwarmAlgorithm):
         pareto = []
         for particle in swarm:
             if particle.features['front_number'] == 1:
-                pareto += swarm
+                pareto.append(particle)
         for item in pareto:
             self.leaders.append(item)
         self.leaders.truncate(self.options['max_population_size'], 'crowding_distance')
@@ -404,8 +404,7 @@ class SMPSO(SwarmAlgorithm):
 
         for i in range(len(particles)):
             if i % 6 == 0:
-                mutated = self.mutator.mutate(particles[i])
-                particles[i].vector = mutated
+                particles[i].vector = self.mutator.mutate(particles[i].vector)
 
     def update_position(self, individuals):
         for individual in individuals:
@@ -679,7 +678,7 @@ class PSOGA(SwarmAlgorithm):
             # GA operators
             first_selected = self.selector.select(offsprings)
             second_selected = self.selector.select(offsprings)
-            vector1, vector2 = self.crossover.cross(first_selected, second_selected)
+            vector1, vector2 = self.crossover.cross(first_selected.vector, second_selected.vector)
             vector1 = self.mutator.mutate(vector1)
             vector2 = self.mutator.mutate(vector2)
 
