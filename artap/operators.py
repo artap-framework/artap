@@ -1261,6 +1261,7 @@ def nondominated_truncate(population, size):
     # calculating the crowding distance on the different fronts
     population = list(set(population))
     result = sorted(population, key=functools.cmp_to_key(nondominated_cmp))
+    # ToDo:  Return also individuals which are not included in next population , result[size:]
     return result[:size]
 
 

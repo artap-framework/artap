@@ -12,18 +12,22 @@ class Results:
         self.problem = problem
 
     def parameter_names(self):
+        """ Returns a list of parameter names for the given problem. """
         parameter_names = []
         for parameter in self.problem.parameters:
             parameter_names.append(parameter["name"])
         return parameter_names
 
     def parameter_number(self):
+        """ Returns the number of parameters."""
         return len(self.problem.parameters)
 
     def goal_number(self):
+        """ Returns the number of goal functions. """
         return len(self.problem.costs)
 
     def goal_names(self):
+        """ Returns a list of goal names for the given problem. """
         cost_names = []
         for cost in self.problem.costs:
             cost_names.append(cost["name"])
@@ -58,6 +62,7 @@ class Results:
         return out
 
     def table(self, transpose=True):
+        """ Returns the table where rows consist of values of parameters and values of goal functions. """
         out = []
         for individuals in self.problem.populations().values():
             for individual in individuals:

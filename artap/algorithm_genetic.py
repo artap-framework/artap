@@ -67,7 +67,7 @@ class GeneticAlgorithm(Algorithm):
             if any(child2 == offspring for offspring in offsprings) and (len(offsprings) < self.options[
                 'max_population_size']):
                 pass
-            else:
+            elif len(offsprings) < self.options['max_population_size']:
                 offsprings.append(child2)
 
         return offsprings

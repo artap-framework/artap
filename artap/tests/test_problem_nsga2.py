@@ -19,11 +19,17 @@ class TestNSGA2(unittest.TestCase):
 
         populations = problem.populations()
 
+        # Test if the number of populations is the same as the required number
         self.assertEqual(len(populations), algorithm.options['max_population_number'])
+
+        # Test if it fits the number of individuals in population
         for individuals in populations.values():
             self.assertEqual(len(individuals), algorithm.options['max_population_size'])
+
+        # Test if it fits the overall number of individuals
         self.assertEqual(len(problem.individuals),
                          algorithm.options['max_population_number'] * algorithm.options['max_population_size'])
+
 
 class TestZDT1(unittest.TestCase):
     # integration test -- tests the total functionality of nsga2
@@ -32,7 +38,7 @@ class TestZDT1(unittest.TestCase):
         problem = ZDT1()
         algorithm = NSGAII(problem)
         algorithm.options['max_population_number'] = 100
-        algorithm.options['max_population_size'] = 100    # according to the literature
+        algorithm.options['max_population_size'] = 100  # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.run()
 
@@ -43,7 +49,7 @@ class TestZDT1(unittest.TestCase):
 
 
 class TestAckley(unittest.TestCase):
-    """ Tests that the nsga - ii can find the global optimum. """
+    """ Tests that the NSGA - II can find the global optimum. """
 
     def test_local_problem(self, population_number=50):
         try:
@@ -130,24 +136,12 @@ class MultiConstraintOptimization(unittest.TestCase):
                 f_1.append(individual.costs[0])
                 f_2.append(individual.costs[1])
 
-            # print(len(problem.individuals))
-            # for individual in problem.individuals:
-            #    print(individual)
-
             self.assertLess(min(f_1), 1.5)
             self.assertGreater(max(f_1), 74)
             self.assertLess(max(f_2), 1.5)
             self.assertGreater(max(f_2), 0.75)
 
-            # import matplotlib.pyplot as plt
-            #
-            # plt.figure(figsize=(7, 5))
-            # # plt.scatter(res.F[:, 0], res.F[:, 1], s=30, facecolors='none', edgecolors='blue')
-            # plt.scatter(f_1, f_2, s=30, facecolors='none', edgecolors='blue')
-            # plt.title("Objective Space")
-            # plt.show()
-
-            # print(min(f_1), max(f_1), min(f_2), max(f_2))
+        # ToDo: Is it good in test?
         except AssertionError:
             # stochastic
             print("MultiConstraintOptimization::test_local_problem", population_number)

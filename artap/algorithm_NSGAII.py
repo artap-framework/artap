@@ -21,6 +21,8 @@ class IndividualNSGAII(Individual):
 
     def copy(self):
         new_individual = self.__class__(self.vector)
+        new_individual.costs = self.costs
+        new_individual.costs_signed = self.costs_signed
         return new_individual
 
 
@@ -86,21 +88,22 @@ class NSGAII(GeneticAlgorithm):
             self.evaluate(offsprings)
 
             for individual in individuals:
-                offsprings.append(copy.deepcopy(individual))
+                offsprings.append(individual.copy())
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
 
             # truncate
+            # ToDO: Deside if we want to save removed individuals
+            # individuals, removed = nondominated_truncate(offsprings, self.options['max_population_size'])
             individuals = nondominated_truncate(offsprings, self.options['max_population_size'])
-
             for individual in individuals:
                 # add to population
                 individual.population_id = it + 2
                 # append to problem
                 self.problem.individuals.append(individual)
-                # sync to datastore
                 self.problem.data_store.sync_individual(individual)
+
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))
