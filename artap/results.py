@@ -55,10 +55,19 @@ class Results:
         return out
 
     def costs(self):
+        """ Returns the list containing cost values for all individuals.
+            Example of usage:
+                costs = results.costs()
+                plt.plot(costs, '.')
+        """
         out = []
-        for individuals in self.problem.populations().values():
-            for individual in individuals:
-                out.append(individual.costs)
+        n = len(self.problem.individuals[0].costs)
+        for i in range(n):
+            out.append([])
+
+        for individual in self.problem.individuals:
+            for i in range(n):
+                out[i].append(individual.costs[i])
         return out
 
     def table(self, transpose=True):
@@ -256,8 +265,10 @@ class Results:
         pareto_front = []
         for i in range(n):
             pareto_front.append([])
-            for individual in individuals:
-                if individual.features['front_number'] == 1:
+
+        for individual in individuals:
+            if individual.features['front_number'] == 1:
+                for i in range(n):
                     pareto_front[i].append(individual.costs[i])
 
         return pareto_front
