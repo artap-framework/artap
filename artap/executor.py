@@ -1,3 +1,4 @@
+import string
 import textwrap
 import re
 import tempfile
@@ -77,12 +78,13 @@ class Executor(metaclass=ABCMeta):
 
     @staticmethod
     def _remove_dir(local_dir):
-        files = os.listdir(path=local_dir)
-        for f in files:
-            filepath = os.path.join(local_dir, f)
-            os.remove(filepath)
+        if os.path.exists(local_dir):
+            files = os.listdir(path=local_dir)
+            for f in files:
+                filepath = os.path.join(local_dir, f)
+                os.remove(filepath)
 
-        os.rmdir(local_dir)
+            os.rmdir(local_dir)
 
 
 class LocalComsolExecutor(Executor):
@@ -167,7 +169,7 @@ class LocalFEMMExecutor(Executor):
         values = param_values_string.split(',')
 
         for i in range(len(params)):
-            temp = str(params[i])+'='+str(values[i])
+            temp = str(params[i]) + '=' + str(values[i])
             cmd_string += ' -lua-var={}'.format(temp)
 
         try:
@@ -190,7 +192,6 @@ class LocalFEMMExecutor(Executor):
             raise RuntimeError(err)
 
 
-
 class LocalAnsysExecutor(Executor):
     """
     runs an ansys executable python script
@@ -201,7 +202,7 @@ class LocalAnsysExecutor(Executor):
         self.script_file = ntpath.basename(script_file)
 
         self.ansys_path = r'C:\Program Files\AnsysEM\AnsysEM20.2\Win64\ansysedt.exe'
-        #"D:\tmp\Example_Conductor.py"
+        # "D:\tmp\Example_Conductor.py"
         self.output_files = output_files
 
     def eval(self, individual):
@@ -210,8 +211,8 @@ class LocalAnsysExecutor(Executor):
         param_names_string = Executor._join_parameters_names(self.problem.parameters)
         param_values_string = Executor._join_parameters_values(individual.vector)
 
-        #lua_path = os.path.abspath(self.script_file)
-        #if os.path.isfile(lua_path) and platform == 'linux':
+        # lua_path = os.path.abspath(self.script_file)
+        # if os.path.isfile(lua_path) and platform == 'linux':
         #    arg = '"' + os.popen('winepath -w "' + lua_path + '"').read().strip() + '"'
 
         cmd_string = self.ansys_path + ' - runscript'.format(self.script_file)
@@ -487,8 +488,12 @@ class CondorJobExecutor(RemoteExecutor):
                         output_files = []
                         d = datetime.datetime.now()
                         ts = d.strftime("%Y-%m-%d-%H-%M-%S-%f")
-                        path = self.problem.working_dir + 'artap' + ts
-                        os.mkdir(path)
+                        path = self.problem.working_dir + 'artap' + ts + str(individual.id)
+
+                        if os.path.exists(path):
+                            pass
+                        else:
+                            os.mkdir(path)
 
                         for file in self.output_files:
                             self._transfer_file_from_remote(source_file=file,
@@ -498,7 +503,9 @@ class CondorJobExecutor(RemoteExecutor):
                         success = True
                         result = self.parse_results(output_files, individual)
                         # update cost on remote server
-                        client.root.log_update_cost(remote_dir, individual, result)
+
+                        # ToDo: resolve this, database is sometimes locked under Windows
+                        # client.root.log_update_cost(remote_dir, individual, result)
 
                     # remove job dir
                     if result is not None:
@@ -678,12 +685,24 @@ class CondorComsolJobExecutor(CondorJobExecutor):
 
 class LocalCSTExecutor(Executor):
     def __init__(self, problem, model_file):
-        cst_file = "./cst/patch_circular_polarization.cst"
-        cst_path = '"C:/Program Files (x86)/CST Studio Suite 2020/CST DESIGN ENVIRONMENT" --hide -m -r {}'.format(
-            cst_file)
+        self.problem = problem
+        directory = os.path.dirname(model_file)
+        self.parameter_file = os.path.join(directory, 'parameters.txt')
+        self.cst_file = model_file
+        self.executable = r'"C:/Program Files (x86)/CST Studio Suite 2020/CST DESIGN ENVIRONMENT"'
+        self.parameters = r'  -r --rebuild --hide -par {} -project-file {}'.format(self.parameter_file, self.cst_file)
+        self.command = self.executable + self.parameters
 
     def eval(self, individual):
-        pass
+        parameters = ""
+        for parameter, value in zip(self.problem.parameters, individual.vector):
+            parameters += "{}={}\n".format(parameter['name'], value)
+        parameter_file = open(self.parameter_file, "w")
+        parameter_file.write(parameters)
+        parameter_file.close()
+        os.system(self.command)
+        result = self.problem.parse_results(individual)
+        return [result]
 
 
 class CondorCSTJobExecutor(CondorJobExecutor):

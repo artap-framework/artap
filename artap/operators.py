@@ -519,7 +519,7 @@ class SimpleMutator(Mutator):
             else:
                 vector.append(p.vector[i])
 
-        p_new = Individual(vector)
+        p_new = vector
         return p_new
 
 
@@ -542,9 +542,9 @@ class PmMutator(Mutator):
             if random.uniform(0, 1) < self.probability:
                 l_b = parameter['bounds'][0]
                 u_b = parameter['bounds'][1]
-                vector.append(self.pm_mutation(parent.vector[i], l_b, u_b))
+                vector.append(self.pm_mutation(parent[i], l_b, u_b))
             else:
-                vector.append(parent.vector[i])
+                vector.append(parent[i])
 
         return vector
 
@@ -601,11 +601,11 @@ class UniformMutator(Mutator):
             if random.uniform(0, 1) < self.probability:
                 l_b = parameter['bounds'][0]
                 u_b = parameter['bounds'][1]
-                vector.append(self.uniform_mutation(parent.vector[i], l_b, u_b))
+                vector.append(self.uniform_mutation(parent[i], l_b, u_b))
             else:
-                vector.append(parent.vector[i])
+                vector.append(parent[i])
 
-        return Individual(vector)
+        return vector
 
     def uniform_mutation(self, x, lb, ub):
 
@@ -633,11 +633,11 @@ class NonUniformMutation(Mutator):
             if random.uniform(0, 1) < self.probability:
                 l_b = parameter['bounds'][0]
                 u_b = parameter['bounds'][1]
-                vector.append(self.non_uniform_mutation(parent.vector[i], l_b, u_b, current_iteration))
+                vector.append(self.non_uniform_mutation(parent[i], l_b, u_b, current_iteration))
             else:
-                vector.append(parent.vector[i])
+                vector.append(parent[i])
 
-        return Individual(vector)
+        return vector
 
     def non_uniform_mutation(self, x, lb, ub, current_iteration):
 
@@ -1261,6 +1261,7 @@ def nondominated_truncate(population, size):
     # calculating the crowding distance on the different fronts
     population = list(set(population))
     result = sorted(population, key=functools.cmp_to_key(nondominated_cmp))
+    # ToDo:  Return also individuals which are not included in next population , result[size:]
     return result[:size]
 
 
@@ -1430,8 +1431,8 @@ class SimpleCrossover(Crossover):
         super().__init__(parameters, probability)
 
     def cross(self, p1, p2):
-        parent_a = p1.vector.copy()
-        parent_b = p2.vector.copy()
+        parent_a = p1.copy()
+        parent_b = p2.copy()
 
         if random.uniform(0.0, 1.0) <= self.probability:
             parameter1 = []
@@ -1450,8 +1451,8 @@ class SimpleCrossover(Crossover):
             parent_a = parameter1
             parent_b = parameter2
 
-        offspring_a = Individual(parent_a)
-        offspring_b = Individual(parent_b)
+        offspring_a = parent_a
+        offspring_b = parent_b
 
         return offspring_a, offspring_b
 
@@ -1486,11 +1487,11 @@ class SimulatedBinaryCrossover(Crossover):
 
                 if random.random() <= 0.5:
 
-                    if abs(x2.vector[i] - x1.vector[i]) > EPSILON:
-                        if x2.vector[i] > x1.vector[i]:
-                            y1, y2 = x1.vector[i], x2.vector[i]
+                    if abs(x2[i] - x1[i]) > EPSILON:
+                        if x2[i] > x1[i]:
+                            y1, y2 = x1[i], x2[i]
                         else:
-                            y1, y2 = x2.vector[i], x1.vector[i]
+                            y1, y2 = x2[i], x1[i]
 
                         lb, ub = param['bounds'][0], param['bounds'][1]
 
@@ -1522,9 +1523,9 @@ class SimulatedBinaryCrossover(Crossover):
                         c2 = self.clip(c2, lb, ub)
 
                         if random.random() <= 0.5:
-                            x1.vector[i], x2.vector[i] = c2, c1
+                            x1[i], x2[i] = c2, c1
                         else:
-                            x1.vector[i], x2.vector[i] = c1, c2
+                            x1[i], x2[i] = c1, c2
 
         return x1, x2
 

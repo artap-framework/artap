@@ -126,7 +126,7 @@ class Problem:
         atexit.register(self.cleanup)
 
     def __del__(self):
-        print(os.path.exists(self.working_dir))
+        pass
 
     def populations(self):
         individuals = {}

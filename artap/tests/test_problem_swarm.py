@@ -66,7 +66,7 @@ class TestZDT1SMPSP(unittest.TestCase):
         problem = ZDT1()
         algorithm = OMOPSO(problem)
         algorithm.options['max_population_number'] = 200
-        algorithm.options['max_population_size'] = 200  # according to the literature
+        algorithm.options['max_population_size'] = 100  # according to the literature
         algorithm.options['max_processes'] = 1
         algorithm.run()
 
@@ -87,6 +87,7 @@ class TestRosenbrockSMPSO(unittest.TestCase):
         algorithm.run()
 
         result = Results(problem)
+
         optimum = result.find_optimum('f_1')
         print(optimum.costs[0])
         print(problem.global_optimum)

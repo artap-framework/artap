@@ -33,45 +33,42 @@ class GeneticAlgorithm(Algorithm):
         self.crossover = None
 
     def generate(self, parents, archive=None):
+
         offsprings = []
-
-        # deepcopy of parents
-        for parent in parents:
-            offsprings.append(deepcopy(parent.vector))
-
-        while len(offsprings) < 2 * self.options['max_population_size']:
+        while len(offsprings) < self.options['max_population_size']:
             parent1 = self.selector.select(parents)
 
-            repeat = True
-            while repeat:
-                if archive:
-                    if len(archive) <= 1:
-                        parent2 = self.selector.select(parents)
-                    else:
-                        parent2 = archive.rand_choice()
-                else:
+            if archive:
+                if len(archive) <= 1:
                     parent2 = self.selector.select(parents)
-
-                if parent1 is not parent2:
-                    repeat = False
+                else:
+                    parent2 = archive.rand_choice()
+            else:
+                parent2 = self.selector.select(parents)
 
             # crossover
-            child1, child2 = self.crossover.cross(parent1, parent2)
-
+            vector_1, vector_2 = self.crossover.cross(parent1.vector, parent2.vector)
+            child1 = parent1.__class__(vector_1)
+            child2 = parent1.__class__(vector_2)
             # mutation
-            child1 = self.mutator.mutate(child1)
-            child2 = self.mutator.mutate(child2)
+            child1.vector = self.mutator.mutate(child1.vector, child2.vector)
+            child2.vector = self.mutator.mutate(child2.vector, child1.vector)
 
             # always create new individual
-            if not any(child1 == item for item in offsprings) and len(offsprings) < 2 * self.options[
-                'max_population_size']:
-                child_copy = deepcopy(child1)
-                offsprings.append(child_copy)
+            if len(offsprings) == 0:
+                offsprings.append(child1)
 
-            if not any(child2 == item for item in offsprings) and len(offsprings) < 2 * self.options[
-                'max_population_size']:
-                child_copy = deepcopy(child2)
-                offsprings.append(child_copy)
+            if any(child1 == offspring for offspring in offsprings) and (len(offsprings) < self.options[
+                'max_population_size']):
+                pass
+            else:
+                offsprings.append(child1)
+
+            if any(child2 == offspring for offspring in offsprings) and (len(offsprings) < self.options[
+                'max_population_size']):
+                pass
+            elif len(offsprings) < self.options['max_population_size']:
+                offsprings.append(child2)
 
         return offsprings
 
@@ -159,10 +156,7 @@ class EpsMOEA(GeneticAlgorithm):
 
         for it in range(self.options['max_population_number']):
             # generate and evaluate the next generation
-            vectors = self.generate(individuals, archive=self.archive)
-            offsprings = []
-            for vector in vectors:
-                offsprings.append(IndividualEpsMOEA(vector))
+            offsprings = self.generate(individuals, archive=self.archive)
             self.evaluator.evaluate(offsprings)
 
             # pop-acceptance procedure, the dominating offsprings will be preserved in the population and  in the archive

@@ -104,12 +104,10 @@ class Individual(metaclass=ABCMeta):
         return string
 
     def __eq__(self, other):
-        if not self.costs_signed:
-            diff = set(self.vector) - set(other.vector)
-            return diff == set()
-        else:
-            diff = set(self.costs_signed) - set(other.costs_signed)
-            return diff == set()
+        diff = 1
+        for i in range(len(self.vector)):
+            diff = abs(self.vector[i] - other.vector[i])
+        return diff < 1e-10
 
     def __hash__(self):
         return hash(tuple(self.vector))

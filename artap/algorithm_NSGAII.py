@@ -1,3 +1,4 @@
+import copy
 import time
 from abc import abstractmethod
 
@@ -20,6 +21,8 @@ class IndividualNSGAII(Individual):
 
     def copy(self):
         new_individual = self.__class__(self.vector)
+        new_individual.costs = self.costs
+        new_individual.costs_signed = self.costs_signed
         return new_individual
 
 
@@ -65,6 +68,8 @@ class NSGAII(GeneticAlgorithm):
 
         # sync to datastore
         for individual in individuals:
+            self.problem.individuals.append(individual)
+            individual.population_id = 1
             self.problem.data_store.sync_individual(individual)
 
         t_s = time.time()
@@ -73,28 +78,32 @@ class NSGAII(GeneticAlgorithm):
                                     self.options['max_population_number'] * self.options['max_population_size']))
 
         # optimization
-        for it in range(self.options['max_population_number']):
+        for it in range(self.options['max_population_number']-1):
+
             # generate new offsprings
-            vectors = self.generate(individuals)
-            offsprings = []
-            for vector in vectors:
-                offsprings.append(IndividualNSGAII(vector))
+            offsprings = self.generate(individuals)
+
+            # Todo: this lead to too many calculations of the goal function
             # evaluate the offsprings
             self.evaluate(offsprings)
+
+            for individual in individuals:
+                offsprings.append(individual.copy())
 
             # make the pareto dominance calculation and calculating the crowding distance
             self.selector.fast_nondominated_sorting(offsprings)
 
             # truncate
+            # ToDO: Deside if we want to save removed individuals
+            # individuals, removed = nondominated_truncate(offsprings, self.options['max_population_size'])
             individuals = nondominated_truncate(offsprings, self.options['max_population_size'])
-
             for individual in individuals:
                 # add to population
-                individual.population_id = it + 1
+                individual.population_id = it + 2
                 # append to problem
                 self.problem.individuals.append(individual)
-                # sync to datastore
                 self.problem.data_store.sync_individual(individual)
+
 
         t = time.time() - t_s
         self.problem.logger.info("NSGA_II: elapsed time: {} s".format(t))

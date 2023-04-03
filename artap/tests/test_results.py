@@ -4,8 +4,6 @@ import tempfile
 import csv
 import numpy as np
 
-from matplotlib.pyplot import show
-
 from ..algorithm_monte_carlo import Numerical_Integrator
 from ..problem import Problem
 from ..algorithm_sweep import SweepAlgorithm
@@ -47,7 +45,7 @@ class TestGearDesignProblem(Problem):
 
     def evaluate(self, individual):
         f1 = (1. / 6.931 - (individual.vector[0] * individual.vector[1]) / (
-                    individual.vector[2] * individual.vector[3])) ** 2.
+                individual.vector[2] * individual.vector[3])) ** 2.
         f2 = max(individual.vector)
         return [f1, f2]
 
@@ -55,7 +53,7 @@ class TestGearDesignProblem(Problem):
         pass
 
 
-class Integral_Problem(Problem):
+class IntegralProblem(Problem):
 
     def set(self, **kwargs):
         """Time-dependent 1D QM wave function of a single particle - squared."""
@@ -63,7 +61,7 @@ class Integral_Problem(Problem):
         # self.parameters = self.generate_paramlist(self.dimension, lb=0.0, ub=1.0)
         self.parameters = [{'name': 'x1', 'bounds': [0, 1], 'parameter_type': 'integer'}]
 
-        self.u_b = 3*np.pi/2
+        self.u_b = 3 * np.pi / 2
         self.l_b = 0
         self.sampling_size = 100
         self.integral_global = 1.0
@@ -257,9 +255,8 @@ class TestResults(unittest.TestCase):
         self.assertEqual(len(individuals), 3)
         self.assertEqual(individuals[1].costs[0], 10.0)
 
-
     def test_integration_measure(self):
-        problem = Integral_Problem(**{'dimension': 1})
+        problem = IntegralProblem(**{'dimension': 1})
         algorithm = Numerical_Integrator(problem)
         algorithm.options['max_population_number'] = 50
         algorithm.options['max_population_size'] = 100

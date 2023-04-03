@@ -12,18 +12,22 @@ class Results:
         self.problem = problem
 
     def parameter_names(self):
+        """ Returns a list of parameter names for the given problem. """
         parameter_names = []
         for parameter in self.problem.parameters:
             parameter_names.append(parameter["name"])
         return parameter_names
 
     def parameter_number(self):
+        """ Returns the number of parameters."""
         return len(self.problem.parameters)
 
     def goal_number(self):
+        """ Returns the number of goal functions. """
         return len(self.problem.costs)
 
     def goal_names(self):
+        """ Returns a list of goal names for the given problem. """
         cost_names = []
         for cost in self.problem.costs:
             cost_names.append(cost["name"])
@@ -51,13 +55,23 @@ class Results:
         return out
 
     def costs(self):
+        """ Returns the list containing cost values for all individuals.
+            Example of usage:
+                costs = results.costs()
+                plt.plot(costs, '.')
+        """
         out = []
-        for individuals in self.problem.populations().values():
-            for individual in individuals:
-                out.append(individual.costs)
+        n = len(self.problem.individuals[0].costs)
+        for i in range(n):
+            out.append([])
+
+        for individual in self.problem.individuals:
+            for i in range(n):
+                out[i].append(individual.costs[i])
         return out
 
     def table(self, transpose=True):
+        """ Returns the table where rows consist of values of parameters and values of goal functions. """
         out = []
         for individuals in self.problem.populations().values():
             for individual in individuals:
@@ -251,8 +265,10 @@ class Results:
         pareto_front = []
         for i in range(n):
             pareto_front.append([])
-            for individual in individuals:
-                if individual.features['front_number'] == 1:
+
+        for individual in individuals:
+            if individual.features['front_number'] == 1:
+                for i in range(n):
                     pareto_front[i].append(individual.costs[i])
 
         return pareto_front
