@@ -133,10 +133,10 @@ class TestResults(unittest.TestCase):
 
     def test_costs(self):
         costs = self.results.costs()
-        self.assertEqual(len(costs), 3)
+        self.assertEqual(len(costs[0]), 3)
         self.assertEqual(costs[0][0], 20.0)
-        self.assertEqual(costs[1][0], 10.0)
-        self.assertEqual(costs[2][0], 20.0)
+        self.assertEqual(costs[0][1], 10.0)
+        self.assertEqual(costs[0][2], 20.0)
 
     def test_table(self):
         table = self.results.table(transpose=False)
