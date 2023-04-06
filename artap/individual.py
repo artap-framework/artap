@@ -1,6 +1,7 @@
 from abc import *
 from collections.abc import Iterable
 from enum import Enum
+import numpy as np
 
 
 class Individual(metaclass=ABCMeta):
@@ -61,7 +62,7 @@ class Individual(metaclass=ABCMeta):
         This function calculates the signed costs for every vector and insert the feasibility after
         :return:
         """
-        self.costs_signed = list(map(lambda x, y: x * round(y, ndigits=self.features["precision"]), p_signs, self.costs))
+        self.costs_signed = list(map(lambda x, y: x * np.round(y, decimals=self.features["precision"]), p_signs, self.costs))
         self.costs_signed.append(not self.features["feasible"])
 
     def __repr__(self):

@@ -41,7 +41,7 @@ class ProblemBranin(Problem):
         return [y]
 
     def predict(self, individual):
-        sigma_MGP, sigma_KRG = self.surrogate.predict_variances(individual.vector, True)
+        sigma_MGP = self.surrogate.predict_variances(individual.vector)
 
         if sigma_MGP < 1e-6:
             self.surrogate.train_step *= 1.3
@@ -72,7 +72,7 @@ class ProblemSphere1D(Problem):
         return [y]
 
     def predict(self, individual):
-        sigma_MGP, sigma_KRG = self.surrogate.predict_variances(individual.vector, True)
+        sigma_MGP = self.surrogate.predict_variances(individual.vector)
 
         if sigma_MGP < 1.00:
             # value_problem = self.evaluate(individual)

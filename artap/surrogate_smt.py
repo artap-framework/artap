@@ -24,9 +24,9 @@ class SurrogateModelSMT(SurrogateModelPredict):
         else:
             assert 0
 
-    def predict_variances(self, x, *args):
+    def predict_variances(self, x):
         if self.trained:
-            return self.regressor.predict_variances(np.array([x]), *args)
+            return self.regressor.predict_variances(np.array([x]))
         else:
             assert 0
 
