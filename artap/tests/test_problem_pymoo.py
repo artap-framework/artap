@@ -10,15 +10,18 @@ try:
     from pymoo.algorithms.soo.nonconvex.ga import GA
     from pymoo.algorithms.moo.nsga2 import NSGA2
     from pymoo.algorithms.soo.nonconvex.isres import ISRES
-    from pymoo.algorithms.soo.nonconvex.nelder_mead import NelderMead
+    from pymoo.algorithms.soo.nonconvex.nelder import NelderMead
     from pymoo.algorithms.soo.nonconvex.de import DE
 
     from pymoo.operators.sampling.lhs import LHS
-    from pymoo.factory import get_sampling, get_crossover, get_mutation
+
+    from pymoo.operators.crossover.sbx import SimulatedBinaryCrossover
+    from pymoo.operators.mutation.pm import PolynomialMutation
+    from pymoo.operators.sampling.rnd import FloatRandomSampling
 
     __pymoo__ = True
 except ImportError:
-    print("pymoo is not present test skiped")
+    print("pymoo is not present test skipped")
     __pymoo__ = False
 
 
@@ -58,9 +61,9 @@ class TestpymooMultiConstraintOptimization(unittest.TestCase):
         moo_algorithm = NSGA2(
             pop_size=40,
             n_offsprings=10,
-            sampling=get_sampling("real_random"),
-            crossover=get_crossover("real_sbx", prob=0.9, eta=15),
-            mutation=get_mutation("real_pm", eta=20),
+            sampling=FloatRandomSampling(),
+            crossover=SimulatedBinaryCrossover(prob_var=0.9, eta=15),
+            mutation=PolynomialMutation(eta=20),
             eliminate_duplicates=True
         )
 
@@ -125,9 +128,9 @@ class TestAckley(unittest.TestCase):
         moo_algorithm = NSGA2(
             pop_size=10,
             n_offsprings=10,
-            sampling=get_sampling("real_random"),
-            crossover=get_crossover("real_sbx", prob=0.9, eta=15),
-            mutation=get_mutation("real_pm", eta=20),
+            sampling=FloatRandomSampling(),
+            crossover=SimulatedBinaryCrossover(prob_var=0.9, eta=15),
+            mutation=PolynomialMutation(eta=20),
             eliminate_duplicates=True
         )
         self.moo(moo_algorithm)

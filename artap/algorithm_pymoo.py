@@ -9,7 +9,7 @@ try:
     from pymoo.factory import get_termination
     from pymoo.optimize import minimize
 
-    from pymoo.core.problem import starmap_parallelized_eval
+    from pymoo.core.problem import StarmapParallelization
     from multiprocessing.pool import ThreadPool
 
 
@@ -29,15 +29,17 @@ try:
 
             # initialize the pool
             if self.algorithm.options["max_processes"] > 1:
-                pool = ThreadPool(self.algorithm.options["max_processes"])
+                # initialize the thread pool and create the runner
+                n_threads = ThreadPool(self.algorithm.options["max_processes"])
+                pool = ThreadPool(n_threads)
+                runner = StarmapParallelization(pool.starmap)
 
                 super().__init__(n_var=len(problem.parameters),
                                  n_obj=len(problem.costs),
                                  n_constr=len(problem.constraints),
                                  xl=np.array(lb),
                                  xu=np.array(ub),
-                                 runner=pool.starmap,
-                                 func_eval=starmap_parallelized_eval)
+                                 elementwise_runner=runner)
             else:
                 super().__init__(n_var=len(problem.parameters),
                                  n_obj=len(problem.costs),
@@ -83,8 +85,8 @@ try:
 
             termination = get_termination("n_gen", self.options["n_iterations"])
 
-            moo_algorithm.setup(moo_problem,
-                                termination,
+            moo_algorithm.setup(problem=moo_problem,
+                                termination=termination,
                                 seed=1,
                                 save_history=True,
                                 verbose=self.options["verbose_level"] > 0)
@@ -126,4 +128,4 @@ try:
             self.problem.data_store.sync_all()
 
 except ImportError:
-    print("pymoo is not present test skiped")
+    print("pymoo is not present test skipped")
