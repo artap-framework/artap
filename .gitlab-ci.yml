@@ -20,6 +20,6 @@ build:
 
 
     # tests
-    - export CONDOR_HOST=edison.fel.zcu.cz
+    # - export CONDOR_HOST=edison.fel.zcu.cz
     - cd artap/tests
     - pytest --disable-warnings --durations=0 -v
